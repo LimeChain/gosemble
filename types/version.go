@@ -1,6 +1,9 @@
 package types
 
-import "github.com/ChainSafe/gossamer/lib/scale"
+import (
+	"bytes"
+	"github.com/radkomih/gosemble/scale"
+)
 
 type ApiItem struct {
 	Name    [8]byte
@@ -19,30 +22,62 @@ type VersionData struct {
 }
 
 func (v *VersionData) Encode() ([]byte, error) {
-	enc, err := scale.Encode(v)
-	if err != nil {
-		return nil, err
-	}
+	var buffer = bytes.Buffer{}
+	var encoder = scale.Encoder{Writer: &buffer}
 
-	return enc, nil
+	encoder.EncodeByteSlice(v.SpecName)
+	encoder.EncodeByteSlice(v.ImplName)
+	encoder.EncodeUint32(v.AuthoringVersion)
+	encoder.EncodeUint32(v.SpecVersion)
+	encoder.EncodeUint32(v.ImplVersion)
+	encoder.EncodeUint32(uint32(len(v.Apis)))
+
+	for _, apiItem := range v.Apis {
+		encoder.EncodeByteSlice(apiItem.Name[:])
+		encoder.EncodeUint32(apiItem.Version)
+	}
+	encoder.EncodeUint32(v.TransactionVersion)
+	encoder.EncodeUint32(v.StateVersion)
+
+	return buffer.Bytes(), nil
 }
 
 func (v *VersionData) Decode(enc []byte) error {
-	var data VersionData
+	var buffer = bytes.NewBuffer(enc)
+	var decoder = scale.Decoder{Reader: buffer}
 
-	_, err := scale.Decode(enc, &data)
-	if err != nil {
-		return err
+	v.SpecName = decoder.DecodeByteSlice()
+	v.ImplName = decoder.DecodeByteSlice()
+	v.AuthoringVersion = decoder.DecodeUint32()
+	v.SpecVersion = decoder.DecodeUint32()
+	v.ImplVersion = decoder.DecodeUint32()
+
+	apisLength := decoder.DecodeUint32()
+	if apisLength != 0 {
+		var apis []ApiItem
+
+		for i := 0; i < int(apisLength); i++ {
+			apis = append(apis, ApiItem{
+				Name:    decodeApiName(decoder),
+				Version: decoder.DecodeUint32(),
+			})
+		}
+		v.Apis = apis
 	}
 
-	v.SpecName = data.SpecName
-	v.ImplName = data.ImplName
-	v.AuthoringVersion = data.AuthoringVersion
-	v.SpecVersion = data.SpecVersion
-	v.ImplVersion = data.ImplVersion
-	v.Apis = data.Apis
-	v.TransactionVersion = data.TransactionVersion
-	v.StateVersion = data.StateVersion
+	v.TransactionVersion = decoder.DecodeUint32()
+	v.StateVersion = decoder.DecodeUint32()
 
 	return nil
+}
+
+func decodeApiName(decoder scale.Decoder) [8]byte {
+	var result [8]byte
+	length := decoder.DecodeUintCompact()
+
+	for i := 0; i < int(length); i++ {
+		result[i] = decoder.DecodeByte()
+	}
+
+	return result
 }

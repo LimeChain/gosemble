@@ -1,16 +1,8 @@
-# Integration test helpers
+# Substrate Wasm interface
 
-Setup test VM instance to run the compiled `Wasm` module inside and test the expected API (uses `wasmer-go` under the hood).
+Wasm module compiled from `rust/substrate`.
 
-* [x] Extract some helpers from [gossamer](https://github.com/ChainSafe/gossamer) and mock some of the resources `/helpers/vm_instance.go`.
-
-* [x] Use a pre-build `Wasm` runtime with full implementation of the API as reference point `const WASM_RUNTIME = "../build/substrate_runtime.wasm"`.
-
-* [x] Run the tests `go test -v runtime/runtime_test.go`.
-
-Wasm module compiled from `rust+substrate`.
-
-```js
+```
 Type: wasm
 Size: 2.5 MB
 Imports:

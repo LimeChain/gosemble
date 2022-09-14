@@ -7,3 +7,11 @@ type Header struct {
 	ExtrinsicsRoot Hash
 	Digest         Digest
 }
+
+func (v *Header) Encode() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (v *Header) Decode(enc []byte) error {
+	return nil
+}

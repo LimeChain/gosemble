@@ -1,0 +1,6 @@
+[submodule "gossamer"]
+	path = gossamer
+	url = git@github.com:LimeChain/gossamer.git
+[submodule "tinygo"]
+	path = tinygo
+	url = git@github.com:radkomih/tinygo.git
