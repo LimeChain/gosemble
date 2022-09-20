@@ -1,24 +1,44 @@
-# Research Feasibility of a Go Runtime - Oct 2022
+# Research Feasibility of a Go Runtime - Aug 2022
 
 ## Abstract
 
-The idea of writing Polkadot Runtimes in Go is exciting, mainly because of Go's simplicity and automatic memory management. However Polkadot's design decisions around memory management could potentialy make Go's main selling points pointless. Although the language specification doesn't mention how it should manage its memory, the Go community recognizes it as a language with GC, and anything else would be more like a different language with a similar syntax. So aren't we setting up ourselves for failure with Go right from the beginning?
+The lack of diversity and ease of use of Polkadot Runtimes is a barrier that stops Polkadot from living up to its full promise. The Polkadot community should as a whole address this problem. 
 
-Questions we are gonna try to answer:
-* What are the design decisions behind Substrate's architecture - Webassembly specification, Host/Runtime interaction, Runtime memory management?
-* On top of which Webassembly features is Substrate built on? Current limitations and proposals that might help in the future?
-* Which compiler toolchain is best suited for producing Wasm with GC managed runtime - LLVM or Binaryen?
-* How Go and TinyGo internals work and differ from each other - compiler, runtime, GC?
-* What are the challenges of implementing a Substrate Runtime with GC managed language like Go?
-* What are the steps required to implement PoC toolchain and future improvements?
+While there are several choices for implementing Polkadot Hosts, C++, Rust, and Go, the only option for writing Polkadot Runtimes is Rust. There are too many good things to say about Rust, but it is well-known that it has a steep learning curve. On the other hand, Go is a language focused on simplicity that is gaining popularity among software developers nowadays. It is modern, powerful, and fast, backed by Google and used in many of their software, thus making it an ideal candidate for implementing Polkadot Runtimes.
+Arguably, other Blockchain networks (e.g Cosmos) have gained significant adoption due to the lower barrier for entry (compared to Rust).
+
+To be feasible to develop Polkadot Runtime in Go, there are technological challenges that need to be cleared out first. This research is aimed at those challenges.
 
 
-## Substrate design decisions
+## 1. Introduction
 
-**WebAssembly MVP specification**
+Writing Polkadot Runtimes in Go is exciting, mainly because of Go's simplicity and automatic memory management. However, there are doubts if Polkadot's design decisions are well suited to the design and toolchain support of Go. Notably, producing Wasm compatible with Polkadot is not supported in any Go toolchain and Polkadot design decisions around memory management could potentially make pointless some of Go's main selling points. Although the language specification doesn't mention how it should manage its memory, the Go community recognizes it as a language with GC.
 
-The Runtime Wasm module targets [WebAssembly MVP](https://github.com/WebAssembly/design/blob/main/MVP.md) without any extensions enabled.
-Module's domain-specific API consists of:
+So aren't we setting up ourselves for failure with Go right from the start?
+This research aims to provide conclusions if Go is a suitable choice to write Polkadot Runtimes and further aid the development of a Go toolchain capable of producing compatible Wasm.
+
+Here is a list of questions we are going to try to give answers to:
+* What are the design decisions behind Polkadot's architecture - WebAssembly specification, Host/Runtime interaction, Runtime memory management?
+* What is the state of the WebAssembly specification incorporated in Polkadot? Current limitations and proposals that might help in the future?
+* Which compiler framework is best suited for targeting Wasm from a language with GC-managed runtime - LLVM, Binaryen, Emscripten?
+* How Go and TinyGo internals work and differ - compiler, runtime, GC?
+* What are the challenges of implementing a Polkadot Runtime with GC-managed language like Go?
+
+After all the background research is done, a proof of concept toolchain is provided together with the research that describes all the steps required to implement it and future improvements.
+
+But why is it so important to write in Go beside the above said? The main reason is that the Polkadot ecosystem does not have enough diversity of Runtime implementations and developing a toolchain would allow the development of Go framework similar to Substrate that will address that issue.
+
+
+## 2. Background
+
+## 2.1. The design decisions behind Polkadot's architecture
+
+In addition to the [Polkadot spec](https://github.com/w3f/polkadot-spec) here is a list of important points that deserve to be addressed.
+
+### 2.1.1. WebAssembly specification
+
+The Runtime Wasm module targets [WebAssembly MVP](https://github.com/WebAssembly/design/blob/main/MVP.md) without any extensions enabled, which supports a limited set of instructions compared to Webassembly 1.0.
+It is expected to have a very domain-specific API that consists of:
 * exported API functions, the business logic (`Core_version`, `Core_execute_block`, `Core_initialize_block`, etc).
 * imported Host provided functions (`ext_allocator_malloc_version_1`, `ext_allocator_free_version_1`, etc).
 * imported Host provided memory.
@@ -63,90 +83,93 @@ Exports:
 |     |                                                      |                       |    |
 |     |             _________________________________________▼_____________________  |    |
 |     | (imported) |          |                  |           [xxxxx---]            | |    |
-|  MEMORY  -----►  | Data     |         ◄- Stack | Heap -►        [---xxxxx]       | |    |
+|  MEMORY  -----►  | Data     |         ◄- Stack | Heap -►                         | |    |
 |     |            |__________|__________________|_________________________________| |    |
-|     |            0     __data_end         __heap_base           ▲      max memory  |    |
-|     |                                                           |                  |    |
-|     |                                                           GC                 |    |
+|     |            0     __data_end         __heap_base                  max memory  |    |
+|     |                                                                              |    |
+|     |                                                                              |    |
 |     |______________________________________________________________________________|    |
 |                                                                                         |
 |_________________________________________________________________________________________|
 
 ```
 
+### 2.1.2. WASI requirements
 
-**WASI interface**
+Polkadot is a non-browser environment, but it is not an OS. It doesn't seek to provide a system-level API comparable to an OS like files, networking, or any other major part of the things provided by WASI.
 
-Polkadot is a non-browser environment, but it is not an OS. It doesn't seeks to provide a system-level API comparable to an OS like files, networking, or any other major part of the things provided by WASI.
+### 2.1.3. SCALE codec
 
-**SCALE codec**
+Runtime data, coming in the form of byte code, needs to be as light as possible. The SCALE codec provides the capability of efficiently encoding and decoding it. Since being built for LE architectures, it is compatible with Wasm environments.
 
-Runtime data, coming in the form of byte code, needs to be as light as possible. The SCALE codec provides the capability of efficiently encoding and decoding it, since being built for LE architectures, which is compatible with Wasm environments.
+### 2.1.4. Runtime calls
 
-**Runtime calls**
-
-Each function call into the Runtime is done with fresh allocated memory (via the shared allocator), either for sharing input data or results. Arguments are SCALE encoded into a byte array and copied into that section of the Wasm shared memory. Allocations do not persist between calls. The Runtime uses the same Host provided allocator for all heap allocations, so the Host is in charge of the Wasm heap memory management.
+Each function call into the Runtime is done with newly allocated memory (via the shared allocator), either for sharing input data or results. Arguments are SCALE encoded into a byte array and copied into this section of the Wasm shared memory. Allocations do not persist between calls. It is important to note that the Runtime uses the same Host provided allocator for all heap allocations, so the Host is in charge of the Wasm heap memory management.
 Data passing the Runtime API is always SCALE encoded, Host API call on the other hand try to avoid all encoding.
 
-**Exported globals**
+### 2.1.5. Exported globals
 
-The Runtime is expected to export `__heap_base` global indicating the beginning of the heap. It is used by the Host allocator to prevent memory allocations below that address and avoid clashes with the stack and data sections.
+It is expected from the Runtime to export `__heap_base` global indicating the beginning of the heap. It is used by the Host allocator to prevent memory allocations below that address and avoid clashes with the stack and data sections.
 
-**Imported or exported memory**
+### 2.1.6. Imported vs exported memory
 
-Imported memory works a little bit better than exported memory since it avoids some edge cases, although it also has some downsides, but it does not matter too much. Working with exported memory is almost certainly still supported. In fact, this is how it worked in the beginning. However the current spec describes that memory should be made available to the Polkadot Runtime for import under the symbol name `memory`.
+Imported memory works a little bit better than exported memory since it avoids some edge cases, although it also has some downsides, however, it does not matter too much. Working with exported memory is almost certainly still supported. In fact, this is how it worked in the beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import under the symbol name `memory`.
 
-**External memory management**
+### 2.1.7. External memory management
 
-The design in which allocation functions are on the Host side is dictated by the fact that some of the Host functions might return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront. For example, let's examine the Host function that returns a given storage value. The storage value's size is not known upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first call the Host function without a buffer, which will return the value's size, and then do the second call passing a buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions cannot be implemented in the such model at all. To solve this problem, it was chosen to place the allocator on the Host side.
-
-Note, however, that this is not the only possible solution. For instance, there is an ongoing discussion about moving the allocator into the Wasm: [1](https://github.com/paritytech/substrate/issues/11883)
-
+The design in which allocation functions are on the Host side is dictated by the fact that some of the Host functions might return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront. For example, let's examine the Host function that returns a given storage value. The storage value's size is not known upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first call the Host function without a buffer, which will return the value's size, and then do the second call passing a buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions cannot be implemented in such model at all. To solve this problem, it was chosen to place the allocator on the Host side.
+However, this is not the only possible solution, there is an ongoing discussion about moving the allocator into the Wasm: [1](https://github.com/paritytech/substrate/issues/11883)
 Notably, the allocator maintains some of its data structures inside the linear memory and some other structures outside.
 
-**Support of concurrency**
+### 2.1.8. Support of concurrency
 
 The Runtime executes in serial, the parallelism is accomplished through a network of parallel running chains (Parachains). It is primarily because creating a semantic for deterministic parallel executing is really difficult in general.
 
 
-## WebAssembly MVP features, limitations and future proposals
+## 2.2. WebAssembly MVP - features, limitations, proposals
 
 **Features**
-* instruction format for bytecode stack machine
-* fast execution
-* compact
-* portable
-* Little-endian byte order when translating between values and bytes.
-* Linear memory, a contiguous, byte-addressable, linear address space, spanning from offset 0 and extending up to a varying memory size. Can be resized, but only grown (`grow_memory`, `memory.grow`).
-* Single specially-designated default linear memory which is the linear memory accessed by all the memory operators.
-* Linear memory cannot be shared between threads of execution. 
+lower level, linear memory, implicit stack, instructions that operated on it
+
+* compact, portable, with fast execution
+* instruction format for stack-based virtual machine (low level bytecode)
+* little-endian byte order when translating between values and bytes
+* single specially-designated default linear memory, accessed by all memory operators. contiguous, byte-addressable, linear address space, spanning from offset 0 and extending up to a varying memory size. Can be resized, but only grown (`grow_memory`, `memory.grow`).
+* linear memories (default or otherwise) can either be imported or defined inside the module. After import or definition, there is no difference when accessing a linear memory whether it was imported or defined internally.
 
 **Limitations**
-
-Linear memories (default or otherwise) can either be imported or defined inside the module. After import or definition, there is no difference when accessing a linear memory whether it was imported or defined internally.
-In the MVP, linear memory cannot be shared between threads of execution. The addition of threads will allow this.
+* no standard library
+* no system call interface (providing capabilities similar to an operating system)
+* support of common I/O features vary (writing to the console)
+* forking a process, does not work
+* linear memory cannot be shared between threads of execution
+* does not yet support true parallelism, lacks support for multiple threads, atomics, and memory barriers
+* can't control scheduling within a function or safely modify memory in parallel (functions cannot do anything in parallel).
 
 **Proposals**
-* Allow setting protection and creating mappings within the contiguous linear memory.
-* In the MVP, there are only default linear memories but new memory operators may be added after the MVP which can also access non-default memories.
-* WebAssembly/gc proposal most likely won't help [1](https://github.com/WebAssembly/gc/issues/59).
+* allow setting protection and creating mappings within the contiguous linear memory.
+* there are only default linear memories, but new memory operators may be added after the MVP which can also access non-default memories.
 * there is no WebAssembly specification for exports and runtime behavior around allocation.
-
+* the GC proposal most likely won't help [1](https://github.com/WebAssembly/gc/issues/59).
 To support an automatic memory management, the [GC proposal](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Overview.md) might be handy. But the Wasm runtime supports only WebAssembly MVP currently, also the GC proposal is under development and it is not yet clear if Polkadot will be able to leverage the GC proposal. Potential problems include determinism (is there anything in GC that causes ND? Can it be tamed efficiently?) and safety (Is it possible for a host to limit the resource consumption reliably and deterministically?).
 
 
-## LLVM vs Binaryen compiler backends
+## 2.3. Compiler backends targeting Wasm - LLVM, Binaryen, Emscripten
 
+**LLVM**
 * LLVM is much more powerful as an optimizer.
 * LLVM does not support Wasm GC, and the future there is unclear. In general, GC is not a main focus for LLVM (almost all the languages using it use linear memory, C, C++, Rust, Swift, Zig, etc.).
 * LLVM supports wasm object files, DWARF, and other things which are very useful in the non-GC world (they may also help in GC in the future, that's unclear; we'll add support to Binaryen as needed).
 
+**Binaryen**
 * Binaryen compiles much more quickly.
 * Binaryen is much smaller.
 * Binaryen is a good choice for languages with GC and intend to compile to Wasm GC. And we will be able to compile Wasm GC to Wasm MVP, as a polyfill until Wasm GC is everywhere, but not the opposite.
 
+**Emscripten**
 
-## Go
+
+## 2.4. Go
 
 ### Compiler
 
@@ -288,9 +311,9 @@ The scheduler runs goroutines, pauses and resumes them on blocking channel ops. 
 **Parallelism**
 
 
-## TinyGo
+## 2.5. TinyGo
 
-It is a subset of Go with very different goals from the standard Go. It is a new compiler and runtime aimed to support many different small embedded devices with a single processor core that require certain optimizations mostly toward size.
+It is a subset of Go with very different goals from the standard Go. It is an alternative compiler and runtime aimed to support many different small embedded devices with a single processor core that require certain optimizations mostly toward size.
 
 *Goals*
 * Have very small binary sizes.
@@ -375,40 +398,40 @@ Goroutines and channels work for the most part, for platforms such as WebAssembl
 Single core only.
 
 
-## Technical challenges
+## 2.6. Technical challenges
+
+TinyGo's design decisions are mostly based on optimizations around small embedded devices. Of course, this is good for the blockchain's use case too, but not always required and as crucial as is for devices with very limited resources. The necessity of rewriting a large part of Go's runtime to align with those optimizations contributes to the effort of supporting Go's capabilities. Another point where TinyGo diverges from the toolchain requirements of Polkadot is that it supports Wasm aiming at the most recent Webassembly features. Here is a detailed breakdown of most of the problematic points:
 
 **Toolchain support for Wasm for non-browser environments**
-* The official Go compiler does not support Wasm for non-browser environments [1](https://github.com/golang/go/issues/31105), [2](https://substrate.stackexchange.com/questions/60/what-is-gossamer-and-how-does-it-compare-to-substrate/89#89), only Wasm with browser specific API. An alternative options is to use TinyGo.
+* The official Go compiler does not support Wasm for non-browser environments [1](https://github.com/golang/go/issues/31105), only Wasm with browser-specific API. There is an alternative compiler and runtime, TinyGo which supports Wasm outside the browser, but is still not capable of producing Wasm compatible with Subsrtate's requirements.
 
 **Wasm features that are not part of the MVP**
-* TinyGo makes use of some features which are not supported in the targeted Wasm MVP, such as bulk memory operations (`memory.copy`, `memory.fill` used to reduce the code size) and other extensions.
+* TinyGo makes use of some features that are not supported in the targeted Wasm MVP, such as bulk memory operations (`memory.copy`, `memory.fill` used to reduce the code size) and other extensions.
 
 **Standard library support**
-* The standard library relies on the `reflect` package (most common types like numbers, strings, and structs are supported), which is not fully supported by TinyGo [1](https://github.com/tinygo-org/tinygo/pull/2640). The core primitives and SCALE serialization logic that we intended to reuse from [gossamer](https://github.com/ChainSafe/gossamer) all rely on the `reflect` package.
+* The standard library relies on the `reflect` package (most common types like numbers, strings, and structs are supported), which is not fully supported by TinyGo [1](https://github.com/tinygo-org/tinygo/pull/2640). The core primitives and SCALE serialization logic that we intended to reuse from [gossamer](https://github.com/ChainSafe/gossamer) also rely on the `reflect` package.
 * Many features of Cgo are still unsupported (#cgo statements are only partially supported).
 
 **External memory allocator and GC**
-* According to the Polkadot specification, the Wasm module does not include a memory allocator, it imports memory from the Host and relies on Host imported functions for all heap allocations. TinyGo implements simple GC and manages its memory by itself, contrary to specification. So it can't work out of the box on systems where the Host wants to manage the memory [1](https://github.com/golang/go/issues/13761). It might be possible, but the support would be limited and performance might be unsatisfactory.
+* According to the Polkadot specification, the Wasm module does not include a memory allocator. It imports memory from the Host and relies on Host imported functions for all heap allocations. TinyGo implements simple GC and manages its memory by itself, contrary to specification. So it can't work out of the box on systems where the Host wants to manage its memory.
 
 **Linker globals**
 * The Runtime is expected to expose `__heap_base` global [1](https://github.com/tinygo-org/tinygo/issues/2045), but TinyGo doesn't support that out of the box.
 
 **Developer experience**
-* Implementing Wasm functionality makes you go pretty low level and use some "unsafe" language constructs.
+* Implementing Wasm functionality makes you go pretty low-level and use some "unsafe" language constructs.
 
 
-## Proof of concept (alternative compiler + runtime + GC with external allocator)
+## 3. Results
 
-TinyGo design decisions are based on optimizations around small embedded devices, which might not always be suitable or required in Wasm.
-The project is aimed to support the most recent Wasm spec features.
-Also, it will be difficult to support custom and non-standard APIs in the long run, the TinyGo core contributors are a bit against supporting things that are not standardized as is the case with Polkadot Wasm's Runtime specification.
-It will be best to implement a solution similar to TinyGo (compiler + runtime + GC with external memory allocator) only targeting Wasm.
-The frontend-compiler should be mostly the same as in TinyGo and the runtime might not need to be super size-optimized.
+Taking into consideration all the technical challenges, the timeframe, and the number of different technologies, we propose a solution based on a modified version of TinyGo/LLVM, which is going to serve as a proof of concept. The goal is to implement a solution that incorporates runtime with GC and external memory allocator targeting Wasm MVP.
 
-**Add Toolchain support for Substrate's Wasm**
-1. [x] Fork TinyGo.
+### 3.1 Proof of concept (alternative compiler + runtime + GC with external allocator)
+
+**Add Toolchain support for Wasm compatible with Polkadot**
+1. [x] Fork and add [tinygo](https://github.com/LimeChain/tinygo) as a submodule.
 2. [x] Add separate Dockerfile and build script for building TinyGo with prebuild LLVM and deps (for faster builds).
-3. Add new target similar to Rust's `wasm32-unknown-unknown`, but aimed to support Substrate/Wasm MVP.
+3. Add new target similar to Rust's `wasm32-unknown-unknown`, but aimed to support Polkadot's Wasm MVP.
   * [x] add new target `polkawasm.json` in `targets/`
   * [x] add new `polkawasm` implementation in `runtime_polkawasm.go`
   * [x] use the `polkawasm` directive to separate the new target from the existing Wasm/WASI functionality.
@@ -423,56 +446,92 @@ The frontend-compiler should be mostly the same as in TinyGo and the runtime mig
   * [x] add GC implementation that can work with external memory allocator (remove memory allocation exports).
   * [x] override the allocation functions used in the GC with such provided by the host.
   * [x] remove the exported allocation functions
-
   * [ ] the `_start` export func should be called somewhere to init the heap (the host does not support that).
   * [ ] better abstractions, the extalloc GC depends on third party allocation API that might change in the future.
 
-**Setup Host**
-1. [x] Fork Gossamer and add it as a submodule.
-2. [x] Make some changes to be able to run the Host with localy provided Runtime.
+**Setup Polkadot Host**
+1. [x] Fork and add [gossamer](https://github.com/LimeChain/gossamer) as a submodule.
+2. [x] Make the necessary changes to run localy provided Runtime inside the Host.
 3. [x] Setup test instance to run the compiled Wasm (target MVP, import host provided functions and memory, implement bump allocator).
 
-**Implement Wasm Runtime**
+**Implement Polkadot Runtime**
 1. [x] Implement SCALE codec without reflection.
-2. Implement the minimal Runtime API (core API) and tests for correctness and performance.
+2. Implement the minimal Runtime API (core API).
   * [x] `Core_version`
   * [ ] `Core_execute_block`
   * [ ] `Core_initialize_block`
 3. [x] Add Makefile steps
-Read/write from/to the host/Wasm's shared memory.
+
+**Future toolchain improvements**
+1. [ ] write performance tests.
+2. [ ] complete the SCALE codec implementation.
+3. [ ] complete the reflect packages support
+4. [ ] extalloc GC might need more work.
+5. [ ] fix errors outputed in the Wasm memory.
+
+SCALE codec
+* [ ] fix: `panic("Assertion error: n>4 needed to compact-encode uint64")`
+* [ ] fix: `Could not write " + strconv.Itoa(len(bytes)) + " bytes to writer`
+
+TinyGo + conservative GC
+* [ ] `runtimePanic("out of memory")`
+* [ ] `runtimePanic("nil pointer dereference")`
+* [ ] `runtimePanic("slice out of range")`
+* [ ] `runtimePanic("index out of range")`
+
+TinyGo + extalloc GC
+* [ ] `return "reflect: call of reflect.Type." + e.Method + " on invalid type"`
+* [ ] `return "reflect: call of " + e.Method + " on zero Value"`
+
+* Gossamer instance freezes with Wasm compiled with extalloc GC while running the Core_version test. Here is the fragment that seems to cause that:
+```go
+  instance.ctx.Version, err = instance.version()
+  if err != nil {
+    instance.close()
+    return nil, fmt.Errorf("getting instance version: %w", err)
+  }
+```
+
+* Compare:
+*Core_version (empty APIs) from Substrate*
+"\x10node8substrate-node\n\x00\x00\x00\f\x01\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01"
+
+*Core_version (empty APIs) from Gosemble + conservative GC*
+"\x10node8substrate-node\n\x00\x00\x00\f\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00"
+
+*Core_version (empty APIs) from Gosemble + extalloc GC*
+"\x10node8substrate-node\n\x00\x00\x00\f\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00"
 
 
-## Testing Guide
+### 3.2 Testing Guide
 
 The steps below will showcase testing a PoC Polkadot Runtime implementation in Go.
 
-### Prerequisites
+**Prerequisites**
 - [git](https://git-scm.com/downloads)
 - [Go 1.18+](https://golang.org/doc/install)
 - [docker](https://docs.docker.com/install/)
 
-### Cloning the repository
-
+**Cloning the repository**
 ```bash
 git clone https://github.com/LimeChain/gosemble.git
 cd gosemble
 ```
 
-### Pull all necessary git submodules
-
+**Pull all necessary git submodules**
 ```bash
 git submodule update --init --recursive
 ```
 
-### Build the Runtime
+**Build the Runtime**
 
-Using a [forked version of TinyGo](https://github.com/radkomih/tinygo/tree/polka-wasm-runtime), we build the Runtime with target `polkawasm`, exported in `build/runtime.wasm`.
+Using a [forked version of TinyGo](https://github.com/LimeChain/tinygo), we build the Runtime with target `polkawasm`, exported in `build/runtime.wasm`.
 
 ```bash
 make build
 ```
 
-### Run Tests
+**Run Tests**
 
 After the runtime has been built, we execute standard Go tests with the help of a [forked version of Gossamer](https://github.com/LimeChain/gossamer), which we use
 to import necessary Polkadot Host functionality and interact with the Runtime.
@@ -481,9 +540,9 @@ to import necessary Polkadot Host functionality and interact with the Runtime.
 make test
 ```
 
-### Optional steps
+**Optional steps**
 
-#### Inspecing the WASM Runtime
+Inspecing the WASM Runtime
 
 [wasmer](https://wasmer.io/)
 
@@ -491,7 +550,7 @@ make test
 wasmer inspect build/runtime.wasm
 ```
 
-#### Converting WASM from binary to text format
+**Converting WASM from binary to text format**
 
 [wasm2wat](https://command-not-found.com/wasm2wat)
 
@@ -500,36 +559,40 @@ wasm2wat build/runtime.wasm -o build/runtime.wat
 cat build/runtime.wat
 ```
 
-## Future improvements
 
-1. [ ] write performance tests.
-2. [ ] complete the SCALE codec implementation.
-3. [ ] extalloc GC might need more work.
-4. [ ] fix errors outputed in the Wasm memory
+## 4. Conclusion
 
-  SCALE codec
-  * [ ] fix: `panic("Assertion error: n>4 needed to compact-encode uint64")`
-  * [ ] fix: `Could not write " + strconv.Itoa(len(bytes)) + " bytes to writer`
-
-  TinyGo + conservative GC
-  * [ ] `runtimePanic("out of memory")`
-  * [ ] `runtimePanic("nil pointer dereference")`
-  * [ ] `runtimePanic("slice out of range")`
-  * [ ] `runtimePanic("index out of range")`
-
-  TinyGo + extalloc GC
-  * [ ] `return "reflect: call of reflect.Type." + e.Method + " on invalid type"`
-  * [ ] `return "reflect: call of " + e.Method + " on zero Value"`
-
-  Gossamer instance freezez with Wasm compiled with extalloc GC when testing Core_version and executing instance.version()
-
-  **Substrate implementation of Core_version**
-  "\x10node8substrate-node\n\x00\x00\x00\x04\x01\x00\x00\x00\x00\x00\x000\xdfj\xcbh\x99\a`\x9b\x03\x00\x00\x007\xe3\x97\xfc|\x91\xf5\xe4\x01\x00\x00\x00@\xfe:\xd4\x01\xf8\x95\x9a\x04\x00\x00\x00Ҽ\x98\x97\xeeЏ\x15\x02\x00\x00\x00\xf7\x8b'\x8b\xe5?EL\x02\x00\x00\x00\xed\x99Ŭ\xb2^\xed\xf5\x02\x00\x00\x00\xcb\xca%\xe3\x9f\x14#\x87\x02\x00\x00\x00hz\xd4J\xd3\u007f\x03\xc2\x01\x00\x00\x00\xbc\x9d\x89\x90O[\x92?\x01\x00\x00\x00h\xb6k\xa1\"\xc9?\xa7\x01\x00\x00\x007Ȼ\x13P\xa9\xa2\xa8\x01\x00\x00\x00\xab<\x05r)\x1f\xeb\x8b\x01\x00\x00\x00\x01\x00\x00\x00"
-
-  **Gosemble conservative GC implementation of Core_version**
-  "\x10node8substrate-node\n\x00\x00\x00\x04\x01\x00\x00\x00\x00\x00\x00\f\x00\x00\x00 \xdfj\xcbh\x99\a`\x9b\x03\x00\x00\x00 7\xe3\x97\xfc|\x91\xf5\xe4\x01\x00\x00\x00 @\xfe:\xd4\x01\xf8\x95\x9a\x04\x00\x00\x00 Ҽ\x98\x97\xeeЏ\x15\x02\x00\x00\x00 \xf7\x8b'\x8b\xe5?EL\x02\x00\x00\x00 \xed\x99Ŭ\xb2^\xed\xf5\x02\x00\x00\x00 \xcb\xca%\xe3\x9f\x14#\x87\x02\x00\x00\x00 hz\xd4J\xd3\u007f\x03\xc2\x01\x00\x00\x00 \xbc\x9d\x89\x90O[\x92?\x01\x00\x00\x00 h\xb6k\xa1\"\xc9?\xa7\x01\x00\x00\x00 7Ȼ\x13P\xa9\xa2\xa8\x01\x00\x00\x00 \xab<\x05r)\x1f\xeb\x8b\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
-
-  **Gosemble extalloc GC implementation of Core_version**
-  "\x10node8substrate-node\n\x00\x00\x00\x04\x01\x00\x00\x00\x00\x00\x00\f\x00\x00\x00 \xdfj\xcbh\x99\a`\x9b\x03\x00\x00\x00 7\xe3\x97\xfc|\x91\xf5\xe4\x01\x00\x00\x00 @\xfe:\xd4\x01\xf8\x95\x9a\x04\x00\x00\x00 Ҽ\x98\x97\xeeЏ\x15\x02\x00\x00\x00 \xf7\x8b'\x8b\xe5?EL\x02\x00\x00\x00 \xed\x99Ŭ\xb2^\xed\xf5\x02\x00\x00\x00 \xcb\xca%\xe3\x9f\x14#\x87\x02\x00\x00\x00 hz\xd4J\xd3\u007f\x03\xc2\x01\x00\x00\x00 \xbc\x9d\x89\x90O[\x92?\x01\x00\x00\x00 h\xb6k\xa1\"\xc9?\xa7\x01\x00\x00\x00 7Ȼ\x13P\xa9\xa2\xa8\x01\x00\x00\x00 \xab<\x05r)\x1f\xeb\x8b\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
+The resulting proof of concept could be used to develop Polkadot Runtimes, ...
+Current research document is usefull as starting point to provides context make further contributions to the project or to take new direction implementing alternative toolchain.
 
 
+## 5. Discussion
+
+* Is LLVM the right choice for the long run or Binaryen is more suitable to provide stable foundation and support of Webassembly?
+* How much effort will be to add full support of the `reflect` package?
+* Is it possible in Wasm, to use separate heap regions, one reserved for GC allocations and another reserved for host allocations, so they don't clash?
+* How good is the performance?
+
+
+## 6. References
+
+* [1] https://docs.substrate.io/
+* [2] https://github.com/w3f/polkadot-spec
+* [3] https://github.com/paritytech/substrate
+* [4] https://webassembly.org/
+* [5] https://www.w3.org/TR/2019/REC-wasm-core-1-20191205/#global-section%E2%91%A0
+* [6] https://github.com/WebAssembly/design/blob/main/MVP.md
+* [7] https://github.com/WebAssembly/spec
+* [8] https://github.com/WebAssembly/proposals
+* [9] https://github.com/WebAssembly/gc
+* [10] https://github.com/WebAssembly/binaryen
+* [11] https://llvm.org/
+* [12] https://go.dev/ref/spec
+* [13] https://go.dev/doc/
+* [14] https://go.dev/blog/
+* [15] https://research.swtch.com/ 
+* [16] https://github.com/golang/go
+* [17] https://tinygo.org/
+* [18] https://aykevl.nl/archive/
+* [19] https://github.com/tinygo-org/tinygo
+* [20] https://github.com/tinygo-org/tinygo/wiki
