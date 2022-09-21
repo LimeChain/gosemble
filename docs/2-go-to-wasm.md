@@ -19,8 +19,8 @@ This research aims to provide conclusions if Go is a suitable choice to write Po
 
 Here is a list of questions we are going to try to give answers to:
 * What are the design decisions behind Polkadot's architecture - WebAssembly specification, Host/Runtime interaction, Runtime memory management?
-* What is the state of the WebAssembly specification incorporated in Polkadot? Current limitations and proposals that might help in the future?
-* Which compiler framework is best suited for targeting Wasm from a language with GC-managed runtime - LLVM, Binaryen, Emscripten?
+* How well the incorporated WebAssembly specification in Polkadot aligns with the Go language capabilities - current limitations and upcoming proposals that might be leveraged?
+* Which compiler framework is best suited for targeting Wasm from a language with GC-managed runtime - LLVM, Binaryen?
 * How Go and TinyGo internals work and differ - compiler, runtime, GC?
 * What are the challenges of implementing a Polkadot Runtime with GC-managed language like Go?
 
@@ -31,14 +31,14 @@ But why is it so important to write in Go beside the above said? The main reason
 
 ## 2. Background
 
-## 2.1. The design decisions behind Polkadot's architecture
+### 2.1. The design decisions behind Polkadot's architecture
 
 In addition to the [Polkadot spec](https://github.com/w3f/polkadot-spec) here is a list of important points that deserve to be addressed.
 
-### 2.1.1. WebAssembly specification
+#### 2.1.1. WebAssembly specification
 
 The Runtime Wasm module targets [WebAssembly MVP](https://github.com/WebAssembly/design/blob/main/MVP.md) without any extensions enabled, which supports a limited set of instructions compared to WebAssembly 1.0.
-It is expected to have a very domain-specific API that consists of:
+Also, it is expected to have a very domain-specific API that consists of:
 * imported Host provided functions (`ext_allocator_malloc_version_1`, `ext_allocator_free_version_1`, etc).
 * imported Host provided memory.
 * exported linker specific globals (`__heap_base`, `__data_end`).
@@ -94,28 +94,28 @@ Exports:
 
 ```
 
-### 2.1.2. WASI requirements
+#### 2.1.2. WASI requirements
 
 Polkadot is a non-browser environment, but it is not an OS. It doesn't seek to provide a system-level API comparable to an OS like files, networking, or any other major part of the things provided by WASI.
 
-### 2.1.3. SCALE codec
+#### 2.1.3. SCALE codec
 
 Runtime data, coming in the form of byte code, needs to be as light as possible. The SCALE codec provides the capability of efficiently encoding and decoding it. Since it is built for little-endian systems, it is compatible with Wasm environments.
 
-### 2.1.4. Runtime calls
+#### 2.1.4. Runtime calls
 
 Each function call into the Runtime is done with newly allocated memory (via the shared allocator), either for sharing input data or results. Arguments are SCALE encoded into a byte array and copied into this section of the Wasm shared memory. Allocations do not persist between calls. It is important to note that the Runtime uses the same Host provided allocator for all heap allocations, so the Host is in charge of the Wasm heap memory management.
 Data passing to the Runtime API is always SCALE encoded, Host API calls on the other hand try to avoid all encoding.
 
-### 2.1.5. Exported globals
+#### 2.1.5. Exported globals
 
 It is expected from the Runtime to export `__heap_base` global indicating the beginning of the heap. It is used by the Host allocator to prevent memory allocations below that address and avoid clashes with the stack and data sections.
 
-### 2.1.6. Imported vs exported memory
+#### 2.1.6. Imported vs exported memory
 
 Imported memory works a little bit better than exported memory since it avoids some edge cases, although it also has some downsides, however, it does not matter too much. Working with exported memory is almost certainly still supported. In fact, this is how it worked in the beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import under the symbol name `memory`.
 
-### 2.1.7. External memory management
+#### 2.1.7. External memory management
 
 The design in which allocation functions are on the Host side is dictated by the fact that some of the Host functions might return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.
 
@@ -123,55 +123,44 @@ For example, let's examine the Host function that returns a given storage value.
 However, this is not the only possible solution, as there is an ongoing discussion about moving the allocator into the Wasm: [[1]](https://github.com/paritytech/substrate/issues/11883).
 Notably, the allocator maintains some of its data structures inside the linear memory and some other structures outside.
 
-### 2.1.8. Support of concurrency
+#### 2.1.8. Concurrency requirments
 
 The Runtime executes in serial, the parallelism is accomplished through a network of parallel running chains (Parachains). It is primarily because creating a semantic for deterministic parallel executing is really difficult in general.
 
 
-## 2.2. WebAssembly MVP - features, limitations, proposals
+## 2.2. Translating Go's language capabilities to WebAssembly MVP
 
-**Features** - lower level, linear memory, implicit stack, instructions that operated on it
+It is important to see how well the language features of Go translate to WebAssembly, it's limitations and upcoming proposals that might help to overcome them. More specifically, the capabilities offered by WebAssembly MVP, targeted by Polkadot.
+WebAssembly is low level bytecode instruction format for typed stack-based virtual machine, that uses little-endian byte order when translating between values and bytes. Incorporates harvard architecture - the program state is separate from the instructions, with implicit stack that can't be accessed, only the untrusted memory. It has single, contiguous, byte-addressable default linear memory, accessed by all memory operators, spanning from offset 0 and extending up to a varying memory size. It can either be imported or defined internally inside the module, but eiither way, after import or definition, there is no difference when accessing it.
 
-* compact, portable, with fast execution
-* instruction format for stack-based virtual machine (low level bytecode)
-* little-endian byte order when translating between values and bytes
-* single specially-designated default linear memory, accessed by all memory operators. contiguous, byte-addressable, linear address space, spanning from offset 0 and extending up to a varying memory size. Can be resized, but only grown (`grow_memory`, `memory.grow`).
-* linear memories (default or otherwise) can either be imported or defined inside the module. After import or definition, there is no difference when accessing a linear memory whether it was imported or defined internally.
+### 2.2.1. Limitations
 
-**Limitations**
-* no standard library
-* no system call interface (providing capabilities similar to an operating system)
-* support of common I/O features vary (writing to the console)
-* forking a process does not work
-* linear memory cannot be shared between threads of execution
-* does not yet support true parallelism, lacks support for multiple threads, atomics, and memory barriers
-* can't control scheduling within a function or safely modify memory in parallel (functions cannot do anything in parallel).
+* the linear memory is great for languages with manual, reference counting or ownership memory model, but GC-managed memory requires a bit more work to port it. Since WebAssembly has no stack introspection to scan the roots on the stack, it requires to use mirrored shadow stack in the linear memory, pushed/poped along with the machine stack, which makes it less efficient.
+* the linear memory can be resized, but only upward (`grow_memory`, `memory.grow`).
 
-**Proposals**
+### 2.2.2. Proposals
+
+* [GC proposal](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Overview.md) might be handy to support an automatic memory management, but there are concerns how performant would be [[1]](https://github.com/WebAssembly/gc/issues/59), [[2]](https://github.com/WebAssembly/gc/issues/36). In addition to that, the Polkadot Runtime supports only WebAssembly MVP currently, also the GC proposal is under development and it is not yet clear if Polkadot will be able to leverage the GC proposal. Potential problems include determinism (is there anything in GC that causes ND? Can it be tamed efficiently?) and safety (Is it possible for a host to limit the resource consumption reliably and deterministically?).
 * allow setting protection and creating mappings within the contiguous linear memory.
 * there are only default linear memories, but new memory operators may be added after the MVP which can also access non-default memories.
-* there is no WebAssembly specification for exports and runtime behavior around allocation.
-* the GC proposal most likely won't help [[1]](https://github.com/WebAssembly/gc/issues/59).
-To support an automatic memory management, the [GC proposal](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Overview.md) might be handy. But the Wasm runtime supports only WebAssembly MVP currently, also the GC proposal is under development and it is not yet clear if Polkadot will be able to leverage the GC proposal. Potential problems include determinism (is there anything in GC that causes ND? Can it be tamed efficiently?) and safety (Is it possible for a host to limit the resource consumption reliably and deterministically?).
 
 
 ## 2.3. Compiler backends targeting Wasm - LLVM, Binaryen
 
-**LLVM**
 * LLVM is much more powerful as an optimizer.
 * LLVM currently does not support Wasm GC, and GC is not the main focus for LLVM as most languages that utilize it use linear memory - C, C++, Rust, Zig.
 * LLVM is larger in size compared to Binaryen.
 
-**Binaryen**
 * Binaryen compiles much more quickly.
 * Binaryen does general-purpose optimizations to the wasm that LLVM does not, including whole-program optimizations.
 * Binaryen is smaller in size compared to LLVM.
 * Binaryen is a better choice for languages with GC, which intend to compile to Wasm GC. Additionally, it will support compilation from Wasm GC to Wasm MVP, as a polyfill, though the opposite will not be possible.
 * In case Polkadot's wasm target switches to Wasm GC, having Binaryen as a compiler backend will have support for that, as the developers behind it are from WebAssembly organisation.
 
+
 ## 2.4. Go
 
-### Compiler
+### 2.4.1. Compiler
 
 The default compiler is `gc`. There are also `gccgo` which uses the GCC back-end and `gollvm` which uses the LLVM infrastructure (somewhat less mature).
 
@@ -197,11 +186,11 @@ MACHINE CODE -> convert (llvm) -> OBJECT FILE
 OBJECT FILE -> link (llvm) -> EXECUTABLE
 ```
 
-### Runtime
+### 2.4.2. Runtime
 
 Implements GC, scheduler included in every Go program. Contains a lot of type information at runtime.
 
-**Memory Management**
+#### 2.4.2.1. Memory Management
 
 Process
 * does not have direct access to the physical memory
@@ -228,12 +217,12 @@ Process Memory Layout
 |______________________|
 ```
 
-Stack
+**Stack**
 * managed by the compiler
 * elastic
 * one stack per *goroutine*
 
-Heap
+**Heap**
 * allocated by the memory allocator and collected by the garbage collector
 * it is not an entity and there is no linear containment of memory that defines the Heap
 * any memory reserved for application use in the process space is available for heap memory allocation
@@ -255,11 +244,11 @@ Go uses escape analysis and Garbage Collector. Allocator is tightly coupled with
 |__________|
 ```
 
-Allocator
+**Allocator**
 * allocate new blocks with the correct size
 * deals with fragmentation (merge smaller block to allow allocation of larger ones)
 
-Garbage Collector
+**Garbage Collector**
 * tracking memory allocations in heap memory
 * releasing allocations that are no longer needed
 * keeping allocations that are still in use
@@ -275,7 +264,7 @@ Garbage Collector
 * incurs a small cost if the program is moving pointers around
 * lower latency, but most likely also lower throughput
 
-*Collection*
+*collection*
 1. Mark Setup (stop the world)
     * turn on write barrier
     * stop all goroutines
@@ -291,7 +280,7 @@ Garbage Collector
     * various cleanup tasks
     * next collection goal is calculated
 
-*Sweeping*
+*sweeping*
 Freeing Heap Memory
 * occurs when the *goroutines* attempt to allocate new heap memory
 * the latency of sweeping is added to the cost of performing new allocation
@@ -304,11 +293,11 @@ Compiler decides (via escape analysis) when a value should be allocated on the H
 * if the value is too large to fit on the stack
 * when the compiler doesn't know the size of the value at compile time
 
-**Concurrency**
+#### 2.4.2.2. Concurrency
 
 The scheduler runs *goroutines*, pauses and resumes them on blocking channel ops. or mutex ops, coordinates blocking system calls, io, runtime GC. *Goroutines* use space threads, managed by the runtime.
 
-**Parallelism**
+#### 2.4.2.3. Parallelism
 
 
 ## 2.5. TinyGo
@@ -328,7 +317,7 @@ It is a subset of Go with very different goals from the standard Go. It is an al
 * Be as fast as `gc`. However, LLVM will probably be better at optimizing certain things so TinyGo might actually turn out to be faster for number crunching.
 * Be able to compile every Go program out there.
 
-### Compiler
+### 2.5.1. Compiler
 
 The compiler uses (mostly) the standard library to parse Go programs and LLVM to optimize the code and generate machine code for the target architecture.
 
@@ -359,7 +348,7 @@ OBJECT FILE -> link (llvm) -> EXECUTABLE
 * interp: tries to run package initializers at compile time as far as possible
 * transform: implements various optimizations necessary to produce working and efficient code
 
-### Runtime
+### 2.5.2. Runtime
 
 The runtime is written from scratch, optimized for size instead of speed and re-implements some compiler intrinsics and packages:
 
@@ -374,14 +363,12 @@ The runtime is written from scratch, optimized for size instead of speed and re-
 * Operations on strings
 * `sync` & `reflect` package (strongly connected to the runtime)
 
-**Basic features**
+#### 2.5.2.1. Basic features
 
 All basic types, slices, all regular control flow including switch, closures and bound methods are supported, `defer` keyword is almost entirely supported, with the exception of deferring some builtin functions, interfaces are quite stable and should work well in almost all cases. Type switches and type asserts are also supported, as well as calling methods on interfaces. The only exception is comparing two interface values.
 Maps are usable but not complete. You can use any type as a value, but only some types are acceptable as map keys (strings, integers, pointers, and structs/arrays that contain only these types). Also, they have not been optimized for performance and will cause linear lookup times in some cases.
 
-**Memory Management**
-
- there's no concurrent GC that would free it meanwhile.
+#### 2.5.2.2. Memory Management
 
 Heap with a garbage collector. While not directly a language feature, garbage collection is important for most Go programs to make sure their memory usage stays in reasonable bounds.
 
@@ -389,11 +376,11 @@ Garbage collection is currently supported on all platforms, although it works be
 
 Careful design may avoid memory allocations in main loops. You may want to compile with `-print-allocs=.` to find out where allocations happen and why they happen.
 
-**Concurrency**
+#### 2.5.2.3. Concurrency
 
 *Goroutines* and channels work for the most part, for platforms such as WebAssembly the support is a bit more limited (calling a blocking function may for example allocate heap memory).
 
-**Parallelism**
+#### 2.5.2.4. Parallelism
 
 Single core only.
 
@@ -402,23 +389,30 @@ Single core only.
 
 TinyGo's design decisions are mostly based on optimizations around small embedded devices. Of course, this is good for the blockchain's use case too, but not always required and as crucial as is for devices with very limited resources. The necessity of rewriting a large part of Go's runtime to align with those optimizations contributes to the effort of supporting Go's capabilities. Another point where TinyGo diverges from the toolchain requirements of Polkadot is that it supports Wasm aiming at the most recent Webassembly features. Here is a detailed breakdown of most of the problematic points:
 
-**Toolchain support for Wasm for non-browser environments**
-* The official Go compiler does not support Wasm for non-browser environments [[1]](https://github.com/golang/go/issues/31105), only Wasm with browser-specific API. There is an alternative compiler and runtime, TinyGo which supports Wasm outside the browser, but is still not capable of producing Wasm compatible with Subsrtate's requirements.
+### 2.6.1. Toolchain support for Wasm for non-browser environments
 
-**Wasm features that are not part of the MVP**
-* TinyGo makes use of some features that are not supported in the targeted Wasm MVP, such as bulk memory operations (`memory.copy`, `memory.fill` used to reduce the code size) and other extensions.
+* The official Go compiler does not support Wasm for non-browser environments [[1]](https://github.com/golang/go/issues/31105), only Wasm with browser-specific API.
+* The alternative TinyGo compiler and runtime, supports Wasm outside the browser, but it is still not capable of producing Wasm compatible with Polkadot's requirements.
 
-**Standard library support**
+### 2.6.2. Wasm features that are not part of the MVP
+
+TinyGo makes use of some features that are not supported in the targeted Wasm MVP, such as bulk memory operations (`memory.copy`, `memory.fill` used to reduce the code size) and other extensions.
+
+### 2.6.3. Standard library support
+
 * The standard library relies on the `reflect` package (most common types like numbers, strings, and structs are supported), which is not fully supported by TinyGo [[1]](https://github.com/tinygo-org/tinygo/pull/2640). The core primitives and SCALE serialization logic that we intended to reuse from [gossamer](https://github.com/ChainSafe/gossamer) also rely on the `reflect` package.
 * Many features of Cgo are still unsupported (#cgo statements are only partially supported).
 
-**External memory allocator and GC**
+### 2.6.4. External memory allocator and GC
+
 * According to the Polkadot specification, the Wasm module does not include a memory allocator. It imports memory from the Host and relies on Host imported functions for all heap allocations. TinyGo implements simple GC and manages its memory by itself, contrary to specification. So it can't work out of the box on systems where the Host wants to manage its memory.
 
-**Linker globals**
+### 2.6.5. Linker globals
+
 * The Runtime is expected to expose `__heap_base` global [[1]](https://github.com/tinygo-org/tinygo/issues/2045), but TinyGo doesn't support that out of the box.
 
-**Developer experience**
+### 2.6.6. Developer experience
+
 * Implementing Wasm functionality makes you go pretty low-level and use some "unsafe" language constructs.
 
 
@@ -426,7 +420,7 @@ TinyGo's design decisions are mostly based on optimizations around small embedde
 
 Taking into consideration all the technical challenges, the timeframe, and the number of different technologies, we propose a solution based on a modified version of TinyGo/LLVM, which is going to serve as a proof of concept. The goal is to implement a solution that incorporates runtime with GC and external memory allocator targeting Wasm MVP.
 
-### 3.1 Proof of concept (alternative compiler + runtime + GC with external allocator)
+### 3.1. Proof of concept (alternative compiler + runtime + GC with external allocator)
 
 **Add Toolchain support for Wasm compatible with Polkadot**
 1. [x] Fork and add [tinygo](https://github.com/LimeChain/tinygo) as a submodule.
@@ -506,8 +500,7 @@ Comparisons
 
     `\x10node8substrate-node\n\x00\x00\x00\f\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00`
 
-
-### 3.2 Testing Guide
+### 3.2. Testing Guide
 
 The steps below will showcase testing a PoC Polkadot Runtime implementation in Go.
 
@@ -562,16 +555,16 @@ cat build/runtime.wat
 
 ## 4. Conclusion
 
-The resulting proof of concept could be used to develop Polkadot Runtimes, ...
-Current research document is useful as starting point to provides context make further contributions to the project or to take new direction implementing alternative toolchain.
+The resulting proof of concept could be used to develop Polkadot Runtimes.
+Also, current research document is useful for providing context as a starting point to make further contributions to the project or to take new direction for implementation of alternative toolchain.
 
 
 ## 5. Discussion
 
+* How good is the performance?
+* Is it possible in Wasm, to use separate heap regions, one reserved for GC allocations and another reserved for host allocations, to prevent clashes?
 * Is LLVM the right choice for the long run or Binaryen is more suitable to provide stable foundation and support of Webassembly?
 * How much effort will be to add full support of the `reflect` package?
-* Is it possible in Wasm, to use separate heap regions, one reserved for GC allocations and another reserved for host allocations, so they don't clash?
-* How good is the performance?
 
 
 ## 6. References
@@ -580,19 +573,20 @@ Current research document is useful as starting point to provides context make f
 * [2] https://github.com/w3f/polkadot-spec
 * [3] https://github.com/paritytech/substrate
 * [4] https://webassembly.org/
-* [5] https://www.w3.org/TR/2019/REC-wasm-core-1-20191205/#global-section%E2%91%A0
+* [5] https://www.w3.org/TR/2019/REC-wasm-core-1-20191205
 * [6] https://github.com/WebAssembly/design/blob/main/MVP.md
 * [7] https://github.com/WebAssembly/spec
 * [8] https://github.com/WebAssembly/proposals
 * [9] https://github.com/WebAssembly/gc
 * [10] https://github.com/WebAssembly/binaryen
 * [11] https://llvm.org/
-* [12] https://go.dev/ref/spec
-* [13] https://go.dev/doc/
-* [14] https://go.dev/blog/
-* [15] https://research.swtch.com/ 
-* [16] https://github.com/golang/go
-* [17] https://tinygo.org/
-* [18] https://aykevl.nl/archive/
+* [12] https://llvm.org/docs/GarbageCollection.html
+* [13] https://go.dev/ref/spec
+* [14] https://go.dev/doc/
+* [15] https://go.dev/blog/
+* [16] https://research.swtch.com/ 
+* [17] https://github.com/golang/go
+* [18] https://tinygo.org/
 * [19] https://github.com/tinygo-org/tinygo
 * [20] https://github.com/tinygo-org/tinygo/wiki
+* [21] https://aykevl.nl/archive/
