@@ -113,17 +113,17 @@ It is expected from the Runtime to export `__heap_base` global indicating the be
 
 #### 2.1.6. Imported vs exported memory
 
-Imported memory works a little bit better than exported memory since it avoids some edge cases, although it also has some downsides, however, it does not matter too much. Working with exported memory is almost certainly still supported. In fact, this is how it worked in the beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import under the symbol name `memory`.
+Imported memory works a little better than exported memory since it avoids some edge cases, although it also has some downsides, however, it does not matter too much. Working with exported memory is almost certainly still supported. In fact, this is how it worked in the beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import under the symbol name `memory`.
 
 #### 2.1.7. External memory management
 
-The design in which allocation functions are on the Host side is dictated by the fact that some of the Host functions might return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.
+The design in which allocation functions are on the Host side is dictated by the fact that some Host functions might return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.
 
 For example, let's examine the Host function that returns a given storage value. The storage value's size is not known upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first call the Host function without a buffer, which will return the value's size, and then do the second call passing a buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions cannot be implemented in such model at all. To solve this problem, it was chosen to place the allocator on the Host side.
 However, this is not the only possible solution, as there is an ongoing discussion about moving the allocator into the Wasm: [[1]](https://github.com/paritytech/substrate/issues/11883).
 Notably, the allocator maintains some of its data structures inside the linear memory and some other structures outside.
 
-#### 2.1.8. Concurrency requirments
+#### 2.1.8. Concurrency requirements
 
 The Runtime executes in serial, the parallelism is accomplished through a network of parallel running chains (Parachains). It is primarily because creating a semantic for deterministic parallel executing is really difficult in general.
 
@@ -131,16 +131,16 @@ The Runtime executes in serial, the parallelism is accomplished through a networ
 ## 2.2. Translating Go's language capabilities to WebAssembly MVP
 
 It is important to see how well the language features of Go translate to WebAssembly, it's limitations and upcoming proposals that might help to overcome them. More specifically, the capabilities offered by WebAssembly MVP, targeted by Polkadot.
-WebAssembly is low level bytecode instruction format for typed stack-based virtual machine, that uses little-endian byte order when translating between values and bytes. Incorporates harvard architecture - the program state is separate from the instructions, with implicit stack that can't be accessed, only the untrusted memory. It has single, contiguous, byte-addressable default linear memory, accessed by all memory operators, spanning from offset 0 and extending up to a varying memory size. It can either be imported or defined internally inside the module, but eiither way, after import or definition, there is no difference when accessing it.
+WebAssembly is low level bytecode instruction format for typed stack-based virtual machine, that uses little-endian byte order when translating between values and bytes. Incorporates harvard architecture - the program state is separate from the instructions, with implicit stack that can't be accessed, only the untrusted memory. It has single, contiguous, byte-addressable default linear memory, accessed by all memory operators, spanning from offset 0 and extending up to a varying memory size. It can either be imported or defined internally inside the module, but either way, after import or definition, there is no difference when accessing it.
 
 ### 2.2.1. Limitations
 
-* the linear memory is great for languages with manual, reference counting or ownership memory model, but GC-managed memory requires a bit more work to port it. Since WebAssembly has no stack introspection to scan the roots on the stack, it requires to use mirrored shadow stack in the linear memory, pushed/poped along with the machine stack, which makes it less efficient.
+* the linear memory is great for languages with manual, reference counting or ownership memory model, but GC-managed memory requires a bit more work to port it. Since WebAssembly has no stack introspection to scan the roots on the stack, it requires to use mirrored shadow stack in the linear memory, pushed/popped along with the machine stack, which makes it less efficient.
 * the linear memory can be resized, but only upward (`grow_memory`, `memory.grow`).
 
 ### 2.2.2. Proposals
 
-* [GC proposal](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Overview.md) might be handy to support an automatic memory management, but there are concerns how performant would be [[1]](https://github.com/WebAssembly/gc/issues/59), [[2]](https://github.com/WebAssembly/gc/issues/36). In addition to that, the Polkadot Runtime supports only WebAssembly MVP currently, also the GC proposal is under development and it is not yet clear if Polkadot will be able to leverage the GC proposal. Potential problems include determinism (is there anything in GC that causes ND? Can it be tamed efficiently?) and safety (Is it possible for a host to limit the resource consumption reliably and deterministically?).
+* [GC proposal](https://github.com/WebAssembly/gc/blob/main/proposals/gc/Overview.md) might be handy to support an automatic memory management, but there are concerns how performant it will be [[1]](https://github.com/WebAssembly/gc/issues/59), [[2]](https://github.com/WebAssembly/gc/issues/36). In addition to that, the Polkadot Runtime supports only WebAssembly MVP currently, also the GC proposal is under development, and it is not yet clear if Polkadot will be able to leverage the GC proposal. Potential problems include determinism (is there anything in GC that causes ND? Can it be tamed efficiently?) and safety (Is it possible for a host to limit the resource consumption reliably and deterministically?).
 * allow setting protection and creating mappings within the contiguous linear memory.
 * there are only default linear memories, but new memory operators may be added after the MVP which can also access non-default memories.
 
@@ -149,11 +149,10 @@ WebAssembly is low level bytecode instruction format for typed stack-based virtu
 
 * LLVM is much more powerful as an optimizer.
 * LLVM currently does not support Wasm GC, and GC is not the main focus for LLVM as most languages that utilize it use linear memory - C, C++, Rust, Zig.
-* LLVM is larger in size compared to Binaryen.
+* LLVM creates larger output compared to Binaryen.
 
 * Binaryen compiles much more quickly.
 * Binaryen does general-purpose optimizations to the wasm that LLVM does not, including whole-program optimizations.
-* Binaryen is smaller in size compared to LLVM.
 * Binaryen is a better choice for languages with GC, which intend to compile to Wasm GC. Additionally, it will support compilation from Wasm GC to Wasm MVP, as a polyfill, though the opposite will not be possible.
 * In case Polkadot's wasm target switches to Wasm GC, having Binaryen as a compiler backend will have support for that, as the developers behind it are from WebAssembly organisation.
 
@@ -162,8 +161,9 @@ WebAssembly is low level bytecode instruction format for typed stack-based virtu
 
 ### 2.4.1. Compiler
 
-The default compiler is `gc`. There are also `gccgo` which uses the GCC back-end and `gollvm` which uses the LLVM infrastructure (somewhat less mature).
+The default compiler is `gc`. There are also `gccgo`, which uses the GCC back-end, and `gollvm` which uses the LLVM infrastructure (somewhat less mature).
 
+**Pipeline (Lowering)**
 ```
 // Frontend Compiler (lexing, parsing, typechecking)
 
@@ -192,11 +192,10 @@ Implements GC, scheduler included in every Go program. Contains a lot of type in
 
 #### 2.4.2.1. Memory Management
 
-Process
-* does not have direct access to the physical memory
-* virtual memory abstracts the access to the physical memory (via segmentation and page tables)
+Memory Management uses virtual memory that abstracts the access to the physical memory.
 
-Process Memory Layout
+* Process Memory Layout
+
 ```
  ______________________
 |        STACK         | Function Stack Frames
@@ -217,17 +216,21 @@ Process Memory Layout
 |______________________|
 ```
 
-**Stack**
-* managed by the compiler
-* elastic
-* one stack per *goroutine*
+The Go Compiler decides (via escape analysis) when a value should be allocated on heap memory. The objects in the heap
+are allocated by memory allocators and collected by garbage collectors.
 
-**Heap**
-* allocated by the memory allocator and collected by the garbage collector
-* it is not an entity and there is no linear containment of memory that defines the Heap
-* any memory reserved for application use in the process space is available for heap memory allocation
+Most of the function arguments, return values, and local variables of function calls are allocated on the stack, which is managed by the compiler.
+When it comes down to passing pointers (sharing down), typically allocations are on the stack.
+On the other hand, returning pointers (sharing up) typically allocate on heap memory.
 
-Go uses escape analysis and Garbage Collector. Allocator is tightly coupled with the Garbage Collector.
+Allocations on heap memory also occur when the value is:
+* returned as a result of a function execution and is referenced
+* too large to find on the stack
+* with unknown size at compile time and the compiler does not know what to do with it
+
+Memory management generally consists of three components - program, allocator and collector.
+Whenever the program requests memory, it requests it through the memory allocator, which initialises the corresponding memory to the heap. 
+
 ```
    Mutator (Process)
       |
@@ -240,69 +243,59 @@ Go uses escape analysis and Garbage Collector. Allocator is tightly coupled with
       |
  _____▼____
 |          | 
-|   Heap   | ◄------ Collector
+|   Heap   | ◄------ Garbage Collector
 |__________|
 ```
 
-**Allocator**
-* allocate new blocks with the correct size
-* deals with fragmentation (merge smaller block to allow allocation of larger ones)
+* **Allocator**
+    
+    The Go runtime memory allocator is based on thread-caching malloc (TCMalloc) allocation strategy that classifies objects according to their size,
+including multi-level caching to improve its performance.
 
-**Garbage Collector**
-* tracking memory allocations in heap memory
-* releasing allocations that are no longer needed
-* keeping allocations that are still in use
+* **Garbage Collector**
 
-* tracing garbage collector (not reference counting)
-* hybrid stop-the-world/concurrent collector (stop-the-world part limited by a 10ms deadline)
-* CPU cores dedicated to running the concurrent collector
-* tri-color mark-and-sweep algorithm
+    Garbage collectors are responsible for tracking memory allocations in heap memory, keeping those allocations that are still in-use, and releasing allocations when they are no longer needed.
 
-* non-generational
-* non-compacting
-* fully precise
-* incurs a small cost if the program is moving pointers around
-* lower latency, but most likely also lower throughput
+    Go uses a concurrent mark-and-sweep algorithm with a write-barrier for its garbage collector, running concurrently with mutator threads and allowing multiple GC threads to run in parallel. The algorithm is decomposed into several phases.
 
-*collection*
-1. Mark Setup (stop the world)
-    * turn on write barrier
-    * stop all goroutines
+  * *Collection Phases*
 
-2. Marking (concurrent)
-    * inspect the stack to find root pointers to the heap
-    * traverse the heap graph from those root pointers
-    * mark values on the heap that are still in use
-    * slow down allocations to speed up collection
+    There are three collection phases of the garbage collector.
+   
+    *Start/Stop The World (STW)* - whenever STW phase is found, application business logic is not executed.
 
-3. Mark Termination (stop the world)
-    * turn the write barrier off
-    * various cleanup tasks
-    * next collection goal is calculated
+    1. Mark Setup (STW)
+     
+       This phase turns on the *write barrier*, which makes sure that all concurrent activity is completely safe. This will stop every goroutine from running.
 
-*sweeping*
-Freeing Heap Memory
-* occurs when the *goroutines* attempt to allocate new heap memory
-* the latency of sweeping is added to the cost of performing new allocation
+    2. Marking (concurrent)
+  
+       The goal of this phase is to mark values in heap memory that are still in-use. The collector inspects all stacks to find root pointers to heap memory and traverses the heap graph based on them. If the collector sees that it might run out of memory, *Mark Assist* is triggered, which slows down allocations to speed up calculations.
 
-Compiler decides (via escape analysis) when a value should be allocated on the Heap
-* sharing down (passing pointers) typically stays on the Stack
-* sharing up (returning pointers) typically escapes on the Heap
+    3. Mark Termination (STW)
 
-* when the value could be referenced after the function that constructed it returns
-* if the value is too large to fit on the stack
-* when the compiler doesn't know the size of the value at compile time
+       This phase turns off the write barrier, and executes various cleanup tasks (e.g. flushing mcaches).
+
+  * *Concurrent sweep*
+
+      The sweep phase runs concurrently with normal execution. The heap is swept span-by-span both when a *goroutine* needs another span and concurrently in a background *goroutine*. 
+  In order to not request additional OS memory while there are unswept spans, when goroutine needs another span, it first tries to reclaim that much memory by sweeping.
+  The cost of the sweeping is not on the GC, but on the new allocation itself.
+
+  * *GC rate*
+  
+     The next GC is after an allocation of an extra amount of memory, proportional to the amount already in use.
+  Go has an environment variable called `GOGC` (GC rate), which represents a ratio of how much new heap memory can be allocated before the next collection has to start.
+  Adjusting `GOGC` changes the linear constant and the amount of extra memory used.
 
 #### 2.4.2.2. Concurrency
 
-The scheduler runs *goroutines*, pauses and resumes them on blocking channel ops. or mutex ops, coordinates blocking system calls, io, runtime GC. *Goroutines* use space threads, managed by the runtime.
-
-#### 2.4.2.3. Parallelism
-
+TODO:
+The scheduler runs *goroutines*, by pausing and resuming them depending on blocking channel or mutex operations, coordinates blocking system calls, io, runtime GC. *Goroutines* use space threads, managed by the runtime.
 
 ## 2.5. TinyGo
 
-It is a subset of Go with very different goals from the standard Go. It is an alternative compiler and runtime aimed to support many different small embedded devices with a single processor core that require certain optimizations mostly toward size.
+It is a subset of Go with very different goals from the standard Go. It is an alternative compiler and runtime aimed to support different small embedded devices with a single processor core that require certain optimizations mostly toward size.
 
 *Goals*
 * Have very small binary sizes.
@@ -343,7 +336,7 @@ OBJECT FILE -> link (llvm) -> EXECUTABLE
 
 * root: contains the command line interface for the tinygo command and all its subcommands
 * builder: orchestrates the build
-* loader: loads and typechecks the code, and produces an AST
+* loader: loads and type-checks the code, and produces an AST
 * compiler: the compiler itself, makes little attempt at optimizing code
 * interp: tries to run package initializers at compile time as far as possible
 * transform: implements various optimizations necessary to produce working and efficient code
@@ -365,7 +358,7 @@ The runtime is written from scratch, optimized for size instead of speed and re-
 
 #### 2.5.2.1. Basic features
 
-All basic types, slices, all regular control flow including switch, closures and bound methods are supported, `defer` keyword is almost entirely supported, with the exception of deferring some builtin functions, interfaces are quite stable and should work well in almost all cases. Type switches and type asserts are also supported, as well as calling methods on interfaces. The only exception is comparing two interface values.
+All basic types, slices, all regular control flow including switch, closures and bound methods are supported, `defer` keyword is almost entirely supported, except deferring some builtin functions, interfaces are quite stable and should work well in almost all cases. Type switches and type asserts are also supported, as well as calling methods on interfaces. The only exception is comparing two interface values.
 Maps are usable but not complete. You can use any type as a value, but only some types are acceptable as map keys (strings, integers, pointers, and structs/arrays that contain only these types). Also, they have not been optimized for performance and will cause linear lookup times in some cases.
 
 #### 2.5.2.2. Memory Management
@@ -433,8 +426,8 @@ Taking into consideration all the technical challenges, the timeframe, and the n
   * [x] use linker flags to export `__heap_base`, `__data_end` globals.
   * [x] use linker flags to export `__indirect_function_table`.
   * [x] change the stack placement not to start from the beginning of the linear memory.
-  * [x] disable the the scheduler to remove the support of *goroutines* and channels (and JS/WASI exports).
-  * [x] remove the unsupported features by Wasm MVP (bulk memory operations, lang. ext) and add implementation of `memmove`, `memset`, `memcpy`, use the opt flag as part of the target.
+  * [x] disable the scheduler to remove the support of *goroutines* and channels (and JS/WASI exports).
+  * [x] remove the unsupported features by Wasm MVP (bulk memory operations, lang. ext) and add implementation of `memmove`, `memset`, `memcpy`, use opt flag as part of the target.
   * [x] increase the memory size to 20 pages
   * [x] use the conservative GC as a starting point (there is a chance for memory corruption)
   * [x] add GC implementation that can work with external memory allocator (remove memory allocation exports).
@@ -443,6 +436,10 @@ Taking into consideration all the technical challenges, the timeframe, and the n
   * [ ] the `_start` export func should be called somewhere to init the heap (the host does not support that).
   * [ ] better abstractions, the extalloc GC depends on third party allocation API that might change in the future.
 
+We have forked TinyGo and have created the following pull requests, which include all the completed steps above:
+* [Polkawasm target](https://github.com/LimeChain/tinygo/pull/1), using TinyGo's `gc_conservative` garbage collector.
+* An [extended version](https://github.com/LimeChain/tinygo/pull/2/) of `polkawasm` target, which uses an `extalloc` garbage collector, which uses the Host imported allocator functions (`ext_allocator_malloc_version_1`, `ext_allocator_free_version_1`).
+
 **Setup Polkadot Host**
 1. [x] Fork and add [gossamer](https://github.com/LimeChain/gossamer) as a submodule.
 2. [x] Make the necessary changes to run locally provided Runtime inside the Host.
@@ -450,16 +447,16 @@ Taking into consideration all the technical challenges, the timeframe, and the n
 
 **Implement Polkadot Runtime**
 1. [x] Implement SCALE codec without reflection.
-2. Implement the minimal Runtime API (core API).
-  * [x] `Core_version`
-  * [ ] `Core_execute_block`
-  * [ ] `Core_initialize_block`
+2. [ ] Implement the minimal Runtime API (core API).
+   * [x] `Core_version`
+   * [ ] `Core_execute_block`
+   * [ ] `Core_initialize_block`
 3. [x] Add Makefile steps
 
 **Future toolchain improvements**
 1. [ ] write performance tests.
 2. [ ] complete the SCALE codec implementation.
-3. [ ] complete the reflect packages support
+3. [ ] complete the `reflect` packages support
 4. [ ] extalloc GC might need more work.
 5. [ ] fix output errors in the Wasm memory.
 
@@ -556,7 +553,7 @@ cat build/runtime.wat
 ## 4. Conclusion
 
 The resulting proof of concept could be used to develop Polkadot Runtimes.
-Also, current research document is useful for providing context as a starting point to make further contributions to the project or to take new direction for implementation of alternative toolchain.
+Also, the current research document is useful for providing context as a starting point to make further contributions to the project or to take new direction for implementation of alternative toolchain.
 
 
 ## 5. Discussion
