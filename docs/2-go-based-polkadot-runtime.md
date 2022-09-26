@@ -14,7 +14,7 @@
     * [2.2. Translating Go's language capabilities to WebAssembly MVP](#22-translating-gos-language-capabilities-to-webassembly-mvp)
         + [2.2.1. Limitations](#221-limitations)
         + [2.2.2. Proposals](#222-proposals)
-    * [2.3. Compiler backends targeting Wasm - LLVM, Binaryen](#23-compiler-backends-targeting-wasm-llvm-binaryen)
+    * [2.3. Compiler backends targeting Wasm - LLVM, Binaryen](#23-compiler-backends-targeting-wasm---llvm-binaryen)
     * [2.4. Go](#24-go)
         + [2.4.1. Compiler](#241-compiler)
         + [2.4.2. Runtime](#242-runtime)
@@ -35,7 +35,7 @@
     * [3.5. Linker globals](#35-linker-globals)
     * [3.6. Developer experience](#36-developer-experience)
 - [4. Solution](#4-solution)
-    * [4.1. Proof of concept (alternative compiler + runtime + GC with external allocator)](#41-proof-of-concept-alternative-compiler-runtime-gc-with-external-allocator)
+    * [4.1. Proof of concept (alternative compiler + runtime + GC with external allocator)](#41-proof-of-concept-alternative-compiler--runtime--gc-with-external-allocator)
     * [4.2. Testing Guide](#42-testing-guide)
 - [5. Conclusion](#5-conclusion)
 - [6. Discussion](#6-discussion)
@@ -239,7 +239,7 @@ there is no difference when accessing it.
 
 ### 2.3. Compiler backends targeting Wasm - LLVM, Binaryen
 
-LLVM and Binaryen are both compiler infrastructures that can be used to produce WebAssembly. However there are some
+LLVM and Binaryen are both compiler infrastructures that can be used to produce WebAssembly. However, there are some
 differences that are important to be noted:
 
 * LLVM currently does not support Wasm GC, and it is not the main focus for LLVM as most languages that utilize it uses
@@ -255,7 +255,7 @@ differences that are important to be noted:
 
 #### 2.4.1. Compiler
 
-The default compiler is `gc`. There are also `gccgo`, which uses the GCC back-end, and `gollvm` which uses the LLVM
+The default compiler is `gc`. There is also `gccgo`, which uses the GCC back-end, and `gollvm`, which uses the LLVM
 infrastructure (somewhat less mature).
 
 **Pipeline (Lowering)**
@@ -284,7 +284,8 @@ OBJECT FILE -> link (llvm) -> EXECUTABLE
 
 #### 2.4.2. Runtime
 
-Implements GC, scheduler included in every Go program. Contains a lot of type information at runtime.
+Go has an extensive library, called the `runtime`, which is used by Go programs. 
+The library includes a scheduler, memory allocator, garbage collector, stack management, data structures and other critical features of the `Go` language.
 
 ##### 2.4.2.1. Memory Management
 
@@ -384,7 +385,7 @@ requests memory, it requests it through the memory allocator, which initialises 
 
       The sweep phase runs concurrently with normal execution. The heap is swept span-by-span both when a *goroutine*
       needs another span and concurrently in a background *goroutine*. In order to not request additional OS memory
-      while there are unswept spans, when goroutine needs another span, it first tries to reclaim that much memory by
+      while there are not swept spans, when goroutine needs another span, it first tries to reclaim that much memory by
       sweeping. The cost of the sweeping is not on the GC, but on the new allocation itself.
 
     * *GC rate*
@@ -396,9 +397,36 @@ requests memory, it requests it through the memory allocator, which initialises 
 
 ##### 2.4.2.2. Concurrency
 
-TODO:
-The scheduler runs *goroutines*, by pausing and resuming them depending on blocking channel or mutex operations,
-coordinates blocking system calls, io, runtime GC. *Goroutines* use space threads, managed by the runtime.
+Every Go program has an initial main *goroutine*, which is very similar to an application-level thread, and can have multiple other
+*goroutines*, allowing to do concurrent tasks. *Goroutines* are managed by the Go scheduler, which depending on their state,
+makes scheduling decisions.
+
+The high-level states of a *goroutine* are:
+* Running - the *goroutine* is on an OS thread and executes its instructions.
+* Runnable - the *goroutine* is ready to execute its instructions, but does not have allocated time on an OS thread. This can happen when
+multiple *goroutines* want time on an OS thread, which will automatically make *goroutines* wait longer to get time. This might lead to bad performance.
+* Waiting/Blocked - the *goroutine* waits due to a system call or synchronization calls (blocking channels, atomic or mutex operations).
+
+The Go scheduler implements [cooperative](https://en.wikipedia.org/wiki/Cooperative_multitasking) scheduling, which depending on events makes
+scheduling decisions and does context-switching. Usually, you cannot predict what the Go scheduler is going to do. 
+
+There are four types of events in the Go program that might allow the scheduler to make a scheduling decision:
+* System calls
+  
+  Whenever a *goroutine* makes a system call, which will block the OS thread, the scheduler can decide to do context-switching by switching the *goroutine*
+  off the thread and put another *goroutine* on it.
+
+* Synchronization
+
+  If atomic, mutex, or channel operations block a *goroutine*, the scheduler can again context-switch.
+
+* Garbage collection
+  
+  The GC uses its own set of *goroutines*, which automatically allows scheduling decision to be made.
+
+* The use of `go` word
+  
+  This creates a new *goroutine*, which gives the scheduler a chance to make a scheduling decision.
 
 ### 2.5. TinyGo
 
