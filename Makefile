@@ -2,13 +2,7 @@ CURRENT_DIR = $(shell pwd)
 
 # Build with the standard system installed TinyGo.
 old:
-	@tinygo build \
-	-wasm-abi=generic \
-	-scheduler=none \
-	-gc=none \
-	-opt=0 \
-	-o=build/runtime.wasm \
-	runtime/runtime.go
+	@tinygo build -target=./target.json -o=build/runtime.wasm runtime/runtime.go
 
 # Build with our forked TinyGo.
 .PHONY: build

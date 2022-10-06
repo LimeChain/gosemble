@@ -1,0 +1,30 @@
+{
+  "llvm-target":        "wasm32-unknown-unknown",
+	"cpu":                "generic",
+	"features":           "+bulk-memory,+nontrapping-fptoint,+sign-ext",
+  "build-tags":         ["tinygo.wasm"],
+	"gc":                 "conservative",
+  "opt":                "0",
+  "goos":               "js",
+	"goarch":             "wasm",
+	"linker":             "wasm-ld",
+	"libc":               "",
+	"scheduler":          "none",
+	"default-stack-size": 16384,
+	"cflags": [
+    "-mno-bulk-memory",
+		"-mnontrapping-fptoint",
+		"-msign-ext"
+  ],
+	"ldflags": [
+		"--initial-memory=1310720",
+    "--allow-undefined",
+    "--no-demangle",
+		"--import-memory",
+		"--export=__heap_base",
+  	"--export=__data_end",
+		"--export-table"
+	],
+	"emulator":           "wasmtime {}",
+	"wasm-abi":           "generic"
+}
