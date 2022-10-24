@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/scale"
+	"github.com/LimeChain/goscale"
 )
 
 type ApiItem struct {
@@ -24,7 +24,7 @@ type VersionData struct {
 
 func (v *VersionData) Encode() ([]byte, error) {
 	var buffer = bytes.Buffer{}
-	var encoder = scale.Encoder{Writer: &buffer}
+	var encoder = goscale.Encoder{Writer: &buffer}
 
 	encoder.EncodeByteSlice(v.SpecName)
 	encoder.EncodeByteSlice(v.ImplName)
@@ -46,7 +46,7 @@ func (v *VersionData) Encode() ([]byte, error) {
 
 func (v *VersionData) Decode(enc []byte) error {
 	var buffer = bytes.NewBuffer(enc)
-	var decoder = scale.Decoder{Reader: buffer}
+	var decoder = goscale.Decoder{Reader: buffer}
 
 	v.SpecName = decoder.DecodeByteSlice()
 	v.ImplName = decoder.DecodeByteSlice()
@@ -73,7 +73,7 @@ func (v *VersionData) Decode(enc []byte) error {
 	return nil
 }
 
-func decodeApiName(decoder scale.Decoder) [8]byte {
+func decodeApiName(decoder goscale.Decoder) [8]byte {
 	var result [8]byte
 	length := decoder.DecodeUintCompact()
 

@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/ChainSafe/gossamer v0.0.0-00010101000000-000000000000
+	github.com/LimeChain/goscale v0.0.0-20221019114930-10043f68e827
 	github.com/stretchr/testify v1.8.0
 )
 
@@ -72,4 +73,8 @@ require (
 	lukechampine.com/blake3 v1.1.7 // indirect
 )
 
-replace github.com/ChainSafe/gossamer => ./gossamer // github.com/LimeChain/gossamer v0.0.0-20220902211340-78a1dbd88907
+replace github.com/ChainSafe/gossamer => ./gossamer
+
+replace github.com/LimeChain/gosemble/goscale => ./goscale
+
+// replace github.com/itering/scale.go => ./scale.go
