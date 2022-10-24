@@ -4,9 +4,9 @@ Targets WebAssembly MVP
 package main
 
 import (
-	"github.com/radkomih/gosemble/constants"
-	"github.com/radkomih/gosemble/types"
-	"github.com/radkomih/gosemble/utils"
+	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 /*

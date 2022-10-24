@@ -1,4 +1,4 @@
-module github.com/radkomih/gosemble
+module github.com/LimeChain/gosemble
 
 go 1.18
 

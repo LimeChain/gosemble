@@ -2,7 +2,8 @@ package types
 
 import (
 	"bytes"
-	"github.com/radkomih/gosemble/scale"
+
+	"github.com/LimeChain/gosemble/scale"
 )
 
 type ApiItem struct {
@@ -36,6 +37,7 @@ func (v *VersionData) Encode() ([]byte, error) {
 		encoder.EncodeByteSlice(apiItem.Name[:])
 		encoder.EncodeUint32(apiItem.Version)
 	}
+
 	encoder.EncodeUint32(v.TransactionVersion)
 	encoder.EncodeUint32(v.StateVersion)
 

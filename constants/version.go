@@ -1,6 +1,6 @@
 package constants
 
-import "github.com/radkomih/gosemble/types"
+import "github.com/LimeChain/gosemble/types"
 
 const SPEC_NAME = "gosemble"
 const IMPL_NAME = "go"

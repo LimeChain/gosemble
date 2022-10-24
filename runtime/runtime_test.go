@@ -5,8 +5,8 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
 	"github.com/ChainSafe/gossamer/lib/trie"
-	"github.com/radkomih/gosemble/constants"
-	"github.com/radkomih/gosemble/types"
+	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/types"
 	"github.com/stretchr/testify/assert"
 )
 
