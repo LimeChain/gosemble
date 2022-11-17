@@ -1,7 +1,6 @@
 # Go-based Polkadot/Substrate Runtimes 
 
-The following repository contains research and PoC on toolchains for building Go-based Polkadot/Substrate runtimes.
-The research is funded by [**Web3 Foundation**](https://web3.foundation) **Grants** and developed, maintained by
+The following project is based on a previous [research](https://github.com/LimeChain/gosemble-research) funded by [**Web3 Foundation**](https://web3.foundation) **Grants** and developed, maintained by
 [**LimeChain**](https://limechain.tech).
 
 [Research Results](./docs/2-go-based-polkadot-runtime.md)
