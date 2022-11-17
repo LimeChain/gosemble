@@ -19,7 +19,7 @@ type VersionData struct {
 	ImplVersion        uint32
 	Apis               []ApiItem
 	TransactionVersion uint32
-	StateVersion       uint32
+	StateVersion       uint8
 }
 
 func (v *VersionData) Encode() ([]byte, error) {
@@ -31,15 +31,15 @@ func (v *VersionData) Encode() ([]byte, error) {
 	encoder.EncodeUint32(v.AuthoringVersion)
 	encoder.EncodeUint32(v.SpecVersion)
 	encoder.EncodeUint32(v.ImplVersion)
-	encoder.EncodeUint32(uint32(len(v.Apis)))
 
+	encoder.EncodeUint8(uint8(len(v.Apis)))
 	for _, apiItem := range v.Apis {
 		encoder.EncodeByteSlice(apiItem.Name[:])
 		encoder.EncodeUint32(apiItem.Version)
 	}
 
 	encoder.EncodeUint32(v.TransactionVersion)
-	encoder.EncodeUint32(v.StateVersion)
+	encoder.EncodeUint8(v.StateVersion)
 
 	return buffer.Bytes(), nil
 }
@@ -54,7 +54,7 @@ func (v *VersionData) Decode(enc []byte) error {
 	v.SpecVersion = decoder.DecodeUint32()
 	v.ImplVersion = decoder.DecodeUint32()
 
-	apisLength := decoder.DecodeUint32()
+	apisLength := decoder.DecodeUint8()
 	if apisLength != 0 {
 		var apis []ApiItem
 
@@ -68,7 +68,7 @@ func (v *VersionData) Decode(enc []byte) error {
 	}
 
 	v.TransactionVersion = decoder.DecodeUint32()
-	v.StateVersion = decoder.DecodeUint32()
+	v.StateVersion = decoder.DecodeUint8()
 
 	return nil
 }

@@ -1,8 +1,10 @@
 package types
 
+type BlockNumber uint32
+
 type Header struct {
 	ParentHash     Blake2bHash
-	Number         uint64
+	Number         BlockNumber
 	StateRoot      Hash
 	ExtrinsicsRoot Hash
 	Digest         Digest
