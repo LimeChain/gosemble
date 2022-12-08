@@ -77,5 +77,3 @@ require (
 replace github.com/ChainSafe/gossamer => ./gossamer
 
 replace github.com/LimeChain/goscale => ./goscale
-
-// replace github.com/itering/scale.go => ./scale.go

@@ -1,5 +1,7 @@
 package types
 
+import "bytes"
+
 type BlockNumber uint32
 
 type Header struct {
@@ -10,10 +12,10 @@ type Header struct {
 	Digest         Digest
 }
 
-func (v *Header) Encode() ([]byte, error) {
-	return []byte{}, nil
+func (h Header) Encode(buffer *bytes.Buffer) {
+	panic("not implemented")
 }
 
-func (v *Header) Decode(enc []byte) error {
-	return nil
+func DecodeHeader(buffer *bytes.Buffer) Header {
+	panic("not implemented")
 }

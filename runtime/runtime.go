@@ -4,6 +4,8 @@
 package main
 
 import (
+	"bytes"
+
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/types"
@@ -24,11 +26,11 @@ func main() {}
 */
 //go:export Core_version
 func CoreVersion(dataPtr int32, dataLen int32) int64 {
-	scaleEncVersion, err := constants.RuntimeVersion.Encode()
-	utils.PanicOnError(err)
+	buffer := &bytes.Buffer{}
+	constants.RuntimeVersion.Encode(buffer)
 	// TODO: retain the pointer to the scaleEncVersion
 	// utils.Retain(scaleEncVersion)
-	return utils.BytesToOffsetAndSize(scaleEncVersion)
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
 /*
@@ -41,10 +43,10 @@ SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, 
 //go:export Core_initialize_block
 func CoreInitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	header := &types.Header{}
-	err := header.Decode(data)
-	utils.PanicOnError(err)
-	executive.InitializeBlock(header)
+	buffer := &bytes.Buffer{}
+	buffer.Write(data)
+	header := types.DecodeHeader(buffer)
+	executive.InitializeBlock(&header)
 }
 
 /*

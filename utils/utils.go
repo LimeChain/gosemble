@@ -63,11 +63,5 @@ func WriteToMemory(offset int32, size int32, data [256]byte) {
 
 	for i := int32(0); i < size; i++ {
 		memory[i] = byte(data[i])
-
-		// ptr := (*byte)(unsafe.Pointer(uintptr(offset) + uintptr(i)))
-		// *ptr = byte(data[i])
-
-		// ptr := unsafe.Pointer(uintptr(offset))
-		// bs := (*[MAX_ARRAY_SIZE]byte)(ptr)[:]
 	}
 }
