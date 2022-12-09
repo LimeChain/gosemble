@@ -8,20 +8,18 @@ import (
 )
 
 type ApiItem struct {
-	Name    sc.Sequence[sc.U8] // TODO: https://github.com/LimeChain/goscale/issues/37
+	Name    sc.FixedSequence[sc.U8] // TODO: https://github.com/LimeChain/goscale/issues/37
 	Version sc.U32
 }
 
 func (api ApiItem) Encode(buffer *bytes.Buffer) {
 	api.Name.Encode(buffer)
 	api.Version.Encode(buffer)
-
-	// sc.EncodeTuple(api, buffer)
 }
 
 func DecodeApiItem(buffer *bytes.Buffer) ApiItem {
 	return ApiItem{
-		Name:    sc.DecodeSequenceU8(buffer),
+		Name:    sc.DecodeFixedSequence[sc.U8](8, buffer),
 		Version: sc.DecodeU32(buffer),
 	}
 }
@@ -50,8 +48,6 @@ func (v VersionData) Encode(buffer *bytes.Buffer) {
 	v.Apis.Encode(buffer)
 	v.TransactionVersion.Encode(buffer)
 	v.StateVersion.Encode(buffer)
-
-	// sc.EncodeTuple(v, buffer)
 }
 
 func DecodeVersionData(buffer *bytes.Buffer) VersionData {
@@ -69,7 +65,7 @@ func DecodeVersionData(buffer *bytes.Buffer) VersionData {
 		for i := 0; i < int(apisLength); i++ {
 			apis = append(apis, DecodeApiItem(buffer))
 		}
-		v.Apis.Values = apis
+		v.Apis = apis
 	}
 
 	v.TransactionVersion = sc.DecodeU32(buffer)
@@ -88,7 +84,7 @@ func (v VersionData) String() string {
 	result += fmt.Sprintf("SpecVersion: %d\n", v.SpecVersion)
 	result += fmt.Sprintf("ImplVersion: %d\n", v.ImplVersion)
 	result += "Apis: ["
-	for _, v := range v.Apis.Values {
+	for _, v := range v.Apis {
 		result += v.String()
 	}
 	result += "]\n"

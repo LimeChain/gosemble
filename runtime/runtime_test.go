@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const WASM_RUNTIME = "../build/runtime.wasm" // -v9160
+const WASM_RUNTIME = "../build/runtime.wasm" // node_template_runtime.wasm
 
 func Test_CoreVersion(t *testing.T) {
 	rt := wasmer.NewLocalTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
