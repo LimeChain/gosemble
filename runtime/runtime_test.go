@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
@@ -10,27 +11,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const WASM_RUNTIME = "../build/runtime.wasm"
+const WASM_RUNTIME = "../build/runtime.wasm" // -v9160
 
 func Test_CoreVersion(t *testing.T) {
 	rt := wasmer.NewLocalTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
 	res, err := rt.Exec("Core_version", []byte{})
 	assert.Nil(t, err)
-
-	resultVersion := types.VersionData{}
-	err = resultVersion.Decode(res)
-	assert.Nil(t, err)
-	t.Logf("%q", res)
-	assert.Equal(t, constants.VersionDataConfig, resultVersion)
+	// t.Logf("%x", res)
+	buffer := bytes.Buffer{}
+	buffer.Write(res)
+	resultVersion := types.DecodeVersionData(&buffer)
+	// t.Log(resultVersion)
+	assert.Equal(t, constants.RuntimeVersion, resultVersion)
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
-	rt := wasmer.NewLocalTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
 
-	scaleEncHeader, err := (&types.Header{}).Encode()
-	assert.Nil(t, err)
-
-	res, err := rt.Exec("Core_initialize_block", scaleEncHeader)
-	assert.Nil(t, err)
-	t.Logf("%q", res)
 }

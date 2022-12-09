@@ -1,53 +1,62 @@
 /*
-Targets WebAssembly MVP
+	Targets WebAssembly MVP
 */
 package main
 
 import (
+	"bytes"
+
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
+// TODO: remove the _start export and find a way to call it from the runtime to initialize the memory.
+// TinyGo requires to have a main function to compile to Wasm.
+func main() {}
+
 /*
+	https://spec.polkadot.network/#defn-rt-core-version
+
 	SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
+		dataPtr - i32 pointer to the memory location.
+		dataLen - i32 length (in bytes) of the encoded arguments.
+		returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
 */
 //go:export Core_version
 func CoreVersion(dataPtr int32, dataLen int32) int64 {
-	scaleEncVersion, err := constants.VersionDataConfig.Encode()
-	utils.PanicOnError(err)
+	buffer := &bytes.Buffer{}
+	constants.RuntimeVersion.Encode(buffer)
 	// TODO: retain the pointer to the scaleEncVersion
 	// utils.Retain(scaleEncVersion)
-	return utils.BytesToOffsetAndSize(scaleEncVersion)
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
 /*
+https://spec.polkadot.network/#sect-rte-core-initialize-block
+
 SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, passed as:
-dataPtr - i32 pointer to the memory location.
-dataLen - i32 length (in bytes) of the encoded arguments.
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
 */
 //go:export Core_initialize_block
 func CoreInitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	header := (&types.Header{}).Decode(data)
-	_ = header
-	extStorageSetVersion1(int64(123), int64(456))
-	extStorageGetVersion1(int64(123))
+	buffer := &bytes.Buffer{}
+	buffer.Write(data)
+	header := types.DecodeHeader(buffer)
+	executive.InitializeBlock(&header)
 }
 
 /*
+	https://spec.polkadot.network/#sect-rte-core-execute-block
+
 	SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, passed as:
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
+		dataPtr - i32 pointer to the memory location.
+		dataLen - i32 length (in bytes) of the encoded arguments.
 */
 //go:export Core_execute_block
 func ExecuteBlock(dataPtr int32, dataLen int32) {
 
 }
-
-// TODO: remove the _start export and find a way to call it from the runtime to initialize the memory.
-// TinyGo requires to have a main function to compile to Wasm.
-func main() {}

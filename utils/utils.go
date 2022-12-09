@@ -14,7 +14,7 @@ func Retain(data []byte) {
 
 func PanicOnError(err error) {
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 }
 
@@ -43,7 +43,7 @@ func StringToOffsetAndSize(str string) int64 {
 	return OffsetAndSizeToInt64(int32(offset), int32(size))
 }
 
-// func PointerAndSizeToString(ptr int32, size int32) string {
+// func OffsetAndSizeToString(ptr int32, size int32) string {
 // 	// We use SliceHeader, not StringHeader as it allows us to fix the capacity to what was allocated.
 // 	// Tinygo requires these as uintptrs even if they are int fields.
 // 	// https://github.com/tinygo-org/tinygo/issues/1284
@@ -63,11 +63,5 @@ func WriteToMemory(offset int32, size int32, data [256]byte) {
 
 	for i := int32(0); i < size; i++ {
 		memory[i] = byte(data[i])
-
-		// ptr := (*byte)(unsafe.Pointer(uintptr(offset) + uintptr(i)))
-		// *ptr = byte(data[i])
-
-		// ptr := unsafe.Pointer(uintptr(offset))
-		// bs := (*[MAX_ARRAY_SIZE]byte)(ptr)[:]
 	}
 }

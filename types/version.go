@@ -2,84 +2,99 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 
-	"github.com/LimeChain/goscale"
+	sc "github.com/LimeChain/goscale"
 )
 
 type ApiItem struct {
-	Name    [8]byte
-	Version uint32
+	Name    sc.Sequence[sc.U8] // TODO: https://github.com/LimeChain/goscale/issues/37
+	Version sc.U32
+}
+
+func (api ApiItem) Encode(buffer *bytes.Buffer) {
+	api.Name.Encode(buffer)
+	api.Version.Encode(buffer)
+
+	// sc.EncodeTuple(api, buffer)
+}
+
+func DecodeApiItem(buffer *bytes.Buffer) ApiItem {
+	return ApiItem{
+		Name:    sc.DecodeSequenceU8(buffer),
+		Version: sc.DecodeU32(buffer),
+	}
+}
+
+func (api ApiItem) String() string {
+	return fmt.Sprintf("ApiItem { Name: %#x, Version: %d}", api.Name, api.Version)
 }
 
 type VersionData struct {
-	SpecName           []byte
-	ImplName           []byte
-	AuthoringVersion   uint32
-	SpecVersion        uint32
-	ImplVersion        uint32
-	Apis               []ApiItem
-	TransactionVersion uint32
-	StateVersion       uint32
+	SpecName           sc.Str
+	ImplName           sc.Str
+	AuthoringVersion   sc.U32
+	SpecVersion        sc.U32
+	ImplVersion        sc.U32
+	Apis               sc.Sequence[ApiItem]
+	TransactionVersion sc.U32
+	StateVersion       sc.U8
 }
 
-func (v *VersionData) Encode() ([]byte, error) {
-	var buffer = bytes.Buffer{}
-	var encoder = goscale.Encoder{Writer: &buffer}
+func (v VersionData) Encode(buffer *bytes.Buffer) {
+	v.SpecName.Encode(buffer)
+	v.ImplName.Encode(buffer)
+	v.AuthoringVersion.Encode(buffer)
+	v.SpecVersion.Encode(buffer)
+	v.ImplVersion.Encode(buffer)
+	v.Apis.Encode(buffer)
+	v.TransactionVersion.Encode(buffer)
+	v.StateVersion.Encode(buffer)
 
-	encoder.EncodeByteSlice(v.SpecName)
-	encoder.EncodeByteSlice(v.ImplName)
-	encoder.EncodeUint32(v.AuthoringVersion)
-	encoder.EncodeUint32(v.SpecVersion)
-	encoder.EncodeUint32(v.ImplVersion)
-	encoder.EncodeUint32(uint32(len(v.Apis)))
-
-	for _, apiItem := range v.Apis {
-		encoder.EncodeByteSlice(apiItem.Name[:])
-		encoder.EncodeUint32(apiItem.Version)
-	}
-
-	encoder.EncodeUint32(v.TransactionVersion)
-	encoder.EncodeUint32(v.StateVersion)
-
-	return buffer.Bytes(), nil
+	// sc.EncodeTuple(v, buffer)
 }
 
-func (v *VersionData) Decode(enc []byte) error {
-	var buffer = bytes.NewBuffer(enc)
-	var decoder = goscale.Decoder{Reader: buffer}
+func DecodeVersionData(buffer *bytes.Buffer) VersionData {
+	var v VersionData
 
-	v.SpecName = decoder.DecodeByteSlice()
-	v.ImplName = decoder.DecodeByteSlice()
-	v.AuthoringVersion = decoder.DecodeUint32()
-	v.SpecVersion = decoder.DecodeUint32()
-	v.ImplVersion = decoder.DecodeUint32()
+	v.SpecName = sc.DecodeStr(buffer)
+	v.ImplName = sc.DecodeStr(buffer)
+	v.AuthoringVersion = sc.DecodeU32(buffer)
+	v.SpecVersion = sc.DecodeU32(buffer)
+	v.ImplVersion = sc.DecodeU32(buffer)
 
-	apisLength := decoder.DecodeUint32()
+	apisLength := sc.DecodeCompact(buffer)
 	if apisLength != 0 {
 		var apis []ApiItem
-
 		for i := 0; i < int(apisLength); i++ {
-			apis = append(apis, ApiItem{
-				Name:    decodeApiName(decoder),
-				Version: decoder.DecodeUint32(),
-			})
+			apis = append(apis, DecodeApiItem(buffer))
 		}
-		v.Apis = apis
+		v.Apis.Values = apis
 	}
 
-	v.TransactionVersion = decoder.DecodeUint32()
-	v.StateVersion = decoder.DecodeUint32()
+	v.TransactionVersion = sc.DecodeU32(buffer)
+	v.StateVersion = sc.DecodeU8(buffer)
 
-	return nil
+	return v
 }
 
-func decodeApiName(decoder goscale.Decoder) [8]byte {
-	var result [8]byte
-	length := decoder.DecodeUintCompact()
+func (v VersionData) String() string {
+	var result string
 
-	for i := 0; i < int(length); i++ {
-		result[i] = decoder.DecodeByte()
+	result = "VersionData {\n"
+	result += fmt.Sprintf("SpecName: %s\n", v.SpecName)
+	result += fmt.Sprintf("ImplName: %s\n", v.ImplName)
+	result += fmt.Sprintf("AuthoringVersion: %d\n", v.AuthoringVersion)
+	result += fmt.Sprintf("SpecVersion: %d\n", v.SpecVersion)
+	result += fmt.Sprintf("ImplVersion: %d\n", v.ImplVersion)
+	result += "Apis: ["
+	for _, v := range v.Apis.Values {
+		result += v.String()
 	}
+	result += "]\n"
+	result += fmt.Sprintf("TransactionVersion: %d\n", v.TransactionVersion)
+	result += fmt.Sprintf("StateVersion: %d\n", v.StateVersion)
+	result += "}"
 
 	return result
 }
