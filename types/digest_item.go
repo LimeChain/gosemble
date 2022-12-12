@@ -1,3 +1,7 @@
 package types
 
-type DigestItem int
+import (
+	sc "github.com/LimeChain/goscale"
+)
+
+type DigestItem = sc.U8

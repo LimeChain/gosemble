@@ -1,5 +1,6 @@
 package types
 
-type Hash [32]byte
+import sc "github.com/LimeChain/goscale"
 
-type Blake2bHash [32]byte
+type Hash = sc.FixedSequence[sc.U8]        // size 32
+type Blake2bHash = sc.FixedSequence[sc.U8] // size 32

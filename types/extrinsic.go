@@ -1,3 +1,7 @@
 package types
 
-type Extrinsic []byte
+import (
+	sc "github.com/LimeChain/goscale"
+)
+
+type Extrinsic = sc.Sequence[sc.U8]
