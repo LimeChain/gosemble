@@ -1,8 +1,12 @@
 package types
 
-import "bytes"
+import (
+	"bytes"
 
-type BlockNumber uint32
+	sc "github.com/LimeChain/goscale"
+)
+
+type BlockNumber sc.U32
 
 type Header struct {
 	ParentHash     Blake2bHash
@@ -13,9 +17,9 @@ type Header struct {
 }
 
 func (h Header) Encode(buffer *bytes.Buffer) {
-	panic("not implemented")
+	panic("not implemented Header Encode")
 }
 
 func DecodeHeader(buffer *bytes.Buffer) Header {
-	panic("not implemented")
+	panic("not implemented DecodeHeader")
 }

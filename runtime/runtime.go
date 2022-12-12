@@ -1,5 +1,5 @@
 /*
-	Targets WebAssembly MVP
+Targets WebAssembly MVP
 */
 package main
 

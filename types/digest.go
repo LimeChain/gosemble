@@ -1,3 +1,7 @@
 package types
 
-type Digest []DigestItem
+import (
+	sc "github.com/LimeChain/goscale"
+)
+
+type Digest = sc.Sequence[DigestItem]
