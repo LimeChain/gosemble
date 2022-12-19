@@ -46,7 +46,7 @@ func CoreInitializeBlock(dataPtr int32, dataLen int32) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(data)
 	header := types.DecodeHeader(buffer)
-	executive.InitializeBlock(&header)
+	executive.InitializeBlock(header)
 }
 
 /*
