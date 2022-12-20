@@ -6,7 +6,6 @@ import (
 )
 
 const (
-	DigestTypeNonSystem                  = 0
 	DigestTypeConsensusMessage           = 4
 	DigestTypeSeal                       = 5
 	DigestTypePreRuntime                 = 6
@@ -35,9 +34,6 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 		digestType := decoder.DecodeByte()
 
 		switch digestType {
-		case DigestTypeNonSystem:
-			// TODO: DecodeSequence[Byte] == ByteArray
-			//result = append(result, sc.DecodeSliceU8(buffer))
 		case DigestTypeConsensusMessage:
 			consensusDigest := DigestItem{
 				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
