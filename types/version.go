@@ -18,6 +18,13 @@ func (ai ApiItem) Encode(buffer *bytes.Buffer) {
 	// sc.Tuple[ApiItem]{Data: ai}.Encode(buffer)
 }
 
+func (ai ApiItem) Bytes() []byte {
+	buffer := &bytes.Buffer{}
+	ai.Encode(buffer)
+
+	return buffer.Bytes()
+}
+
 func DecodeApiItem(buffer *bytes.Buffer) ApiItem {
 	return ApiItem{
 		Name:    sc.DecodeFixedSequence[sc.U8](8, buffer),

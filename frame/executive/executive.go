@@ -52,9 +52,10 @@ func runtimeUpgrade() bool {
 	buffer.Reset()
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(rupi.SpecVersion) || rupi.SpecName != constants.RuntimeVersion.SpecName {
-		sc.Compact(constants.RuntimeVersion.SpecVersion).Encode(buffer)
-		constants.RuntimeVersion.SpecName.Encode(buffer)
-		storage.Set(key, buffer.Bytes())
+		value := append(
+			sc.Compact(constants.RuntimeVersion.SpecVersion).Bytes(),
+			constants.RuntimeVersion.SpecName.Bytes()...)
+		storage.Set(key, value)
 
 		return true
 	}
@@ -63,58 +64,42 @@ func runtimeUpgrade() bool {
 }
 
 func initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
-	buffer := &bytes.Buffer{}
 	initializationPhase := sc.U32(constants.ExecutionPhaseInitialization)
-	initializationPhase.Encode(buffer)
 
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), buffer.Bytes())
-	buffer.Reset()
+	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
 
-	sc.U32(0).Encode(buffer)
-	storage.Set(constants.KeyExtrinsicIndex, buffer.Bytes())
-	buffer.Reset()
+	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
-	blockNumber.Encode(buffer)
 	numberHash := hashing.Twox128(constants.KeyNumber)
-	storage.Set(append(systemHash, numberHash...), buffer.Bytes())
-	buffer.Reset()
+	storage.Set(append(systemHash, numberHash...), blockNumber.Bytes())
 
-	digest.Encode(buffer)
 	digestHash := hashing.Twox128(constants.KeyDigest)
-	storage.Set(append(systemHash, digestHash...), buffer.Bytes())
-	buffer.Reset()
+	storage.Set(append(systemHash, digestHash...), digest.Bytes())
 
 	parentHashKey := hashing.Twox128(constants.KeyParentHash)
-	parentHash.Encode(buffer)
-	storage.Set(append(systemHash, parentHashKey...), buffer.Bytes())
-	buffer.Reset()
+	storage.Set(append(systemHash, parentHashKey...), parentHash.Bytes())
 
 	blockHashKeyHash := hashing.Twox128(constants.KeyBlockHash)
 	prevBlock := blockNumber.U32 - 1
-	prevBlock.Encode(buffer)
-	blockNumHash := hashing.Twox64(buffer.Bytes())
+	blockNumHash := hashing.Twox64(prevBlock.Bytes())
 	blockNumKey := append(systemHash, blockHashKeyHash...)
 	blockNumKey = append(blockNumKey, blockNumHash...)
-	blockNumKey = append(blockNumKey, buffer.Bytes()...)
-	buffer.Reset()
-	parentHash.Encode(buffer)
-	storage.Set(blockNumKey, buffer.Bytes())
-	buffer.Reset()
+	blockNumKey = append(blockNumKey, prevBlock.Bytes()...)
+
+	storage.Set(blockNumKey, parentHash.Bytes())
 
 	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
 	storage.Clear(append(systemHash, blockWeightHash...))
 }
 
 func noteFinishedInitialize() {
-	buffer := &bytes.Buffer{}
 	initializationPhase := sc.U32(constants.ExecutionPhaseApplyExtrinsic)
-	initializationPhase.Encode(buffer)
 
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), buffer.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
 }
 
 func extractPreRuntimeDigest(digest types.Digest) types.Digest {

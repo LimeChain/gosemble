@@ -24,6 +24,13 @@ func (d Digest) Encode(buffer *bytes.Buffer) {
 	}
 }
 
+func (d Digest) Bytes() []byte {
+	buffer := &bytes.Buffer{}
+	d.Encode(buffer)
+
+	return buffer.Bytes()
+}
+
 func DecodeDigest(buffer *bytes.Buffer) Digest {
 	length := sc.DecodeCompact(buffer)
 
