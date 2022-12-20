@@ -17,7 +17,7 @@ func InitializeBlock(header types.Header) {
 		// TODO:
 	}
 
-	initialize(header.Number, header.ParentHash, header.Digest.Values[types.DigestTypePreRuntime])
+	initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
 	// TODO:
 
@@ -62,7 +62,7 @@ func runtimeUpgrade() bool {
 	return false
 }
 
-func initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.DigestItem) {
+func initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
 	buffer := &bytes.Buffer{}
 	initializationPhase := sc.U32(constants.ExecutionPhaseInitialization)
 	initializationPhase.Encode(buffer)
@@ -81,12 +81,14 @@ func initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, dig
 	storage.Set(append(systemHash, numberHash...), buffer.Bytes())
 	buffer.Reset()
 
-	// TODO: digest
+	digest.Encode(buffer)
+	digestHash := hashing.Twox128(constants.KeyDigest)
+	storage.Set(append(systemHash, digestHash...), buffer.Bytes())
+	buffer.Reset()
 
 	parentHashKey := hashing.Twox128(constants.KeyParentHash)
 	parentHash.Encode(buffer)
-	bufferParentHash := buffer.Bytes()
-	storage.Set(append(systemHash, parentHashKey...), bufferParentHash)
+	storage.Set(append(systemHash, parentHashKey...), buffer.Bytes())
 	buffer.Reset()
 
 	blockHashKeyHash := hashing.Twox128(constants.KeyBlockHash)
@@ -95,7 +97,10 @@ func initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, dig
 	blockNumHash := hashing.Twox64(buffer.Bytes())
 	blockNumKey := append(systemHash, blockHashKeyHash...)
 	blockNumKey = append(blockNumKey, blockNumHash...)
-	storage.Set(blockNumKey, bufferParentHash)
+	blockNumKey = append(blockNumKey, buffer.Bytes()...)
+	buffer.Reset()
+	parentHash.Encode(buffer)
+	storage.Set(blockNumKey, buffer.Bytes())
 	buffer.Reset()
 
 	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
@@ -110,4 +115,15 @@ func noteFinishedInitialize() {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 	storage.Set(append(systemHash, executionPhaseHash...), buffer.Bytes())
+}
+
+func extractPreRuntimeDigest(digest types.Digest) types.Digest {
+	result := types.Digest{Values: map[uint8]sc.FixedSequence[types.DigestItem]{}}
+	for k, v := range digest.Values {
+		if k == types.DigestTypePreRuntime {
+			result.Values[k] = v
+		}
+	}
+
+	return result
 }

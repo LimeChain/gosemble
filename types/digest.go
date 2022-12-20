@@ -14,7 +14,7 @@ const (
 )
 
 type Digest struct {
-	Values map[uint8]DigestItem
+	Values map[uint8]sc.FixedSequence[DigestItem]
 }
 
 func (d Digest) Encode(buffer *bytes.Buffer) {
@@ -25,21 +25,12 @@ func (d Digest) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-type Consensus struct {
-	id    sc.FixedSequence[sc.U8]
-	value sc.Sequence[sc.U8]
-}
-
 func DecodeDigest(buffer *bytes.Buffer) Digest {
-	b := sc.DecodeBool(buffer)
-	if !b {
-		return Digest{}
-	}
 	length := sc.DecodeCompact(buffer)
 
 	decoder := sc.Decoder{buffer}
 
-	result := map[uint8]DigestItem{}
+	result := map[uint8]sc.FixedSequence[DigestItem]{}
 	for i := 0; i < int(length); i++ {
 		digestType := decoder.DecodeByte()
 
@@ -52,19 +43,19 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
 				Payload: sc.DecodeSequence[sc.U8](buffer),
 			}
-			result[DigestTypeConsensusMessage] = consensusDigest
+			result[DigestTypeConsensusMessage] = append(result[DigestTypeConsensusMessage], consensusDigest)
 		case DigestTypeSeal:
 			seal := DigestItem{
 				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
 				Payload: sc.DecodeSequence[sc.U8](buffer),
 			}
-			result[DigestTypeSeal] = seal
+			result[DigestTypeSeal] = append(result[DigestTypeSeal], seal)
 		case DigestTypePreRuntime:
 			preRuntimeDigest := DigestItem{
 				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
 				Payload: sc.DecodeSequence[sc.U8](buffer),
 			}
-			result[DigestTypePreRuntime] = preRuntimeDigest
+			result[DigestTypePreRuntime] = append(result[DigestTypePreRuntime], preRuntimeDigest)
 		case DigestTypeRuntimeEnvironmentUpgraded:
 			// TODO:
 		default:

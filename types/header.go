@@ -27,6 +27,7 @@ func DecodeHeader(buffer *bytes.Buffer) Header {
 	number := sc.DecodeCompact(buffer)
 	stateRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
 	extrinsicRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	digest := DecodeDigest(buffer)
 
 	return Header{
 		ParentHash: Blake2bHash{
@@ -37,6 +38,6 @@ func DecodeHeader(buffer *bytes.Buffer) Header {
 		},
 		StateRoot:      stateRoot,
 		ExtrinsicsRoot: extrinsicRoot,
-		Digest:         DecodeDigest(buffer),
+		Digest:         digest,
 	}
 }
