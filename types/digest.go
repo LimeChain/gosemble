@@ -51,9 +51,8 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 			preRuntimeDigest := DecodeDigestItem(buffer)
 			result[DigestTypePreRuntime] = append(result[DigestTypePreRuntime], preRuntimeDigest)
 		case DigestTypeRuntimeEnvironmentUpgraded:
+			sc.DecodeU8(buffer)
 			// TODO:
-		default:
-			panic("invalid digest type")
 		}
 	}
 
