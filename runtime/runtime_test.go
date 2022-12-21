@@ -89,27 +89,17 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.Nil(t, err)
 
-	buffer := &bytes.Buffer{}
-
 	lrui := types.LastRuntimeUpgradeInfo{
 		SpecVersion: constants.SPEC_VERSION,
 		SpecName:    constants.SPEC_NAME,
 	}
-	lrui.Encode(buffer)
-	assert.Equal(t, buffer.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
-	buffer.Reset()
+	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
 
-	sc.U32(0).Encode(buffer)
-	assert.Equal(t, buffer.Bytes(), storage.Get(constants.KeyExtrinsicIndex))
-	buffer.Reset()
+	assert.Equal(t, sc.U32(0).Bytes(), storage.Get(constants.KeyExtrinsicIndex))
 
-	sc.U32(constants.ExecutionPhaseApplyExtrinsic).Encode(buffer)
-	assert.Equal(t, buffer.Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
-	buffer.Reset()
+	assert.Equal(t, sc.U32(constants.ExecutionPhaseApplyExtrinsic).Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	sc.U32(blockNumber).Encode(buffer)
-	assert.Equal(t, buffer.Bytes(), storage.Get(append(keySystemHash, keyNumberHash...)))
-	buffer.Reset()
+	assert.Equal(t, sc.U32(blockNumber).Bytes(), storage.Get(append(keySystemHash, keyNumberHash...)))
 
 	assert.Equal(t, expectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
 
@@ -117,13 +107,11 @@ func Test_CoreInitializeBlock(t *testing.T) {
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
 	prevBlock := sc.U32(blockNumber - 1)
-	prevBlock.Encode(buffer)
-	numHash, err := common.Twox64(buffer.Bytes())
+	numHash, err := common.Twox64(prevBlock.Bytes())
 	assert.NoError(t, err)
 
 	blockHashKey = append(blockHashKey, numHash...)
-	blockHashKey = append(blockHashKey, buffer.Bytes()...)
+	blockHashKey = append(blockHashKey, prevBlock.Bytes()...)
 
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
-	buffer.Reset()
 }

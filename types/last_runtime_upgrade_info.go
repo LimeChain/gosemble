@@ -15,6 +15,13 @@ func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) {
 	lrui.SpecName.Encode(buffer)
 }
 
+func (lrui LastRuntimeUpgradeInfo) Bytes() []byte {
+	buf := &bytes.Buffer{}
+	lrui.Encode(buf)
+
+	return buf.Bytes()
+}
+
 func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (value LastRuntimeUpgradeInfo, err error) {
 	if buffer.Len() <= 1 {
 		return value, nil
