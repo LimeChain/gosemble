@@ -42,22 +42,13 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 
 		switch digestType {
 		case DigestTypeConsensusMessage:
-			consensusDigest := DigestItem{
-				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
-				Payload: sc.DecodeSequence[sc.U8](buffer),
-			}
+			consensusDigest := DecodeDigestItem(buffer)
 			result[DigestTypeConsensusMessage] = append(result[DigestTypeConsensusMessage], consensusDigest)
 		case DigestTypeSeal:
-			seal := DigestItem{
-				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
-				Payload: sc.DecodeSequence[sc.U8](buffer),
-			}
+			seal := DecodeDigestItem(buffer)
 			result[DigestTypeSeal] = append(result[DigestTypeSeal], seal)
 		case DigestTypePreRuntime:
-			preRuntimeDigest := DigestItem{
-				Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
-				Payload: sc.DecodeSequence[sc.U8](buffer),
-			}
+			preRuntimeDigest := DecodeDigestItem(buffer)
 			result[DigestTypePreRuntime] = append(result[DigestTypePreRuntime], preRuntimeDigest)
 		case DigestTypeRuntimeEnvironmentUpgraded:
 			// TODO:

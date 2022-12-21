@@ -21,3 +21,10 @@ func (di DigestItem) Bytes() []byte {
 
 	return buffer.Bytes()
 }
+
+func DecodeDigestItem(buffer *bytes.Buffer) DigestItem {
+	return DigestItem{
+		Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
+		Payload: sc.DecodeSequence[sc.U8](buffer),
+	}
+}
