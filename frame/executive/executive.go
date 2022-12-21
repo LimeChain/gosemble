@@ -9,17 +9,18 @@ import (
 	"github.com/LimeChain/gosemble/types"
 )
 
-// InitializeBlock initialises the block execution
+// InitializeBlock initialises a block with the given header,
+// starting the execution of a particular block.
 func InitializeBlock(header types.Header) {
 	resetEvents()
 
 	if runtimeUpgrade() {
-		// TODO:
+		// TODO: weight
 	}
 
 	initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	// TODO:
+	// TODO: weight
 
 	noteFinishedInitialize()
 }
