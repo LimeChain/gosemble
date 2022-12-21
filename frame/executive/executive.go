@@ -40,23 +40,24 @@ func runtimeUpgrade() bool {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
 
-	key := append(systemHash, lastRuntimeUpgradeHash...)
-	last := storage.Get(key)
+	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
+	last := storage.Get(keyLru)
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(last)
+	buf := &bytes.Buffer{}
+	buf.Write(last)
 
-	rupi, err := types.DecodeLastRuntimeUpgradeInfo(buffer)
+	lrupi, err := types.DecodeLastRuntimeUpgradeInfo(buf)
 	if err != nil {
 		panic(err)
 	}
-	buffer.Reset()
 
-	if constants.RuntimeVersion.SpecVersion > sc.U32(rupi.SpecVersion) || rupi.SpecName != constants.RuntimeVersion.SpecName {
-		value := append(
+	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion) ||
+		lrupi.SpecName != constants.RuntimeVersion.SpecName {
+
+		valueLru := append(
 			sc.Compact(constants.RuntimeVersion.SpecVersion).Bytes(),
 			constants.RuntimeVersion.SpecName.Bytes()...)
-		storage.Set(key, value)
+		storage.Set(keyLru, valueLru)
 
 		return true
 	}
