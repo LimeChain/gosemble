@@ -6,7 +6,9 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type BlockNumber sc.U32
+type BlockNumber struct {
+	sc.U32
+}
 
 type Header struct {
 	ParentHash     Blake2bHash
@@ -21,5 +23,21 @@ func (h Header) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeHeader(buffer *bytes.Buffer) Header {
-	panic("not implemented DecodeHeader")
+	parentHash := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	number := sc.DecodeCompact(buffer)
+	stateRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	extrinsicRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	digest := DecodeDigest(buffer)
+
+	return Header{
+		ParentHash: Blake2bHash{
+			parentHash,
+		},
+		Number: BlockNumber{
+			sc.U32(number),
+		},
+		StateRoot:      stateRoot,
+		ExtrinsicsRoot: extrinsicRoot,
+		Digest:         digest,
+	}
 }
