@@ -1,0 +1,20 @@
+name: Unit Tests
+
+on: pull_request
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build Runtime
+        run: make build
+      - name: Setup GO env
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.19'
+          cache: true
+      - name: Run Unit Tests
+        run: make test
