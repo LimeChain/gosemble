@@ -105,10 +105,10 @@ func noteFinishedInitialize() {
 }
 
 func extractPreRuntimeDigest(digest types.Digest) types.Digest {
-	result := types.Digest{Values: map[uint8]sc.FixedSequence[types.DigestItem]{}}
-	for k, v := range digest.Values {
+	result := types.Digest{}
+	for k, v := range digest {
 		if k == types.DigestTypePreRuntime {
-			result.Values[k] = v
+			result[k] = v
 		}
 	}
 

@@ -12,14 +12,12 @@ const (
 	DigestTypeRuntimeEnvironmentUpgraded = 8
 )
 
-type Digest struct {
-	Values map[uint8]sc.FixedSequence[DigestItem]
-}
+type Digest sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
 
 func (d Digest) Encode(buffer *bytes.Buffer) {
-	sc.Compact(len(d.Values)).Encode(buffer)
-	for k, v := range d.Values {
-		sc.U8(k).Encode(buffer)
+	sc.Compact(len(d)).Encode(buffer)
+	for k, v := range d {
+		k.Encode(buffer)
 		v.Encode(buffer)
 	}
 }
@@ -36,7 +34,7 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 
 	decoder := sc.Decoder{buffer}
 
-	result := map[uint8]sc.FixedSequence[DigestItem]{}
+	result := Digest{}
 	for i := 0; i < int(length); i++ {
 		digestType := decoder.DecodeByte()
 
@@ -56,7 +54,5 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 		}
 	}
 
-	return Digest{
-		result,
-	}
+	return result
 }
