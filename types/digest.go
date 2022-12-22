@@ -12,22 +12,7 @@ const (
 	DigestTypeRuntimeEnvironmentUpgraded = 8
 )
 
-type Digest sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
-
-func (d Digest) Encode(buffer *bytes.Buffer) {
-	sc.Compact(len(d)).Encode(buffer)
-	for k, v := range d {
-		k.Encode(buffer)
-		v.Encode(buffer)
-	}
-}
-
-func (d Digest) Bytes() []byte {
-	buffer := &bytes.Buffer{}
-	d.Encode(buffer)
-
-	return buffer.Bytes()
-}
+type Digest = sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
 
 func DecodeDigest(buffer *bytes.Buffer) Digest {
 	length := sc.DecodeCompact(buffer)
