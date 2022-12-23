@@ -3,60 +3,37 @@ Targets WebAssembly MVP
 */
 package main
 
-import (
-	"bytes"
+import "github.com/LimeChain/gosemble/frame/core"
 
-	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/executive"
-	"github.com/LimeChain/gosemble/types"
-	"github.com/LimeChain/gosemble/utils"
-)
-
-// TODO: remove the _start export and find a way to call it from the runtime to initialize the memory.
+// TODO:
+// remove the _start export and find a way to call it from the runtime to initialize the memory.
 // TinyGo requires to have a main function to compile to Wasm.
 func main() {}
 
-/*
-	https://spec.polkadot.network/#defn-rt-core-version
-
-	SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
-*/
 //go:export Core_version
 func CoreVersion(dataPtr int32, dataLen int32) int64 {
-	buffer := &bytes.Buffer{}
-	constants.RuntimeVersion.Encode(buffer)
-	// TODO: retain the pointer to the scaleEncVersion
-	// utils.Retain(scaleEncVersion)
-	return utils.BytesToOffsetAndSize(buffer.Bytes())
+	return core.Version(dataPtr, dataLen)
 }
 
-/*
-https://spec.polkadot.network/#sect-rte-core-initialize-block
-
-SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, passed as:
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-*/
 //go:export Core_initialize_block
 func CoreInitializeBlock(dataPtr int32, dataLen int32) {
-	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	buffer := &bytes.Buffer{}
-	buffer.Write(data)
-	header := types.DecodeHeader(buffer)
-	executive.InitializeBlock(header)
+	core.InitializeBlock(dataPtr, dataLen)
 }
 
-/*
-	https://spec.polkadot.network/#sect-rte-core-execute-block
-
-	SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-*/
 //go:export Core_execute_block
-func ExecuteBlock(dataPtr int32, dataLen int32) {
+func CoreExecuteBlock(dataPtr int32, dataLen int32)
 
-}
+//go:export BlockBuilder_apply_extrinsic
+func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64
+
+//go:export BlockBuilder_finalize_block
+func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64
+
+//go:export BlockBuilder_inherent_extrinisics
+func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64
+
+//go:export BlockBuilder_check_inherents
+func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64
+
+//go:export BlockBuilder_random_seed
+func BlockBuilderRandomSeed(dataPtr int32, dataLen int32) int64
