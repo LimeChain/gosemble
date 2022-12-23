@@ -68,7 +68,7 @@ func DecodeVersionData(buffer *bytes.Buffer) VersionData {
 	vd.SpecVersion = sc.DecodeU32(buffer)
 	vd.ImplVersion = sc.DecodeU32(buffer)
 
-	apisLength := sc.DecodeCompact(buffer)
+	apisLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
 	if apisLength != 0 {
 		var apis []ApiItem
 		for i := 0; i < int(apisLength); i++ {

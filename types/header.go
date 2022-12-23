@@ -24,7 +24,7 @@ func (h Header) Encode(buffer *bytes.Buffer) {
 
 func DecodeHeader(buffer *bytes.Buffer) Header {
 	parentHash := sc.DecodeFixedSequence[sc.U8](32, buffer)
-	number := sc.DecodeCompact(buffer)
+	blockNumber := sc.DecodeCompact(buffer)
 	stateRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
 	extrinsicRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
 	digest := DecodeDigest(buffer)
@@ -34,7 +34,7 @@ func DecodeHeader(buffer *bytes.Buffer) Header {
 			parentHash,
 		},
 		Number: BlockNumber{
-			sc.U32(number),
+			sc.U32(blockNumber.ToBigInt().Int64()),
 		},
 		StateRoot:      stateRoot,
 		ExtrinsicsRoot: extrinsicRoot,
