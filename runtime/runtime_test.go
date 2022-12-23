@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
+	"testing"
+
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/types"
-	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -70,12 +71,18 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
 	sealDigestItem := gossamertypes.NewDigestItem()
 	assert.NoError(t, sealDigestItem.Set(sealDigest))
-	assert.NoError(t, digest.Add(preRuntimeDigestItem.Value()))
-	assert.NoError(t, digest.Add(sealDigestItem.Value()))
-	assert.NoError(t, expectedStorageDigest.Add(preRuntimeDigestItem.Value()))
 
-	header, err := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	prdi, err := preRuntimeDigestItem.Value()
 	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(prdi))
+
+	sdi, err := sealDigestItem.Value()
+	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(sdi))
+
+	assert.NoError(t, expectedStorageDigest.Add(prdi))
+
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
