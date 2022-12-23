@@ -55,7 +55,7 @@ func runtimeUpgrade() bool {
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
 
 		valueLru := append(
-			sc.Compact(sc.NewU128FromUint64(uint64(constants.RuntimeVersion.SpecVersion))).Bytes(),
+			sc.ToCompact(uint64(constants.RuntimeVersion.SpecVersion)).Bytes(),
 			constants.RuntimeVersion.SpecName.Bytes()...)
 		storage.Set(keyLru, valueLru)
 
