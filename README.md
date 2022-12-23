@@ -62,3 +62,6 @@ wasm2wat build/runtime.wasm -o build/runtime.wat
 cat build/runtime.wat
 ```
 
+**Development Notes**
+
+* The `//go:export` before a function is actually an import in TinyGo. The function needs to be referenced somewhere to be actually exported.
