@@ -15,12 +15,13 @@ const (
 type Digest = sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
 
 func DecodeDigest(buffer *bytes.Buffer) Digest {
-	length := sc.DecodeCompact(buffer)
+	compactSize := sc.DecodeCompact(buffer)
+	size := int(compactSize.ToBigInt().Int64())
 
 	decoder := sc.Decoder{buffer}
 
 	result := Digest{}
-	for i := 0; i < int(length); i++ {
+	for i := 0; i < size; i++ {
 		digestType := decoder.DecodeByte()
 
 		switch digestType {

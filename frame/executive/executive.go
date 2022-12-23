@@ -51,11 +51,11 @@ func runtimeUpgrade() bool {
 		panic(err)
 	}
 
-	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion) ||
+	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
 
 		valueLru := append(
-			sc.Compact(constants.RuntimeVersion.SpecVersion).Bytes(),
+			sc.ToCompact(uint64(constants.RuntimeVersion.SpecVersion)).Bytes(),
 			constants.RuntimeVersion.SpecName.Bytes()...)
 		storage.Set(keyLru, valueLru)
 
