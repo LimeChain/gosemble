@@ -6,13 +6,12 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
+	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/types"
-
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,17 +25,15 @@ var (
 	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
 )
 
-const WASM_RUNTIME = "../build/runtime.wasm" // node_template_runtime.wasm
+const WASM_RUNTIME = "../build/runtime.wasm"
 
 func Test_CoreVersion(t *testing.T) {
-	rt := wasmer.NewLocalTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
 	res, err := rt.Exec("Core_version", []byte{})
 	assert.Nil(t, err)
-	// t.Logf("%x", res)
 	buffer := bytes.Buffer{}
 	buffer.Write(res)
 	resultVersion := types.DecodeVersionData(&buffer)
-	// t.Log(resultVersion)
 	assert.Equal(t, constants.RuntimeVersion, resultVersion)
 }
 
@@ -92,7 +89,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 
 	storage := trie.NewEmptyTrie()
 
-	rt := wasmer.NewLocalTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.Nil(t, err)
 
