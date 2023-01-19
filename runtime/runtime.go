@@ -3,7 +3,10 @@ Targets WebAssembly MVP
 */
 package main
 
-import "github.com/LimeChain/gosemble/frame/core"
+import (
+	"github.com/LimeChain/gosemble/frame/block_builder"
+	"github.com/LimeChain/gosemble/frame/core"
+)
 
 // TODO:
 // remove the _start export and find a way to call it from the runtime to initialize the memory.
@@ -27,7 +30,9 @@ func CoreExecuteBlock(dataPtr int32, dataLen int32)
 func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64
 
 //go:export BlockBuilder_finalize_block
-func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64
+func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
+	return blockbuilder.FinalizeBlock(dataPtr, dataLen)
+}
 
 //go:export BlockBuilder_inherent_extrinisics
 func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64

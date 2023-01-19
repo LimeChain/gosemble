@@ -19,7 +19,18 @@ type Header struct {
 }
 
 func (h Header) Encode(buffer *bytes.Buffer) {
-	panic("not implemented Header Encode")
+	h.ParentHash.Encode(buffer)
+	h.Number.Encode(buffer)
+	h.StateRoot.Encode(buffer)
+	h.ExtrinsicsRoot.Encode(buffer)
+	h.Digest.Encode(buffer)
+}
+
+func (h Header) Bytes() []byte {
+	buffer := &bytes.Buffer{}
+	h.Encode(buffer)
+
+	return buffer.Bytes()
 }
 
 func DecodeHeader(buffer *bytes.Buffer) Header {
