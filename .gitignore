@@ -2,6 +2,7 @@
 
 # JetBrains iDEA
 .idea
+.vscode
 
 .DS_Store
 
