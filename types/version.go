@@ -15,7 +15,6 @@ type ApiItem struct {
 func (ai ApiItem) Encode(buffer *bytes.Buffer) {
 	ai.Name.Encode(buffer)
 	ai.Version.Encode(buffer)
-	// sc.Tuple[ApiItem]{Data: ai}.Encode(buffer)
 }
 
 func (ai ApiItem) Bytes() []byte {
@@ -36,7 +35,7 @@ func (ai ApiItem) String() string {
 	return fmt.Sprintf("ApiItem { Name: %#x, Version: %d}", ai.Name, ai.Version)
 }
 
-type VersionData struct {
+type RuntimeVersion struct {
 	SpecName           sc.Str
 	ImplName           sc.Str
 	AuthoringVersion   sc.U32
@@ -47,26 +46,25 @@ type VersionData struct {
 	StateVersion       sc.U8
 }
 
-func (vd VersionData) Encode(buffer *bytes.Buffer) {
-	vd.SpecName.Encode(buffer)
-	vd.ImplName.Encode(buffer)
-	vd.AuthoringVersion.Encode(buffer)
-	vd.SpecVersion.Encode(buffer)
-	vd.ImplVersion.Encode(buffer)
-	vd.Apis.Encode(buffer)
-	vd.TransactionVersion.Encode(buffer)
-	vd.StateVersion.Encode(buffer)
-	// sc.Tuple[VersionData]{Data: vd}.Encode(buffer)
+func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) {
+	rv.SpecName.Encode(buffer)
+	rv.ImplName.Encode(buffer)
+	rv.AuthoringVersion.Encode(buffer)
+	rv.SpecVersion.Encode(buffer)
+	rv.ImplVersion.Encode(buffer)
+	rv.Apis.Encode(buffer)
+	rv.TransactionVersion.Encode(buffer)
+	rv.StateVersion.Encode(buffer)
 }
 
-func DecodeVersionData(buffer *bytes.Buffer) VersionData {
-	var vd VersionData
+func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {
+	var rv RuntimeVersion
 
-	vd.SpecName = sc.DecodeStr(buffer)
-	vd.ImplName = sc.DecodeStr(buffer)
-	vd.AuthoringVersion = sc.DecodeU32(buffer)
-	vd.SpecVersion = sc.DecodeU32(buffer)
-	vd.ImplVersion = sc.DecodeU32(buffer)
+	rv.SpecName = sc.DecodeStr(buffer)
+	rv.ImplName = sc.DecodeStr(buffer)
+	rv.AuthoringVersion = sc.DecodeU32(buffer)
+	rv.SpecVersion = sc.DecodeU32(buffer)
+	rv.ImplVersion = sc.DecodeU32(buffer)
 
 	apisLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
 	if apisLength != 0 {
@@ -74,31 +72,31 @@ func DecodeVersionData(buffer *bytes.Buffer) VersionData {
 		for i := 0; i < int(apisLength); i++ {
 			apis = append(apis, DecodeApiItem(buffer))
 		}
-		vd.Apis = apis
+		rv.Apis = apis
 	}
 
-	vd.TransactionVersion = sc.DecodeU32(buffer)
-	vd.StateVersion = sc.DecodeU8(buffer)
+	rv.TransactionVersion = sc.DecodeU32(buffer)
+	rv.StateVersion = sc.DecodeU8(buffer)
 
-	return vd
+	return rv
 }
 
-func (vd VersionData) String() string {
+func (rv RuntimeVersion) String() string {
 	var result string
 
-	result = "VersionData {\n"
-	result += fmt.Sprintf("SpecName: %s\n", vd.SpecName)
-	result += fmt.Sprintf("ImplName: %s\n", vd.ImplName)
-	result += fmt.Sprintf("AuthoringVersion: %d\n", vd.AuthoringVersion)
-	result += fmt.Sprintf("SpecVersion: %d\n", vd.SpecVersion)
-	result += fmt.Sprintf("ImplVersion: %d\n", vd.ImplVersion)
+	result = "RuntimeVersion {\n"
+	result += fmt.Sprintf("SpecName: %s\n", rv.SpecName)
+	result += fmt.Sprintf("ImplName: %s\n", rv.ImplName)
+	result += fmt.Sprintf("AuthoringVersion: %d\n", rv.AuthoringVersion)
+	result += fmt.Sprintf("SpecVersion: %d\n", rv.SpecVersion)
+	result += fmt.Sprintf("ImplVersion: %d\n", rv.ImplVersion)
 	result += "Apis: ["
-	for _, v := range vd.Apis {
+	for _, v := range rv.Apis {
 		result += v.String()
 	}
 	result += "]\n"
-	result += fmt.Sprintf("TransactionVersion: %d\n", vd.TransactionVersion)
-	result += fmt.Sprintf("StateVersion: %d\n", vd.StateVersion)
+	result += fmt.Sprintf("TransactionVersion: %d\n", rv.TransactionVersion)
+	result += fmt.Sprintf("StateVersion: %d\n", rv.StateVersion)
 	result += "}"
 
 	return result

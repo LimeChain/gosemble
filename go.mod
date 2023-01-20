@@ -17,7 +17,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.9 // indirect
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.10 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
@@ -40,6 +40,7 @@ require (
 	github.com/ipfs/go-cid v0.2.0 // indirect
 	github.com/klauspost/compress v1.15.14 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.0 // indirect
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
