@@ -203,13 +203,6 @@ func finalize() types.Header {
 		storage.Clear(blockNumKey)
 	}
 
-	// TODO:
-	/*
-
-		let version = T::Version::get().state_version();
-		let storage_root = T::Hash::decode(&mut &sp_io::storage::root(version)[..])
-		.expect("Node is configured to use the same hash; qed");
-	*/
 	storageRootBytes := storage.RootV2(constants.RuntimeVersion.StateVersion.Bytes())
 	buf.Write(storageRootBytes)
 	storageRoot := goscale.DecodeFixedSequence[goscale.U8](32, buf)
