@@ -11,7 +11,7 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,12 +28,15 @@ var (
 const WASM_RUNTIME = "../build/runtime.wasm"
 
 func Test_CoreVersion(t *testing.T) {
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
 	res, err := rt.Exec("Core_version", []byte{})
 	assert.Nil(t, err)
+
 	buffer := bytes.Buffer{}
 	buffer.Write(res)
-	resultVersion := types.DecodeVersionData(&buffer)
+	resultVersion := types.DecodeRuntimeVersion(&buffer)
 	assert.Equal(t, constants.RuntimeVersion, resultVersion)
 }
 
