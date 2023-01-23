@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -18,7 +19,7 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 	compactSize := sc.DecodeCompact(buffer)
 	size := int(compactSize.ToBigInt().Int64())
 
-	decoder := sc.Decoder{buffer}
+	decoder := sc.Decoder{Reader: buffer}
 
 	result := Digest{}
 	for i := 0; i < size; i++ {

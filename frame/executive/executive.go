@@ -2,11 +2,12 @@ package executive
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 // InitializeBlock initialises a block with the given header,

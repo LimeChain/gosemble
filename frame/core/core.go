@@ -8,7 +8,7 @@ import (
 
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/executive"
-	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
@@ -19,12 +19,13 @@ type Core interface {
 }
 
 /*
-	https://spec.polkadot.network/#defn-rt-core-version
+https://spec.polkadot.network/#defn-rt-core-version
 
-	SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
+SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
 */
 func Version(dataPtr int32, dataLen int32) int64 {
 	buffer := &bytes.Buffer{}
@@ -38,6 +39,7 @@ func Version(dataPtr int32, dataLen int32) int64 {
 https://spec.polkadot.network/#sect-rte-core-initialize-block
 
 SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, passed as:
+
 	dataPtr - i32 pointer to the memory location.
 	dataLen - i32 length (in bytes) of the encoded arguments.
 */
@@ -50,10 +52,11 @@ func InitializeBlock(dataPtr int32, dataLen int32) {
 }
 
 /*
-	https://spec.polkadot.network/#sect-rte-core-execute-block
+https://spec.polkadot.network/#sect-rte-core-execute-block
 
-	SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
+SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
 */
 func ExecuteBlock(dataPtr int32, dataLen int32) {}

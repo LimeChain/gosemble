@@ -2,7 +2,7 @@ package constants
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 // If the runtime behavior changes, increment spec_version and set impl_version to 0.
