@@ -9,7 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
@@ -32,15 +32,8 @@ SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM mem
 */
 func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 { return 0 }
 
-/*
-https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block
-
-SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded (types.Header) data.
-*/
+// FinalizeBlock finalizes block - it is up the caller to ensure that all header fields are valid
+// except state-root.
 func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
 	noteFinishedExtrinsics()
 
