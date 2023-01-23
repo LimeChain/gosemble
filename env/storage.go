@@ -52,18 +52,10 @@ func ExtStorageReadVersion1(key int64, value_out int64, offset int32) int64 {
 }
 
 //go:wasm-module env
-//go:export ext_storage_root_version_1
-func extStorageRootVersion1() int64
-
-func ExtStorageRootVersion1() int64 {
-	return extStorageRootVersion1()
-}
-
-//go:wasm-module env
 //go:export ext_storage_root_version_2
-func extStorageRootVersion2(key int64) int64
+func extStorageRootVersion2(key int32) int64
 
-func ExtStorageRootVersion2(key int64) int64 {
+func ExtStorageRootVersion2(key int32) int64 {
 	return extStorageRootVersion2(key)
 }
 
