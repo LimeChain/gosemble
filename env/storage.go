@@ -60,6 +60,14 @@ func ExtStorageRootVersion1() int64 {
 }
 
 //go:wasm-module env
+//go:export ext_storage_root_version_2
+func extStorageRootVersion2(key int64) int64
+
+func ExtStorageRootVersion2(key int64) int64 {
+	return extStorageRootVersion2(key)
+}
+
+//go:wasm-module env
 //go:export ext_storage_set_version_1
 func extStorageSetVersion1(key int64, value int64)
 

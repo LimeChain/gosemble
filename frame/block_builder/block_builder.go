@@ -210,10 +210,14 @@ func finalize() types.Header {
 		let storage_root = T::Hash::decode(&mut &sp_io::storage::root(version)[..])
 		.expect("Node is configured to use the same hash; qed");
 	*/
-	//stateVersion := constants.RuntimeVersion.StateVersion
+	storageRootBytes := storage.RootV2(constants.RuntimeVersion.StateVersion.Bytes())
+	buf.Write(storageRootBytes)
+	storageRoot := goscale.DecodeFixedSequence[goscale.U8](32, buf)
+	buf.Reset()
 
 	return types.Header{
 		ExtrinsicsRoot: extrinsicsRoot,
+		StateRoot:      storageRoot,
 		ParentHash:     types.Blake2bHash{FixedSequence: parentHash},
 		Number:         types.BlockNumber{U32: blockNumber},
 		Digest:         digest,
