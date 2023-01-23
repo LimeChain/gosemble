@@ -34,7 +34,7 @@ func resetEvents() {
 
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
-	storage.ClearPrefix(append(systemHash, eventTopicHash...))
+	storage.ClearPrefix(append(systemHash, eventTopicHash...), []byte{}) // TODO: limit
 }
 
 func runtimeUpgrade() bool {

@@ -23,6 +23,7 @@ func ExtHashingBlake2256Version1(data int64) int32 {
 //go:export ext_hashing_keccak_256_version_1
 func extHashingKeccak256Version1(data int64) int32
 
+// ExtHashingKeccak256Version1 is used in Polkadot runtime
 func ExtHashingKeccak256Version1(data int64) int32 {
 	return extHashingKeccak256Version1(data)
 }
