@@ -11,3 +11,11 @@ func extLoggingLogVersion1(level int32, target int64, message int64)
 func ExtLoggingLogVersion1(level int32, target int64, message int64) {
 	extLoggingLogVersion1(level, target, message)
 }
+
+//go:wasm-module env
+//go:export ext_logging_max_level_version_1
+func extLoggingMaxLevelVersion1() int32
+
+func ExtLoggingMaxLevelVersion1() int32 {
+	return extLoggingMaxLevelVersion1()
+}
