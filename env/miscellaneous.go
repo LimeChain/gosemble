@@ -12,14 +12,6 @@ func ExtMiscPrintHexVersion1(data int64) {
 }
 
 //go:wasm-module env
-//go:export ext_misc_print_num_version_1
-func extMiscPrintNumVersion1(value int64)
-
-func ExtMiscPrintNumVersion1(value int64) {
-	extMiscPrintNumVersion1(value)
-}
-
-//go:wasm-module env
 //go:export ext_misc_print_utf8_version_1
 func extMiscPrintUtf8Version1(data int64)
 
