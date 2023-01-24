@@ -3,6 +3,17 @@ BlockBuilder - Version 4.
 */
 package blockbuilder
 
+import (
+	"bytes"
+	"github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
+)
+
 type BlockBuilder interface {
 	ApplyExtrinsic(dataPtr int32, dataLen int32) int64
 	FinalizeBlock(dataPtr int32, dataLen int32) int64
@@ -12,51 +23,96 @@ type BlockBuilder interface {
 }
 
 /*
-	https://spec.polkadot.network/#sect-rte-apply-extrinsic
+https://spec.polkadot.network/#sect-rte-apply-extrinsic
 
-	SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded ([]byte) data.
+SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded ([]byte) data.
 */
-func ApplyExtrinsic(dataPtr int32, dataLen int32) int64
+func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 { return 0 }
+
+// FinalizeBlock finalizes block - it is up the caller to ensure that all header fields are valid
+// except state-root.
+func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
+	system.NoteFinishedExtrinsics()
+
+	systemHash := hashing.Twox128(constants.KeySystem)
+	numberHash := hashing.Twox128(constants.KeyNumber)
+
+	bNumber := storage.Get(append(systemHash, numberHash...))
+	buf := &bytes.Buffer{}
+	buf.Write(bNumber)
+	blockNumber := goscale.DecodeU32(buf)
+
+	idleAndFinalizeHook(types.BlockNumber{U32: blockNumber})
+
+	header := system.Finalize()
+	encodedHeader := header.Bytes()
+
+	return utils.BytesToOffsetAndSize(encodedHeader)
+}
 
 /*
-	https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block
+https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics
 
-	SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded (types.Header) data.
+SCALE encoded arguments (data types.InherentsData) allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded ([]types.Extrinsic) data.
 */
-func FinalizeBlock(dataPtr int32, dataLen int32) int64
+func InherentExtrinisics(dataPtr int32, dataLen int32) int64 { return 0 }
 
 /*
-	https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics
+https://spec.polkadot.network/#id-blockbuilder_check_inherents
 
-	SCALE encoded arguments (data types.InherentsData) allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded ([]types.Extrinsic) data.
+SCALE encoded arguments (block types.Block, data types.InherentsData) allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded ([]byte) data.
 */
-func InherentExtrinisics(dataPtr int32, dataLen int32) int64
+func CheckInherents(dataPtr int32, dataLen int32) int64 {
+	return 0
+}
 
 /*
-	https://spec.polkadot.network/#id-blockbuilder_check_inherents
+https://spec.polkadot.network/#id-blockbuilder_random_seed
 
-	SCALE encoded arguments (block types.Block, data types.InherentsData) allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded ([]byte) data.
+SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded ([32]byte) data.
 */
-func CheckInherents(dataPtr int32, dataLen int32) int64
+func RandomSeed(dataPtr int32, dataLen int32) int64 { return 0 }
 
-/*
-	https://spec.polkadot.network/#id-blockbuilder_random_seed
+func idleAndFinalizeHook(blockNumber types.BlockNumber) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
 
-	SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-		dataPtr - i32 pointer to the memory location.
-		dataLen - i32 length (in bytes) of the encoded arguments.
-		returns a pointer-size to the SCALE-encoded ([32]byte) data.
-*/
-func RandomSeed(dataPtr int32, dataLen int32) int64
+	storage.Get(append(systemHash, blockWeightHash...))
+
+	// TODO: weights
+	/**
+	let weight = <frame_system::Pallet<System>>::block_weight();
+	let max_weight = <System::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
+	let remaining_weight = max_weight.saturating_sub(weight.total());
+
+	if remaining_weight.all_gt(Weight::zero()) {
+		let used_weight = <AllPalletsWithSystem as OnIdle<System::BlockNumber>>::on_idle(
+			block_number,
+			remaining_weight,
+		);
+		<frame_system::Pallet<System>>::register_extra_weight_unchecked(
+			used_weight,
+			DispatchClass::Mandatory,
+		);
+	}
+	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
+	<AllPalletsWithSystem as OnFinalize<System::BlockNumber>>::on_finalize(block_number);
+	*/
+
+}

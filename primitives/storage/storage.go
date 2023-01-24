@@ -32,7 +32,13 @@ func NextKey(key int64) int64 { panic("Not implemented!") }
 
 func Read(key int64, value_out int64, offset int32) int64 { panic("Not implemented!") }
 
-func Root() int64 { panic("Not implemented!") }
+func Root(key []byte) []byte {
+	keyOffsetSize := utils.SliceToOffset(key)
+	valueOffsetSize := env.ExtStorageRootVersion2(int32(keyOffsetSize))
+	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
+	value := utils.ToWasmMemorySlice(offset, size)
+	return value
+}
 
 func Set(key []byte, value []byte) {
 	keyOffsetSize := utils.BytesToOffsetAndSize(key)

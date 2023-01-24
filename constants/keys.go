@@ -2,13 +2,17 @@ package constants
 
 var (
 	KeySystem             = []byte("System")
+	KeyAllExtrinsicsLen   = []byte("AllExtrinsicsLen")
 	KeyBlockHash          = []byte("BlockHash")
+	KeyBlockHashCount     = []byte("BlockHashCount")
 	KeyBlockWeight        = []byte("BlockWeight")
 	KeyDigest             = []byte("Digest")
 	KeyEventCount         = []byte("EventCount")
 	KeyEvents             = []byte("Events")
 	KeyEventTopic         = []byte("EventTopics")
 	KeyExecutionPhase     = []byte("ExecutionPhase")
+	KeyExtrinsicCount     = []byte("ExtrinsicCount")
+	KeyExtrinsicData      = []byte("ExtrinsicData")
 	KeyExtrinsicIndex     = []byte(":extrinsic_index")
 	KeyLastRuntimeUpgrade = []byte("LastRuntimeUpgrade")
 	KeyNumber             = []byte("Number")
