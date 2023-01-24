@@ -35,7 +35,12 @@ func resetEvents() {
 
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
-	storage.ClearPrefix(append(systemHash, eventTopicHash...), sc.U32(math.MaxUint32).Bytes())
+
+	limit := sc.Option[sc.U32]{
+		HasValue: true,
+		Value:    sc.U32(math.MaxUint32),
+	}
+	storage.ClearPrefix(append(systemHash, eventTopicHash...), limit.Bytes())
 }
 
 func runtimeUpgrade() bool {
