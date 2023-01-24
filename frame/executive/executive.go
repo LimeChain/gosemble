@@ -2,6 +2,7 @@ package executive
 
 import (
 	"bytes"
+	"math"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -34,7 +35,7 @@ func resetEvents() {
 
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
-	storage.ClearPrefix(append(systemHash, eventTopicHash...), []byte{}) // TODO: limit
+	storage.ClearPrefix(append(systemHash, eventTopicHash...), sc.U32(math.MaxUint32).Bytes())
 }
 
 func runtimeUpgrade() bool {
