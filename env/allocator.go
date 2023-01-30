@@ -1,3 +1,5 @@
+//go:build !nonwasmenv
+
 package env
 
 /*
@@ -6,16 +8,8 @@ package env
 
 //go:wasm-module env
 //go:export ext_allocator_free_version_1
-func extAllocatorFreeVersion1(ptr int32)
-
-func ExtAllocatorFreeVersion1(ptr int32) {
-	extAllocatorFreeVersion1(ptr)
-}
+func ExtAllocatorFreeVersion1(ptr int32)
 
 //go:wasm-module env
 //go:export ext_allocator_malloc_version_1
-func extAllocatorMallocVersion1(size int32) int32
-
-func ExtAllocatorMallocVersion1(size int32) int32 {
-	return extAllocatorMallocVersion1(size)
-}
+func ExtAllocatorMallocVersion1(size int32) int32
