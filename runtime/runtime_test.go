@@ -6,6 +6,7 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	runtimetypes "github.com/ChainSafe/gossamer/lib/runtime"
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
@@ -32,12 +33,21 @@ func Test_CoreVersion(t *testing.T) {
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	res, err := rt.Exec("Core_version", []byte{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	buffer := bytes.Buffer{}
 	buffer.Write(res)
-	resultVersion := types.DecodeRuntimeVersion(&buffer)
-	assert.Equal(t, constants.RuntimeVersion, resultVersion)
+	dec := scale.NewDecoder(&buffer)
+	runtimeVersion := runtimetypes.Version{}
+	err = dec.Decode(&runtimeVersion)
+	assert.NoError(t, err)
+	assert.Equal(t, "node-template", string(runtimeVersion.SpecName))
+	assert.Equal(t, "node-template", string(runtimeVersion.ImplName))
+	assert.Equal(t, uint32(1), runtimeVersion.AuthoringVersion)
+	assert.Equal(t, uint32(100), runtimeVersion.SpecVersion)
+	assert.Equal(t, uint32(1), runtimeVersion.ImplVersion)
+	assert.Equal(t, uint32(1), runtimeVersion.TransactionVersion)
+	assert.Equal(t, uint32(1), runtimeVersion.StateVersion)
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
@@ -69,6 +79,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 
 	preRuntimeDigestItem := gossamertypes.NewDigestItem()
 	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+
 	sealDigestItem := gossamertypes.NewDigestItem()
 	assert.NoError(t, sealDigestItem.Set(sealDigest))
 
@@ -79,20 +90,15 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	sdi, err := sealDigestItem.Value()
 	assert.NoError(t, err)
 	assert.NoError(t, digest.Add(sdi))
-
 	assert.NoError(t, expectedStorageDigest.Add(prdi))
 
 	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
-
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
-	expectedDigest, err := scale.Marshal(expectedStorageDigest)
-	assert.NoError(t, err)
-
 	storage := trie.NewEmptyTrie()
-
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.Nil(t, err)
 
@@ -102,23 +108,26 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	}
 	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
 
-	assert.Equal(t, sc.U32(0).Bytes(), storage.Get(constants.KeyExtrinsicIndex))
+	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
 
-	assert.Equal(t, sc.U32(constants.ExecutionPhaseApplyExtrinsic).Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	encExecutionPhaseApplyExtrinsic, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExecutionPhaseApplyExtrinsic, storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	assert.Equal(t, sc.U32(blockNumber).Bytes(), storage.Get(append(keySystemHash, keyNumberHash...)))
+	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
 
-	assert.Equal(t, expectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
-
+	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
+	assert.NoError(t, err)
+	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	prevBlock := sc.U32(blockNumber - 1)
-	numHash, err := common.Twox64(prevBlock.Bytes())
+	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
+	numHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
 
 	blockHashKey = append(blockHashKey, numHash...)
-	blockHashKey = append(blockHashKey, prevBlock.Bytes()...)
-
+	blockHashKey = append(blockHashKey, encPrevBlock...)
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
 }

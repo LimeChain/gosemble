@@ -4,7 +4,7 @@ Targets WebAssembly MVP
 package main
 
 import (
-	"github.com/LimeChain/gosemble/frame/block_builder"
+	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
 )
 
@@ -24,10 +24,14 @@ func CoreInitializeBlock(dataPtr int32, dataLen int32) {
 }
 
 //go:export Core_execute_block
-func CoreExecuteBlock(dataPtr int32, dataLen int32)
+func CoreExecuteBlock(dataPtr int32, dataLen int32) {
+	panic("not implemented")
+}
 
 //go:export BlockBuilder_apply_extrinsic
-func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64
+func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
+	panic("not implemented")
+}
 
 //go:export BlockBuilder_finalize_block
 func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
@@ -35,10 +39,16 @@ func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
 }
 
 //go:export BlockBuilder_inherent_extrinisics
-func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64
+func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64 {
+	panic("not implemented")
+}
 
 //go:export BlockBuilder_check_inherents
-func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64
+func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64 {
+	panic("not implemented")
+}
 
 //go:export BlockBuilder_random_seed
-func BlockBuilderRandomSeed(dataPtr int32, dataLen int32) int64
+func BlockBuilderRandomSeed(dataPtr int32, dataLen int32) int64 {
+	panic("not implemented")
+}
