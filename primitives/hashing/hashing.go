@@ -1,3 +1,5 @@
+//go:build !nonwasmenv
+
 package hashing
 
 import (
