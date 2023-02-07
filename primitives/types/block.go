@@ -8,7 +8,7 @@ import (
 
 type Block struct {
 	Header     Header
-	Extrinsics sc.Sequence[Extrinsic]
+	Extrinsics sc.Sequence[CheckedExtrinsic]
 }
 
 func (b Block) Encode(buffer *bytes.Buffer) {

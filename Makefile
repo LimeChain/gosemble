@@ -35,4 +35,4 @@ test_unit:
 	@go test --tags="nonwasmenv" -v ./...
 
 test_integration:
-	@go test --tags="nonwasmenv" -v runtime/runtime_test.go
+	@go test --tags="nonwasmenv" -v runtime/tests/runtime_test.go
