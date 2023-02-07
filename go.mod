@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
+	github.com/ethereum/go-ethereum v1.10.26
 	github.com/stretchr/testify v1.8.1
 )
 
