@@ -6,6 +6,7 @@ var (
 	KeyBlockHash          = []byte("BlockHash")
 	KeyBlockHashCount     = []byte("BlockHashCount")
 	KeyBlockWeight        = []byte("BlockWeight")
+	KeyDidUpdate          = []byte("DidUpdate")
 	KeyDigest             = []byte("Digest")
 	KeyEventCount         = []byte("EventCount")
 	KeyEvents             = []byte("Events")

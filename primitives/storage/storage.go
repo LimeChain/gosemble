@@ -22,8 +22,10 @@ func ClearPrefix(key []byte, limit []byte) {
 	env.ExtStorageClearPrefixVersion2(keyOffsetSize, limitOffsetSize)
 }
 
-func Exists(key int64) int32 {
-	panic("not implemented")
+func Exists(key []byte) []byte {
+	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	r := env.ExtStorageExistsVersion1(keyOffsetSize)
+	return utils.ToWasmMemorySlice(r, 8)
 }
 
 func Get(key []byte) []byte {
