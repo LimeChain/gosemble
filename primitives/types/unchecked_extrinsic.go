@@ -10,13 +10,16 @@ import (
 )
 
 // A extrinsic right from the external world. This is unchecked and so can contain a signature.
-type UncheckedExtrinsic struct { // [Address, Call, Signature, Extra] where Extra: SignedExtension
+type UncheckedExtrinsic struct {
+	// TODO:
+	// make it more generic
+	// UncheckedExtrinsic[Address, Call, Signature, Extra] where Extra: SignedExtension
 	Version sc.U8
 
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
-	Signature sc.Option[ExtrinsicSignature] // (Address, Signature, Extra)
+	Signature sc.Option[ExtrinsicSignature]
 	Function  Call
 }
 
@@ -95,8 +98,6 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	var extSignature sc.Option[ExtrinsicSignature]
 	if isSigned {
-		// isSigned.then(|| ).transpose()
-
 		// extSignature = sc.DecodeOption[ExtrinsicSignature](buffer)
 		if hasValue := sc.DecodeU8(buffer); hasValue == 1 {
 			extSignature = sc.NewOption[ExtrinsicSignature](DecodeExtrinsicSignature(buffer))
@@ -105,6 +106,7 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	function := DecodeCall(buffer)
 
+	// TODO:
 	// if Some((beforeLength, afterLength)) = buffer.remaining_len()?.and_then(|a| beforeLength.map(|b| (b, a)))
 	// {
 	// 	length = beforeLength.saturating_sub(after_length)

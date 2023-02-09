@@ -48,6 +48,16 @@ make test_unit
 make test_integration
 ```
 
+Switch the Tinygo's gc with an environment variable:
+
+```bash
+# conservative gc, the default one
+GC="" make test
+
+# extalloc gc, required for running inside a host, according to the spec
+GC="extalloc" make test
+```
+
 **Optional steps**
 
 * Inspect WASM Runtime - [wasmer](https://wasmer.io/)
