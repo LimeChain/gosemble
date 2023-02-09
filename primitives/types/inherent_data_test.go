@@ -26,7 +26,7 @@ func Test_InherentData_Encode(t *testing.T) {
 	assert.Nil(t, inherent.Put(key0, value0))
 	assert.Nil(t, inherent.Put(key1, value1))
 
-	encoded := inherent.Encode()
+	encoded := inherent.Bytes()
 
 	assert.Equal(t, expectedEncoded, encoded)
 }

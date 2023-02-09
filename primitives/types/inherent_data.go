@@ -17,7 +17,7 @@ func NewInherentData() *InherentData {
 	}
 }
 
-func (id *InherentData) Encode() []byte {
+func (id *InherentData) Bytes() []byte {
 	buf := &bytes.Buffer{}
 
 	sc.Compact(sc.NewU128FromUint64(uint64(len(id.Data)))).Encode(buf)
