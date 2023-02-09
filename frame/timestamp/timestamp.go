@@ -22,7 +22,6 @@ var (
 func CreateInherent(inherent types.InherentData) []byte {
 	inherentData := inherent.Data[InherentIdentifier]
 
-	//value.Bytes()
 	if inherentData == nil {
 		panic("Timestamp inherent must be provided.")
 	}
