@@ -10,7 +10,7 @@ import (
 )
 
 // A extrinsic right from the external world. This is unchecked and so can contain a signature.
-type UncheckedExtrinsic struct { // [Address, Call, Signature, Extra] where Extra: SignedExtension
+type UncheckedExtrinsic struct {
 	// TODO:
 	// make it more generic
 	// UncheckedExtrinsic[Address, Call, Signature, Extra] where Extra: SignedExtension
