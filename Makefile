@@ -2,8 +2,8 @@ SHELL := /bin/bash
 CURRENT_DIR = $(shell pwd)
 SRC_DIR = /src/examples/wasm/gosemble
 VERSION = 0.25.0
-BRANCH_CONSERVATIVE_GC = new-polkawasm-target-release-0.25.0
-BRANCH_EXTALLOC_GC = new-polkawasm-target-extalloc-gc-release-0.25.0
+BRANCH_CONSERVATIVE_GC = new-polkawasm-target-release-$(VERSION)
+BRANCH_EXTALLOC_GC = new-polkawasm-target-extalloc-gc-release-$(VERSION)
 
 # Build with the standard system installed TinyGo.
 sys_tinygo_build:
@@ -35,4 +35,4 @@ test_unit:
 	@go test --tags="nonwasmenv" -v ./...
 
 test_integration:
-	@go test --tags="nonwasmenv" -v runtime/runtime_test.go
+	@go test --tags="nonwasmenv" -v runtime/tests/runtime_test.go

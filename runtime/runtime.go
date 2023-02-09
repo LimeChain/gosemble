@@ -30,7 +30,7 @@ func CoreExecuteBlock(dataPtr int32, dataLen int32) {
 
 //go:export BlockBuilder_apply_extrinsic
 func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
-	panic("not implemented")
+	return blockbuilder.ApplyExtrinsic(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_finalize_block

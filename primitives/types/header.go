@@ -13,8 +13,8 @@ type BlockNumber struct {
 type Header struct {
 	ParentHash     Blake2bHash
 	Number         BlockNumber
-	StateRoot      Hash
-	ExtrinsicsRoot Hash
+	StateRoot      H256
+	ExtrinsicsRoot H256
 	Digest         Digest
 }
 
@@ -34,16 +34,14 @@ func (h Header) Bytes() []byte {
 }
 
 func DecodeHeader(buffer *bytes.Buffer) Header {
-	parentHash := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	parentHash := DecodeBlake2bHash(buffer)
 	blockNumber := sc.DecodeCompact(buffer)
-	stateRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
-	extrinsicRoot := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	stateRoot := DecodeH256(buffer)
+	extrinsicRoot := DecodeH256(buffer)
 	digest := DecodeDigest(buffer)
 
 	return Header{
-		ParentHash: Blake2bHash{
-			parentHash,
-		},
+		ParentHash: parentHash,
 		Number: BlockNumber{
 			sc.U32(blockNumber.ToBigInt().Int64()),
 		},

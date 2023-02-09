@@ -5,8 +5,10 @@ package blockbuilder
 
 import (
 	"bytes"
-	"github.com/LimeChain/goscale"
+
+	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -31,7 +33,28 @@ SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM mem
 	dataLen - i32 length (in bytes) of the encoded arguments.
 	returns a pointer-size to the SCALE-encoded ([]byte) data.
 */
-func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 { return 0 }
+func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
+	buffer := &bytes.Buffer{}
+	buffer.Write(utils.ToWasmMemorySlice(dataPtr, dataLen))
+	uxt := types.DecodeUncheckedExtrinsic(buffer)
+
+	applyExtrinsicResult := executive.ApplyExtrinsic(uxt)
+
+	buffer.Reset()
+	applyExtrinsicResult.Encode(buffer)
+
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
+}
+
+/*
+https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block
+
+SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
+
+	dataPtr - i32 pointer to the memory location.
+	dataLen - i32 length (in bytes) of the encoded arguments.
+	returns a pointer-size to the SCALE-encoded (types.Header) data.
+*/
 
 // FinalizeBlock finalizes block - it is up the caller to ensure that all header fields are valid
 // except state-root.
@@ -44,7 +67,7 @@ func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
 	bNumber := storage.Get(append(systemHash, numberHash...))
 	buf := &bytes.Buffer{}
 	buf.Write(bNumber)
-	blockNumber := goscale.DecodeU32(buf)
+	blockNumber := sc.DecodeU32(buf)
 
 	idleAndFinalizeHook(types.BlockNumber{U32: blockNumber})
 
@@ -114,5 +137,4 @@ func idleAndFinalizeHook(blockNumber types.BlockNumber) {
 	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
 	<AllPalletsWithSystem as OnFinalize<System::BlockNumber>>::on_finalize(block_number);
 	*/
-
 }

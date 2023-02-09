@@ -1,3 +1,5 @@
+//go:build !nonwasmenv
+
 package storage
 
 import (
@@ -5,7 +7,9 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
-func ChangesRoot(parent_hash int64) int64 { panic("Not implemented!") }
+func ChangesRoot(parent_hash int64) int64 {
+	panic("not implemented")
+}
 
 func Clear(key []byte) {
 	keyOffsetSize := utils.BytesToOffsetAndSize(key)
@@ -18,19 +22,25 @@ func ClearPrefix(key []byte, limit []byte) {
 	env.ExtStorageClearPrefixVersion2(keyOffsetSize, limitOffsetSize)
 }
 
-func Exists(key int64) int32 { panic("Not implemented!") }
+func Exists(key int64) int32 {
+	panic("not implemented")
+}
 
 func Get(key []byte) []byte {
-	psKey := utils.BytesToOffsetAndSize(key)
-	psValue := env.ExtStorageGetVersion1(psKey)
-	offset, size := utils.Int64ToOffsetAndSize(psValue)
+	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	valueOffsetSize := env.ExtStorageGetVersion1(keyOffsetSize)
+	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
 	value := utils.ToWasmMemorySlice(offset, size)
 	return value
 }
 
-func NextKey(key int64) int64 { panic("Not implemented!") }
+func NextKey(key int64) int64 {
+	panic("not implemented")
+}
 
-func Read(key int64, value_out int64, offset int32) int64 { panic("Not implemented!") }
+func Read(key int64, value_out int64, offset int32) int64 {
+	panic("not implemented")
+}
 
 func Root(key []byte) []byte {
 	keyOffsetSize := utils.SliceToOffset(key)
