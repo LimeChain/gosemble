@@ -76,7 +76,7 @@ func (xt CheckedExtrinsic) ApplyUnsignedValidator(info *DispatchInfo, length sc.
 		}
 		maybeWho, maybePre = id, sc.NewOption[Pre](pre)
 	} else {
-		// Do any pre-flight stuff for a unsigned transaction.
+		// Do any pre-flight stuff for an unsigned transaction.
 		//
 		// Note this function by default delegates to `ValidateUnsigned`, so that
 		// all checks performed for the transaction queue are also performed during

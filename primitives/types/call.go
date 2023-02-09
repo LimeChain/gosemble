@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -120,6 +121,16 @@ func (c Call) PreDispatchUnsigned() (ok Pre, err TransactionValidityError) {
 
 func (c Call) Dispatch(i interface{}) (ok PostInfo, err DispatchError) {
 	// TODO
+	switch c.CallIndex.ModuleIndex {
+	case timestamp.ModuleIndex:
+		switch c.CallIndex.FunctionIndex {
+		case timestamp.FunctionIndex:
+			buffer := &bytes.Buffer{}
+			buffer.Write(c.Args.Bytes())
+			ts := sc.DecodeU64(buffer)
+			timestamp.Set(ts)
+		}
+	}
 	return ok, err
 }
 
