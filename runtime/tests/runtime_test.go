@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 	"testing"
+	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -31,10 +33,10 @@ var (
 	keyExtrinsicIndex, _     = common.Twox128Hash(constants.KeyExtrinsicIndex)
 )
 
-// const WASM_RUNTIME = "../build/polkadot_runtime-v9370.compact.compressed.wasm"
-// const WASM_RUNTIME = "../build/westend_runtime-v9370.compact.compressed.wasm"
-// const WASM_RUNTIME = "../build/node_template_runtime.wasm"
-// const WASM_RUNTIME = "../build/runtime-optimized.wasm" // min memory: 257
+// const WASM_RUNTIME = "../../build/polkadot_runtime-v9370.compact.compressed.wasm"
+// const WASM_RUNTIME = "../../build/westend_runtime-v9370.compact.compressed.wasm"
+// const WASM_RUNTIME = "../../build/node_template_runtime.wasm"
+// const WASM_RUNTIME = "../../build/runtime-optimized.wasm" // min memory: 257
 const WASM_RUNTIME = "../../build/runtime.wasm"
 
 func Test_CoreVersion(t *testing.T) {
@@ -141,6 +143,54 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	blockHashKey = append(blockHashKey, numHash...)
 	blockHashKey = append(blockHashKey, encPrevBlock...)
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
+}
+
+func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
+	idata := gossamertypes.NewInherentData()
+	time := time.Now().UnixMilli()
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
+
+	expectedExtrinsic := types.UncheckedExtrinsic{
+		Version: types.ExtrinsicFormatVersion,
+		Function: types.Call{
+			CallIndex: types.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
+			},
+			Args: sc.BytesToSequenceU8(sc.U64(time).Bytes()),
+		},
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	ienc, err := idata.Encode()
+	if err != nil {
+		panic(err)
+	}
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	if err != nil {
+		panic(err)
+	}
+
+	assert.NotNil(t, inherentExt)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write([]byte{inherentExt[0]})
+
+	totalInherents := sc.DecodeCompact(buffer)
+	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
+	buffer.Reset()
+
+	buffer.Write(inherentExt[1:])
+	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
+
+	assert.Equal(t, expectedExtrinsic, extrinsic)
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {

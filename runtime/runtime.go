@@ -38,9 +38,9 @@ func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
 	return blockbuilder.FinalizeBlock(dataPtr, dataLen)
 }
 
-//go:export BlockBuilder_inherent_extrinisics
+//go:export BlockBuilder_inherent_extrinsics
 func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64 {
-	panic("not implemented")
+	return blockbuilder.InherentExtrinisics(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_check_inherents

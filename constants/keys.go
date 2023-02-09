@@ -15,6 +15,8 @@ var (
 	KeyExtrinsicData      = []byte("ExtrinsicData")
 	KeyExtrinsicIndex     = []byte(":extrinsic_index")
 	KeyLastRuntimeUpgrade = []byte("LastRuntimeUpgrade")
+	KeyNow                = []byte("Now")
 	KeyNumber             = []byte("Number")
 	KeyParentHash         = []byte("ParentHash")
+	KeyTimestamp          = []byte("Timestamp")
 )

@@ -5,11 +5,11 @@ package blockbuilder
 
 import (
 	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -86,7 +86,23 @@ SCALE encoded arguments (data types.InherentsData) allocated in the Wasm VM memo
 	dataLen - i32 length (in bytes) of the encoded arguments.
 	returns a pointer-size to the SCALE-encoded ([]types.Extrinsic) data.
 */
-func InherentExtrinisics(dataPtr int32, dataLen int32) int64 { return 0 }
+func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(b)
+
+	inherentData, err := types.DecodeInherentData(buffer)
+	if err != nil {
+		panic(err)
+	}
+	inherentData.Encode()
+
+	result := timestamp.CreateInherent(*inherentData)
+	result = append(sc.ToCompact(1).Bytes(), result...)
+
+	return utils.BytesToOffsetAndSize(result)
+}
 
 /*
 https://spec.polkadot.network/#id-blockbuilder_check_inherents
@@ -100,17 +116,6 @@ SCALE encoded arguments (block types.Block, data types.InherentsData) allocated 
 func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	return 0
 }
-
-/*
-https://spec.polkadot.network/#id-blockbuilder_random_seed
-
-SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded ([32]byte) data.
-*/
-func RandomSeed(dataPtr int32, dataLen int32) int64 { return 0 }
 
 func idleAndFinalizeHook(blockNumber types.BlockNumber) {
 	systemHash := hashing.Twox128(constants.KeySystem)
