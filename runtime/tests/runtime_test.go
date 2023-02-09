@@ -150,6 +150,8 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	time := time.Now().UnixMilli()
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
 
+	assert.NoError(t, err)
+
 	expectedExtrinsic := types.UncheckedExtrinsic{
 		Version: types.ExtrinsicFormatVersion,
 		Function: types.Call{
@@ -161,22 +163,14 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 		},
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
 	ienc, err := idata.Encode()
-	if err != nil {
-		panic(err)
-	}
+	assert.NoError(t, err)
 
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
-	if err != nil {
-		panic(err)
-	}
+	assert.NoError(t, err)
 
 	assert.NotNil(t, inherentExt)
 
