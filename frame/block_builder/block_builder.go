@@ -97,7 +97,6 @@ func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 	if err != nil {
 		panic(err)
 	}
-	inherentData.Bytes()
 
 	result := timestamp.CreateInherent(*inherentData)
 	result = append(sc.ToCompact(1).Bytes(), result...)
