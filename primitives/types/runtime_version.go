@@ -2,8 +2,6 @@ package types
 
 import (
 	"bytes"
-	"fmt"
-
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -29,10 +27,6 @@ func DecodeApiItem(buffer *bytes.Buffer) ApiItem {
 		Name:    sc.DecodeFixedSequence[sc.U8](8, buffer),
 		Version: sc.DecodeU32(buffer),
 	}
-}
-
-func (ai ApiItem) String() string {
-	return fmt.Sprintf("ApiItem { Name: %#x, Version: %d}", ai.Name, ai.Version)
 }
 
 type RuntimeVersion struct {
@@ -79,25 +73,4 @@ func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {
 	rv.StateVersion = sc.DecodeU8(buffer)
 
 	return rv
-}
-
-func (rv RuntimeVersion) String() string {
-	var result string
-
-	result = "RuntimeVersion {\n"
-	result += fmt.Sprintf("SpecName: %s\n", rv.SpecName)
-	result += fmt.Sprintf("ImplName: %s\n", rv.ImplName)
-	result += fmt.Sprintf("AuthoringVersion: %d\n", rv.AuthoringVersion)
-	result += fmt.Sprintf("SpecVersion: %d\n", rv.SpecVersion)
-	result += fmt.Sprintf("ImplVersion: %d\n", rv.ImplVersion)
-	result += "Apis: ["
-	for _, v := range rv.Apis {
-		result += v.String()
-	}
-	result += "]\n"
-	result += fmt.Sprintf("TransactionVersion: %d\n", rv.TransactionVersion)
-	result += fmt.Sprintf("StateVersion: %d\n", rv.StateVersion)
-	result += "}"
-
-	return result
 }

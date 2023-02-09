@@ -106,7 +106,6 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	function := DecodeCall(buffer)
 
-	// TODO:
 	// if Some((beforeLength, afterLength)) = buffer.remaining_len()?.and_then(|a| beforeLength.map(|b| (b, a)))
 	// {
 	// 	length = beforeLength.saturating_sub(after_length)
