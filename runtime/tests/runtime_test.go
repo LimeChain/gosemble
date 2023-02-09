@@ -15,12 +15,9 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/types"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-var DefaultTestLogLvl = log.Trace
 
 var (
 	keySystemHash, _         = common.Twox128Hash(constants.KeySystem)
@@ -30,7 +27,6 @@ var (
 	keyLastRuntime, _        = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
 	keyNumberHash, _         = common.Twox128Hash(constants.KeyNumber)
 	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
-	keyExtrinsicIndex, _     = common.Twox128Hash(constants.KeyExtrinsicIndex)
 )
 
 // const WASM_RUNTIME = "../../build/polkadot_runtime-v9370.compact.compressed.wasm"
@@ -40,7 +36,6 @@ var (
 const WASM_RUNTIME = "../../build/runtime.wasm"
 
 func Test_CoreVersion(t *testing.T) {
-	// t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -63,7 +58,6 @@ func Test_CoreVersion(t *testing.T) {
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
-	// t.Skip()
 	parentHash := common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
 	stateRoot := common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
 	extrinsicsRoot := common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
@@ -188,7 +182,6 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
-	// t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -232,7 +225,6 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
-	// t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -255,13 +247,12 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
-	// t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	call := types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd})
 
-	// privKey := []byte{0x11, 0xb2, 0x1e, 0x9d, 0xd8, 0xd9, 0x22, 0x61, 0xe2, 0xf5, 0xa4, 0xa5, 0x93, 0xf5, 0x7a, 0xd1, 0xce, 0xd5, 0xbf, 0x0d, 0x94, 0xb8, 0xdc, 0x06, 0x2d, 0xb1, 0x11, 0x42, 0x7d, 0x3b, 0xf6, 0x35, 0x15, 0xb0, 0x7f, 0xe2, 0xe7, 0x81, 0x87, 0x4a, 0xd9, 0x7f, 0xbe, 0x3f, 0xcb, 0xf9, 0xab, 0xaf, 0x8e, 0x96, 0x5d, 0x2d, 0xb5, 0x30, 0xba, 0xb0, 0x89, 0xc1, 0xf3, 0xaa, 0x21, 0xf4, 0x20, 0x63}
+	// privKey - 0x11, 0xb2, 0x1e, 0x9d, 0xd8, 0xd9, 0x22, 0x61, 0xe2, 0xf5, 0xa4, 0xa5, 0x93, 0xf5, 0x7a, 0xd1, 0xce, 0xd5, 0xbf, 0x0d, 0x94, 0xb8, 0xdc, 0x06, 0x2d, 0xb1, 0x11, 0x42, 0x7d, 0x3b, 0xf6, 0x35, 0x15, 0xb0, 0x7f, 0xe2, 0xe7, 0x81, 0x87, 0x4a, 0xd9, 0x7f, 0xbe, 0x3f, 0xcb, 0xf9, 0xab, 0xaf, 0x8e, 0x96, 0x5d, 0x2d, 0xb5, 0x30, 0xba, 0xb0, 0x89, 0xc1, 0xf3, 0xaa, 0x21, 0xf4, 0x20, 0x63
 	signer := types.NewMultiAddress(
 		types.NewAddress32(
 			0x15, 0xb0, 0x7f, 0xe2, 0xe7, 0x81, 0x87, 0x4a, 0xd9, 0x7f, 0xbe, 0x3f, 0xcb, 0xf9, 0xab, 0xaf, 0x8e, 0x96, 0x5d, 0x2d, 0xb5, 0x30, 0xba, 0xb0, 0x89, 0xc1, 0xf3, 0xaa, 0x21, 0xf4, 0x20, 0x63,
