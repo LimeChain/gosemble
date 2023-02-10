@@ -63,7 +63,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 
 func CheckInherent(call types.Call, inherent types.InherentData) types.TimestampError {
 	buffer := &bytes.Buffer{}
-	buffer.Write(call.Args.Bytes())
+	buffer.Write(sc.SequenceU8ToBytes(call.Args))
 	t := sc.DecodeU64(buffer)
 	buffer.Reset()
 
@@ -80,7 +80,6 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
-
 	nowBytes := storage.Get(append(timestampHash, nowHash...))
 
 	systemNow := sc.U64(0)

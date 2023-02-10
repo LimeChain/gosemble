@@ -52,21 +52,21 @@ func (ie InherentError) Bytes() []byte {
 type CheckInherentsResult struct {
 	Okay       sc.Bool
 	FatalError sc.Bool
-	errors     InherentData
+	Errors     InherentData
 }
 
 func NewCheckInherentsResult() CheckInherentsResult {
 	return CheckInherentsResult{
 		Okay:       true,
 		FatalError: false,
-		errors:     *NewInherentData(),
+		Errors:     *NewInherentData(),
 	}
 }
 
 func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) {
 	cir.Okay.Encode(buffer)
 	cir.FatalError.Encode(buffer)
-	cir.errors.Encode(buffer)
+	cir.Errors.Encode(buffer)
 }
 
 func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFatalError) IsFatalError {
@@ -75,10 +75,10 @@ func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFat
 	}
 
 	if error.IsFatal() {
-		cir.errors.Clear()
+		cir.Errors.Clear()
 	}
 
-	err := cir.errors.Put(inherentIdentifier, error)
+	err := cir.Errors.Put(inherentIdentifier, error)
 	if err != nil {
 		return err
 	}
@@ -87,4 +87,19 @@ func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFat
 	cir.FatalError = error.IsFatal()
 
 	return nil
+}
+
+func DecodeCheckInherentsResult(buffer *bytes.Buffer) CheckInherentsResult {
+	okay := sc.DecodeBool(buffer)
+	fatalError := sc.DecodeBool(buffer)
+	errors, err := DecodeInherentData(buffer)
+	if err != nil {
+		panic("failed to decode InherentData")
+	}
+
+	return CheckInherentsResult{
+		Okay:       okay,
+		FatalError: fatalError,
+		Errors:     *errors,
+	}
 }

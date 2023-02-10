@@ -24,7 +24,6 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 			if call.CallIndex.FunctionIndex == timestamp.FunctionIndex {
 				isInherent = true
 				err := timestamp.CheckInherent(call, data)
-
 				if err != nil {
 					err := result.PutError(timestamp.InherentIdentifier, err)
 					if err != nil {

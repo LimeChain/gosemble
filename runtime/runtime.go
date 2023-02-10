@@ -45,7 +45,7 @@ func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 
 //go:export BlockBuilder_check_inherents
 func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64 {
-	panic("not implemented")
+	return blockbuilder.CheckInherents(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_random_seed

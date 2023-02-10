@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -21,8 +20,18 @@ func (b Block) Bytes() []byte {
 }
 
 func DecodeBlock(buffer *bytes.Buffer) Block {
+	header := DecodeHeader(buffer)
+
+	size := sc.DecodeCompact(buffer)
+	v := size.ToBigInt()
+	extrinsics := make([]UncheckedExtrinsic, v.Int64())
+
+	for i := 0; i < len(extrinsics); i++ {
+		extrinsics[i] = DecodeUncheckedExtrinsic(buffer)
+	}
+
 	return Block{
-		Header:     DecodeHeader(buffer),
-		Extrinsics: sc.DecodeSequence[UncheckedExtrinsic](buffer),
+		Header:     header,
+		Extrinsics: extrinsics,
 	}
 }
