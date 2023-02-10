@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 )
 

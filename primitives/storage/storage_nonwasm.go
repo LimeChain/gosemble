@@ -14,7 +14,7 @@ func ClearPrefix(key []byte, limit []byte) {
 	panic("not implemented")
 }
 
-func Exists(key int64) int32 {
+func Exists(key []byte) int32 {
 	panic("not implemented")
 }
 

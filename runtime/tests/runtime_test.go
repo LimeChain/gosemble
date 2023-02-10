@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"testing"
 	"time"
@@ -27,6 +28,9 @@ var (
 	keyLastRuntime, _        = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
 	keyNumberHash, _         = common.Twox128Hash(constants.KeyNumber)
 	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
+	keyTimestampHash, _      = common.Twox128Hash(constants.KeyTimestamp)
+	keyTimestampNowHash, _   = common.Twox128Hash(constants.KeyNow)
+	keyTimestampDidUpdate, _ = common.Twox128Hash(constants.KeyDidUpdate)
 )
 
 // const WASM_RUNTIME = "../../build/polkadot_runtime-v9370.compact.compressed.wasm"
@@ -179,6 +183,35 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
 
 	assert.Equal(t, expectedExtrinsic, extrinsic)
+}
+
+func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
+	idata := gossamertypes.NewInherentData()
+	time := time.Now().UnixMilli()
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
+
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	fmt.Println(ienc)
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+
+	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
+	assert.NoError(t, err)
+
+	assert.Equal(t,
+		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		applyResult,
+	)
+
+	assert.Equal(t, []byte{1}, storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
