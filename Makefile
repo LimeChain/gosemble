@@ -12,7 +12,7 @@ sys_tinygo_build:
 # Build with our forked TinyGo.
 .PHONY: build
 build:
-	@if [ $(GC) = extalloc ]; then \
+	@if [[ "$(GC)" == "extalloc" ]]; then \
 		cd tinygo; \
 		git checkout $(BRANCH_EXTALLOC_GC); \
 		cd ..; \
