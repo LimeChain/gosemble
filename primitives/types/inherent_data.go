@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	sc "github.com/LimeChain/goscale"
+	"sort"
 )
 
 type InherentData struct {
@@ -19,23 +20,23 @@ func NewInherentData() *InherentData {
 func (id *InherentData) Encode(buffer *bytes.Buffer) {
 	sc.ToCompact(uint64(len(id.Data))).Encode(buffer)
 
-	for k, v := range id.Data {
+	keys := make([][8]byte, 0)
+	for k := range id.Data {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool { return string(keys[i][:]) < string(keys[j][:]) })
+
+	for _, k := range keys {
+		value := id.Data[k]
+
 		buffer.Write(k[:])
-		buffer.Write(v.Bytes())
+		buffer.Write(value.Bytes())
 	}
 }
 
 func (id *InherentData) Bytes() []byte {
-	buf := &bytes.Buffer{}
-
-	sc.Compact(sc.NewU128FromUint64(uint64(len(id.Data)))).Encode(buf)
-
-	for k, v := range id.Data {
-		buf.Write(k[:])
-		buf.Write(v.Bytes())
-	}
-
-	return buf.Bytes()
+	return sc.EncodedBytes(id)
 }
 
 func (id *InherentData) Put(key [8]byte, value sc.Encodable) InherentError {
