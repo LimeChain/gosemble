@@ -64,12 +64,9 @@ func Set(now sc.U64) {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
 
-	result := storage.Exists(append(timestampHash, didUpdateHash...))
-	buffer := &bytes.Buffer{}
+	didUpdate := storage.Exists(append(timestampHash, didUpdateHash...))
 
-	buffer.Write(result)
-	didUpdate := sc.DecodeBool(buffer)
-	if didUpdate {
+	if didUpdate == 1 {
 		panic("Timestamp must be updated only once in the block")
 	}
 
@@ -78,6 +75,7 @@ func Set(now sc.U64) {
 
 	previousTimestamp := sc.U64(0)
 	if len(previousBytes) > 1 {
+		buffer := &bytes.Buffer{}
 		buffer.Write(previousBytes)
 		previousTimestamp = sc.DecodeU64(buffer)
 		buffer.Reset()

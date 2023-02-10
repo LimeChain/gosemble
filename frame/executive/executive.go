@@ -2,6 +2,7 @@ package executive
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/execution/extrinsic"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -92,7 +93,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) types.ApplyExtrinsicResult {
 
 	// Decode parameters and dispatch
 	dispatchInfo := xt.GetDispatchInfo()
-	res, err := xt.ApplyUnsignedValidator(&dispatchInfo, encodedLen)
+	res, err := extrinsic.ApplyUnsignedValidator(xt, &dispatchInfo, encodedLen)
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
