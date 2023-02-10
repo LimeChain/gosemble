@@ -205,8 +205,6 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
-
 	assert.Equal(t,
 		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
 		applyResult,
