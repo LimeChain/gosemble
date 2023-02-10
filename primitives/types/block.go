@@ -8,13 +8,21 @@ import (
 
 type Block struct {
 	Header     Header
-	Extrinsics sc.Sequence[CheckedExtrinsic]
+	Extrinsics sc.Sequence[UncheckedExtrinsic]
 }
 
 func (b Block) Encode(buffer *bytes.Buffer) {
-	panic("not implemented Block Encode")
+	buffer.Write(b.Header.Bytes())
+	buffer.Write(b.Extrinsics.Bytes())
+}
+
+func (b Block) Bytes() []byte {
+	return sc.EncodedBytes(b)
 }
 
 func DecodeBlock(buffer *bytes.Buffer) Block {
-	panic("not implemented DecodeBlock")
+	return Block{
+		Header:     DecodeHeader(buffer),
+		Extrinsics: sc.DecodeSequence[UncheckedExtrinsic](buffer),
+	}
 }

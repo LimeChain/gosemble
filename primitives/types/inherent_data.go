@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 )
 
 type InherentData struct {
@@ -14,6 +15,15 @@ type InherentData struct {
 func NewInherentData() *InherentData {
 	return &InherentData{
 		Data: make(map[[8]byte]sc.Sequence[sc.U8]),
+	}
+}
+
+func (id *InherentData) Encode(buffer *bytes.Buffer) {
+	sc.ToCompact(uint64(len(id.Data))).Encode(buffer)
+
+	for k, v := range id.Data {
+		buffer.Write(k[:])
+		buffer.Write(v.Bytes())
 	}
 }
 
@@ -38,6 +48,53 @@ func (id *InherentData) Put(key [8]byte, value sc.Encodable) error {
 	id.Data[key] = sc.BytesToSequenceU8(value.Bytes())
 
 	return nil
+}
+
+func (id *InherentData) Clear() {
+	id.Data = make(map[[8]byte]sc.Sequence[sc.U8])
+}
+
+func (id *InherentData) CheckExtrinsics(block Block) CheckInherentsResult {
+
+	result := NewCheckInherentsResult()
+
+	for _, extrinsic := range block.Extrinsics {
+		// Inherents are before any other extrinsics.
+		// And signed extrinsics are not inherents.
+		if extrinsic.IsSigned() {
+			break
+		}
+
+		isInherent := false
+
+		call := extrinsic.Function
+
+		switch call.CallIndex.ModuleIndex {
+		case timestamp.ModuleIndex:
+			if call.CallIndex.FunctionIndex == timestamp.FunctionIndex {
+				isInherent = true
+				err := timestamp.CheckInherent(call, *id)
+				if err != nil {
+					err := result.PutError(timestamp.InherentIdentifier, sc.Str(err.Error()))
+					if err != nil {
+						panic(err)
+					}
+
+					if result.FatalError {
+						return result
+					}
+				}
+			}
+		}
+
+		// Inherents are before any other extrinsics.
+		// No module marked it as inherent thus it is not.
+		if !isInherent {
+			break
+		}
+	}
+
+	return result
 }
 
 func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {

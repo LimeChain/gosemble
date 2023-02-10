@@ -2,6 +2,7 @@ package timestamp
 
 import (
 	"bytes"
+	"errors"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -10,9 +11,10 @@ import (
 )
 
 const (
-	MinimumPeriod = 1 * 1000 // 1 second
-	ModuleIndex   = 3
-	FunctionIndex = 0
+	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
+	MinimumPeriod           = 1 * 1000   // 1 second
+	ModuleIndex             = 3
+	FunctionIndex           = 0
 )
 
 var (
@@ -60,7 +62,46 @@ func CreateInherent(inherent types.InherentData) []byte {
 	return extrinsic.Bytes()
 }
 
-func Set(now sc.U64) {
+func CheckInherent(call types.Call, inherent types.InherentData) error {
+	buffer := &bytes.Buffer{}
+	buffer.Write(call.Args.Bytes())
+	t := sc.DecodeU64(buffer)
+	buffer.Reset()
+
+	inherentData := inherent.Data[InherentIdentifier]
+
+	if inherentData == nil {
+		panic("Timestamp inherent must be provided.")
+	}
+
+	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	timestamp := sc.DecodeU64(buffer)
+	// TODO: err if not able to parse it.
+	buffer.Reset()
+
+	timestampHash := hashing.Twox128(constants.KeyTimestamp)
+	nowHash := hashing.Twox128(constants.KeyNow)
+
+	nowBytes := storage.Get(append(timestampHash, nowHash...))
+
+	systemNow := sc.U64(0)
+	if len(nowBytes) > 1 {
+		buffer.Write(nowBytes)
+		systemNow = sc.DecodeU64(buffer)
+		buffer.Reset()
+	}
+
+	minimum := systemNow + MinimumPeriod
+	if t > timestamp+MaxTimestampDriftMillis {
+		return errors.New(types.InherentError_TooFarInTheFuture.String())
+	} else if t < minimum {
+		return errors.New(types.InherentError_ValidAtTimestamp.String())
+	}
+
+	return nil
+}
+
+func Set(now sc.U64) sc.U64 {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
 
@@ -90,4 +131,6 @@ func Set(now sc.U64) {
 
 	// TODO: Every consensus that uses the timestamp must implement
 	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
+
+	return now
 }
