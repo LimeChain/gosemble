@@ -28,9 +28,11 @@ func (id *InherentData) Encode(buffer *bytes.Buffer) {
 
 	sort.Slice(keys, func(i, j int) bool { return string(keys[i][:]) < string(keys[j][:]) })
 
-	for k, v := range id.Data {
+	for _, k := range keys {
+		value := id.Data[k]
+
 		buffer.Write(k[:])
-		buffer.Write(v.Bytes())
+		buffer.Write(value.Bytes())
 	}
 }
 
