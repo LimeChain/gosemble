@@ -2,7 +2,6 @@ package timestamp
 
 import (
 	"bytes"
-	"errors"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -62,7 +61,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(call types.Call, inherent types.InherentData) error {
+func CheckInherent(call types.Call, inherent types.InherentData) types.TimestampError {
 	buffer := &bytes.Buffer{}
 	buffer.Write(call.Args.Bytes())
 	t := sc.DecodeU64(buffer)
@@ -93,9 +92,9 @@ func CheckInherent(call types.Call, inherent types.InherentData) error {
 
 	minimum := systemNow + MinimumPeriod
 	if t > timestamp+MaxTimestampDriftMillis {
-		return errors.New(types.InherentError_TooFarInTheFuture.String())
+		return types.NewTimestampError(types.TimestampError_TooFarInFuture)
 	} else if t < minimum {
-		return errors.New(types.InherentError_ValidAtTimestamp.String())
+		return types.NewTimestampError(types.TimestampError_ValidAtTimestamp, minimum)
 	}
 
 	return nil

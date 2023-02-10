@@ -5,6 +5,7 @@ package blockbuilder
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/execution/inherent"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -127,7 +128,7 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	}
 	buffer.Reset()
 
-	checkInherentsResult := inherentData.CheckExtrinsics(block)
+	checkInherentsResult := inherent.CheckInherents(*inherentData, block)
 
 	checkInherentsResult.Encode(buffer)
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
