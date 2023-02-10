@@ -40,8 +40,6 @@ var (
 const WASM_RUNTIME = "../../build/runtime.wasm"
 
 func Test_CoreVersion(t *testing.T) {
-	t.Skip()
-
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -64,8 +62,6 @@ func Test_CoreVersion(t *testing.T) {
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
-	t.Skip()
-
 	parentHash := common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
 	stateRoot := common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
 	extrinsicsRoot := common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
@@ -148,7 +144,6 @@ func Test_CoreInitializeBlock(t *testing.T) {
 }
 
 func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
-	t.Skip()
 	idata := gossamertypes.NewInherentData()
 	time := time.Now().UnixMilli()
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
@@ -191,7 +186,6 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
-	t.Skip()
 	idata := gossamertypes.NewInherentData()
 	time := time.Now().UnixMilli()
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
@@ -221,7 +215,6 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
-	t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -263,7 +256,6 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
-	t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
@@ -286,7 +278,6 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
-	t.Skip()
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 

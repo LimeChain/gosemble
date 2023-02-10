@@ -41,7 +41,7 @@ func (ie InherentError) Encode(buffer *bytes.Buffer) {
 		ie[0].Encode(buffer)
 		// TODO:
 	default:
-		panic("Invalid InherentError Type")
+		panic("invalid InherentError Type")
 	}
 }
 

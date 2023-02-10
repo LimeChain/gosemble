@@ -99,7 +99,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 	return nil
 }
 
-func Set(now sc.U64) sc.U64 {
+func Set(now sc.U64) {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
 
@@ -129,6 +129,4 @@ func Set(now sc.U64) sc.U64 {
 
 	// TODO: Every consensus that uses the timestamp must implement
 	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
-
-	return now
 }

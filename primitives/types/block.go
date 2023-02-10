@@ -23,8 +23,8 @@ func DecodeBlock(buffer *bytes.Buffer) Block {
 	header := DecodeHeader(buffer)
 
 	size := sc.DecodeCompact(buffer)
-	v := size.ToBigInt()
-	extrinsics := make([]UncheckedExtrinsic, v.Int64())
+	length := size.ToBigInt()
+	extrinsics := make([]UncheckedExtrinsic, length.Int64())
 
 	for i := 0; i < len(extrinsics); i++ {
 		extrinsics[i] = DecodeUncheckedExtrinsic(buffer)
