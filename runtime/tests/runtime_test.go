@@ -33,6 +33,30 @@ var (
 	keyTimestampDidUpdate, _ = common.Twox128Hash(constants.KeyDidUpdate)
 )
 
+var (
+	parentHash     = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
+	stateRoot      = common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
+	extrinsicsRoot = common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
+	blockNumber    = uint(1)
+	sealDigest     = gossamertypes.SealDigest{
+		ConsensusEngineID: gossamertypes.BabeEngineID,
+		// bytes for SealDigest that was created in setupHeaderFile function
+		Data: []byte{158, 127, 40, 221, 220, 242, 124, 30, 107, 50, 141, 86, 148, 195, 104, 213, 178, 236, 93, 190,
+			14, 65, 42, 225, 201, 143, 136, 213, 59, 228, 216, 80, 47, 172, 87, 31, 63, 25, 201, 202, 175, 40, 26,
+			103, 51, 25, 36, 30, 12, 80, 149, 166, 131, 173, 52, 49, 98, 4, 8, 138, 54, 164, 189, 134},
+	}
+
+	preRuntimeDigest = gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: gossamertypes.BabeEngineID,
+		// bytes for PreRuntimeDigest that was created in setupHeaderFile function
+		Data: []byte{1, 60, 0, 0, 0, 150, 89, 189, 15, 0, 0, 0, 0, 112, 237, 173, 28, 144, 100, 255,
+			247, 140, 177, 132, 53, 34, 61, 138, 218, 245, 234, 4, 194, 75, 26, 135, 102, 227, 220, 1, 235, 3, 204,
+			106, 12, 17, 183, 151, 147, 212, 227, 28, 192, 153, 8, 56, 34, 156, 68, 254, 209, 102, 154, 124, 124,
+			121, 225, 230, 208, 169, 99, 116, 214, 73, 103, 40, 6, 157, 30, 247, 57, 226, 144, 73, 122, 14, 59, 114,
+			143, 168, 143, 203, 221, 58, 85, 4, 224, 239, 222, 2, 66, 231, 168, 6, 221, 79, 169, 38, 12},
+	}
+)
+
 // const WASM_RUNTIME = "../../build/polkadot_runtime-v9370.compact.compressed.wasm"
 // const WASM_RUNTIME = "../../build/westend_runtime-v9370.compact.compressed.wasm"
 // const WASM_RUNTIME = "../../build/node_template_runtime.wasm"
@@ -62,31 +86,9 @@ func Test_CoreVersion(t *testing.T) {
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
-	parentHash := common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
-	stateRoot := common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
-	extrinsicsRoot := common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
-	blockNumber := uint(1)
 	expectedStorageDigest := gossamertypes.NewDigest()
 
 	digest := gossamertypes.NewDigest()
-
-	sealDigest := gossamertypes.SealDigest{
-		ConsensusEngineID: gossamertypes.BabeEngineID,
-		// bytes for SealDigest that was created in setupHeaderFile function
-		Data: []byte{158, 127, 40, 221, 220, 242, 124, 30, 107, 50, 141, 86, 148, 195, 104, 213, 178, 236, 93, 190,
-			14, 65, 42, 225, 201, 143, 136, 213, 59, 228, 216, 80, 47, 172, 87, 31, 63, 25, 201, 202, 175, 40, 26,
-			103, 51, 25, 36, 30, 12, 80, 149, 166, 131, 173, 52, 49, 98, 4, 8, 138, 54, 164, 189, 134},
-	}
-
-	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
-		ConsensusEngineID: gossamertypes.BabeEngineID,
-		// bytes for PreRuntimeDigest that was created in setupHeaderFile function
-		Data: []byte{1, 60, 0, 0, 0, 150, 89, 189, 15, 0, 0, 0, 0, 112, 237, 173, 28, 144, 100, 255,
-			247, 140, 177, 132, 53, 34, 61, 138, 218, 245, 234, 4, 194, 75, 26, 135, 102, 227, 220, 1, 235, 3, 204,
-			106, 12, 17, 183, 151, 147, 212, 227, 28, 192, 153, 8, 56, 34, 156, 68, 254, 209, 102, 154, 124, 124,
-			121, 225, 230, 208, 169, 99, 116, 214, 73, 103, 40, 6, 157, 30, 247, 57, 226, 144, 73, 122, 14, 59, 114,
-			143, 168, 143, 203, 221, 58, 85, 4, 224, 239, 222, 2, 66, 231, 168, 6, 221, 79, 169, 38, 12},
-	}
 
 	preRuntimeDigestItem := gossamertypes.NewDigestItem()
 	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
@@ -322,4 +324,48 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 
 func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 	t.Skip()
+}
+
+func Test_CheckInherents(t *testing.T) {
+	expectedCheckInherentsResult := types.NewCheckInherentsResult()
+
+	idata := gossamertypes.NewInherentData()
+	time := time.Now().UnixMilli()
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
+
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+	assert.NotNil(t, inherentExt)
+
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, gossamertypes.NewDigest())
+
+	var exts [][]byte
+	err = scale.Unmarshal(inherentExt, &exts)
+	assert.Nil(t, err)
+
+	block := gossamertypes.Block{
+		Header: *header,
+		Body:   gossamertypes.BytesArrayToExtrinsics(exts),
+	}
+
+	encodedBlock, err := scale.Marshal(block)
+	assert.Nil(t, err)
+
+	inputData := append(encodedBlock, ienc...)
+	bytesCheckInherentsResult, err := rt.Exec("BlockBuilder_check_inherents", inputData)
+	assert.Nil(t, err)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(bytesCheckInherentsResult)
+	checkInherentsResult := types.DecodeCheckInherentsResult(buffer)
+
+	assert.Equal(t, expectedCheckInherentsResult, checkInherentsResult)
 }

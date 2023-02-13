@@ -5,6 +5,7 @@ package blockbuilder
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/execution/inherent"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -114,7 +115,23 @@ SCALE encoded arguments (block types.Block, data types.InherentsData) allocated 
 	returns a pointer-size to the SCALE-encoded ([]byte) data.
 */
 func CheckInherents(dataPtr int32, dataLen int32) int64 {
-	return 0
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(b)
+
+	block := types.DecodeBlock(buffer)
+
+	inherentData, err := types.DecodeInherentData(buffer)
+	if err != nil {
+		panic(err)
+	}
+	buffer.Reset()
+
+	checkInherentsResult := inherent.CheckInherents(*inherentData, block)
+
+	checkInherentsResult.Encode(buffer)
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
 func idleAndFinalizeHook(blockNumber types.BlockNumber) {

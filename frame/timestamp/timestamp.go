@@ -10,9 +10,10 @@ import (
 )
 
 const (
-	MinimumPeriod = 1 * 1000 // 1 second
-	ModuleIndex   = 3
-	FunctionIndex = 0
+	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
+	MinimumPeriod           = 1 * 1000   // 1 second
+	ModuleIndex             = 3
+	FunctionIndex           = 0
 )
 
 var (
@@ -58,6 +59,44 @@ func CreateInherent(inherent types.InherentData) []byte {
 	}
 
 	return extrinsic.Bytes()
+}
+
+func CheckInherent(call types.Call, inherent types.InherentData) types.TimestampError {
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(call.Args))
+	t := sc.DecodeU64(buffer)
+	buffer.Reset()
+
+	inherentData := inherent.Data[InherentIdentifier]
+
+	if inherentData == nil {
+		panic("Timestamp inherent must be provided.")
+	}
+
+	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	timestamp := sc.DecodeU64(buffer)
+	// TODO: err if not able to parse it.
+	buffer.Reset()
+
+	timestampHash := hashing.Twox128(constants.KeyTimestamp)
+	nowHash := hashing.Twox128(constants.KeyNow)
+	nowBytes := storage.Get(append(timestampHash, nowHash...))
+
+	systemNow := sc.U64(0)
+	if len(nowBytes) > 1 {
+		buffer.Write(nowBytes)
+		systemNow = sc.DecodeU64(buffer)
+		buffer.Reset()
+	}
+
+	minimum := systemNow + MinimumPeriod
+	if t > timestamp+MaxTimestampDriftMillis {
+		return types.NewTimestampError(types.TimestampErrorTooFarInFuture)
+	} else if t < minimum {
+		return types.NewTimestampError(types.TimestampErrorValidateTimestamp, minimum)
+	}
+
+	return nil
 }
 
 func Set(now sc.U64) {

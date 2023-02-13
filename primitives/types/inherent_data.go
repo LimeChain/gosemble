@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	sc "github.com/LimeChain/goscale"
 	"sort"
 )
@@ -40,14 +39,18 @@ func (id *InherentData) Bytes() []byte {
 	return sc.EncodedBytes(id)
 }
 
-func (id *InherentData) Put(key [8]byte, value sc.Encodable) error {
+func (id *InherentData) Put(key [8]byte, value sc.Encodable) InherentError {
 	if id.Data[key] != nil {
-		return errors.New(fmt.Sprintf("InherentDataExists - [%v]", key))
+		return NewInherentError(InherentErrorInherentDataExists, sc.BytesToSequenceU8(key[:]))
 	}
 
 	id.Data[key] = sc.BytesToSequenceU8(value.Bytes())
 
 	return nil
+}
+
+func (id *InherentData) Clear() {
+	id.Data = make(map[[8]byte]sc.Sequence[sc.U8])
 }
 
 func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
