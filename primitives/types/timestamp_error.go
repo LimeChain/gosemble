@@ -23,7 +23,7 @@ func NewTimestampError(values ...sc.Encodable) TimestampError {
 	case TimestampErrorTooFarInFuture:
 		return TimestampError{sc.NewVaryingData(values[0])}
 	default:
-		panic("")
+		panic(errInvalidTimestampType)
 	}
 }
 
