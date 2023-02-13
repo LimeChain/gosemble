@@ -91,9 +91,9 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	minimum := systemNow + MinimumPeriod
 	if t > timestamp+MaxTimestampDriftMillis {
-		return types.NewTimestampError(types.TimestampError_TooFarInFuture)
+		return types.NewTimestampError(types.TimestampErrorTooFarInFuture)
 	} else if t < minimum {
-		return types.NewTimestampError(types.TimestampError_ValidAtTimestamp, minimum)
+		return types.NewTimestampError(types.TimestampErrorValidateTimestamp, minimum)
 	}
 
 	return nil

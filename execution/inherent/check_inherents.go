@@ -44,5 +44,7 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 		}
 	}
 
+	// TODO: go through all required pallets with required inherents
+
 	return result
 }

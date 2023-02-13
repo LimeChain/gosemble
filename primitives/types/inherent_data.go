@@ -41,7 +41,7 @@ func (id *InherentData) Bytes() []byte {
 
 func (id *InherentData) Put(key [8]byte, value sc.Encodable) InherentError {
 	if id.Data[key] != nil {
-		return NewInherentError(InherentError_InherentDataExists, sc.BytesToSequenceU8(key[:]))
+		return NewInherentError(InherentErrorInherentDataExists, sc.BytesToSequenceU8(key[:]))
 	}
 
 	id.Data[key] = sc.BytesToSequenceU8(value.Bytes())

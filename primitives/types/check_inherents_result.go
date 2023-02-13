@@ -6,10 +6,15 @@ import (
 )
 
 const (
-	InherentError_InherentDataExists = sc.U8(iota)
-	InherentError_DecodingFailed
-	InherentError_FatalErrorReported
-	InherentError_Application
+	InherentErrorInherentDataExists = sc.U8(iota)
+	InherentErrorDecodingFailed
+	InherentErrorFatalErrorreported
+	InherentErrorApplication
+)
+
+const (
+	errDecodeInherentData       = "failed to decode InherentData"
+	errInvalidInherentErrorType = "invalid InherentError Type"
 )
 
 type InherentError sc.VaryingData
@@ -20,7 +25,7 @@ func NewInherentError(values ...sc.Encodable) InherentError {
 
 func (ie InherentError) IsFatal() sc.Bool {
 	switch ie[0] {
-	case InherentError_FatalErrorReported:
+	case InherentErrorFatalErrorreported:
 		return true
 	default:
 		return false
@@ -29,19 +34,19 @@ func (ie InherentError) IsFatal() sc.Bool {
 
 func (ie InherentError) Encode(buffer *bytes.Buffer) {
 	switch ie[0] {
-	case InherentError_InherentDataExists:
+	case InherentErrorInherentDataExists:
 		ie[0].Encode(buffer)
 		ie[1].Encode(buffer)
-	case InherentError_DecodingFailed:
+	case InherentErrorDecodingFailed:
 		ie[0].Encode(buffer)
 		ie[1].Encode(buffer)
-	case InherentError_FatalErrorReported:
+	case InherentErrorFatalErrorreported:
 		ie[0].Encode(buffer)
-	case InherentError_Application:
+	case InherentErrorApplication:
 		ie[0].Encode(buffer)
-		// TODO:
+		// TODO: encode additional value
 	default:
-		panic("invalid InherentError Type")
+		panic(errInvalidInherentErrorType)
 	}
 }
 
@@ -94,7 +99,7 @@ func DecodeCheckInherentsResult(buffer *bytes.Buffer) CheckInherentsResult {
 	fatalError := sc.DecodeBool(buffer)
 	errors, err := DecodeInherentData(buffer)
 	if err != nil {
-		panic("failed to decode InherentData")
+		panic(errDecodeInherentData)
 	}
 
 	return CheckInherentsResult{
