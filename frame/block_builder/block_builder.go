@@ -71,7 +71,7 @@ func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
 	buf.Write(bNumber)
 	blockNumber := sc.DecodeU32(buf)
 
-	idleAndFinalizeHook(types.BlockNumber{U32: blockNumber})
+	system.IdleAndFinalizeHook(types.BlockNumber{U32: blockNumber})
 
 	header := system.Finalize()
 	encodedHeader := header.Bytes()
@@ -132,31 +132,4 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 
 	checkInherentsResult.Encode(buffer)
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
-}
-
-func idleAndFinalizeHook(blockNumber types.BlockNumber) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
-
-	storage.Get(append(systemHash, blockWeightHash...))
-
-	// TODO: weights
-	/**
-	let weight = <frame_system::Pallet<System>>::block_weight();
-	let max_weight = <System::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
-	let remaining_weight = max_weight.saturating_sub(weight.total());
-
-	if remaining_weight.all_gt(Weight::zero()) {
-		let used_weight = <AllPalletsWithSystem as OnIdle<System::BlockNumber>>::on_idle(
-			block_number,
-			remaining_weight,
-		);
-		<frame_system::Pallet<System>>::register_extra_weight_unchecked(
-			used_weight,
-			DispatchClass::Mandatory,
-		);
-	}
-	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
-	<AllPalletsWithSystem as OnFinalize<System::BlockNumber>>::on_finalize(block_number);
-	*/
 }

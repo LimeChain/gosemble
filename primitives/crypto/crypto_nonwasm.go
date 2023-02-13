@@ -15,3 +15,11 @@ func ExtCryptoEd25519VerifyVersion1(signature []byte, message []byte, pubKey []b
 func ExtCryptoSr25519VerifyVersion2(signature []byte, message []byte, pubKey []byte) sc.Bool {
 	panic("not implemented")
 }
+
+func ExtCryptoStartBatchVerify() {
+	panic("not implemented")
+}
+
+func ExtCryptoFinishBatchVerify() int32 {
+	panic("not implemented")
+}

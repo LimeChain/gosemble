@@ -19,6 +19,14 @@ func ExtCryptoSr25519VerifyVersion2(signature []byte, message []byte, pubKey []b
 	) == 1
 }
 
+func ExtCryptoStartBatchVerify() {
+	env.ExtCryptoStartBatchVerifyVersion1()
+}
+
+func ExtCryptoFinishBatchVerify() int32 {
+	return env.ExtCryptoFinishBatchVerifyVersion1()
+}
+
 func argsSigMsgPubKeyAsWasmMemory(signature []byte, message []byte, pubKey []byte) (sigOffset int32, msgOffsetSize int64, pubKeyOffset int32) {
 	sigOffsetSize := utils.BytesToOffsetAndSize(signature)
 	sigOffset, _ = utils.Int64ToOffsetAndSize(sigOffsetSize) // signature: 64-byte

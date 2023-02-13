@@ -130,3 +130,16 @@ func Set(now sc.U64) {
 	// TODO: Every consensus that uses the timestamp must implement
 	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
 }
+
+func OnFinalize() {
+	timestampHash := hashing.Twox128(constants.KeyTimestamp)
+	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
+
+	bytesTimestamp := storage.Get(append(timestampHash, didUpdateHash...))
+
+	if len(bytesTimestamp) > 1 {
+		storage.Clear(append(timestampHash, didUpdateHash...))
+	} else {
+		panic("Timestamp must be updated once in the block")
+	}
+}

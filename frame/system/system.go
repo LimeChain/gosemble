@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 	"math"
 
 	sc "github.com/LimeChain/goscale"
@@ -120,6 +121,34 @@ func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, dig
 	storage.Clear(append(systemHash, blockWeightHash...))
 }
 
+func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
+
+	storage.Get(append(systemHash, blockWeightHash...))
+
+	// TODO: weights
+	/**
+	let weight = <frame_system::Pallet<System>>::block_weight();
+	let max_weight = <System::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
+	let remaining_weight = max_weight.saturating_sub(weight.total());
+
+	if remaining_weight.all_gt(Weight::zero()) {
+		let used_weight = <AllPalletsWithSystem as OnIdle<System::BlockNumber>>::on_idle(
+			block_number,
+			remaining_weight,
+		);
+		<frame_system::Pallet<System>>::register_extra_weight_unchecked(
+			used_weight,
+			DispatchClass::Mandatory,
+		);
+	}
+	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
+	<AllPalletsWithSystem as OnFinalize<System::BlockNumber>>::on_finalize(block_number);
+	*/
+	timestamp.OnFinalize()
+}
+
 func NoteFinishedInitialize() {
 	initializationPhase := sc.U32(constants.ExecutionPhaseApplyExtrinsic)
 
@@ -225,4 +254,36 @@ func extrinsicIndexValue() sc.Option[sc.U32] {
 	} else {
 		return sc.Option[sc.U32]{HasValue: false}
 	}
+}
+
+func EnsureInherentsAreFirst(block types.Block) int {
+	signedExtrinsicFound := false
+
+	for i, extrinsic := range block.Extrinsics {
+		isInherent := false
+
+		if extrinsic.IsSigned() {
+			// Signed extrinsics are not inherents
+			isInherent = false
+		} else {
+			call := extrinsic.Function
+			// Iterate through all calls and check if the given call is inherent
+			switch call.CallIndex.ModuleIndex {
+			case timestamp.ModuleIndex:
+				if call.CallIndex.FunctionIndex == timestamp.FunctionIndex {
+					isInherent = true
+				}
+			}
+		}
+
+		if !isInherent {
+			signedExtrinsicFound = true
+		}
+
+		if signedExtrinsicFound && isInherent {
+			return i
+		}
+	}
+
+	return -1
 }

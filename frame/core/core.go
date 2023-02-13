@@ -59,4 +59,12 @@ SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, pas
 	dataPtr - i32 pointer to the memory location.
 	dataLen - i32 length (in bytes) of the encoded arguments.
 */
-func ExecuteBlock(dataPtr int32, dataLen int32) {}
+func ExecuteBlock(dataPtr int32, dataLen int32) {
+	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := &bytes.Buffer{}
+	buffer.Write(data)
+
+	block := types.DecodeBlock(buffer)
+
+	executive.ExecuteBlock(block)
+}

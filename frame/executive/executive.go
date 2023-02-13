@@ -3,6 +3,8 @@ package executive
 import (
 	"bytes"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
+	"github.com/LimeChain/gosemble/primitives/crypto"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -26,46 +28,6 @@ func InitializeBlock(header types.Header) {
 	// TODO: weight
 
 	system.NoteFinishedInitialize()
-}
-
-func runtimeUpgrade() sc.Bool {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
-
-	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
-	last := storage.Get(keyLru)
-
-	buf := &bytes.Buffer{}
-	buf.Write(last)
-
-	lrupi, err := types.DecodeLastRuntimeUpgradeInfo(buf)
-	if err != nil {
-		panic(err)
-	}
-
-	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
-		lrupi.SpecName != constants.RuntimeVersion.SpecName {
-
-		valueLru := append(
-			sc.ToCompact(uint64(constants.RuntimeVersion.SpecVersion)).Bytes(),
-			constants.RuntimeVersion.SpecName.Bytes()...)
-		storage.Set(keyLru, valueLru)
-
-		return true
-	}
-
-	return false
-}
-
-func extractPreRuntimeDigest(digest types.Digest) types.Digest {
-	result := types.Digest{}
-	for k, v := range digest {
-		if k == types.DigestTypePreRuntime {
-			result[k] = v
-		}
-	}
-
-	return result
 }
 
 // Apply extrinsic outside of the block execution function.
@@ -114,4 +76,125 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) types.ApplyExtrinsicResult {
 	}
 
 	return types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil))
+}
+
+func ExecuteBlock(block types.Block) {
+	InitializeBlock(block.Header)
+
+	initialChecks(block)
+
+	crypto.ExtCryptoStartBatchVerify()
+	executeExtrinsicsWithBookKeeping(block)
+	if crypto.ExtCryptoFinishBatchVerify() != 1 {
+		panic("Signature verification failed")
+	}
+
+	finalChecks(&block.Header)
+}
+
+func executeExtrinsicsWithBookKeeping(block types.Block) {
+	for _, ext := range block.Extrinsics {
+		_ = ApplyExtrinsic(ext)
+		// TODO: check err
+	}
+
+	system.NoteFinishedExtrinsics()
+	system.IdleAndFinalizeHook(block.Header.Number)
+}
+
+func initialChecks(block types.Block) {
+	header := block.Header
+
+	blockNumber := header.Number.U32
+
+	if blockNumber > 0 {
+		systemHash := hashing.Twox128(constants.KeySystem)
+		previousBlock := blockNumber - 1
+		blockNumHash := hashing.Twox64(previousBlock.Bytes())
+
+		blockNumKey := append(systemHash, hashing.Twox128(constants.KeyBlockHash)...)
+		blockNumKey = append(blockNumKey, blockNumHash...)
+		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
+
+		buffer := &bytes.Buffer{}
+		previousHash := storage.Get(blockNumKey)
+
+		buffer.Write(previousHash)
+
+		storageParentHash := types.DecodeBlake2bHash(buffer)
+
+		if !reflect.DeepEqual(storageParentHash.FixedSequence, header.ParentHash.FixedSequence) {
+			panic("parent hash should be valid")
+		}
+	}
+
+	inherentsAreFirst := system.EnsureInherentsAreFirst(block)
+
+	if inherentsAreFirst >= 0 {
+		panic("invalid inherent position for extrinsic at index")
+		// TODO: add index to err
+	}
+}
+
+func runtimeUpgrade() sc.Bool {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
+
+	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
+	last := storage.Get(keyLru)
+
+	buf := &bytes.Buffer{}
+	buf.Write(last)
+
+	lrupi, err := types.DecodeLastRuntimeUpgradeInfo(buf)
+	if err != nil {
+		panic(err)
+	}
+
+	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
+		lrupi.SpecName != constants.RuntimeVersion.SpecName {
+
+		valueLru := append(
+			sc.ToCompact(uint64(constants.RuntimeVersion.SpecVersion)).Bytes(),
+			constants.RuntimeVersion.SpecName.Bytes()...)
+		storage.Set(keyLru, valueLru)
+
+		return true
+	}
+
+	return false
+}
+
+func extractPreRuntimeDigest(digest types.Digest) types.Digest {
+	result := types.Digest{}
+	for k, v := range digest {
+		if k == types.DigestTypePreRuntime {
+			result[k] = v
+		}
+	}
+
+	return result
+}
+
+func finalChecks(header *types.Header) {
+	newHeader := system.Finalize()
+
+	if len(header.Digest) != len(newHeader.Digest) {
+		panic("Number of digest must match the calculated")
+	}
+
+	for key, digest := range header.Digest {
+		otherDigest := newHeader.Digest[key]
+		if !reflect.DeepEqual(digest, otherDigest) {
+			panic("digest item must match that calculated")
+		}
+	}
+
+	if !reflect.DeepEqual(header.StateRoot, newHeader.StateRoot) {
+		panic("Storage root must match that calculated")
+	}
+
+	if !reflect.DeepEqual(header.ExtrinsicsRoot, newHeader.ExtrinsicsRoot) {
+		panic("Transaction trie must be valid")
+	}
 }
