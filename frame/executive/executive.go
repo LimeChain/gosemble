@@ -156,12 +156,16 @@ func runtimeUpgrade() sc.Bool {
 	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
 	last := storage.Get(keyLru)
 
-	buf := &bytes.Buffer{}
-	buf.Write(last)
+	lrupi := types.LastRuntimeUpgradeInfo{}
+	if len(last) > 1 {
+		buf := &bytes.Buffer{}
+		buf.Write(last[1:])
 
-	lrupi, err := types.DecodeLastRuntimeUpgradeInfo(buf)
-	if err != nil {
-		panic(err)
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+
+		lrupi = types.DecodeLastRuntimeUpgradeInfo(buf)
 	}
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||

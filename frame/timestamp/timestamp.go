@@ -40,7 +40,11 @@ func CreateInherent(inherent types.InherentData) []byte {
 
 	nowBytes := storage.Get(append(timestampHash, nowHash...))
 	if len(nowBytes) > 1 {
-		buffer.Write(nowBytes)
+		buffer.Write(nowBytes[1:])
+
+		bytesSequence := sc.DecodeSequence[sc.U8](buffer)
+		buffer.Reset()
+		buffer.Write(sc.SequenceU8ToBytes(bytesSequence))
 		nowTimestamp := sc.DecodeU64(buffer)
 		buffer.Reset()
 
@@ -84,7 +88,12 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	systemNow := sc.U64(0)
 	if len(nowBytes) > 1 {
-		buffer.Write(nowBytes)
+		buffer.Write(nowBytes[1:])
+
+		bytesSequnce := sc.DecodeSequence[sc.U8](buffer)
+		buffer.Reset()
+		buffer.Write(sc.SequenceU8ToBytes(bytesSequnce))
+
 		systemNow = sc.DecodeU64(buffer)
 		buffer.Reset()
 	}
@@ -115,7 +124,12 @@ func Set(now sc.U64) {
 	previousTimestamp := sc.U64(0)
 	if len(previousBytes) > 1 {
 		buffer := &bytes.Buffer{}
-		buffer.Write(previousBytes)
+		buffer.Write(previousBytes[1:])
+
+		bytesSequence := sc.DecodeSequence[sc.U8](buffer)
+		buffer.Reset()
+
+		buffer.Write(sc.SequenceU8ToBytes(bytesSequence))
 		previousTimestamp = sc.DecodeU64(buffer)
 		buffer.Reset()
 	}

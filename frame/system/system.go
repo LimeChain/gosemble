@@ -230,6 +230,7 @@ func NoteFinishedExtrinsics() {
 		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
 
 		extrinsicIndex = sc.DecodeU32(buf)
+		buf.Reset()
 	}
 
 	systemHash := hashing.Twox128(constants.KeySystem)

@@ -22,13 +22,13 @@ func (lrui LastRuntimeUpgradeInfo) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (value LastRuntimeUpgradeInfo, err error) {
+func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (value LastRuntimeUpgradeInfo) {
 	if buffer.Len() <= 1 {
-		return value, nil
+		return value
 	}
 
 	value.SpecVersion = sc.DecodeCompact(buffer)
 	value.SpecName = sc.DecodeStr(buffer)
 
-	return value, nil
+	return value
 }
