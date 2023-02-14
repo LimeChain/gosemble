@@ -13,7 +13,7 @@ func NewMultiSignature(value sc.Encodable) MultiSignature {
 	case Ed25519, Sr25519, Ecdsa:
 		return MultiSignature(sc.NewVaryingData(value))
 	default:
-		panic("invalid Signature option")
+		panic("invalid Signature type")
 	}
 }
 

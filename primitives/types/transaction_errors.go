@@ -7,15 +7,16 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// InvalidTransaction = 0 - Transaction is invalid.
-// UnknownTransaction = 1 - Transaction validity can’t be determined.
+// Errors that can occur while checking the validity of a transaction.
 type TransactionValidityError sc.VaryingData
 
 func NewTransactionValidityError(value sc.Encodable) TransactionValidityError {
+	// InvalidTransaction = 0 - Transaction is invalid.
+	// UnknownTransaction = 1 - Transaction validity can’t be determined.
 	switch value.(type) {
 	case InvalidTransaction, UnknownTransaction:
 	default:
-		panic("invalid TransactionValidityError option")
+		panic("invalid TransactionValidityError type")
 	}
 
 	return TransactionValidityError(sc.NewVaryingData(value))
@@ -122,7 +123,7 @@ func NewInvalidTransaction(values ...sc.Encodable) InvalidTransaction {
 	case CustomInvalidTransactionError:
 		return InvalidTransaction(sc.NewVaryingData(values[0:2]...))
 	default:
-		panic("invalid InvalidTransaction option")
+		panic("invalid InvalidTransaction type")
 	}
 }
 
@@ -212,7 +213,7 @@ func NewUnknownTransaction(values ...sc.Encodable) UnknownTransaction {
 	case CustomUnknownTransactionError:
 		return UnknownTransaction(sc.NewVaryingData(values[0:2]...))
 	default:
-		panic("invalid UnknownTransaction option")
+		panic("invalid UnknownTransaction type")
 	}
 }
 

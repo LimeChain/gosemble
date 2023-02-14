@@ -123,14 +123,29 @@ func (e CustomModuleError) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
 
+func (e DataLookupError) ToTransactionValidityError() TransactionValidityError {
+	return NewTransactionValidityError(NewUnknownTransaction(CannotLookupError))
+}
+
 // Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
 // the `Dispatchable` that is only known post dispatch.
-type DispatchErrorWithPostInfo = TransactionValidityError
+type DispatchErrorWithPostInfo[T sc.Encodable] struct {
+	// Additional information about the `Dispatchable` which is only known post dispatch.
+	PostInfo T
 
-// type DispatchErrorWithPostInfo struct {
-// 	// Additional information about the `Dispatchable` which is only known post dispatch.
-// 	PostInfo DispatchInfo
+	// The actual `DispatchResult` indicating whether the dispatch was successful.
+	DispatchError
+}
 
-// 	// The actual `DispatchResult` indicating whether the dispatch was successful.
-// 	Error DispatchError
-// }
+func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) {
+	// TODO:
+}
+
+func DecodeErrorWithPostInfo(buffer *bytes.Buffer) DispatchErrorWithPostInfo[PostDispatchInfo] {
+	// TODO:
+	return DispatchErrorWithPostInfo[PostDispatchInfo]{}
+}
+
+func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
+	return sc.EncodedBytes(e)
+}

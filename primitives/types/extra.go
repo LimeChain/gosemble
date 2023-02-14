@@ -34,14 +34,14 @@ type Extra struct {
 // }
 
 func (e Extra) Encode(buffer *bytes.Buffer) {
-	// e.ExtrinsicEra.Encode(buffer)
+	e.Era.Encode(buffer)
 	e.Nonce.Encode(buffer)
 	e.Fee.Encode(buffer)
 }
 
 func DecodeExtra(buffer *bytes.Buffer) Extra {
 	e := Extra{}
-	// e.ExtrinsicEra = DecodeExtrinsicEra(buffer)
+	e.Era = DecodeExtrinsicEra(buffer)
 	e.Nonce = sc.DecodeCompact(buffer)
 	e.Fee = sc.DecodeCompact(buffer)
 	return e

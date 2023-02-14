@@ -12,18 +12,13 @@ import (
 // Note that the payload that we sign to produce unchecked extrinsic signature
 // is going to be different than the `SignaturePayload` - so the thing the extrinsic
 // actually contains.
-
-// RawPayload
-type SignedPayload struct { // <Call, Extra: SignedExtension>((Call, Extra, Extra::AdditionalSigned))
-	// Address   MultiAddress // Signer sc.Compact
+type SignedPayload struct { // TODO: make it generic [C Call, E SignedExtension]
+	// Address   MultiAddress
 	// Signature MultiSignature
 
 	Call Call
 
 	Extra Extra
-	// Era   ExtrinsicEra
-	// Nonce sc.Compact
-	// Tip   sc.Compact
 	// Weight
 
 	AdditionalSigned
@@ -91,9 +86,16 @@ func (sp SignedPayload) Encode(buffer *bytes.Buffer) {
 
 func DecodeSignedPayload(buffer *bytes.Buffer) SignedPayload {
 	sp := SignedPayload{}
-	// sp.Address.U64 = sc.DecodeU64(buffer)
-	// sp.Signature.Option = sc.DecodeOption[sc.VaryingData](buffer)
-	// sp.Extra = DecodeExtra(buffer)
+	// sp.Signer.Encode(buffer)
+	// sp.Signature.Encode(buffer)
+	sp.Call = DecodeCall(buffer)
+	sp.Extra = DecodeExtra(buffer)
+	sp.SpecVersion = sc.DecodeU32(buffer)
+	sp.FormatVersion = sc.DecodeU32(buffer)
+	sp.GenesisHash = DecodeH256(buffer)
+	sp.BlockHash = DecodeH256(buffer)
+	sp.TransactionVersion = sc.DecodeU32(buffer)
+	sp.BlockNumber = sc.DecodeU32(buffer)
 	return sp
 }
 

@@ -11,6 +11,10 @@ type AccountId struct {
 	sc.U64
 }
 
+func NewAccountId(value sc.U64) AccountId {
+	return AccountId{U64: value}
+}
+
 func (a AccountId) Encode(buffer *bytes.Buffer) {
 	a.U64.Encode(buffer)
 }
@@ -187,7 +191,7 @@ func NewMultiAddress(value sc.Encodable) MultiAddress {
 	case AccountId, AccountIndex, AccountRaw, Address32, Address20:
 		return MultiAddress(sc.NewVaryingData(value))
 	default:
-		panic("invalid Address option")
+		panic("invalid Address type")
 	}
 }
 

@@ -9,8 +9,6 @@ import (
 // The signature is a varying data type indicating the used signature type,
 // followed by the signature created by the extrinsic author (the sender).
 type ExtrinsicSignature struct {
-	// sc.U64
-
 	// is the 32-byte address of the sender of the extrinsic
 	// as described in https://docs.substrate.io/reference/address-formats/
 	// AccountId AccountId // size 32
@@ -21,7 +19,7 @@ type ExtrinsicSignature struct {
 
 func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) {
 	s.Signer.Encode(buffer)
-	s.Signature.Encode(buffer) // panic(len(s.Signature))
+	s.Signature.Encode(buffer)
 	s.Extra.Encode(buffer)
 }
 

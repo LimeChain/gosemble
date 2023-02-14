@@ -23,6 +23,13 @@ func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) {
 
 func DecodePostDispatchInfo(buffer *bytes.Buffer) PostDispatchInfo {
 	pdi := PostDispatchInfo{}
+	// TODO:
+	// pdi.ActualWeight = sc.DecodeOption[Weight](buffer)
+	if hasValue := sc.DecodeU8(buffer); hasValue == 1 {
+		pdi.ActualWeight = sc.NewOption[Weight](DecodeWeight(buffer))
+	}
+
+	pdi.PaysFee = sc.DecodeU8(buffer)
 	return pdi
 }
 

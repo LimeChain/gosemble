@@ -7,7 +7,16 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type DispatchOutcome sc.VaryingData
+// This type specifies the outcome of dispatching a call to a module.
+//
+// In case of failure an error specific to the module is returned.
+//
+// Failure of the module call dispatching doesn't invalidate the extrinsic and it is still included
+// in the block, therefore all state changes performed by the dispatched call are still persisted.
+//
+// For example, if the dispatching of an extrinsic involves inclusion fee payment then these
+// changes are going to be preserved even if the call dispatched failed.
+type DispatchOutcome sc.VaryingData //  = sc.Result[sc.Empty, DispatchError]
 
 func NewDispatchOutcome(value sc.Encodable) DispatchOutcome {
 	// None 			   = 0 - Extrinsic is valid and was submitted successfully.
@@ -18,7 +27,7 @@ func NewDispatchOutcome(value sc.Encodable) DispatchOutcome {
 	case sc.Empty, nil:
 		return DispatchOutcome(sc.NewVaryingData(sc.Empty{}))
 	default:
-		panic("invalid DispatchOutcome option")
+		panic("invalid DispatchOutcome type")
 	}
 }
 

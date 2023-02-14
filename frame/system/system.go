@@ -11,6 +11,15 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	ModuleIndex   = 0
+	FunctionIndex = 0
+)
+
+func Remark(args sc.Sequence[sc.U8]) {
+	// TODO:
+}
+
 func Finalize() types.Header {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
@@ -84,7 +93,7 @@ func Finalize() types.Header {
 		ExtrinsicsRoot: extrinsicsRoot,
 		StateRoot:      storageRoot,
 		ParentHash:     types.Blake2bHash{FixedSequence: parentHash},
-		Number:         types.BlockNumber{U32: blockNumber},
+		Number:         blockNumber,
 		Digest:         digest,
 	}
 }
@@ -108,7 +117,7 @@ func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, dig
 	storage.Set(append(systemHash, parentHashKey...), parentHash.Bytes())
 
 	blockHashKeyHash := hashing.Twox128(constants.KeyBlockHash)
-	prevBlock := blockNumber.U32 - 1
+	prevBlock := blockNumber - 1
 	blockNumHash := hashing.Twox64(prevBlock.Bytes())
 	blockNumKey := append(systemHash, blockHashKeyHash...)
 	blockNumKey = append(blockNumKey, blockNumHash...)
@@ -181,12 +190,10 @@ func NoteExtrinsic(encodedExt []byte) {
 // Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
-
-// TODO *DispatchResultWithPostInfo
-func NoteAppliedExtrinsic(r *types.PostDispatchInfo, info types.DispatchInfo) {
+func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatchInfo], info types.DispatchInfo) {
 	// TODO:
-	// info.weight = extract_actual_weight(r, &info).saturating_add(T::BlockWeights::get().get(info.class).base_extrinsic);
-	// info.pays_fee = extract_actual_pays_fee(r, &info);
+	// info.Weight = extract_actual_weight(r, &info).saturating_add(T::BlockWeights::get().get(info.class).base_extrinsic)
+	// info.PaysFee = extract_actual_pays_fee(r, &info)
 
 	// Self::deposit_event(match r {
 	// 	Ok(_) => Event::ExtrinsicSuccess { dispatch_info: info },
