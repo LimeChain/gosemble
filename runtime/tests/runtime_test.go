@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"testing"
 	"time"
@@ -25,6 +24,7 @@ var (
 	keyBlockHash, _          = common.Twox128Hash(constants.KeyBlockHash)
 	keyDigestHash, _         = common.Twox128Hash(constants.KeyDigest)
 	keyExecutionPhaseHash, _ = common.Twox128Hash(constants.KeyExecutionPhase)
+	keyExtrinsicDataHash, _  = common.Twox128Hash(constants.KeyExtrinsicData)
 	keyLastRuntime, _        = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
 	keyNumberHash, _         = common.Twox128Hash(constants.KeyNumber)
 	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
@@ -35,8 +35,8 @@ var (
 
 var (
 	parentHash     = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
-	stateRoot      = common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
-	extrinsicsRoot = common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
+	stateRoot      = common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880")
+	extrinsicsRoot = common.MustHexToHash("0xfbe77e9def055a8d31a21675651765b9438e338d7ff02760b91dcca8bd6ff0fe")
 	blockNumber    = uint(1)
 	sealDigest     = gossamertypes.SealDigest{
 		ConsensusEngineID: gossamertypes.BabeEngineID,
@@ -199,7 +199,6 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
-	fmt.Println(ienc)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
@@ -245,9 +244,20 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
 
-	extrinsicIndex := sc.U32(0)
-	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
-	require.Equal(t, uxt.Bytes(), extrinsicIndexValue)
+	currentExtrinsicIndex := sc.U32(1)
+	extrinsicIndexValue := rt.GetContext().Storage.Get(constants.KeyExtrinsicIndex)
+	require.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
+
+	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicDataHash...)
+
+	prevExtrinsic := currentExtrinsicIndex - 1
+	hashIndex, err := common.Twox64(prevExtrinsic.Bytes())
+	assert.Nil(t, err)
+
+	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
+	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
+
+	require.Equal(t, uxt.Bytes(), storageUxt)
 
 	require.NoError(t, err)
 
