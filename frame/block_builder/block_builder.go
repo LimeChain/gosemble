@@ -60,7 +60,7 @@ SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
 
 // FinalizeBlock finalizes block - it is up the caller to ensure that all header fields are valid
 // except state-root.
-func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
+func FinalizeBlock() int64 {
 	system.NoteFinishedExtrinsics()
 
 	systemHash := hashing.Twox128(constants.KeySystem)

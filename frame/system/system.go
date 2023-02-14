@@ -3,6 +3,7 @@ package system
 import (
 	"bytes"
 	"github.com/LimeChain/gosemble/frame/timestamp"
+	"github.com/LimeChain/gosemble/primitives/trie"
 	"math"
 
 	sc "github.com/LimeChain/goscale"
@@ -22,21 +23,38 @@ func Finalize() types.Header {
 
 	numberHash := hashing.Twox128(constants.KeyNumber)
 	b := storage.Get(append(systemHash, numberHash...))
+
 	buf := &bytes.Buffer{}
-	buf.Write(b)
-	blockNumber := sc.DecodeU32(buf)
+	blockNumber := sc.U32(0)
+	if len(b) > 1 {
+		buf.Write(b[1:])
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+
+		blockNumber = sc.DecodeU32(buf)
+		buf.Reset()
+	}
 
 	parentHashKey := hashing.Twox128(constants.KeyParentHash)
 	b = storage.Get(append(systemHash, parentHashKey...))
-	buf.Reset()
 	buf.Write(b)
 
 	parentHash := sc.DecodeFixedSequence[sc.U8](32, buf)
+	buf.Reset()
 
 	digestHash := hashing.Twox128(constants.KeyDigest)
 	b = storage.Get(append(systemHash, digestHash...))
-	buf.Reset()
-	buf.Write(b)
+	if len(b) > 1 {
+		buf.Write(b[1:]) // Remove option byte
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+	} else {
+		panic("digest not found")
+	}
 
 	digest := types.DecodeDigest(buf)
 	buf.Reset()
@@ -45,28 +63,47 @@ func Finalize() types.Header {
 
 	extrinsicCount := sc.U32(0)
 	b = storage.Get(append(systemHash, extrinsicCountHash...))
-	if len(b) > 0 {
-		buf.Write(b)
+
+	if len(b) > 1 {
+		buf.Write(b[1:])
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+
 		extrinsicCount = sc.DecodeU32(buf)
 		buf.Reset()
 	}
 
+	extrinsics := sc.Dictionary[sc.U32, sc.Sequence[sc.U8]]{}
 	extrinsicDataPrefixHash := append(systemHash, hashing.Twox128(constants.KeyExtrinsicData)...)
 
-	extrinsics := storage.Get(append(extrinsicDataPrefixHash, hashing.Twox128(extrinsicCount.Bytes())...))
+	for i := 0; i < int(extrinsicCount); i++ {
+		sci := sc.U32(i)
+		hashIndex := hashing.Twox64(sci.Bytes())
 
-	extrinsicsRootBytes := hashing.Blake256(extrinsics)
+		extrinsicDataHashIndexHash := append(extrinsicDataPrefixHash, hashIndex...)
+		bytesExtrinsic := storage.Get(append(extrinsicDataHashIndexHash, sci.Bytes()...))
+
+		if len(bytesExtrinsic) > 1 {
+			buf.Write(bytesExtrinsic[1:])
+			bytesSequence := sc.DecodeSequence[sc.U8](buf)
+			buf.Reset()
+			extrinsics[sci] = bytesSequence
+		}
+	}
+
+	extrinsicsRootBytes := trie.Blake2256OrderedRoot(extrinsics.Bytes())
 	buf.Write(extrinsicsRootBytes)
 	extrinsicsRoot := types.DecodeH256(buf)
 	buf.Reset()
 
-	blockHashCountBytes := storage.Get(append(systemHash, hashing.Twox128(constants.KeyBlockHashCount)...))
+	// saturating_sub
+	toRemove := blockNumber - constants.BlockHashCount - 1
+	if toRemove > blockNumber {
+		toRemove = 0
+	}
 
-	buf.Write(blockHashCountBytes)
-	blockHashCount := sc.DecodeU32(buf)
-	buf.Reset()
-
-	toRemove := blockNumber - blockHashCount
 	if toRemove != 0 {
 		blockNumHash := hashing.Twox64(toRemove.Bytes())
 		blockNumKey := append(systemHash, hashing.Twox128(constants.KeyBlockHash)...)
@@ -163,8 +200,13 @@ func NoteFinishedExtrinsics() {
 
 	if len(value) > 1 {
 		storage.Clear(constants.KeyExtrinsicIndex)
+
 		buf := &bytes.Buffer{}
-		buf.Write(value)
+
+		buf.Write(value[1:])
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
 
 		extrinsicIndex = sc.DecodeU32(buf)
 	}
@@ -175,7 +217,7 @@ func NoteFinishedExtrinsics() {
 	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
 
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	finalizationPhase := sc.U32(constants.ExecutionPhaseInitialization)
+	finalizationPhase := sc.U32(constants.ExecutionPhaseFinalization)
 
 	storage.Set(append(systemHash, executionPhaseHash...), finalizationPhase.Bytes())
 }
@@ -202,7 +244,15 @@ func ResetEvents() {
 // in [`finalize`] to calculate the correct extrinsics root.
 func NoteExtrinsic(encodedExt []byte) {
 	keySystemHash := hashing.Twox128(constants.KeySystem)
-	storage.Set(append(keySystemHash, extrinsicIndexValue().Bytes()...), encodedExt)
+	keyExtrinsicData := hashing.Twox128(constants.KeyExtrinsicData)
+
+	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicData...)
+	extrinsicIndex := extrinsicIndexValue()
+
+	hashIndex := hashing.Twox64(extrinsicIndex.Value.Bytes())
+
+	keySystemExtrinsicDataHashIndex := append(keyExtrinsicDataPrefixHash, hashIndex...)
+	storage.Set(append(keySystemExtrinsicDataHashIndex, extrinsicIndex.Value.Bytes()...), encodedExt)
 }
 
 // To be called immediately after an extrinsic has been applied.
@@ -234,8 +284,7 @@ func NoteAppliedExtrinsic(r *types.PostDispatchInfo, info types.DispatchInfo) {
 
 	keySystemHash := hashing.Twox128(constants.KeySystem)
 
-	keyExtrinsicIndex := hashing.Twox128(constants.KeyExtrinsicIndex)
-	storage.Set(append(keySystemHash, keyExtrinsicIndex...), nextExtrinsicIndex.Bytes())
+	storage.Set(constants.KeyExtrinsicIndex, nextExtrinsicIndex.Bytes())
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), (types.NewPhase(types.PhaseApplyExtrinsic, nextExtrinsicIndex)).Bytes())
@@ -243,14 +292,17 @@ func NoteAppliedExtrinsic(r *types.PostDispatchInfo, info types.DispatchInfo) {
 
 // Gets the index of extrinsic that is currently executing.
 func extrinsicIndexValue() sc.Option[sc.U32] {
-	keySystemHash := hashing.Twox128(constants.KeySystem)
-	keyExtrinsicIndex := hashing.Twox128(constants.KeyExtrinsicIndex)
-	value := storage.Get(append(keySystemHash, keyExtrinsicIndex...))
+	value := storage.Get(constants.KeyExtrinsicIndex)
 
-	if len(value) != 0 {
+	if len(value) > 1 {
 		buf := &bytes.Buffer{}
-		buf.Write(value)
-		return sc.Option[sc.U32]{HasValue: true, Value: sc.U32(sc.DecodeU8(buf))}
+
+		buf.Write(value[1:]) // Remove option byte
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+		return sc.Option[sc.U32]{HasValue: true, Value: sc.DecodeU32(buf)}
 	} else {
 		return sc.Option[sc.U32]{HasValue: false}
 	}

@@ -2,6 +2,7 @@ package executive
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/crypto"
 	"reflect"
@@ -94,8 +95,12 @@ func ExecuteBlock(block types.Block) {
 
 func executeExtrinsicsWithBookKeeping(block types.Block) {
 	for _, ext := range block.Extrinsics {
-		_ = ApplyExtrinsic(ext)
-		// TODO: check err
+		result := ApplyExtrinsic(ext)
+		// TODO: do not encode error and directly check if it is an error
+		bytesResult := result.Bytes()
+		if bytesResult[0] == 1 {
+			panic(string(bytesResult[1:]))
+		}
 	}
 
 	system.NoteFinishedExtrinsics()
@@ -116,12 +121,23 @@ func initialChecks(block types.Block) {
 		blockNumKey = append(blockNumKey, blockNumHash...)
 		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
 
-		buffer := &bytes.Buffer{}
 		previousHash := storage.Get(blockNumKey)
 
-		buffer.Write(previousHash)
+		storageParentHash := types.Blake2bHash{}
+		if len(previousHash) > 1 {
+			buf := &bytes.Buffer{}
 
-		storageParentHash := types.DecodeBlake2bHash(buffer)
+			buf.Write(previousHash[1:]) // Remove option byte
+			bytesSequence := sc.DecodeSequence[sc.U8](buf)
+			buf.Reset()
+
+			buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+
+			storageParentHash = types.DecodeBlake2bHash(buf)
+			buf.Reset()
+		} else {
+			panic("storage parent hash not found")
+		}
 
 		if !reflect.DeepEqual(storageParentHash.FixedSequence, header.ParentHash.FixedSequence) {
 			panic("parent hash should be valid")
@@ -131,8 +147,7 @@ func initialChecks(block types.Block) {
 	inherentsAreFirst := system.EnsureInherentsAreFirst(block)
 
 	if inherentsAreFirst >= 0 {
-		panic("invalid inherent position for extrinsic at index")
-		// TODO: add index to err
+		panic(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
 	}
 }
 
