@@ -2,10 +2,10 @@ package executive
 
 import (
 	"bytes"
-	"github.com/LimeChain/gosemble/execution/extrinsic"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -72,22 +72,22 @@ func extractPreRuntimeDigest(digest types.Digest) types.Digest {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) types.ApplyExtrinsicResult {
+func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) { // types.ApplyExtrinsicResult
 	// sp_io.InitTracing()
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(uint64(len(encoded)))
 	// sp_tracing.EnterSpan(sp_tracing.InfoSpan("apply_extrinsic", hexdisplay.From(&encoded)))
 
 	// Verify that the signature is good.
-	xt, err := uxt.Check() // TODO: args: (&Default::default())
+	xt, err := uxt.Check(types.DefaultAccountIdLookup())
 	if err != nil {
-		return types.NewApplyExtrinsicResult(err)
+		return ok, err
 	}
 
 	// We don't need to make sure to `note_extrinsic` only after we know it's going to be
 	// executed to prevent it from leaking in storage since at this point, it will either
 	// execute or panic (and revert storage changes).
-	system.NoteExtrinsic(encoded) // system.PalletSystem
+	system.NoteExtrinsic(encoded)
 
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
@@ -99,19 +99,15 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) types.ApplyExtrinsicResult {
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if err != nil && (dispatchInfo.Class == types.MandatoryDispatch) {
-		return types.NewApplyExtrinsicResult(
-			types.NewTransactionValidityError(
-				types.NewInvalidTransaction(types.BadMandatoryError),
-			),
-		)
+	if res.HasError && (dispatchInfo.Class == types.MandatoryDispatch) {
+		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadMandatoryError))
 	}
 
-	system.NoteAppliedExtrinsic(&res, dispatchInfo) // system.PalletSystem
+	system.NoteAppliedExtrinsic(&res, dispatchInfo)
 
 	if err != nil {
-		return types.NewApplyExtrinsicResult(err)
+		return ok, err
 	}
 
-	return types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil))
+	return types.NewDispatchOutcome(nil), err
 }

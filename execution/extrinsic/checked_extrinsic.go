@@ -2,14 +2,16 @@ package extrinsic
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo, length sc.Compact) (ok types.PostDispatchInfo, err types.DispatchErrorWithPostInfo) {
+func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
 	var (
-		maybeWho interface{}
+		maybeWho sc.Option[types.Address32]
 		maybePre sc.Option[types.Pre]
 	)
 
@@ -19,7 +21,7 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 		if err != nil {
 			return ok, err
 		}
-		maybeWho, maybePre = id, sc.NewOption[types.Pre](pre)
+		maybeWho, maybePre = sc.NewOption[types.Address32](id), sc.NewOption[types.Pre](pre)
 	} else {
 		// Do any pre-flight stuff for an unsigned transaction.
 		//
@@ -39,25 +41,39 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 			return ok, err
 		}
 
-		maybeWho, maybePre = nil, sc.NewOption[types.Pre](nil)
+		maybeWho, maybePre = sc.NewOption[types.Address32](nil), sc.NewOption[types.Pre](nil)
 	}
+
+	postDispatchInfo, resWithInfo := Dispatch(xt.Function, types.RawOriginFrom(maybeWho))
 
 	var postInfo types.PostDispatchInfo
-	res, err2 := Dispatch(xt.Function, maybeWho) // RuntimeOrigin::from()
-	_ = res
-	if err2 != nil {
-		// postInfo = err.PostInfo
+	if resWithInfo.HasError {
+		postInfo = resWithInfo.Err.PostInfo
 	}
-	// postInfo = res.Info
+	postInfo = postDispatchInfo
 
-	dispatchResult := types.NewDispatchResult(err2)
+	dispatchResult := types.NewDispatchResult(resWithInfo.Err)
 	_, err = PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
-	return ok, err
+	dispatchResultWithPostInfo := types.DispatchResultWithPostInfo[types.PostDispatchInfo]{}
+	if resWithInfo.HasError {
+		dispatchResultWithPostInfo.HasError = true
+		dispatchResultWithPostInfo.Err = resWithInfo.Err
+	} else {
+		dispatchResultWithPostInfo.Ok = resWithInfo.Ok
+	}
+
+	return dispatchResultWithPostInfo, err
 }
 
-func Dispatch(call types.Call, maybeWho interface{}) (ok types.PostInfo, err types.DispatchError) {
+func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispatchInfo, err types.DispatchResultWithPostInfo[types.PostDispatchInfo]) {
 	switch call.CallIndex.ModuleIndex {
+	case system.ModuleIndex:
+		switch call.CallIndex.FunctionIndex {
+		case system.FunctionIndex:
+			// TODO:
+		}
+
 	case timestamp.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
 		case timestamp.FunctionIndex:

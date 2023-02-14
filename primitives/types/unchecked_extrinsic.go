@@ -12,7 +12,7 @@ import (
 // A extrinsic right from the external world. This is unchecked and so can contain a signature.
 type UncheckedExtrinsic struct {
 	// TODO:
-	// make it more generic
+	// make it generic
 	// UncheckedExtrinsic[Address, Call, Signature, Extra] where Extra: SignedExtension
 	Version sc.U8
 
@@ -126,27 +126,31 @@ func (uxt UncheckedExtrinsic) Bytes() []byte {
 	return sc.EncodedBytes(uxt)
 }
 
-// TODO: args: (lookup  Lookup)
-func (uxt UncheckedExtrinsic) Check() (xt CheckedExtrinsic, err TransactionValidityError) {
+func (uxt UncheckedExtrinsic) Check(lookup AccountIdLookup) (xt CheckedExtrinsic, err TransactionValidityError) {
 	switch uxt.Signature.HasValue {
 	case true:
 		signed, signature, extra := uxt.Signature.Value.Signer, uxt.Signature.Value.Signature, uxt.Signature.Value.Extra
-		// TODO:
-		// signed, err := lookup.Lookup(signed)
-		rawPayload, err := NewSignedPayload(uxt.Function, extra)
+
+		signedAddress, err := lookup.Lookup(signed)
 		if err != nil {
 			return xt, err
 		}
 
-		if !signature.Verify(rawPayload.UsingEncoded(), signed.AsAddress32()) {
-			err = NewTransactionValidityError(NewInvalidTransaction(BadProofError))
+		rawPayload, err := NewSignedPayload(uxt.Function, extra)
+		if err != nil {
+			err = NewTransactionValidityError(NewUnknownTransaction(err))
+			return xt, err
+		}
+
+		if !signature.Verify(rawPayload.UsingEncoded(), signedAddress) {
+			err := NewTransactionValidityError(NewInvalidTransaction(BadProofError))
 			return xt, err
 		}
 
 		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
 
 		xt = CheckedExtrinsic{
-			Signed:   sc.NewOption[AccountIdExtra](AccountIdExtra{Address32: signed.AsAddress32(), Extra: extra}),
+			Signed:   sc.NewOption[AccountIdExtra](AccountIdExtra{Address32: signedAddress, Extra: extra}),
 			Function: function,
 		}
 	case false:

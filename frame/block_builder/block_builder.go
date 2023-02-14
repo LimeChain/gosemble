@@ -5,6 +5,7 @@ package blockbuilder
 
 import (
 	"bytes"
+
 	"github.com/LimeChain/gosemble/execution/inherent"
 
 	sc "github.com/LimeChain/goscale"
@@ -40,7 +41,13 @@ func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	buffer.Write(utils.ToWasmMemorySlice(dataPtr, dataLen))
 	uxt := types.DecodeUncheckedExtrinsic(buffer)
 
-	applyExtrinsicResult := executive.ApplyExtrinsic(uxt)
+	ok, err := executive.ApplyExtrinsic(uxt)
+	var applyExtrinsicResult types.ApplyExtrinsicResult
+	if err != nil {
+		applyExtrinsicResult = types.NewApplyExtrinsicResult(err)
+	} else {
+		applyExtrinsicResult = types.NewApplyExtrinsicResult(ok)
+	}
 
 	buffer.Reset()
 	applyExtrinsicResult.Encode(buffer)
@@ -71,7 +78,7 @@ func FinalizeBlock(dataPtr int32, dataLen int32) int64 {
 	buf.Write(bNumber)
 	blockNumber := sc.DecodeU32(buf)
 
-	idleAndFinalizeHook(types.BlockNumber{U32: blockNumber})
+	idleAndFinalizeHook(blockNumber)
 
 	header := system.Finalize()
 	encodedHeader := header.Bytes()

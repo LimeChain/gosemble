@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"testing"
 	"time"
 
@@ -15,6 +13,7 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -199,7 +198,6 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
-	fmt.Println(ienc)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
@@ -236,7 +234,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	)
 
 	extra := types.Extra{
-		Era:   types.ExtrinsicEra{IsImmortalEra: false},
+		Era:   types.ExtrinsicEra{},
 		Nonce: sc.ToCompact(0),
 		Fee:   sc.ToCompact(0),
 	}
@@ -293,7 +291,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	)
 
 	extra := types.Extra{
-		Era:   types.ExtrinsicEra{IsImmortalEra: false},
+		Era:   types.ExtrinsicEra{},
 		Nonce: sc.ToCompact(1), // instead of 0 to make the signature invalid
 		Fee:   sc.ToCompact(0),
 	}
