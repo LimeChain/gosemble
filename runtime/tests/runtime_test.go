@@ -113,7 +113,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	lrui := types.LastRuntimeUpgradeInfo{
 		SpecVersion: sc.ToCompact(constants.SPEC_VERSION),
@@ -252,7 +252,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	prevExtrinsic := currentExtrinsicIndex - 1
 	hashIndex, err := common.Twox64(prevExtrinsic.Bytes())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
 	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
@@ -359,7 +359,7 @@ func Test_CheckInherents(t *testing.T) {
 
 	var exts [][]byte
 	err = scale.Unmarshal(inherentExt, &exts)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	block := gossamertypes.Block{
 		Header: *header,
@@ -367,15 +367,133 @@ func Test_CheckInherents(t *testing.T) {
 	}
 
 	encodedBlock, err := scale.Marshal(block)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	inputData := append(encodedBlock, ienc...)
 	bytesCheckInherentsResult, err := rt.Exec("BlockBuilder_check_inherents", inputData)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesCheckInherentsResult)
 	checkInherentsResult := types.DecodeCheckInherentsResult(buffer)
 
 	assert.Equal(t, expectedCheckInherentsResult, checkInherentsResult)
+}
+
+func Test_BlockExecution(t *testing.T) {
+	// core.InitializeBlock
+	// blockBuilder.InherentExtrinsics
+	// blockBuilder.ApplyExtrinsics
+	// blockBuilder.FinalizeBlock
+
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
+
+	expectedStorageDigest := gossamertypes.NewDigest()
+
+	digest := gossamertypes.NewDigest()
+
+	preRuntimeDigestItem := gossamertypes.NewDigestItem()
+	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+
+	sealDigestItem := gossamertypes.NewDigestItem()
+	assert.NoError(t, sealDigestItem.Set(sealDigest))
+
+	prdi, err := preRuntimeDigestItem.Value()
+	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(prdi))
+
+	assert.NoError(t, expectedStorageDigest.Add(prdi))
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
+	lrui := types.LastRuntimeUpgradeInfo{
+		SpecVersion: sc.ToCompact(constants.SPEC_VERSION),
+		SpecName:    constants.SPEC_NAME,
+	}
+	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
+
+	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
+
+	encExecutionPhaseApplyExtrinsic, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExecutionPhaseApplyExtrinsic, storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+
+	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+
+	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
+	assert.NoError(t, err)
+	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+
+	blockHashKey := append(keySystemHash, keyBlockHash...)
+	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
+	numHash, err := common.Twox64(encPrevBlock)
+	assert.NoError(t, err)
+
+	blockHashKey = append(blockHashKey, numHash...)
+	blockHashKey = append(blockHashKey, encPrevBlock...)
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
+
+	idata := gossamertypes.NewInherentData()
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+
+	assert.NoError(t, err)
+
+	expectedExtrinsic := types.UncheckedExtrinsic{
+		Version: types.ExtrinsicFormatVersion,
+		Function: types.Call{
+			CallIndex: types.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
+			},
+			Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		},
+	}
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+	assert.NotNil(t, inherentExt)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write([]byte{inherentExt[0]})
+
+	totalInherents := sc.DecodeCompact(buffer)
+	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
+	buffer.Reset()
+
+	buffer.Write(inherentExt[1:])
+	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
+	buffer.Reset()
+
+	assert.Equal(t, expectedExtrinsic, extrinsic)
+
+	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
+	assert.NoError(t, err)
+
+	assert.Equal(t,
+		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		applyResult,
+	)
+
+	bytesResult, err := rt.Exec("BlockBuilder_finalize_block", []byte{})
+	assert.NoError(t, err)
+
+	resultHeader := gossamertypes.NewEmptyHeader()
+	assert.NoError(t, scale.Unmarshal(bytesResult, resultHeader))
+	resultHeader.Hash() // Call this to be set, otherwise structs do not match...
+
+	assert.Equal(t, header, resultHeader)
 }
