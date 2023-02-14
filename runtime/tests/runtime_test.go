@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/LimeChain/gosemble/frame/timestamp"
+	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"testing"
 	"time"
 
@@ -496,4 +497,95 @@ func Test_BlockExecution(t *testing.T) {
 	resultHeader.Hash() // Call this to be set, otherwise structs do not match...
 
 	assert.Equal(t, header, resultHeader)
+
+	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+}
+
+func Test_ExecuteBlock(t *testing.T) {
+	// blockBuilder.Inherent_Extrinsics
+	// blockBuilder.ExecuteBlock
+
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	idata := gossamertypes.NewInherentData()
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	expectedExtrinsic := types.UncheckedExtrinsic{
+		Version: types.ExtrinsicFormatVersion,
+		Function: types.Call{
+			CallIndex: types.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
+			},
+			Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		},
+	}
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+	assert.NotNil(t, inherentExt)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write([]byte{inherentExt[0]})
+
+	totalInherents := sc.DecodeCompact(buffer)
+	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
+	buffer.Reset()
+
+	buffer.Write(inherentExt[1:])
+	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
+
+	assert.Equal(t, expectedExtrinsic, extrinsic)
+
+	var exts [][]byte
+	err = scale.Unmarshal(inherentExt, &exts)
+	assert.Nil(t, err)
+
+	extrinsicsRoot := primitivestrie.Blake2256OrderedRoot(inherentExt, constants.StorageVersion)
+
+	expectedStorageDigest := gossamertypes.NewDigest()
+	digest := gossamertypes.NewDigest()
+
+	preRuntimeDigestItem := gossamertypes.NewDigestItem()
+	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+
+	prdi, err := preRuntimeDigestItem.Value()
+	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(prdi))
+
+	assert.NoError(t, expectedStorageDigest.Add(prdi))
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, common.BytesToHash(extrinsicsRoot), blockNumber, digest)
+
+	block := gossamertypes.Block{
+		Header: *header,
+		Body:   gossamertypes.BytesArrayToExtrinsics(exts),
+	}
+
+	encodedBlock, err := scale.Marshal(block)
+	assert.Nil(t, err)
+
+	_, err = rt.Exec("Core_execute_block", encodedBlock)
+	assert.NoError(t, err)
+
+	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
 }
