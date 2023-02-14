@@ -235,7 +235,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	)
 
 	extra := types.Extra{
-		Era:   types.ExtrinsicEra{IsImmortalEra: false},
+		Era:   types.ExtrinsicEra{},
 		Nonce: sc.ToCompact(0),
 		Fee:   sc.ToCompact(0),
 	}
@@ -303,7 +303,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	)
 
 	extra := types.Extra{
-		Era:   types.ExtrinsicEra{IsImmortalEra: false},
+		Era:   types.ExtrinsicEra{},
 		Nonce: sc.ToCompact(1), // instead of 0 to make the signature invalid
 		Fee:   sc.ToCompact(0),
 	}

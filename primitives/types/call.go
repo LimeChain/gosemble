@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -12,19 +13,19 @@ type Call struct {
 
 // TODO: to have something for testing
 // until the actual implementation is done
-func NewCall(m interface{}, f interface{}, args sc.Sequence[sc.U8]) Call {
+func NewCall(m string, f string, args sc.Sequence[sc.U8]) Call {
 	var c Call
 
 	switch m {
 	case "System":
 		switch f {
 		case "remark":
-			c.CallIndex.ModuleIndex = 0   // System
-			c.CallIndex.FunctionIndex = 0 // remark
+			c.CallIndex.ModuleIndex = 0
+			c.CallIndex.FunctionIndex = 0
 			c.Args = args
 		}
 	default:
-		panic("invalid Call option")
+		panic("invalid Call type")
 	}
 
 	return c
@@ -117,31 +118,7 @@ func (c Call) PreDispatchUnsigned() (ok Pre, err TransactionValidityError) {
 	return ok, err
 }
 
-func (c Call) Dispatch(i interface{}) (ok PostInfo, err DispatchError) {
+func (c Call) Dispatch(i interface{}) (ok PostDispatchInfo, err DispatchError) {
 	// TODO
 	return ok, err
 }
-
-// type TransferCall struct {
-// 	Call
-// 	Dest  MultiAddress
-// 	Value sc.U64
-// }
-
-// func (c TransferCall) Encode(buffer *bytes.Buffer) {
-// 	c.Call.Encode(buffer)
-// 	c.Dest.Encode(buffer)
-// 	c.Value.Encode(buffer)
-// }
-
-// func DecodeTransferCall(buffer *bytes.Buffer) TransferCall {
-// 	c := TransferCall{}
-// 	c.Call = DecodeCall(buffer)
-// 	c.Dest = MultiAddress(sc.DecodeU64(buffer))
-// 	c.Value = sc.DecodeU64(buffer)
-// 	return c
-// }
-
-// func (c TransferCall) Bytes() []byte {
-// 	return sc.EncodedBytes(c)
-// }

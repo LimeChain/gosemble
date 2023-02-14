@@ -42,8 +42,10 @@ func (ae AccountIdExtra) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeAccountIdExtra(buffer *bytes.Buffer) AccountIdExtra {
-	// TODO:
-	return AccountIdExtra{}
+	ae := AccountIdExtra{}
+	ae.Address32 = DecodeAddress32(buffer)
+	ae.Extra = DecodeExtra(buffer)
+	return ae
 }
 
 func (ae AccountIdExtra) Bytes() []byte {
@@ -52,7 +54,8 @@ func (ae AccountIdExtra) Bytes() []byte {
 
 // Implementation for checked extrinsic.
 func (xt CheckedExtrinsic) GetDispatchInfo() DispatchInfo {
-	// TODO: return xt.Function.GetDispatchInfo()
+	// TODO:
+	// return xt.Function.GetDispatchInfo()
 	return DispatchInfo{
 		Weight:  WeightFromRefTime(sc.U64(len(xt.Bytes()))),
 		Class:   NormalDispatch,

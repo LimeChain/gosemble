@@ -26,7 +26,7 @@ func NewPhase(values ...sc.Encodable) Phase {
 	case PhaseFinalization, PhaseInitialization:
 		return Phase(sc.NewVaryingData(values[0]))
 	default:
-		panic("invalid phase option")
+		panic("invalid phase type")
 	}
 }
 

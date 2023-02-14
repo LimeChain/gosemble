@@ -12,10 +12,10 @@ type DispatchInfo struct {
 	Weight Weight
 
 	// Class of this transaction.
-	Class sc.U8 // DispatchClass
+	Class DispatchClass
 
 	// Does this transaction pay fees.
-	PaysFee sc.U8
+	PaysFee Pays
 }
 
 func (di DispatchInfo) Encode(buffer *bytes.Buffer) {
@@ -25,8 +25,10 @@ func (di DispatchInfo) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeDispatchInfo(buffer *bytes.Buffer) DispatchInfo {
-	// TODO:
 	di := DispatchInfo{}
+	di.Weight = DecodeWeight(buffer)
+	di.Class = DecodeDispatchClass(buffer)
+	di.PaysFee = DecodePays(buffer)
 	return di
 }
 

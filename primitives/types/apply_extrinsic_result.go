@@ -6,7 +6,25 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type ApplyExtrinsicResult sc.VaryingData
+// The result of applying of an extrinsic.
+//
+// This type is typically used in the context of `BlockBuilder` to signal that the extrinsic
+// in question cannot be included.
+//
+// A block containing extrinsics that have a negative inclusion outcome is invalid. A negative
+// result can only occur during the block production, where such extrinsics are detected and
+// removed from the block that is being created and the transaction pool.
+//
+// To rehash: every extrinsic in a valid block must return a positive `ApplyExtrinsicResult`.
+//
+// Examples of reasons preventing inclusion in a block:
+//   - More block weight is required to process the extrinsic than is left in the block being built.
+//     This doesn't necessarily mean that the extrinsic is invalid, since it can still be included in
+//     the next block if it has enough spare weight available.
+//   - The sender doesn't have enough funds to pay the transaction inclusion fee. Including such a
+//     transaction in the block doesn't make sense.
+//   - The extrinsic supplied a bad signature. This transaction won't become valid ever.
+type ApplyExtrinsicResult sc.VaryingData // = sc.Result[DispatchOutcome, TransactionValidityError]
 
 func NewApplyExtrinsicResult(value sc.Encodable) ApplyExtrinsicResult {
 	// DispatchOutcome 					= 0 Outcome of dispatching the extrinsic.
@@ -15,7 +33,7 @@ func NewApplyExtrinsicResult(value sc.Encodable) ApplyExtrinsicResult {
 	case DispatchOutcome, TransactionValidityError:
 		return ApplyExtrinsicResult(sc.NewVaryingData(value))
 	default:
-		panic("invalid ApplyExtrinsicResult option")
+		panic("invalid ApplyExtrinsicResult type")
 	}
 }
 

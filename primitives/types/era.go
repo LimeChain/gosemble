@@ -1,14 +1,24 @@
 package types
 
-import sc "github.com/LimeChain/goscale"
+import (
+	"bytes"
+
+	sc "github.com/LimeChain/goscale"
+)
 
 type ExtrinsicEra struct {
-	IsImmortalEra sc.Bool
-	IsMortalEra   sc.Bool
-	AsMortalEra   MortalEra
+	// TODO:
 }
 
-type MortalEra struct {
-	First  sc.U8
-	Second sc.U8
+func (e ExtrinsicEra) Encode(buffer *bytes.Buffer) {
+	// TODO:
+}
+
+func DecodeExtrinsicEra(buffer *bytes.Buffer) ExtrinsicEra {
+	// TODO:
+	return ExtrinsicEra{}
+}
+
+func (e ExtrinsicEra) Bytes() []byte {
+	return sc.EncodedBytes(e)
 }
