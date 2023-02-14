@@ -31,11 +31,7 @@ func InitializeBlock(header types.Header) {
 	system.NoteFinishedInitialize()
 }
 
-// Apply extrinsic outside of the block execution function.
-//
-// This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
-// hashes.
-// Apply extrinsic outside of the block execution function.
+// ApplyExtrinsic applies extrinsic outside the block execution function.
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
