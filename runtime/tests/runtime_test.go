@@ -21,17 +21,19 @@ import (
 )
 
 var (
-	keySystemHash, _         = common.Twox128Hash(constants.KeySystem)
-	keyBlockHash, _          = common.Twox128Hash(constants.KeyBlockHash)
-	keyDigestHash, _         = common.Twox128Hash(constants.KeyDigest)
-	keyExecutionPhaseHash, _ = common.Twox128Hash(constants.KeyExecutionPhase)
-	keyExtrinsicDataHash, _  = common.Twox128Hash(constants.KeyExtrinsicData)
-	keyLastRuntime, _        = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
-	keyNumberHash, _         = common.Twox128Hash(constants.KeyNumber)
-	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
-	keyTimestampHash, _      = common.Twox128Hash(constants.KeyTimestamp)
-	keyTimestampNowHash, _   = common.Twox128Hash(constants.KeyNow)
-	keyTimestampDidUpdate, _ = common.Twox128Hash(constants.KeyDidUpdate)
+	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
+	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
+	keyBlockHash, _            = common.Twox128Hash(constants.KeyBlockHash)
+	keyDigestHash, _           = common.Twox128Hash(constants.KeyDigest)
+	keyExecutionPhaseHash, _   = common.Twox128Hash(constants.KeyExecutionPhase)
+	keyExtrinsicCountHash, _   = common.Twox128Hash(constants.KeyExtrinsicCount)
+	keyExtrinsicDataHash, _    = common.Twox128Hash(constants.KeyExtrinsicData)
+	keyLastRuntime, _          = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
+	keyNumberHash, _           = common.Twox128Hash(constants.KeyNumber)
+	keyParentHash, _           = common.Twox128Hash(constants.KeyParentHash)
+	keyTimestampHash, _        = common.Twox128Hash(constants.KeyTimestamp)
+	keyTimestampNowHash, _     = common.Twox128Hash(constants.KeyNow)
+	keyTimestampDidUpdate, _   = common.Twox128Hash(constants.KeyDidUpdate)
 )
 
 var (
@@ -391,14 +393,10 @@ func Test_BlockExecution(t *testing.T) {
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	expectedStorageDigest := gossamertypes.NewDigest()
-
 	digest := gossamertypes.NewDigest()
 
 	preRuntimeDigestItem := gossamertypes.NewDigestItem()
 	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
-
-	sealDigestItem := gossamertypes.NewDigestItem()
-	assert.NoError(t, sealDigestItem.Set(sealDigest))
 
 	prdi, err := preRuntimeDigestItem.Value()
 	assert.NoError(t, err)
@@ -433,6 +431,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
 	assert.NoError(t, err)
+
 	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
 
@@ -501,9 +500,14 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
 	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
+	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
 
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
 }
 
 func Test_ExecuteBlock(t *testing.T) {
@@ -557,7 +561,6 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	extrinsicsRoot := primitivestrie.Blake2256OrderedRoot(inherentExt, constants.StorageVersion)
 
-	expectedStorageDigest := gossamertypes.NewDigest()
 	digest := gossamertypes.NewDigest()
 
 	preRuntimeDigestItem := gossamertypes.NewDigestItem()
@@ -567,7 +570,9 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, digest.Add(prdi))
 
-	assert.NoError(t, expectedStorageDigest.Add(prdi))
+	expectedStorageDigest, err := scale.Marshal(digest)
+	assert.NoError(t, err)
+	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
 
 	header := gossamertypes.NewHeader(parentHash, storageRoot, common.BytesToHash(extrinsicsRoot), blockNumber, digest)
 
@@ -585,7 +590,12 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
 	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
+	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
 
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, expectedStorageDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
 }
