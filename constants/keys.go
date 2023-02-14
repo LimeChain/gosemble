@@ -4,7 +4,6 @@ var (
 	KeySystem             = []byte("System")
 	KeyAllExtrinsicsLen   = []byte("AllExtrinsicsLen")
 	KeyBlockHash          = []byte("BlockHash")
-	KeyBlockHashCount     = []byte("BlockHashCount")
 	KeyBlockWeight        = []byte("BlockWeight")
 	KeyDidUpdate          = []byte("DidUpdate")
 	KeyDigest             = []byte("Digest")

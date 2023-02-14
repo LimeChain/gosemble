@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/frame/timestamp"
+	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"testing"
 	"time"
 
@@ -13,29 +15,31 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	keySystemHash, _         = common.Twox128Hash(constants.KeySystem)
-	keyBlockHash, _          = common.Twox128Hash(constants.KeyBlockHash)
-	keyDigestHash, _         = common.Twox128Hash(constants.KeyDigest)
-	keyExecutionPhaseHash, _ = common.Twox128Hash(constants.KeyExecutionPhase)
-	keyLastRuntime, _        = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
-	keyNumberHash, _         = common.Twox128Hash(constants.KeyNumber)
-	keyParentHash, _         = common.Twox128Hash(constants.KeyParentHash)
-	keyTimestampHash, _      = common.Twox128Hash(constants.KeyTimestamp)
-	keyTimestampNowHash, _   = common.Twox128Hash(constants.KeyNow)
-	keyTimestampDidUpdate, _ = common.Twox128Hash(constants.KeyDidUpdate)
+	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
+	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
+	keyBlockHash, _            = common.Twox128Hash(constants.KeyBlockHash)
+	keyDigestHash, _           = common.Twox128Hash(constants.KeyDigest)
+	keyExecutionPhaseHash, _   = common.Twox128Hash(constants.KeyExecutionPhase)
+	keyExtrinsicCountHash, _   = common.Twox128Hash(constants.KeyExtrinsicCount)
+	keyExtrinsicDataHash, _    = common.Twox128Hash(constants.KeyExtrinsicData)
+	keyLastRuntime, _          = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
+	keyNumberHash, _           = common.Twox128Hash(constants.KeyNumber)
+	keyParentHash, _           = common.Twox128Hash(constants.KeyParentHash)
+	keyTimestampHash, _        = common.Twox128Hash(constants.KeyTimestamp)
+	keyTimestampNowHash, _     = common.Twox128Hash(constants.KeyNow)
+	keyTimestampDidUpdate, _   = common.Twox128Hash(constants.KeyDidUpdate)
 )
 
 var (
 	parentHash     = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
-	stateRoot      = common.MustHexToHash("0x211fc45bbc8f57af1a5d01a689788024be5a1738b51e3fbae13494f1e9e318da")
-	extrinsicsRoot = common.MustHexToHash("0x5e3ab240467545190bae81d181914f16a03cbfc23a809cc74764afc00b5a014f")
+	stateRoot      = common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880")
+	extrinsicsRoot = common.MustHexToHash("0xfbe77e9def055a8d31a21675651765b9438e338d7ff02760b91dcca8bd6ff0fe")
 	blockNumber    = uint(1)
 	sealDigest     = gossamertypes.SealDigest{
 		ConsensusEngineID: gossamertypes.BabeEngineID,
@@ -112,7 +116,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	lrui := types.LastRuntimeUpgradeInfo{
 		SpecVersion: sc.ToCompact(constants.SPEC_VERSION),
@@ -243,9 +247,20 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
 
-	extrinsicIndex := sc.U32(0)
-	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
-	require.Equal(t, uxt.Bytes(), extrinsicIndexValue)
+	currentExtrinsicIndex := sc.U32(1)
+	extrinsicIndexValue := rt.GetContext().Storage.Get(constants.KeyExtrinsicIndex)
+	require.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
+
+	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicDataHash...)
+
+	prevExtrinsic := currentExtrinsicIndex - 1
+	hashIndex, err := common.Twox64(prevExtrinsic.Bytes())
+	assert.NoError(t, err)
+
+	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
+	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
+
+	require.Equal(t, uxt.Bytes(), storageUxt)
 
 	require.NoError(t, err)
 
@@ -347,7 +362,219 @@ func Test_CheckInherents(t *testing.T) {
 
 	var exts [][]byte
 	err = scale.Unmarshal(inherentExt, &exts)
+	assert.NoError(t, err)
+
+	block := gossamertypes.Block{
+		Header: *header,
+		Body:   gossamertypes.BytesArrayToExtrinsics(exts),
+	}
+
+	encodedBlock, err := scale.Marshal(block)
+	assert.NoError(t, err)
+
+	inputData := append(encodedBlock, ienc...)
+	bytesCheckInherentsResult, err := rt.Exec("BlockBuilder_check_inherents", inputData)
+	assert.NoError(t, err)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(bytesCheckInherentsResult)
+	checkInherentsResult := types.DecodeCheckInherentsResult(buffer)
+
+	assert.Equal(t, expectedCheckInherentsResult, checkInherentsResult)
+}
+
+func Test_BlockExecution(t *testing.T) {
+	// core.InitializeBlock
+	// blockBuilder.InherentExtrinsics
+	// blockBuilder.ApplyExtrinsics
+	// blockBuilder.FinalizeBlock
+
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
+
+	expectedStorageDigest := gossamertypes.NewDigest()
+	digest := gossamertypes.NewDigest()
+
+	preRuntimeDigestItem := gossamertypes.NewDigestItem()
+	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+
+	prdi, err := preRuntimeDigestItem.Value()
+	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(prdi))
+
+	assert.NoError(t, expectedStorageDigest.Add(prdi))
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
+	lrui := types.LastRuntimeUpgradeInfo{
+		SpecVersion: sc.ToCompact(constants.SPEC_VERSION),
+		SpecName:    constants.SPEC_NAME,
+	}
+	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
+
+	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
+
+	encExecutionPhaseApplyExtrinsic, _ := scale.Marshal(uint32(0))
+	assert.Equal(t, encExecutionPhaseApplyExtrinsic, storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+
+	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+
+	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
+	assert.NoError(t, err)
+
+	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+
+	blockHashKey := append(keySystemHash, keyBlockHash...)
+	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
+	numHash, err := common.Twox64(encPrevBlock)
+	assert.NoError(t, err)
+
+	blockHashKey = append(blockHashKey, numHash...)
+	blockHashKey = append(blockHashKey, encPrevBlock...)
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
+
+	idata := gossamertypes.NewInherentData()
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+
+	assert.NoError(t, err)
+
+	expectedExtrinsic := types.UncheckedExtrinsic{
+		Version: types.ExtrinsicFormatVersion,
+		Function: types.Call{
+			CallIndex: types.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
+			},
+			Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		},
+	}
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+	assert.NotNil(t, inherentExt)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write([]byte{inherentExt[0]})
+
+	totalInherents := sc.DecodeCompact(buffer)
+	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
+	buffer.Reset()
+
+	buffer.Write(inherentExt[1:])
+	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
+	buffer.Reset()
+
+	assert.Equal(t, expectedExtrinsic, extrinsic)
+
+	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
+	assert.NoError(t, err)
+
+	assert.Equal(t,
+		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		applyResult,
+	)
+
+	bytesResult, err := rt.Exec("BlockBuilder_finalize_block", []byte{})
+	assert.NoError(t, err)
+
+	resultHeader := gossamertypes.NewEmptyHeader()
+	assert.NoError(t, scale.Unmarshal(bytesResult, resultHeader))
+	resultHeader.Hash() // Call this to be set, otherwise structs do not match...
+
+	assert.Equal(t, header, resultHeader)
+
+	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+
+	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
+
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+}
+
+func Test_ExecuteBlock(t *testing.T) {
+	// blockBuilder.Inherent_Extrinsics
+	// blockBuilder.ExecuteBlock
+
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	idata := gossamertypes.NewInherentData()
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+
+	expectedExtrinsic := types.UncheckedExtrinsic{
+		Version: types.ExtrinsicFormatVersion,
+		Function: types.Call{
+			CallIndex: types.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
+			},
+			Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		},
+	}
+
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+	assert.NotNil(t, inherentExt)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write([]byte{inherentExt[0]})
+
+	totalInherents := sc.DecodeCompact(buffer)
+	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
+	buffer.Reset()
+
+	buffer.Write(inherentExt[1:])
+	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
+
+	assert.Equal(t, expectedExtrinsic, extrinsic)
+
+	var exts [][]byte
+	err = scale.Unmarshal(inherentExt, &exts)
 	assert.Nil(t, err)
+
+	extrinsicsRoot := primitivestrie.Blake2256OrderedRoot(inherentExt, constants.StorageVersion)
+
+	digest := gossamertypes.NewDigest()
+
+	preRuntimeDigestItem := gossamertypes.NewDigestItem()
+	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+
+	prdi, err := preRuntimeDigestItem.Value()
+	assert.NoError(t, err)
+	assert.NoError(t, digest.Add(prdi))
+
+	expectedStorageDigest, err := scale.Marshal(digest)
+	assert.NoError(t, err)
+	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, common.BytesToHash(extrinsicsRoot), blockNumber, digest)
 
 	block := gossamertypes.Block{
 		Header: *header,
@@ -357,13 +584,18 @@ func Test_CheckInherents(t *testing.T) {
 	encodedBlock, err := scale.Marshal(block)
 	assert.Nil(t, err)
 
-	inputData := append(encodedBlock, ienc...)
-	bytesCheckInherentsResult, err := rt.Exec("BlockBuilder_check_inherents", inputData)
-	assert.Nil(t, err)
+	_, err = rt.Exec("Core_execute_block", encodedBlock)
+	assert.NoError(t, err)
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(bytesCheckInherentsResult)
-	checkInherentsResult := types.DecodeCheckInherentsResult(buffer)
+	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, expectedCheckInherentsResult, checkInherentsResult)
+	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
+
+	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, expectedStorageDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
 }

@@ -18,7 +18,7 @@ type Header struct {
 
 func (h Header) Encode(buffer *bytes.Buffer) {
 	h.ParentHash.Encode(buffer)
-	h.Number.Encode(buffer)
+	sc.ToCompact(uint64(h.Number)).Encode(buffer)
 	h.StateRoot.Encode(buffer)
 	h.ExtrinsicsRoot.Encode(buffer)
 	h.Digest.Encode(buffer)

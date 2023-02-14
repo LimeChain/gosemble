@@ -30,7 +30,7 @@ func Read(key int64, value_out int64, offset int32) int64 {
 	panic("not implemented")
 }
 
-func Root(key []byte) []byte {
+func Root(key int32) []byte {
 	panic("not implemented")
 }
 
