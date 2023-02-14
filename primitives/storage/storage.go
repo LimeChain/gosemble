@@ -43,9 +43,8 @@ func Read(key int64, value_out int64, offset int32) int64 {
 	panic("not implemented")
 }
 
-func Root(key []byte) []byte {
-	keyOffsetSize := utils.SliceToOffset(key)
-	valueOffsetSize := env.ExtStorageRootVersion2(int32(keyOffsetSize))
+func Root(version int32) []byte {
+	valueOffsetSize := env.ExtStorageRootVersion2(version)
 	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
 	value := utils.ToWasmMemorySlice(offset, size)
 	return value

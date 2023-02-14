@@ -16,6 +16,7 @@ const SPEC_VERSION = 100
 const IMPL_VERSION = 1
 const TRANSACTION_VERSION = 1
 const STATE_VERSION = 1
+const StorageVersion = 0
 
 const BlockHashCount = sc.U32(2400)
 

@@ -39,7 +39,14 @@ func Finalize() types.Header {
 
 	parentHashKey := hashing.Twox128(constants.KeyParentHash)
 	b = storage.Get(append(systemHash, parentHashKey...))
-	buf.Write(b)
+
+	if len(b) > 1 {
+		buf.Write(b[1:])
+		bytesSequence := sc.DecodeSequence[sc.U8](buf)
+		buf.Reset()
+
+		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
+	}
 
 	parentHash := sc.DecodeFixedSequence[sc.U8](32, buf)
 	buf.Reset()
@@ -73,9 +80,11 @@ func Finalize() types.Header {
 
 		extrinsicCount = sc.DecodeU32(buf)
 		buf.Reset()
+
+		storage.Clear(append(systemHash, extrinsicCountHash...))
 	}
 
-	extrinsics := sc.Dictionary[sc.U32, sc.Sequence[sc.U8]]{}
+	var extrinsics []byte
 	extrinsicDataPrefixHash := append(systemHash, hashing.Twox128(constants.KeyExtrinsicData)...)
 
 	for i := 0; i < int(extrinsicCount); i++ {
@@ -89,11 +98,14 @@ func Finalize() types.Header {
 			buf.Write(bytesExtrinsic[1:])
 			bytesSequence := sc.DecodeSequence[sc.U8](buf)
 			buf.Reset()
-			extrinsics[sci] = bytesSequence
+
+			extrinsics = append(extrinsics, sc.SequenceU8ToBytes(bytesSequence)...)
+
+			storage.Clear(append(extrinsicDataHashIndexHash, sci.Bytes()...))
 		}
 	}
 
-	extrinsicsRootBytes := trie.Blake2256OrderedRoot(extrinsics.Bytes())
+	extrinsicsRootBytes := trie.Blake2256OrderedRoot(append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsics...), constants.StorageVersion)
 	buf.Write(extrinsicsRootBytes)
 	extrinsicsRoot := types.DecodeH256(buf)
 	buf.Reset()
@@ -113,7 +125,7 @@ func Finalize() types.Header {
 		storage.Clear(blockNumKey)
 	}
 
-	storageRootBytes := storage.Root(constants.RuntimeVersion.StateVersion.Bytes())
+	storageRootBytes := storage.Root(int32(constants.RuntimeVersion.StateVersion))
 	buf.Write(storageRootBytes)
 	storageRoot := types.DecodeH256(buf)
 	buf.Reset()
