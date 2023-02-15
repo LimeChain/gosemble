@@ -1,7 +1,6 @@
 package executive
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/crypto"
@@ -115,25 +114,8 @@ func initialChecks(block types.Block) {
 		blockNumKey = append(blockNumKey, blockNumHash...)
 		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
 
-		previousHash := storage.Get(blockNumKey)
-
-		storageParentHash := types.Blake2bHash{}
-		if len(previousHash) > 1 {
-			buf := &bytes.Buffer{}
-
-			buf.Write(previousHash[1:]) // Remove option byte
-			bytesSequence := sc.DecodeSequence[sc.U8](buf)
-			buf.Reset()
-
-			buf.Write(sc.SequenceU8ToBytes(bytesSequence))
-
-			storageParentHash = types.DecodeBlake2bHash(buf)
-			buf.Reset()
-		} else {
-			panic("storage parent hash not found")
-		}
-
-		if !reflect.DeepEqual(storageParentHash.FixedSequence, header.ParentHash.FixedSequence) {
+		storageParentHash := storage.GetDecode[types.Blake2bHash](blockNumKey, types.DecodeBlake2bHash)
+		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			panic("parent hash should be valid")
 		}
 	}
@@ -150,19 +132,7 @@ func runtimeUpgrade() sc.Bool {
 	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
 
 	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
-	last := storage.Get(keyLru)
-
-	lrupi := types.LastRuntimeUpgradeInfo{}
-	if len(last) > 1 {
-		buf := &bytes.Buffer{}
-		buf.Write(last[1:])
-
-		bytesSequence := sc.DecodeSequence[sc.U8](buf)
-		buf.Reset()
-		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
-
-		lrupi = types.DecodeLastRuntimeUpgradeInfo(buf)
-	}
+	lrupi := storage.GetDecode[types.LastRuntimeUpgradeInfo](keyLru, types.DecodeLastRuntimeUpgradeInfo)
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
