@@ -3,6 +3,8 @@
 package storage
 
 import (
+	"bytes"
+	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/env"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -27,12 +29,29 @@ func Exists(key []byte) int32 {
 	return env.ExtStorageExistsVersion1(keyOffsetSize)
 }
 
-func Get(key []byte) []byte {
-	keyOffsetSize := utils.BytesToOffsetAndSize(key)
-	valueOffsetSize := env.ExtStorageGetVersion1(keyOffsetSize)
-	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
-	value := utils.ToWasmMemorySlice(offset, size)
-	return value
+func Get(key []byte) sc.Option[sc.Sequence[sc.U8]] {
+	value := get(key)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(value)
+
+	return sc.DecodeOption[sc.Sequence[sc.U8]](buffer)
+}
+
+// GetDecode gets the storage value and returns it decoded. The result from Get is Option<sc.Sequence[sc.U8]>.
+// If the option is empty, it returns the default value T.
+// If the option is not empty, it decodes it using decodeFunc and returns it.
+func GetDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
+	option := Get(key)
+
+	if !option.HasValue {
+		return *new(T)
+	}
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(option.Value))
+
+	return decodeFunc(buffer)
 }
 
 func NextKey(key int64) int64 {
@@ -54,4 +73,47 @@ func Set(key []byte, value []byte) {
 	keyOffsetSize := utils.BytesToOffsetAndSize(key)
 	valueOffsetSize := utils.BytesToOffsetAndSize(value)
 	env.ExtStorageSetVersion1(keyOffsetSize, valueOffsetSize)
+}
+
+// TakeBytes gets the storage value. The result from Get is Option<sc.Sequence[sc.U8]>.
+// If the option is empty, it returns nil.
+// If the option is not empty, it clears it and returns the sequence as bytes.
+func TakeBytes(key []byte) []byte {
+	option := Get(key)
+
+	if !option.HasValue {
+		return nil
+	}
+
+	Clear(key)
+
+	return sc.SequenceU8ToBytes(option.Value)
+}
+
+// TakeDecode gets the storage value and returns it decoded. The result from Get is Option<sc.Sequence[sc.U8]>.
+// If the option is empty, it returns default value T.
+// If the option is not empty, it clears it and returns decodeFunc(value).
+func TakeDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
+	option := Get(key)
+
+	if !option.HasValue {
+		return *new(T)
+	}
+
+	Clear(key)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(option.Value))
+
+	return decodeFunc(buffer)
+}
+
+// get gets the value from storage by the provided key. The wasm memory slice (value)
+// represents an encoded Option<sc.Sequence[sc.U8]> (option of encoded slice).
+func get(key []byte) []byte {
+	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	valueOffsetSize := env.ExtStorageGetVersion1(keyOffsetSize)
+	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
+	value := utils.ToWasmMemorySlice(offset, size)
+	return value
 }

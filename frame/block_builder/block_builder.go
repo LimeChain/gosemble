@@ -73,18 +73,9 @@ func FinalizeBlock() int64 {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
 
-	bNumber := storage.Get(append(systemHash, numberHash...))
-	blockNumber := sc.U32(0)
-	if len(bNumber) > 1 {
-		buf := &bytes.Buffer{}
-		buf.Write(bNumber[1:])
-
-		bytesSequence := sc.DecodeSequence[sc.U8](buf)
-		buf.Reset()
-		buf.Write(sc.SequenceU8ToBytes(bytesSequence))
-		blockNumber = sc.DecodeU32(buf)
-		buf.Reset()
-	}
+	blockNumber := storage.GetDecode[sc.U32](
+		append(systemHash, numberHash...),
+		sc.DecodeU32)
 
 	system.IdleAndFinalizeHook(blockNumber)
 

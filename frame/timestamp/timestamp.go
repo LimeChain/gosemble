@@ -36,19 +36,10 @@ func CreateInherent(inherent types.InherentData) []byte {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
 
-	nextTimestamp := timestamp
+	nextTimestamp := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64) + MinimumPeriod
 
-	nowBytes := storage.Get(append(timestampHash, nowHash...))
-	if len(nowBytes) > 1 {
-		buffer.Write(nowBytes[1:])
-
-		bytesSequence := sc.DecodeSequence[sc.U8](buffer)
-		buffer.Reset()
-		buffer.Write(sc.SequenceU8ToBytes(bytesSequence))
-		nowTimestamp := sc.DecodeU64(buffer)
-		buffer.Reset()
-
-		nextTimestamp = nowTimestamp + MinimumPeriod
+	if timestamp > nextTimestamp {
+		nextTimestamp = timestamp
 	}
 
 	extrinsic := types.UncheckedExtrinsic{
@@ -84,19 +75,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
-	nowBytes := storage.Get(append(timestampHash, nowHash...))
-
-	systemNow := sc.U64(0)
-	if len(nowBytes) > 1 {
-		buffer.Write(nowBytes[1:])
-
-		bytesSequnce := sc.DecodeSequence[sc.U8](buffer)
-		buffer.Reset()
-		buffer.Write(sc.SequenceU8ToBytes(bytesSequnce))
-
-		systemNow = sc.DecodeU64(buffer)
-		buffer.Reset()
-	}
+	systemNow := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64)
 
 	minimum := systemNow + MinimumPeriod
 	if t > timestamp+MaxTimestampDriftMillis {
@@ -119,20 +98,7 @@ func Set(now sc.U64) {
 	}
 
 	nowHash := hashing.Twox128(constants.KeyNow)
-	previousBytes := storage.Get(append(timestampHash, nowHash...))
-
-	previousTimestamp := sc.U64(0)
-	if len(previousBytes) > 1 {
-		buffer := &bytes.Buffer{}
-		buffer.Write(previousBytes[1:])
-
-		bytesSequence := sc.DecodeSequence[sc.U8](buffer)
-		buffer.Reset()
-
-		buffer.Write(sc.SequenceU8ToBytes(bytesSequence))
-		previousTimestamp = sc.DecodeU64(buffer)
-		buffer.Reset()
-	}
+	previousTimestamp := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64)
 
 	if !(previousTimestamp == 0 || now >= previousTimestamp+MinimumPeriod) {
 		panic("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
@@ -149,9 +115,9 @@ func OnFinalize() {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
 
-	bytesTimestamp := storage.Get(append(timestampHash, didUpdateHash...))
+	didUpdate := storage.Get(append(timestampHash, didUpdateHash...))
 
-	if len(bytesTimestamp) > 1 {
+	if didUpdate.HasValue {
 		storage.Clear(append(timestampHash, didUpdateHash...))
 	} else {
 		panic("Timestamp must be updated once in the block")
