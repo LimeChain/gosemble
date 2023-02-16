@@ -9,24 +9,26 @@ const (
 	DebugLevel
 	TraceLevel
 )
+const target = "runtime"
 
-func Critical(target string, message string) {
+func Critical(message string) {
 	log(CriticalLevel, []byte(target), []byte(message))
+	panic(message)
 }
 
-func Warn(target string, message string) {
+func Warn(message string) {
 	log(WarnLevel, []byte(target), []byte(message))
 }
 
-func Info(target string, message string) {
+func Info(message string) {
 	log(InfoLevel, []byte(target), []byte(message))
 }
 
-func Debug(target string, message string) {
+func Debug(message string) {
 	log(DebugLevel, []byte(target), []byte(message))
 }
 
-func Trace(target string, message string) {
+func Trace(message string) {
 	log(TraceLevel, []byte(target), []byte(message))
 }
 
