@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type Call struct {
@@ -25,7 +26,7 @@ func NewCall(m string, f string, args sc.Sequence[sc.U8]) Call {
 			c.Args = args
 		}
 	default:
-		panic("invalid Call type")
+		log.Critical("invalid Call type")
 	}
 
 	return c

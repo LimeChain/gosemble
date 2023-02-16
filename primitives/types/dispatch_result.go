@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type DispatchResult sc.VaryingData
@@ -15,8 +16,10 @@ func NewDispatchResult(value sc.Encodable) DispatchResult {
 	case sc.Empty, nil:
 		return DispatchResult(sc.NewVaryingData(sc.Empty{}))
 	default:
-		panic("invalid DispatchResult type")
+		log.Critical("invalid DispatchResult type")
 	}
+
+	panic("unreachable")
 }
 
 func (r DispatchResult) Encode(buffer *bytes.Buffer) {
@@ -48,7 +51,7 @@ func (r DispatchResult) PostDispatch() (ok Pre, err TransactionValidityError) {
 // 	case UnknownError, DataLookupError, BadOriginError, CustomModuleError:
 // 		return DispatchResultWithInfo(sc.NewVaryingData(value))
 // 	default:
-// 		panic("invalid DispatchResultWithInfo type")
+// 		log.Critical("invalid DispatchResultWithInfo type")
 // 	}
 
 // }

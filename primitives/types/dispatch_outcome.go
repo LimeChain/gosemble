@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // This type specifies the outcome of dispatching a call to a module.
@@ -27,8 +28,10 @@ func NewDispatchOutcome(value sc.Encodable) DispatchOutcome {
 	case sc.Empty, nil:
 		return DispatchOutcome(sc.NewVaryingData(sc.Empty{}))
 	default:
-		panic("invalid DispatchOutcome type")
+		log.Critical("invalid DispatchOutcome type")
 	}
+
+	panic("unreachable")
 }
 
 func (o DispatchOutcome) Encode(buffer *bytes.Buffer) {
@@ -41,7 +44,7 @@ func (o DispatchOutcome) Encode(buffer *bytes.Buffer) {
 		sc.U8(1).Encode(buffer)
 		value.Encode(buffer)
 	default:
-		panic("invalid DispatchOutcome type")
+		log.Critical("invalid DispatchOutcome type")
 	}
 }
 
@@ -55,8 +58,10 @@ func DecodeDispatchOutcome(buffer *bytes.Buffer) DispatchOutcome {
 		value := DecodeDispatchError(buffer)
 		return NewDispatchOutcome(value)
 	default:
-		panic("invalid DispatchOutcome type")
+		log.Critical("invalid DispatchOutcome type")
 	}
+
+	panic("unreachable")
 }
 
 func (o DispatchOutcome) Bytes() []byte {

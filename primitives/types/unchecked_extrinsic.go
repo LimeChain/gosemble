@@ -7,6 +7,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // A extrinsic right from the external world. This is unchecked and so can contain a signature.
@@ -93,7 +94,7 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 	isSigned := version&ExtrinsicBitSigned != 0
 
 	if version&ExtrinsicUnmaskVersion != ExtrinsicFormatVersion {
-		panic("invalid Extrinsic version")
+		log.Critical("invalid Extrinsic version")
 	}
 
 	var extSignature sc.Option[ExtrinsicSignature]

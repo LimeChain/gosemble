@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // It's an account ID (pubkey).
@@ -36,8 +37,10 @@ func (a MultiAddress) AsAccountId() AccountId {
 	if a.IsAccountId() {
 		return a[0].(AccountId)
 	} else {
-		panic("not a AccountId type")
+		log.Critical("not a AccountId type")
 	}
+
+	panic("unreachable")
 }
 
 // It's an account index.
@@ -66,8 +69,10 @@ func (a MultiAddress) AsAccountIndex() AccountIndex {
 	if a.IsAccountIndex() {
 		return a[0].(AccountIndex)
 	} else {
-		panic("not a AccountIndex type")
+		log.Critical("not a AccountIndex type")
 	}
+
+	panic("unreachable")
 }
 
 // It's some arbitrary raw bytes.
@@ -96,8 +101,10 @@ func (a MultiAddress) AsRaw() AccountRaw {
 	if a.IsRaw() {
 		return a[0].(AccountRaw)
 	} else {
-		panic("not an AccountRaw type")
+		log.Critical("not an AccountRaw type")
 	}
+
+	panic("unreachable")
 }
 
 // It's a 32 byte representation.
@@ -107,7 +114,7 @@ type Address32 struct {
 
 func NewAddress32(values ...sc.U8) Address32 {
 	if len(values) != 32 {
-		panic("Address32 should be of size 32")
+		log.Critical("Address32 should be of size 32")
 	}
 	return Address32{sc.NewFixedSequence(32, values...)}
 }
@@ -133,8 +140,10 @@ func (a MultiAddress) AsAddress32() Address32 {
 	if a.IsAddress32() {
 		return a[0].(Address32)
 	} else {
-		panic("not a Address32 type")
+		log.Critical("not a Address32 type")
 	}
+
+	panic("unreachable")
 }
 
 func (a Address32) Validate() (ok ValidTransaction, err TransactionValidityError) {
@@ -154,7 +163,7 @@ type Address20 struct {
 
 func NewAddress20(values ...sc.U8) Address20 {
 	if len(values) != 20 {
-		panic("Address20 should be of size 20")
+		log.Critical("Address20 should be of size 20")
 	}
 	return Address20{sc.NewFixedSequence(20, values...)}
 }
@@ -180,8 +189,10 @@ func (a MultiAddress) AsAddress20() Address20 {
 	if a.IsAddress20() {
 		return a[0].(Address20)
 	} else {
-		panic("not a Address20 type")
+		log.Critical("not a Address20 type")
 	}
+
+	panic("unreachable")
 }
 
 type MultiAddress sc.VaryingData
@@ -191,8 +202,10 @@ func NewMultiAddress(value sc.Encodable) MultiAddress {
 	case AccountId, AccountIndex, AccountRaw, Address32, Address20:
 		return MultiAddress(sc.NewVaryingData(value))
 	default:
-		panic("invalid Address type")
+		log.Critical("invalid Address type")
 	}
+
+	panic("unreachable")
 }
 
 func (a MultiAddress) Encode(buffer *bytes.Buffer) {
@@ -212,7 +225,7 @@ func (a MultiAddress) Encode(buffer *bytes.Buffer) {
 		sc.U8(4).Encode(buffer)
 		a.AsAddress20().Encode(buffer)
 	} else {
-		panic("invalid MultiAddress type in Encode")
+		log.Critical("invalid MultiAddress type in Encode")
 	}
 }
 
@@ -231,6 +244,8 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 	case 4:
 		return MultiAddress{DecodeAddress20(buffer)}
 	default:
-		panic("invalid MultiAddress type in Decode")
+		log.Critical("invalid MultiAddress type in Decode")
 	}
+
+	panic("unreachable")
 }

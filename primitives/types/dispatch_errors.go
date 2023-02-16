@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // Some unknown error occurred.
@@ -54,8 +55,10 @@ func NewDispatchError(value sc.Encodable) DispatchError {
 	case UnknownError, DataLookupError, BadOriginError, CustomModuleError:
 		return DispatchError(sc.NewVaryingData(value))
 	default:
-		panic("invalid DispatchError type")
+		log.Critical("invalid DispatchError type")
 	}
+
+	panic("unreachable")
 }
 
 func (e DispatchError) Encode(buffer *bytes.Buffer) {
@@ -71,7 +74,7 @@ func (e DispatchError) Encode(buffer *bytes.Buffer) {
 		sc.U8(3).Encode(buffer)
 		e[0].Encode(buffer)
 	default:
-		panic("invalid DispatchError type")
+		log.Critical("invalid DispatchError type")
 	}
 }
 
@@ -90,8 +93,10 @@ func DecodeDispatchError(buffer *bytes.Buffer) DispatchError {
 		value := DecodeCustomModuleError(buffer)
 		return NewDispatchError(value)
 	default:
-		panic("invalid DispatchError type")
+		log.Critical("invalid DispatchError type")
 	}
+
+	panic("unreachable")
 }
 
 func (e DispatchError) Bytes() []byte {

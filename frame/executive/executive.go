@@ -2,9 +2,11 @@ package executive
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/crypto"
-	"reflect"
+	"github.com/LimeChain/gosemble/primitives/log"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -82,7 +84,7 @@ func ExecuteBlock(block types.Block) {
 	crypto.ExtCryptoStartBatchVerify()
 	executeExtrinsicsWithBookKeeping(block)
 	if crypto.ExtCryptoFinishBatchVerify() != 1 {
-		panic("Signature verification failed")
+		log.Critical("Signature verification failed")
 	}
 
 	finalChecks(&block.Header)
@@ -92,7 +94,7 @@ func executeExtrinsicsWithBookKeeping(block types.Block) {
 	for _, ext := range block.Extrinsics {
 		_, err := ApplyExtrinsic(ext)
 		if err != nil {
-			panic(string(err[0].Bytes()))
+			log.Critical(string(err[0].Bytes()))
 		}
 	}
 
@@ -114,16 +116,16 @@ func initialChecks(block types.Block) {
 		blockNumKey = append(blockNumKey, blockNumHash...)
 		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
 
-		storageParentHash := storage.GetDecode[types.Blake2bHash](blockNumKey, types.DecodeBlake2bHash)
+		storageParentHash := storage.GetDecode(blockNumKey, types.DecodeBlake2bHash)
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
-			panic("parent hash should be valid")
+			log.Critical("parent hash should be valid")
 		}
 	}
 
 	inherentsAreFirst := system.EnsureInherentsAreFirst(block)
 
 	if inherentsAreFirst >= 0 {
-		panic(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
+		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
 	}
 }
 
@@ -132,7 +134,7 @@ func runtimeUpgrade() sc.Bool {
 	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
 
 	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
-	lrupi := storage.GetDecode[types.LastRuntimeUpgradeInfo](keyLru, types.DecodeLastRuntimeUpgradeInfo)
+	lrupi := storage.GetDecode(keyLru, types.DecodeLastRuntimeUpgradeInfo)
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
@@ -163,21 +165,21 @@ func finalChecks(header *types.Header) {
 	newHeader := system.Finalize()
 
 	if len(header.Digest) != len(newHeader.Digest) {
-		panic("Number of digest must match the calculated")
+		log.Critical("Number of digest must match the calculated")
 	}
 
 	for key, digest := range header.Digest {
 		otherDigest := newHeader.Digest[key]
 		if !reflect.DeepEqual(digest, otherDigest) {
-			panic("digest item must match that calculated")
+			log.Critical("digest item must match that calculated")
 		}
 	}
 
 	if !reflect.DeepEqual(header.StateRoot, newHeader.StateRoot) {
-		panic("Storage root must match that calculated")
+		log.Critical("Storage root must match that calculated")
 	}
 
 	if !reflect.DeepEqual(header.ExtrinsicsRoot, newHeader.ExtrinsicsRoot) {
-		panic("Transaction trie must be valid")
+		log.Critical("Transaction trie must be valid")
 	}
 }

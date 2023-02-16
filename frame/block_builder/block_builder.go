@@ -14,6 +14,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -73,7 +74,7 @@ func FinalizeBlock() int64 {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
 
-	blockNumber := storage.GetDecode[sc.U32](
+	blockNumber := storage.GetDecode(
 		append(systemHash, numberHash...),
 		sc.DecodeU32)
 
@@ -102,7 +103,7 @@ func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 
 	inherentData, err := types.DecodeInherentData(buffer)
 	if err != nil {
-		panic(err)
+		log.Critical(err.Error())
 	}
 
 	result := timestamp.CreateInherent(*inherentData)
@@ -130,7 +131,7 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 
 	inherentData, err := types.DecodeInherentData(buffer)
 	if err != nil {
-		panic(err)
+		log.Critical(err.Error())
 	}
 	buffer.Reset()
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -26,8 +27,10 @@ func NewPhase(values ...sc.Encodable) Phase {
 	case PhaseFinalization, PhaseInitialization:
 		return Phase(sc.NewVaryingData(values[0]))
 	default:
-		panic("invalid phase type")
+		log.Critical("invalid phase type")
 	}
+
+	panic("unreachable")
 }
 
 func (p Phase) Encode(buffer *bytes.Buffer) {
@@ -54,8 +57,10 @@ func Decode(buffer *bytes.Buffer) Phase {
 	case sc.U8(2):
 		return NewPhase(PhaseInitialization)
 	default:
-		panic("invalid Phase type")
+		log.Critical("invalid Phase type")
 	}
+
+	panic("unreachable")
 }
 
 func (p Phase) Bytes() []byte {

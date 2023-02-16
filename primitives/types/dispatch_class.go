@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -41,7 +42,7 @@ func (cl DispatchClass) Encode(buffer *bytes.Buffer) {
 	case MandatoryDispatch:
 		sc.U8(2).Encode(buffer)
 	default:
-		panic("invalid DispatchClass type")
+		log.Critical("invalid DispatchClass type")
 	}
 }
 
@@ -56,8 +57,10 @@ func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 	case 2:
 		return MandatoryDispatch
 	default:
-		panic("invalid DispatchClass type")
+		log.Critical("invalid DispatchClass type")
 	}
+
+	panic("unreachable")
 }
 
 func (cl DispatchClass) Bytes() []byte {

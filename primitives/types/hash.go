@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type H256 struct {
@@ -12,7 +13,7 @@ type H256 struct {
 
 func NewH256(values ...sc.U8) H256 {
 	if len(values) != 32 {
-		panic("H256 should be of size 32")
+		log.Critical("H256 should be of size 32")
 	}
 	return H256{sc.NewFixedSequence(32, values...)}
 }
@@ -37,7 +38,7 @@ type H512 struct {
 
 func NewH512(values ...sc.U8) H512 {
 	if len(values) != 64 {
-		panic("H512 should be of size 64")
+		log.Critical("H512 should be of size 64")
 	}
 	return H512{sc.NewFixedSequence(64, values...)}
 }
@@ -62,7 +63,7 @@ type Blake2bHash struct {
 
 func NewBlake2bHash(values ...sc.U8) Blake2bHash {
 	if len(values) != 32 {
-		panic("Blake2bHash should be of size 32")
+		log.Critical("Blake2bHash should be of size 32")
 	}
 	return Blake2bHash{sc.NewFixedSequence(32, values...)}
 }
