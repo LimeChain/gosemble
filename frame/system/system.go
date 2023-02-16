@@ -9,6 +9,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	cts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -256,8 +257,8 @@ func EnsureInherentsAreFirst(block types.Block) int {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
 			switch call.CallIndex.ModuleIndex {
-			case timestamp.ModuleIndex:
-				if call.CallIndex.FunctionIndex == timestamp.FunctionIndex {
+			case cts.ModuleIndex:
+				if call.CallIndex.FunctionIndex == cts.FunctionIndex {
 					isInherent = true
 				}
 			}

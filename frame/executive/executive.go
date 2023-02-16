@@ -2,6 +2,7 @@ package executive
 
 import (
 	"fmt"
+	"github.com/LimeChain/gosemble/frame/aura"
 	"reflect"
 
 	"github.com/LimeChain/gosemble/execution/extrinsic"
@@ -23,11 +24,27 @@ func InitializeBlock(header types.Header) {
 
 	if runtimeUpgrade() {
 		// TODO: weight
+		/*
+			weight = weight.saturating_add(Self::execute_on_runtime_upgrade());
+		*/
 	}
 
 	system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	// TODO: weight
+	// TODO: weight + on_initialize
+	/*
+		weight = weight.saturating_add(<AllPalletsWithSystem as OnInitialize<
+					System::BlockNumber,
+				>>::on_initialize(*block_number));
+				weight = weight.saturating_add(
+					<System::BlockWeights as frame_support::traits::Get<_>>::get().base_block,
+				);
+				<frame_system::Pallet<System>>::register_extra_weight_unchecked(
+					weight,
+					DispatchClass::Mandatory,
+				);
+	*/
+	aura.OnInitialize()
 
 	system.NoteFinishedInitialize()
 }

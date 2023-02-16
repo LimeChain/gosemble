@@ -1,6 +1,7 @@
 package inherent
 
 import (
+	cts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -20,12 +21,12 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 		call := extrinsic.Function
 
 		switch call.CallIndex.ModuleIndex {
-		case timestamp.ModuleIndex:
-			if call.CallIndex.FunctionIndex == timestamp.FunctionIndex {
+		case cts.ModuleIndex:
+			if call.CallIndex.FunctionIndex == cts.FunctionIndex {
 				isInherent = true
 				err := timestamp.CheckInherent(call, data)
 				if err != nil {
-					err := result.PutError(timestamp.InherentIdentifier, err)
+					err := result.PutError(cts.InherentIdentifier, err)
 					if err != nil {
 						panic(err)
 					}
