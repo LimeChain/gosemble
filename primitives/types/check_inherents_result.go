@@ -2,7 +2,9 @@ package types
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -46,7 +48,7 @@ func (ie InherentError) Encode(buffer *bytes.Buffer) {
 		ie[0].Encode(buffer)
 		// TODO: encode additional value
 	default:
-		panic(errInvalidInherentErrorType)
+		log.Critical(errInvalidInherentErrorType)
 	}
 }
 
@@ -99,7 +101,7 @@ func DecodeCheckInherentsResult(buffer *bytes.Buffer) CheckInherentsResult {
 	fatalError := sc.DecodeBool(buffer)
 	errors, err := DecodeInherentData(buffer)
 	if err != nil {
-		panic(errDecodeInherentData)
+		log.Critical(errDecodeInherentData)
 	}
 
 	return CheckInherentsResult{

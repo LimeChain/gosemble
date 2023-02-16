@@ -1,6 +1,9 @@
 package types
 
-import sc "github.com/LimeChain/goscale"
+import (
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
+)
 
 // The system itself ordained this dispatch to happen: this is the highest privilege level.
 type RootOrigin struct {
@@ -27,8 +30,10 @@ func NewRawOrigin(value sc.Encodable) RawOrigin {
 	case RootOrigin, SignedOrigin, NoneOrigin:
 		return RawOrigin(sc.NewVaryingData(value))
 	default:
-		panic("invalid RawOrigin type")
+		log.Critical("invalid RawOrigin type")
 	}
+
+	panic("unreachable")
 }
 
 func RawOriginFrom(a sc.Option[Address32]) RawOrigin {

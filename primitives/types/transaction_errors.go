@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // Errors that can occur while checking the validity of a transaction.
@@ -16,7 +17,7 @@ func NewTransactionValidityError(value sc.Encodable) TransactionValidityError {
 	switch value.(type) {
 	case InvalidTransaction, UnknownTransaction:
 	default:
-		panic("invalid TransactionValidityError type")
+		log.Critical("invalid TransactionValidityError type")
 	}
 
 	return TransactionValidityError(sc.NewVaryingData(value))
@@ -31,7 +32,7 @@ func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
 	case reflect.TypeOf(*new(UnknownTransaction)):
 		buffer.Write([]byte{0x01})
 	default:
-		panic("invalid TransactionValidityError type")
+		log.Critical("invalid TransactionValidityError type")
 	}
 
 	value.Encode(buffer)
@@ -48,8 +49,10 @@ func DecodeTransactionValidityError(buffer *bytes.Buffer) TransactionValidityErr
 		value := DecodeUnknownTransaction(buffer)
 		return NewTransactionValidityError(value)
 	default:
-		panic("invalid TransactionValidityError type")
+		log.Critical("invalid TransactionValidityError type")
 	}
+
+	panic("unreachable")
 }
 
 func (e TransactionValidityError) Bytes() []byte {
@@ -123,8 +126,10 @@ func NewInvalidTransaction(values ...sc.Encodable) InvalidTransaction {
 	case CustomInvalidTransactionError:
 		return InvalidTransaction(sc.NewVaryingData(values[0:2]...))
 	default:
-		panic("invalid InvalidTransaction type")
+		log.Critical("invalid InvalidTransaction type")
 	}
+
+	panic("unreachable")
 }
 
 func (e InvalidTransaction) Encode(buffer *bytes.Buffer) {
@@ -153,7 +158,7 @@ func (e InvalidTransaction) Encode(buffer *bytes.Buffer) {
 	case BadSignerError:
 		sc.U8(10).Encode(buffer)
 	default:
-		panic("invalid InvalidTransaction type")
+		log.Critical("invalid InvalidTransaction type")
 	}
 }
 
@@ -185,8 +190,10 @@ func DecodeInvalidTransaction(buffer *bytes.Buffer) InvalidTransaction {
 	case sc.U8(10):
 		return NewInvalidTransaction(BadSignerError)
 	default:
-		panic("invalid InvalidTransaction type")
+		log.Critical("invalid InvalidTransaction type")
 	}
+
+	panic("unreachable")
 }
 
 func (e InvalidTransaction) Bytes() []byte {
@@ -213,8 +220,10 @@ func NewUnknownTransaction(values ...sc.Encodable) UnknownTransaction {
 	case CustomUnknownTransactionError:
 		return UnknownTransaction(sc.NewVaryingData(values[0:2]...))
 	default:
-		panic("invalid UnknownTransaction type")
+		log.Critical("invalid UnknownTransaction type")
 	}
+
+	panic("unreachable")
 }
 
 func (e UnknownTransaction) Encode(buffer *bytes.Buffer) {
@@ -226,7 +235,7 @@ func (e UnknownTransaction) Encode(buffer *bytes.Buffer) {
 	case CustomUnknownTransactionError:
 		sc.U8(2).Encode(buffer)
 	default:
-		panic("invalid UnknownTransaction type")
+		log.Critical("invalid UnknownTransaction type")
 	}
 }
 
@@ -242,8 +251,10 @@ func DecodeUnknownTransaction(buffer *bytes.Buffer) UnknownTransaction {
 		v := sc.DecodeU8(buffer)
 		return NewUnknownTransaction(CustomUnknownTransactionError, v)
 	default:
-		panic("invalid UnknownTransaction type")
+		log.Critical("invalid UnknownTransaction type")
 	}
+
+	panic("unreachable")
 }
 
 func (e UnknownTransaction) Bytes() []byte {

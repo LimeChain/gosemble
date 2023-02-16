@@ -2,7 +2,9 @@ package types
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -23,8 +25,10 @@ func NewTimestampError(values ...sc.Encodable) TimestampError {
 	case TimestampErrorTooFarInFuture:
 		return TimestampError{sc.NewVaryingData(values[0])}
 	default:
-		panic(errInvalidTimestampType)
+		log.Critical(errInvalidTimestampType)
 	}
+
+	panic("unreachable")
 }
 
 func (te TimestampError) Encode(buffer *bytes.Buffer) {
@@ -35,7 +39,7 @@ func (te TimestampError) Encode(buffer *bytes.Buffer) {
 		te[0].Encode(buffer)
 		te[1].Encode(buffer)
 	default:
-		panic(errInvalidTimestampType)
+		log.Critical(errInvalidTimestampType)
 	}
 }
 

@@ -12,12 +12,6 @@ func Retain(data []byte) {
 	alivePointers[unsafePtr] = data
 }
 
-func PanicOnError(err error) {
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
 func Int64ToOffsetAndSize(offsetAndSize int64) (offset int32, size int32) {
 	return int32(offsetAndSize), int32(offsetAndSize >> 32)
 }

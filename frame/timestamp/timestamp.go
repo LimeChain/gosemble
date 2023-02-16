@@ -2,9 +2,11 @@ package timestamp
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -24,7 +26,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 	inherentData := inherent.Data[InherentIdentifier]
 
 	if inherentData == nil {
-		panic("Timestamp inherent must be provided.")
+		log.Critical("Timestamp inherent must be provided.")
 	}
 
 	buffer := &bytes.Buffer{}
@@ -65,7 +67,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 	inherentData := inherent.Data[InherentIdentifier]
 
 	if inherentData == nil {
-		panic("Timestamp inherent must be provided.")
+		log.Critical("Timestamp inherent must be provided.")
 	}
 
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
@@ -94,14 +96,14 @@ func Set(now sc.U64) {
 	didUpdate := storage.Exists(append(timestampHash, didUpdateHash...))
 
 	if didUpdate == 1 {
-		panic("Timestamp must be updated only once in the block")
+		log.Critical("Timestamp must be updated only once in the block")
 	}
 
 	nowHash := hashing.Twox128(constants.KeyNow)
 	previousTimestamp := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64)
 
 	if !(previousTimestamp == 0 || now >= previousTimestamp+MinimumPeriod) {
-		panic("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
+		log.Critical("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
 	}
 
 	storage.Set(append(timestampHash, nowHash...), now.Bytes())
@@ -120,6 +122,6 @@ func OnFinalize() {
 	if didUpdate.HasValue {
 		storage.Clear(append(timestampHash, didUpdateHash...))
 	} else {
-		panic("Timestamp must be updated once in the block")
+		log.Critical("Timestamp must be updated once in the block")
 	}
 }

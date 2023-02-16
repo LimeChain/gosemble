@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // The result of applying of an extrinsic.
@@ -33,8 +34,10 @@ func NewApplyExtrinsicResult(value sc.Encodable) ApplyExtrinsicResult {
 	case DispatchOutcome, TransactionValidityError:
 		return ApplyExtrinsicResult(sc.NewVaryingData(value))
 	default:
-		panic("invalid ApplyExtrinsicResult type")
+		log.Critical("invalid ApplyExtrinsicResult type")
 	}
+
+	panic("unreachable")
 }
 
 func (r ApplyExtrinsicResult) Encode(buffer *bytes.Buffer) {
@@ -44,7 +47,7 @@ func (r ApplyExtrinsicResult) Encode(buffer *bytes.Buffer) {
 	case TransactionValidityError:
 		sc.U8(1).Encode(buffer)
 	default:
-		panic("invalid ApplyExtrinsicResult type")
+		log.Critical("invalid ApplyExtrinsicResult type")
 	}
 
 	r[0].Encode(buffer)
@@ -61,8 +64,10 @@ func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) ApplyExtrinsicResult {
 		value := DecodeTransactionValidityError(buffer)
 		return NewApplyExtrinsicResult(value)
 	default:
-		panic("invalid ApplyExtrinsicResult type")
+		log.Critical("invalid ApplyExtrinsicResult type")
 	}
+
+	panic("unreachable")
 }
 
 func (r ApplyExtrinsicResult) Bytes() []byte {
