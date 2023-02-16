@@ -8,14 +8,34 @@ import (
 )
 
 const (
-	Critical = iota
-	Warn
-	Info
-	Debug
-	Trace
+	CriticalLevel = iota
+	WarnLevel
+	InfoLevel
+	DebugLevel
+	TraceLevel
 )
 
-func Log(level int32, target []byte, message []byte) {
+func Critical(target string, message string) {
+	log(CriticalLevel, []byte(target), []byte(message))
+}
+
+func Warn(target string, message string) {
+	log(WarnLevel, []byte(target), []byte(message))
+}
+
+func Info(target string, message string) {
+	log(InfoLevel, []byte(target), []byte(message))
+}
+
+func Debug(target string, message string) {
+	log(DebugLevel, []byte(target), []byte(message))
+}
+
+func Trace(target string, message string) {
+	log(TraceLevel, []byte(target), []byte(message))
+}
+
+func log(level int32, target []byte, message []byte) {
 	targetOffsetSize := utils.BytesToOffsetAndSize(target)
 	messageOffsetSize := utils.BytesToOffsetAndSize(message)
 	env.ExtLoggingLogVersion1(level, targetOffsetSize, messageOffsetSize)

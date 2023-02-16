@@ -10,6 +10,6 @@ import (
 func _panic(msg string)
 
 func Panic(str string) {
-	log.Log(log.Critical, []byte("TODO:"), []byte(str))
+	log.Critical("TODO:", str)
 	_panic(str)
 }
