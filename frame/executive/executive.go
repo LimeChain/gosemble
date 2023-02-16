@@ -116,7 +116,7 @@ func initialChecks(block types.Block) {
 		blockNumKey = append(blockNumKey, blockNumHash...)
 		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
 
-		storageParentHash := storage.GetDecode[types.Blake2bHash](blockNumKey, types.DecodeBlake2bHash)
+		storageParentHash := storage.GetDecode(blockNumKey, types.DecodeBlake2bHash)
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")
 		}
@@ -134,7 +134,7 @@ func runtimeUpgrade() sc.Bool {
 	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
 
 	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
-	lrupi := storage.GetDecode[types.LastRuntimeUpgradeInfo](keyLru, types.DecodeLastRuntimeUpgradeInfo)
+	lrupi := storage.GetDecode(keyLru, types.DecodeLastRuntimeUpgradeInfo)
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {

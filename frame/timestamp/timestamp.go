@@ -38,7 +38,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
 
-	nextTimestamp := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64) + MinimumPeriod
+	nextTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64) + MinimumPeriod
 
 	if timestamp > nextTimestamp {
 		nextTimestamp = timestamp
@@ -77,7 +77,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
-	systemNow := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64)
+	systemNow := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
 
 	minimum := systemNow + MinimumPeriod
 	if t > timestamp+MaxTimestampDriftMillis {
@@ -100,7 +100,7 @@ func Set(now sc.U64) {
 	}
 
 	nowHash := hashing.Twox128(constants.KeyNow)
-	previousTimestamp := storage.GetDecode[sc.U64](append(timestampHash, nowHash...), sc.DecodeU64)
+	previousTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
 
 	if !(previousTimestamp == 0 || now >= previousTimestamp+MinimumPeriod) {
 		log.Critical("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")

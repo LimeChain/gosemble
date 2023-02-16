@@ -74,7 +74,7 @@ func FinalizeBlock() int64 {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
 
-	blockNumber := storage.GetDecode[sc.U32](
+	blockNumber := storage.GetDecode(
 		append(systemHash, numberHash...),
 		sc.DecodeU32)
 

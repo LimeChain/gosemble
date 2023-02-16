@@ -2,9 +2,10 @@ package system
 
 import (
 	"bytes"
+	"math"
+
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/trie"
-	"math"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -31,16 +32,16 @@ func Finalize() types.Header {
 	storage.Clear(append(systemHash, allExtrinsicsLenHash...))
 
 	numberHash := hashing.Twox128(constants.KeyNumber)
-	blockNumber := storage.GetDecode[sc.U32](append(systemHash, numberHash...), sc.DecodeU32)
+	blockNumber := storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 
 	parentHashKey := hashing.Twox128(constants.KeyParentHash)
-	parentHash := storage.GetDecode[types.Blake2bHash](append(systemHash, parentHashKey...), types.DecodeBlake2bHash)
+	parentHash := storage.GetDecode(append(systemHash, parentHashKey...), types.DecodeBlake2bHash)
 
 	digestHash := hashing.Twox128(constants.KeyDigest)
-	digest := storage.GetDecode[types.Digest](append(systemHash, digestHash...), types.DecodeDigest)
+	digest := storage.GetDecode(append(systemHash, digestHash...), types.DecodeDigest)
 
 	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
-	extrinsicCount := storage.TakeDecode[sc.U32](append(systemHash, extrinsicCountHash...), sc.DecodeU32)
+	extrinsicCount := storage.TakeDecode(append(systemHash, extrinsicCountHash...), sc.DecodeU32)
 
 	var extrinsics []byte
 	extrinsicDataPrefixHash := append(systemHash, hashing.Twox128(constants.KeyExtrinsicData)...)
@@ -158,7 +159,7 @@ func NoteFinishedInitialize() {
 }
 
 func NoteFinishedExtrinsics() {
-	extrinsicIndex := storage.TakeDecode[sc.U32](constants.KeyExtrinsicIndex, sc.DecodeU32)
+	extrinsicIndex := storage.TakeDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
 
 	systemHash := hashing.Twox128(constants.KeySystem)
 	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
@@ -239,7 +240,7 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 
 // Gets the index of extrinsic that is currently executing.
 func extrinsicIndexValue() sc.U32 {
-	return storage.GetDecode[sc.U32](constants.KeyExtrinsicIndex, sc.DecodeU32)
+	return storage.GetDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
 }
 
 func EnsureInherentsAreFirst(block types.Block) int {
