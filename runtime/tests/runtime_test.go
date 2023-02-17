@@ -213,7 +213,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	slot := sc.U64(time) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
-		ConsensusEngineID: [4]byte{'a', 'u', 'r', 'a'},
+		ConsensusEngineID: aura.EngineId,
 		Data:              slot.Bytes(),
 	}
 
@@ -441,7 +441,7 @@ func Test_BlockExecution(t *testing.T) {
 	slot := sc.U64(time.UnixMilli()) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
-		ConsensusEngineID: [4]byte{'a', 'u', 'r', 'a'},
+		ConsensusEngineID: aura.EngineId,
 		Data:              slot.Bytes(),
 	}
 	assert.NoError(t, digest.Add(preRuntimeDigest))
