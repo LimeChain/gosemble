@@ -27,10 +27,6 @@ func Get(key []byte) sc.Option[sc.Sequence[sc.U8]] {
 	panic("not implemented")
 }
 
-func GetBytes(key []byte) []byte {
-	panic("not implemented")
-}
-
 func GetDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
 	panic("not implemented")
 }
