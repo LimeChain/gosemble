@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"testing"
@@ -22,8 +23,9 @@ import (
 
 var (
 	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
-	keyAuraHash, _             = common.Twox128Hash(constants.KeyAura)
 	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
+	keyAuraHash, _             = common.Twox128Hash(constants.KeyAura)
+	keyAuthoritiesHash, _      = common.Twox128Hash(constants.KeyAuthorities)
 	keyBlockHash, _            = common.Twox128Hash(constants.KeyBlockHash)
 	keyCurrentSlotHash, _      = common.Twox128Hash(constants.KeyCurrentSlot)
 	keyDigestHash, _           = common.Twox128Hash(constants.KeyDigest)
@@ -571,7 +573,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	slot := sc.U64(time.UnixMilli()) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
-		ConsensusEngineID: [4]byte{'a', 'u', 'r', 'a'},
+		ConsensusEngineID: aura.EngineId,
 		Data:              slot.Bytes(),
 	}
 
@@ -650,4 +652,54 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
 
 	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
+}
+
+func Test_Aura_Authorities_Empty(t *testing.T) {
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	result, err := rt.Exec("AuraApi_authorities", []byte{})
+	assert.NoError(t, err)
+
+	assert.Equal(t, []byte{0}, result)
+}
+
+func Test_Aura_Authorities(t *testing.T) {
+	pubKey1 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee")
+	pubKey2 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ef")
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(pubKey1)
+
+	bytesPubKey1, err := common.Read32Bytes(buffer)
+	assert.NoError(t, err)
+
+	buffer.Write(pubKey2)
+	bytesPubKey2, err := common.Read32Bytes(buffer)
+	assert.NoError(t, err)
+
+	authorities := [][32]byte{
+		bytesPubKey1,
+		bytesPubKey2,
+	}
+
+	bytesAuthorities, err := scale.Marshal(authorities)
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	err = storage.Put(append(keyAuraHash, keyAuthoritiesHash...), bytesAuthorities)
+	assert.NoError(t, err)
+
+	result, err := rt.Exec("AuraApi_authorities", []byte{})
+	assert.NoError(t, err)
+
+	assert.Equal(t, bytesAuthorities, result)
+
+	var resultAuthorities [][32]byte
+	err = scale.Unmarshal(result, &resultAuthorities)
+	assert.NoError(t, err)
+
+	assert.Equal(t, authorities, resultAuthorities)
 }

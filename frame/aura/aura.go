@@ -4,6 +4,7 @@ import (
 	"bytes"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -13,21 +14,19 @@ import (
 	"reflect"
 )
 
-const MaxAuthorities = 100
-
-var (
-	EngineId = []byte{'a', 'u', 'r', 'a'}
-)
-
 type Slot = sc.U64
 
 func Authorities() int64 {
 	auraHash := hashing.Twox128(constants.KeyAura)
 	authoritiesHash := hashing.Twox128(constants.KeyAuthorities)
 
-	authorities := storage.GetBytes(append(auraHash, authoritiesHash...))
+	authorities := storage.Get(append(auraHash, authoritiesHash...))
 
-	return utils.BytesToOffsetAndSize(authorities)
+	if !authorities.HasValue {
+		return utils.BytesToOffsetAndSize([]byte{0})
+	}
+
+	return utils.BytesToOffsetAndSize(sc.SequenceU8ToBytes(authorities.Value))
 }
 
 func SlotDuration() int64 {
@@ -109,7 +108,7 @@ func currentSlotFromDigests() sc.Option[Slot] {
 	for keyDigest, dig := range digest {
 		if keyDigest == types.DigestTypePreRuntime {
 			for _, digestItem := range dig {
-				if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(digestItem.Engine), EngineId) {
+				if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(digestItem.Engine), aura.EngineId[:]) {
 					buffer := &bytes.Buffer{}
 					buffer.Write(sc.SequenceU8ToBytes(digestItem.Payload))
 
@@ -127,8 +126,8 @@ func totalAuthorities() sc.Option[sc.U64] {
 	authoritiesHash := hashing.Twox128(constants.KeyAuthorities)
 
 	// `Compact<u32>` is 5 bytes in maximum.
-	data := []byte{0, 0, 0, 0, 0}
-	option := storage.Read(append(auraHash, authoritiesHash...), data, 0)
+	data := [5]byte{}
+	option := storage.Read(append(auraHash, authoritiesHash...), data[:], 0)
 
 	if !option.HasValue {
 		return sc.Option[sc.U64]{}

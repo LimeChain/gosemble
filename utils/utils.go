@@ -21,6 +21,10 @@ func OffsetAndSizeToInt64(offset int32, size int32) int64 {
 }
 
 func SliceToOffset(data []byte) uintptr {
+	if len(data) == 0 {
+		return uintptr(unsafe.Pointer(nil))
+	}
+
 	return uintptr(unsafe.Pointer(&data[0]))
 }
 

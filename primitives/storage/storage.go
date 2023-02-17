@@ -54,19 +54,6 @@ func GetDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer)
 	return decodeFunc(buffer)
 }
 
-// GetBytes gets the storage value. The result from Get is Option<sc.Sequence[sc.U8]>.
-// If the option is empty, it returns nil.
-// If the option is not empty, it returns the sequence as bytes.
-func GetBytes(key []byte) []byte {
-	option := Get(key)
-
-	if !option.HasValue {
-		return nil
-	}
-
-	return sc.SequenceU8ToBytes(option.Value)
-}
-
 func NextKey(key int64) int64 {
 	panic("not implemented")
 }
