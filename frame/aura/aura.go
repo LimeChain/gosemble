@@ -131,7 +131,7 @@ func totalAuthorities() sc.Option[sc.U64] {
 	option := storage.Read(append(auraHash, authoritiesHash...), data[:], 0)
 
 	if !option.HasValue {
-		return sc.Option[sc.U64]{}
+		return sc.NewOption[sc.U64](nil)
 	}
 
 	length := option.Value
@@ -144,7 +144,9 @@ func totalAuthorities() sc.Option[sc.U64] {
 
 	compact := sc.DecodeCompact(buffer)
 
-	return sc.NewOption[sc.U64](sc.U64(compact.ToBigInt().Uint64()))
+	totalAuthorities := sc.U64(compact.ToBigInt().Uint64())
+
+	return sc.NewOption[sc.U64](totalAuthorities)
 }
 
 func slotDuration() int {
