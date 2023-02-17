@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	cst "github.com/LimeChain/gosemble/constants/timestamp"
+	cts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -75,9 +75,9 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 			// TODO:
 		}
 
-	case cst.ModuleIndex:
+	case cts.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case cst.FunctionIndex:
+		case cts.FunctionIndex:
 			buffer := &bytes.Buffer{}
 			buffer.Write(sc.SequenceU8ToBytes(call.Args))
 
