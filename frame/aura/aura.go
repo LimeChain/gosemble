@@ -30,7 +30,8 @@ func Authorities() int64 {
 }
 
 func SlotDuration() int64 {
-	return utils.BytesToOffsetAndSize(sc.U64(slotDuration()).Bytes())
+	slotDuration := sc.U64(slotDuration())
+	return utils.BytesToOffsetAndSize(slotDuration.Bytes())
 }
 
 func OnInitialize() types.Weight {
