@@ -62,6 +62,7 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/qdm12/gotree v0.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/vedhavyas/go-subkey v1.0.3 // indirect
 	github.com/wasmerio/go-ext-wasm v0.3.2-0.20200326095750-0a32be6068ec // indirect
 	golang.org/x/crypto v0.6.0 // indirect
