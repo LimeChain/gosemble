@@ -2,9 +2,10 @@ package types
 
 import (
 	"bytes"
+	"testing"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var (

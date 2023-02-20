@@ -4,13 +4,38 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	cts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
+	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/support"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
+type Extrinsic types.CheckedExtrinsic
+
+func (xt Extrinsic) Validate(validator types.UnsignedValidator, source types.TransactionSource, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+	if xt.Signed.HasValue {
+		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.Extra
+		_, _ = extra.Validate(&id, &xt.Function, info, length)
+	} else {
+		extra := &types.Extra{}
+		valid, err := extra.ValidateUnsigned(&xt.Function, info, length)
+		if err != nil {
+			return ok, err
+		}
+
+		unsignedValidation, err := validator.ValidateUnsigned(source, &xt.Function)
+		if err != nil {
+			return ok, err
+		}
+
+		ok = valid.CombineWith(unsignedValidation)
+	}
+
+	return ok, err
+}
+
+func (xt Extrinsic) Apply(validator types.UnsignedValidator, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[types.Address32]
 		maybePre sc.Option[types.Pre]
@@ -18,7 +43,7 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.Extra
-		pre, err := extra.PreDispatch(&id, &xt.Function, info, length)
+		pre, err := types.Extra{}.PreDispatch(extra, &id, &xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
@@ -32,12 +57,12 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 		//
 		// If you ever override this function, you need to make sure to always
 		// perform the same validation as in `ValidateUnsigned`.
-		_, err := PreDispatchUnsigned(&xt.Function, info, length)
+		_, err := types.Extra{}.PreDispatchUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
 
-		_, err = UPreDispatch(&xt.Function)
+		_, err = validator.PreDispatch(&xt.Function)
 		if err != nil {
 			return ok, err
 		}
@@ -54,7 +79,7 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 	postInfo = postDispatchInfo
 
 	dispatchResult := types.NewDispatchResult(resWithInfo.Err)
-	_, err = PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	_, err = types.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
 	dispatchResultWithPostInfo := types.DispatchResultWithPostInfo[types.PostDispatchInfo]{}
 	if resWithInfo.HasError {
@@ -69,103 +94,63 @@ func ApplyUnsignedValidator(xt types.CheckedExtrinsic, info *types.DispatchInfo,
 
 func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispatchInfo, err types.DispatchResultWithPostInfo[types.PostDispatchInfo]) {
 	switch call.CallIndex.ModuleIndex {
-	case system.ModuleIndex:
+	// TODO: Add more modules
+	case system.Module.Index:
 		switch call.CallIndex.FunctionIndex {
-		case system.FunctionIndex:
-			// TODO:
+		// TODO: Add more functions
+		case system.Module.Functions["remark"].Index:
+			// TODO: Implement
+		default:
+			log.Critical("system.function with index " + string(call.CallIndex.ModuleIndex) + "not found")
 		}
-
-	case cts.ModuleIndex:
+	case timestamp.Module.Index:
 		switch call.CallIndex.FunctionIndex {
-		case cts.FunctionIndex:
+		// TODO: Add more functions
+		case timestamp.Module.Functions["set"].Index:
 			buffer := &bytes.Buffer{}
 			buffer.Write(sc.SequenceU8ToBytes(call.Args))
-
 			ts := sc.DecodeU64(buffer)
 			timestamp.Set(ts)
+		default:
+			log.Critical("system.function with index " + string(call.CallIndex.ModuleIndex) + "not found")
 		}
+
+	default:
+		log.Critical("module with index " + string(call.CallIndex.ModuleIndex) + "not found")
 	}
 
 	return ok, err
 }
 
-func PreDispatchUnsigned(call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
-	ok, err = call.PreDispatchUnsigned()
-	if err != nil {
-		return ok, err
-	}
-
-	ok, err = info.PreDispatchUnsigned()
-	if err != nil {
-		return ok, err
-	}
-
-	ok, err = types.Length(length).PreDispatchUnsigned()
-	if err != nil {
-		return ok, err
-	}
-
-	return ok, err
-}
-
-func PostDispatch(pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
-	switch pre.HasValue {
-	case true:
-		// ok, err = pre.Value.PostDispatch()
-		// if err != nil {
-		// 	return ok, err
-		// }
-
-		ok, err = info.PostDispatch()
-		if err != nil {
-			return ok, err
+func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
+	switch xt.Function.CallIndex.ModuleIndex {
+	// TODO: Add more modules
+	case system.Module.Index:
+		// TODO: Implement
+		return types.DispatchInfo{
+			Weight:  types.WeightFromRefTime(sc.U64(len(xt.Bytes()))),
+			Class:   types.NewDispatchClass(types.NormalDispatch),
+			PaysFee: types.NewPays(types.PaysYes),
 		}
 
-		ok, err = postInfo.PostDispatch()
-		if err != nil {
-			return ok, err
-		}
+	case timestamp.Module.Index:
+		switch xt.Function.CallIndex.FunctionIndex {
+		// TODO: Add more functions
+		case timestamp.Module.Functions["set"].Index:
+			baseWeight := timestamp.Module.Functions["set"].BaseWeight
+			weight := support.WeighData(baseWeight, xt.Function.Args)
+			class := support.ClassifyDispatch(baseWeight)
+			paysFee := support.PaysFee(baseWeight)
 
-		ok, err = types.Length(length).PostDispatch()
-		if err != nil {
-			return ok, err
+			return types.DispatchInfo{
+				Weight:  weight,
+				Class:   class,
+				PaysFee: paysFee,
+			}
 		}
-
-		ok, err = result.PostDispatch()
-		if err != nil {
-			return ok, err
-		}
-
-	case false:
-		// sc.Empty
-		// info
-		// postInfo
-		// length
-		// result
+	default:
+		log.Critical("module with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
 	}
 
-	return ok, err
-}
-
-// Validate the call right before dispatch.
-//
-// This method should be used to prevent transactions already in the pool
-// (i.e. passing [`validate_unsigned`](Self::validate_unsigned)) from being included in blocks
-// in case they became invalid since being added to the pool.
-//
-// By default it's a good idea to call [`validate_unsigned`](Self::validate_unsigned) from
-// within this function again to make sure we never include an invalid transaction. Otherwise
-// the implementation of the call or this method will need to provide proper validation to
-// ensure that the transaction is valid.
-//
-// Changes made to storage *WILL* be persisted if the call returns `Ok`.
-func UPreDispatch(call *types.Call) (ok sc.Empty, err types.TransactionValidityError) {
-	_, err = UValidateUnsigned(types.NewTransactionSource(types.InBlock), call) // .map(|_| ()).map_err(Into::into)
-	return ok, err
-}
-
-// / Information on a transaction's validity and, if valid, on how it relates to other transactions.
-func UValidateUnsigned(source types.TransactionSource, call *types.Call) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	// TODO:
-	return ok, err
+	panic("unreachable")
 }

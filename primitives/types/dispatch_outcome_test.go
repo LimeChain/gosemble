@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,11 +12,11 @@ import (
 func Test_EncodeDispatchOutcome(t *testing.T) {
 	var testExamples = []struct {
 		label       string
-		input       types.DispatchOutcome
+		input       DispatchOutcome
 		expectation []byte
 	}{
-		{label: "Encode DispatchOutcome(None)", input: types.NewDispatchOutcome(nil), expectation: []byte{0x00}},
-		{label: "Encode  DispatchOutcome(DispatchError(BadOriginError))", input: types.NewDispatchOutcome(types.NewDispatchError(types.BadOriginError{})), expectation: []byte{0x01, 0x02}},
+		{label: "Encode DispatchOutcome(None)", input: NewDispatchOutcome(nil), expectation: []byte{0x00}},
+		{label: "Encode  DispatchOutcome(DispatchError(BadOriginError))", input: NewDispatchOutcome(NewDispatchError(BadOriginError{})), expectation: []byte{0x01, 0x02}},
 	}
 
 	for _, testExample := range testExamples {
@@ -35,10 +34,10 @@ func Test_DecodeDispatchOutcome(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       []byte
-		expectation types.DispatchOutcome
+		expectation DispatchOutcome
 	}{
-		{label: "0x00", input: []byte{0x00}, expectation: types.NewDispatchOutcome(nil)},
-		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: types.NewDispatchOutcome(types.NewDispatchError(types.BadOriginError{}))},
+		{label: "0x00", input: []byte{0x00}, expectation: NewDispatchOutcome(nil)},
+		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: NewDispatchOutcome(NewDispatchError(BadOriginError{}))},
 	}
 
 	for _, testExample := range testExamples {
@@ -46,7 +45,7 @@ func Test_DecodeDispatchOutcome(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := types.DecodeDispatchOutcome(buffer)
+			result := DecodeDispatchOutcome(buffer)
 
 			require.Equal(t, testExample.expectation, result)
 		})

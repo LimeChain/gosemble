@@ -5,21 +5,28 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/require"
 )
+
+var call = Call{
+	CallIndex: CallIndex{
+		ModuleIndex:   0,
+		FunctionIndex: 0,
+	},
+	Args: sc.Sequence[sc.U8]{0xab, 0xcd},
+}
 
 func Test_NewCall(t *testing.T) {
 	var testExamples = []struct {
 		label       string
-		input       types.Call
-		expectation types.Call
+		input       Call
+		expectation Call
 	}{
 		{
 			label: "Encode(Call(System.remark(0xab, 0xcd)))",
-			input: types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
-			expectation: types.Call{
-				CallIndex: types.CallIndex{
+			input: call,
+			expectation: Call{
+				CallIndex: CallIndex{
 					ModuleIndex:   0,
 					FunctionIndex: 0,
 				},
@@ -40,12 +47,12 @@ func Test_NewCall(t *testing.T) {
 func Test_EncodeCall(t *testing.T) {
 	var testExamples = []struct {
 		label       string
-		input       types.Call
+		input       Call
 		expectation []byte
 	}{
 		{
 			label:       "Encode(Call(System.remark(0xab, 0xcd)))",
-			input:       types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
+			input:       call,
 			expectation: []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
 		},
 	}
@@ -65,12 +72,12 @@ func Test_DecodeCall(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       []byte
-		expectation types.Call
+		expectation Call
 	}{
 		{
 			label:       "Decode(0x0, 0x0, 0x8, 0xab, 0xcd)",
 			input:       []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
-			expectation: types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
+			expectation: call,
 		},
 	}
 
@@ -79,7 +86,7 @@ func Test_DecodeCall(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := types.DecodeCall(buffer)
+			result := DecodeCall(buffer)
 
 			require.Equal(t, testExample.expectation, result)
 		})

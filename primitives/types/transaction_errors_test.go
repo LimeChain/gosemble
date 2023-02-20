@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,17 +12,17 @@ import (
 func Test_EncodeTransactionValidityError(t *testing.T) {
 	var testExamples = []struct {
 		label       string
-		input       types.TransactionValidityError
+		input       TransactionValidityError
 		expectation []byte
 	}{
 		{
 			label:       "Encode(TransactionValidityError(InvalidTransaction(PaymentError)))",
-			input:       types.NewTransactionValidityError(types.NewInvalidTransaction(types.PaymentError)),
+			input:       NewTransactionValidityError(NewInvalidTransaction(PaymentError)),
 			expectation: []byte{0x00, 0x01},
 		},
 		{
 			label:       "Encode(TransactionValidityError(UnknownTransaction(0)))",
-			input:       types.NewTransactionValidityError(types.NewUnknownTransaction(types.CannotLookupError)),
+			input:       NewTransactionValidityError(NewUnknownTransaction(CannotLookupError)),
 			expectation: []byte{0x01, 0x00},
 		},
 	}
@@ -43,17 +42,17 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       []byte
-		expectation types.TransactionValidityError
+		expectation TransactionValidityError
 	}{
 		{
 			label:       "Encode(TransactionValidityError(InvalidTransaction(PaymentError)))",
 			input:       []byte{0x00, 0x01},
-			expectation: types.NewTransactionValidityError(types.NewInvalidTransaction(types.PaymentError)),
+			expectation: NewTransactionValidityError(NewInvalidTransaction(PaymentError)),
 		},
 		{
 			label:       "Encode(TransactionValidityError(UnknownTransaction(0)))",
 			input:       []byte{0x01, 0x00},
-			expectation: types.NewTransactionValidityError(types.NewUnknownTransaction(types.CannotLookupError)),
+			expectation: NewTransactionValidityError(NewUnknownTransaction(CannotLookupError)),
 		},
 	}
 
@@ -62,7 +61,7 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := types.DecodeTransactionValidityError(buffer)
+			result := DecodeTransactionValidityError(buffer)
 
 			require.Equal(t, testExample.expectation, result)
 		})

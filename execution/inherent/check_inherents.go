@@ -21,21 +21,24 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 		call := extrinsic.Function
 
 		switch call.CallIndex.ModuleIndex {
-		case cts.ModuleIndex:
-			if call.CallIndex.FunctionIndex == cts.FunctionIndex {
-				isInherent = true
-				err := timestamp.CheckInherent(call, data)
-				if err != nil {
-					err := result.PutError(cts.InherentIdentifier, err)
+		case timestamp.Module.Index:
+			for funcKey := range timestamp.Module.Functions {
+				if call.CallIndex.FunctionIndex == timestamp.Module.Functions[funcKey].Index {
+					isInherent = true
+					err := timestamp.CheckInherent(call, data)
 					if err != nil {
-						panic(err)
-					}
+						err := result.PutError(cts.InherentIdentifier, err)
+						if err != nil {
+							panic(err)
+						}
 
-					if result.FatalError {
-						return result
+						if result.FatalError {
+							return result
+						}
 					}
 				}
 			}
+
 		}
 
 		// Inherents are before any other extrinsics.

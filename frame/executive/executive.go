@@ -2,8 +2,9 @@ package executive
 
 import (
 	"fmt"
-	"github.com/LimeChain/gosemble/frame/aura"
 	"reflect"
+
+	"github.com/LimeChain/gosemble/frame/aura"
 
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/crypto"
@@ -54,10 +55,10 @@ func InitializeBlock(header types.Header) {
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
 func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) { // types.ApplyExtrinsicResult
-	// sp_io.InitTracing()
 	encoded := uxt.Bytes()
-	encodedLen := sc.ToCompact(uint64(len(encoded)))
-	// sp_tracing.EnterSpan(sp_tracing.InfoSpan("apply_extrinsic", hexdisplay.From(&encoded)))
+	encodedLen := sc.ToCompact(len(encoded))
+
+	log.Info("apply_extrinsic")
 
 	// Verify that the signature is good.
 	xt, err := uxt.Check(types.DefaultAccountIdLookup())
@@ -73,14 +74,16 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
 	// Decode parameters and dispatch
-	dispatchInfo := xt.GetDispatchInfo()
-	res, err := extrinsic.ApplyUnsignedValidator(xt, &dispatchInfo, encodedLen)
+	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
+
+	validator := types.UnsignedValidatorForChecked{}
+	res, err := extrinsic.Extrinsic(xt).Apply(validator, &dispatchInfo, encodedLen)
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if res.HasError && (dispatchInfo.Class == types.MandatoryDispatch) {
+	if res.HasError && (reflect.ValueOf(dispatchInfo.Class) == reflect.ValueOf(types.NewDispatchClass(types.MandatoryDispatch))) {
 		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadMandatoryError))
 	}
 
@@ -199,4 +202,37 @@ func finalChecks(header *types.Header) {
 	if !reflect.DeepEqual(header.ExtrinsicsRoot, newHeader.ExtrinsicsRoot) {
 		log.Critical("Transaction trie must be valid")
 	}
+}
+
+// Check a given signed transaction for validity. This doesn't execute any
+// side-effects; it merely checks whether the transaction would panic if it were included or
+// not.
+//
+// Changes made to storage should be discarded.
+func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
+	currentBlockNumber := system.StorageGetBlockNumber()
+	system.Initialize(currentBlockNumber+1, blockHash, types.Digest{})
+
+	log.Trace("validate_transaction")
+
+	log.Trace("using_encoded")
+	encodedLen := sc.ToCompact(len(uxt.Bytes()))
+
+	log.Trace("check")
+	xt, err := uxt.Check(types.DefaultAccountIdLookup())
+	if err != nil {
+		return ok, err
+	}
+
+	log.Trace("dispatch_info")
+	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
+
+	if reflect.ValueOf(dispatchInfo.Class) == reflect.ValueOf(types.NewDispatchClass(types.MandatoryDispatch)) {
+		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.MandatoryValidationError))
+	}
+
+	log.Trace("validate")
+	validator := types.UnsignedValidatorForChecked{}
+
+	return extrinsic.Extrinsic(xt).Validate(validator, source, &dispatchInfo, encodedLen)
 }

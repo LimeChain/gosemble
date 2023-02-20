@@ -52,84 +52,28 @@ func (ae AccountIdExtra) Bytes() []byte {
 	return sc.EncodedBytes(ae)
 }
 
-// Implementation for checked extrinsic.
-func (xt CheckedExtrinsic) GetDispatchInfo() DispatchInfo {
-	// TODO:
-	// return xt.Function.GetDispatchInfo()
-	return DispatchInfo{
-		Weight:  WeightFromRefTime(sc.U64(len(xt.Bytes()))),
-		Class:   NormalDispatch,
-		PaysFee: PaysYes,
-	}
-}
+type UnsignedValidatorForChecked struct{}
 
-// Do any pre-flight stuff for a signed transaction.
+// Validate the call right before dispatch.
 //
-// Make sure to perform the same checks as in [`Self::validate`].
-func (e Extra) PreDispatch(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok Pre, err TransactionValidityError) {
-	ok, err = who.PreDispatch()
-	if err != nil {
-		return ok, err
-	}
-
-	ok, err = call.PreDispatch()
-	if err != nil {
-		return ok, err
-	}
-
-	ok, err = info.PreDispatch()
-	if err != nil {
-		return ok, err
-	}
-
-	ok, err = Length(length).PreDispatch()
-	if err != nil {
-		return ok, err
-	}
-
+// This method should be used to prevent transactions already in the pool
+// (i.e. passing [`validate_unsigned`](Self::validate_unsigned)) from being included in blocks
+// in case they became invalid since being added to the pool.
+//
+// By default it's a good idea to call [`validate_unsigned`](Self::validate_unsigned) from
+// within this function again to make sure we never include an invalid transaction. Otherwise
+// the implementation of the call or this method will need to provide proper validation to
+// ensure that the transaction is valid.
+//
+// Changes made to storage *WILL* be persisted if the call returns `Ok`.
+func (v UnsignedValidatorForChecked) PreDispatch(call *Call) (ok sc.Empty, err TransactionValidityError) {
+	_, err = v.ValidateUnsigned(NewTransactionSource(InBlock), call) // .map(|_| ()).map_err(Into::into)
 	return ok, err
 }
 
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
-func (e Extra) Validate(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok ValidTransaction, err TransactionValidityError) {
-	valid := DefaultValidTransaction()
-
-	ok, err = who.Validate()
-	if err != nil {
-		return ok, err
-	}
-	valid.CombineWith(ok)
-
-	ok, err = call.Validate()
-	if err != nil {
-		return ok, err
-	}
-	valid.CombineWith(ok)
-
-	ok, err = info.Validate()
-	if err != nil {
-		return ok, err
-	}
-	valid.CombineWith(ok)
-
-	ok, err = Length(length).Validate()
-	if err != nil {
-		return ok, err
-	}
-	valid.CombineWith(ok)
-
-	return valid, err
-}
-
-// Validate an unsigned transaction for the transaction queue.
-//
-// This function can be called frequently by the transaction queue
-// to obtain transaction validity against current state.
-// It should perform all checks that determine a valid unsigned transaction,
-// and quickly eliminate ones that are stale or incorrect.
-//
-// Make sure to perform the same checks in `pre_dispatch_unsigned` function.
-func ValidateUnsigned(_call *Call, _info *DispatchInfo, _length sc.Compact) (ok ValidTransaction, err TransactionValidityError) {
-	ok = DefaultValidTransaction()
+func (v UnsignedValidatorForChecked) ValidateUnsigned(source TransactionSource, call *Call) (ok ValidTransaction, err TransactionValidityError) {
+	// TODO:
+	// implement it for a specific pallet
 	return ok, err
 }

@@ -61,3 +61,145 @@ func (e Extra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
 		// BlockNumber
 	}, nil
 }
+
+// Information on a transaction's validity and, if valid, on how it relates to other transactions.
+func (_ Extra) Validate(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok ValidTransaction, err TransactionValidityError) {
+	valid := DefaultValidTransaction()
+
+	ok, err = who.Validate()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	ok, err = call.Validate()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	ok, err = info.Validate()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	ok, err = Length(length).Validate()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	return valid, err
+}
+
+func (_ Extra) ValidateUnsigned(call *Call, info *DispatchInfo, length sc.Compact) (ok ValidTransaction, err TransactionValidityError) {
+	valid := DefaultValidTransaction()
+
+	ok, err = call.ValidateUnsigned()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	ok, err = info.ValidateUnsigned()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	ok, err = Length(length).ValidateUnsigned()
+	if err != nil {
+		return ok, err
+	}
+	valid.CombineWith(ok)
+
+	return valid, err
+}
+
+// Do any pre-flight stuff for a signed transaction.
+//
+// Make sure to perform the same checks as in [`Validate`].
+func (_ Extra) PreDispatch(e Extra, who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok Pre, err TransactionValidityError) {
+	ok, err = who.PreDispatch()
+	if err != nil {
+		return ok, err
+	}
+
+	ok, err = call.PreDispatch()
+	if err != nil {
+		return ok, err
+	}
+
+	ok, err = info.PreDispatch()
+	if err != nil {
+		return ok, err
+	}
+
+	ok, err = Length(length).PreDispatch()
+	if err != nil {
+		return ok, err
+	}
+
+	return ok, err
+}
+
+func (_ Extra) PreDispatchUnsigned(call *Call, info *DispatchInfo, length sc.Compact) (ok Pre, err TransactionValidityError) {
+	// Extra{}.ValidateUnsigned(call, info, length)
+
+	ok, err = call.PreDispatchUnsigned()
+	if err != nil {
+		return ok, err
+	}
+
+	ok, err = info.PreDispatchUnsigned()
+	if err != nil {
+		return ok, err
+	}
+
+	ok, err = Length(length).PreDispatchUnsigned()
+	if err != nil {
+		return ok, err
+	}
+
+	return ok, err
+}
+
+func (_ Extra) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) (ok Pre, err TransactionValidityError) {
+	switch pre.HasValue {
+	case true:
+		// ok, err = pre.Value.PostDispatch()
+		// if err != nil {
+		// 	return ok, err
+		// }
+
+		ok, err = info.PostDispatch()
+		if err != nil {
+			return ok, err
+		}
+
+		ok, err = postInfo.PostDispatch()
+		if err != nil {
+			return ok, err
+		}
+
+		ok, err = Length(length).PostDispatch()
+		if err != nil {
+			return ok, err
+		}
+
+		ok, err = result.PostDispatch()
+		if err != nil {
+			return ok, err
+		}
+
+	case false:
+		// sc.Empty
+		// info
+		// postInfo
+		// length
+		// result
+	}
+
+	return ok, err
+}
