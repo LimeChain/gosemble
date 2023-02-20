@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"math"
 
-	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/system"
 
+	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/timestamp"
-
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/support"
@@ -17,9 +17,9 @@ import (
 )
 
 var Module = support.ModuleMetadata{
-	Index: 0,
+	Index: system.ModuleIndex,
 	Functions: map[string]support.FunctionMetadata{
-		"remark": {Index: 0, Func: Remark},
+		"remark": {Index: system.FunctionRemarkIndex, Func: Remark},
 	},
 }
 

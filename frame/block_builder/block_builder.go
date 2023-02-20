@@ -6,9 +6,8 @@ package blockbuilder
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/execution/inherent"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/execution/inherent"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"

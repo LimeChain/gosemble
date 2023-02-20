@@ -18,7 +18,7 @@ const (
 	// since it's already in the received block. Note that the custom validation logic
 	// using either `Local` or `External` should most likely just allow `InBlock`
 	// transactions as well.
-	InBlock = TransactionSourceValue(iota)
+	InBlock TransactionSourceValue = iota
 
 	// Transaction is coming from a local source.
 	//
