@@ -26,7 +26,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 			ModuleIndex:   timestamp.Module.Index,
 			FunctionIndex: timestamp.Module.Functions["set"].Index,
 		},
-		Args: sc.BytesToSequenceU8(sc.U64(time).Bytes()),
+		Args: sc.BytesToSequenceU8(sc.ToCompact(time).Bytes()),
 	})
 
 	ienc, err := idata.Encode()
