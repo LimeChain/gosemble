@@ -1,6 +1,6 @@
 package system
 
 const (
-	ModuleIndex = 0
-	FunctionRemarkIndex
+	ModuleIndex         = 0
+	FunctionRemarkIndex = 0
 )
