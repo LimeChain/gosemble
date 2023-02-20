@@ -2,15 +2,33 @@ package timestamp
 
 import (
 	"bytes"
+
 	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/frame/aura"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/support"
 	"github.com/LimeChain/gosemble/primitives/types"
+)
+
+const (
+	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
+	MinimumPeriod           = 1 * 1000   // 1 second
+)
+
+var Module = support.ModuleMetadata{
+	Index: 3,
+	Functions: map[string]support.FunctionMetadata{
+		"set": {Index: 0, Func: Set},
+	},
+}
+
+var (
+	InherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
 )
 
 func CreateInherent(inherent types.InherentData) []byte {
@@ -39,8 +57,8 @@ func CreateInherent(inherent types.InherentData) []byte {
 		Version: types.ExtrinsicFormatVersion,
 		Function: types.Call{
 			CallIndex: types.CallIndex{
-				ModuleIndex:   timestamp.ModuleIndex,
-				FunctionIndex: timestamp.FunctionIndex,
+				ModuleIndex:   Module.Index,
+				FunctionIndex: Module.Functions["set"].Index,
 			},
 			Args: sc.BytesToSequenceU8(nextTimestamp.Bytes()),
 		},

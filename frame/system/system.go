@@ -4,21 +4,24 @@ import (
 	"bytes"
 	"math"
 
-	"github.com/LimeChain/gosemble/frame/timestamp"
-	"github.com/LimeChain/gosemble/primitives/trie"
-
 	sc "github.com/LimeChain/goscale"
+
 	"github.com/LimeChain/gosemble/constants"
-	cts "github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/frame/timestamp"
+
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/support"
+	"github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	ModuleIndex   = 0
-	FunctionIndex = 0
-)
+var Module = support.ModuleMetadata{
+	Index: 0,
+	Functions: map[string]support.FunctionMetadata{
+		"remark": {Index: 0, Func: Remark},
+	},
+}
 
 func Remark(args sc.Sequence[sc.U8]) {
 	// TODO:
@@ -257,10 +260,13 @@ func EnsureInherentsAreFirst(block types.Block) int {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
 			switch call.CallIndex.ModuleIndex {
-			case cts.ModuleIndex:
-				if call.CallIndex.FunctionIndex == cts.FunctionIndex {
-					isInherent = true
+			case timestamp.Module.Index:
+				for funcKey := range timestamp.Module.Functions {
+					if call.CallIndex.FunctionIndex == timestamp.Module.Functions[funcKey].Index {
+						isInherent = true
+					}
 				}
+
 			}
 		}
 
@@ -274,4 +280,11 @@ func EnsureInherentsAreFirst(block types.Block) int {
 	}
 
 	return -1
+}
+
+// The current block number being processed. Set by `execute_block`.
+func StorageGetBlockNumber() types.BlockNumber {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	numberHash := hashing.Twox128(constants.KeyNumber)
+	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 }

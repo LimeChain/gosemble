@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -9,7 +10,7 @@ import (
 
 const (
 	// A normal dispatch.
-	NormalDispatch = DispatchClass(iota)
+	NormalDispatch = DispatchClassValue(iota)
 
 	// An operational dispatch.
 	OperationalDispatch
@@ -31,15 +32,33 @@ const (
 )
 
 // A generalized group of dispatch types.
-type DispatchClass sc.U8
+type DispatchClassValue sc.U8
 
-func (cl DispatchClass) Encode(buffer *bytes.Buffer) {
-	switch cl {
-	case NormalDispatch:
+func (cl DispatchClassValue) Encode(buffer *bytes.Buffer) {
+	sc.U8(cl).Encode(buffer)
+}
+
+func DecodeDispatchClassValue(buffer *bytes.Buffer) DispatchClassValue {
+	return DispatchClassValue(sc.DecodeU8(buffer))
+}
+
+func (cl DispatchClassValue) Bytes() []byte {
+	return sc.EncodedBytes(cl)
+}
+
+type DispatchClass sc.VaryingData
+
+func NewDispatchClass(value DispatchClassValue) DispatchClass {
+	return DispatchClass(sc.NewVaryingData(value))
+}
+
+func (dc DispatchClass) Encode(buffer *bytes.Buffer) {
+	switch reflect.TypeOf(dc) {
+	case reflect.TypeOf(NewDispatchClass(NormalDispatch)):
 		sc.U8(0).Encode(buffer)
-	case OperationalDispatch:
+	case reflect.TypeOf(NewDispatchClass(OperationalDispatch)):
 		sc.U8(1).Encode(buffer)
-	case MandatoryDispatch:
+	case reflect.TypeOf(NewDispatchClass(MandatoryDispatch)):
 		sc.U8(2).Encode(buffer)
 	default:
 		log.Critical("invalid DispatchClass type")
@@ -51,11 +70,11 @@ func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 
 	switch b {
 	case 0:
-		return NormalDispatch
+		return NewDispatchClass(NormalDispatch)
 	case 1:
-		return OperationalDispatch
+		return NewDispatchClass(OperationalDispatch)
 	case 2:
-		return MandatoryDispatch
+		return NewDispatchClass(MandatoryDispatch)
 	default:
 		log.Critical("invalid DispatchClass type")
 	}
@@ -63,6 +82,6 @@ func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 	panic("unreachable")
 }
 
-func (cl DispatchClass) Bytes() []byte {
-	return sc.EncodedBytes(cl)
+func (dc DispatchClass) Bytes() []byte {
+	return sc.EncodedBytes(dc)
 }

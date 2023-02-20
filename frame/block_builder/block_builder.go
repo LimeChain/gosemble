@@ -9,13 +9,10 @@ import (
 	"github.com/LimeChain/gosemble/execution/inherent"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
-	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -71,12 +68,7 @@ SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
 func FinalizeBlock() int64 {
 	system.NoteFinishedExtrinsics()
 
-	systemHash := hashing.Twox128(constants.KeySystem)
-	numberHash := hashing.Twox128(constants.KeyNumber)
-
-	blockNumber := storage.GetDecode(
-		append(systemHash, numberHash...),
-		sc.DecodeU32)
+	blockNumber := system.StorageGetBlockNumber()
 
 	system.IdleAndFinalizeHook(blockNumber)
 

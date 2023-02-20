@@ -41,6 +41,11 @@ func (di DispatchInfo) Validate() (ok ValidTransaction, err TransactionValidityE
 	return ok, err
 }
 
+func (di DispatchInfo) ValidateUnsigned() (ok ValidTransaction, err TransactionValidityError) {
+	// TODO:
+	return ok, err
+}
+
 func (di DispatchInfo) PreDispatch() (ok Pre, err TransactionValidityError) {
 	// TODO:
 	ok = Pre{}

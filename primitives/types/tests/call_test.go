@@ -5,9 +5,18 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/require"
 )
+
+var call = types.Call{
+	CallIndex: types.CallIndex{
+		ModuleIndex:   system.Module.Index,
+		FunctionIndex: system.Module.Functions["remark"].Index,
+	},
+	Args: sc.Sequence[sc.U8]{0xab, 0xcd},
+}
 
 func Test_NewCall(t *testing.T) {
 	var testExamples = []struct {
@@ -17,7 +26,7 @@ func Test_NewCall(t *testing.T) {
 	}{
 		{
 			label: "Encode(Call(System.remark(0xab, 0xcd)))",
-			input: types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
+			input: call,
 			expectation: types.Call{
 				CallIndex: types.CallIndex{
 					ModuleIndex:   0,
@@ -45,7 +54,7 @@ func Test_EncodeCall(t *testing.T) {
 	}{
 		{
 			label:       "Encode(Call(System.remark(0xab, 0xcd)))",
-			input:       types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
+			input:       call,
 			expectation: []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
 		},
 	}
@@ -70,7 +79,7 @@ func Test_DecodeCall(t *testing.T) {
 		{
 			label:       "Decode(0x0, 0x0, 0x8, 0xab, 0xcd)",
 			input:       []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
-			expectation: types.NewCall("System", "remark", sc.Sequence[sc.U8]{0xab, 0xcd}),
+			expectation: call,
 		},
 	}
 
