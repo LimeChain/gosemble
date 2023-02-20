@@ -3,11 +3,10 @@ package timestamp
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/constants/timestamp"
-	"github.com/LimeChain/gosemble/frame/aura"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -16,9 +15,9 @@ import (
 )
 
 var Module = support.ModuleMetadata{
-	Index: 3,
+	Index: timestamp.ModuleIndex,
 	Functions: map[string]support.FunctionMetadata{
-		"set": {Index: 0, Func: Set},
+		"set": {Index: timestamp.FunctionSetIndex, Func: Set},
 	},
 }
 
@@ -83,7 +82,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 	if t > ts+timestamp.MaxTimestampDriftMillis {
 		return types.NewTimestampError(types.TimestampErrorTooFarInFuture)
 	} else if t < minimum {
-		return types.NewTimestampError(types.TimestampErrorValidateTimestamp, minimum)
+		return types.NewTimestampError(types.TimestampErrorTooEarly)
 	}
 
 	return nil

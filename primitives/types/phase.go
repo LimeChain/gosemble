@@ -9,7 +9,7 @@ import (
 
 const (
 	// Applying an extrinsic.
-	PhaseApplyExtrinsic = sc.U32(iota)
+	PhaseApplyExtrinsic sc.U32 = iota
 
 	// Finalizing the block.
 	PhaseFinalization

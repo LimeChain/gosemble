@@ -5,6 +5,7 @@ package core
 
 import (
 	"bytes"
+
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/types"

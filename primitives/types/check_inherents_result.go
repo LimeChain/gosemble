@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	InherentErrorInherentDataExists = sc.U8(iota)
+	InherentErrorInherentDataExists sc.U8 = iota
 	InherentErrorDecodingFailed
-	InherentErrorFatalErrorreported
+	InherentErrorFatalErrorReported
 	InherentErrorApplication
 )
 
@@ -27,7 +27,7 @@ func NewInherentError(values ...sc.Encodable) InherentError {
 
 func (ie InherentError) IsFatal() sc.Bool {
 	switch ie[0] {
-	case InherentErrorFatalErrorreported:
+	case InherentErrorFatalErrorReported:
 		return true
 	default:
 		return false
@@ -42,7 +42,7 @@ func (ie InherentError) Encode(buffer *bytes.Buffer) {
 	case InherentErrorDecodingFailed:
 		ie[0].Encode(buffer)
 		ie[1].Encode(buffer)
-	case InherentErrorFatalErrorreported:
+	case InherentErrorFatalErrorReported:
 		ie[0].Encode(buffer)
 	case InherentErrorApplication:
 		ie[0].Encode(buffer)

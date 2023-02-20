@@ -61,7 +61,7 @@ func (e TransactionValidityError) Bytes() []byte {
 
 const (
 	// The call of the transaction is not expected. Reject
-	CallError = sc.U8(iota)
+	CallError sc.U8 = iota
 
 	// General error to do with the inability to pay some fees (e.g. account balance too low). Reject
 	PaymentError
@@ -202,7 +202,7 @@ func (e InvalidTransaction) Bytes() []byte {
 
 const (
 	// Could not lookup some information that is required to validate the transaction. Reject
-	CannotLookupError = sc.U8(iota)
+	CannotLookupError sc.U8 = iota
 
 	// No validator found for the given unsigned transaction. Reject
 	NoUnsignedValidatorError

@@ -10,7 +10,7 @@ import (
 
 const (
 	// Transactor will pay related fees.
-	PaysYes = PaysValue(iota)
+	PaysYes PaysValue = iota
 
 	// Transactor will NOT pay related fees.
 	PaysNo

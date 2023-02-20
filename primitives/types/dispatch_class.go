@@ -10,7 +10,7 @@ import (
 
 const (
 	// A normal dispatch.
-	NormalDispatch = DispatchClassValue(iota)
+	NormalDispatch DispatchClassValue = iota
 
 	// An operational dispatch.
 	OperationalDispatch

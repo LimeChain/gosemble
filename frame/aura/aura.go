@@ -2,6 +2,8 @@ package aura
 
 import (
 	"bytes"
+	"reflect"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
@@ -11,7 +13,6 @@ import (
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
-	"reflect"
 )
 
 type Slot = sc.U64

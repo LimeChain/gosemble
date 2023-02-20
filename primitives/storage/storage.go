@@ -4,6 +4,7 @@ package storage
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/env"
 	"github.com/LimeChain/gosemble/utils"
