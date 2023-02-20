@@ -233,7 +233,6 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 
 	log.Trace("validate")
 	validator := types.UnsignedValidatorForChecked{}
-	extrinsic.Extrinsic(xt).Validate(validator, source, &dispatchInfo, encodedLen)
 
-	return ok, err
+	return extrinsic.Extrinsic(xt).Validate(validator, source, &dispatchInfo, encodedLen)
 }
