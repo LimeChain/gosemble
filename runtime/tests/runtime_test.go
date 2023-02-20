@@ -2,7 +2,8 @@ package main
 
 import (
 	"bytes"
-	"github.com/LimeChain/gosemble/frame/timestamp"
+	"github.com/LimeChain/gosemble/constants/aura"
+	"github.com/LimeChain/gosemble/constants/timestamp"
 	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"testing"
 	"time"
@@ -23,7 +24,10 @@ import (
 var (
 	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
 	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
+	keyAuraHash, _             = common.Twox128Hash(constants.KeyAura)
+	keyAuthoritiesHash, _      = common.Twox128Hash(constants.KeyAuthorities)
 	keyBlockHash, _            = common.Twox128Hash(constants.KeyBlockHash)
+	keyCurrentSlotHash, _      = common.Twox128Hash(constants.KeyCurrentSlot)
 	keyDigestHash, _           = common.Twox128Hash(constants.KeyDigest)
 	keyExecutionPhaseHash, _   = common.Twox128Hash(constants.KeyExecutionPhase)
 	keyExtrinsicCountHash, _   = common.Twox128Hash(constants.KeyExtrinsicCount)
@@ -38,7 +42,7 @@ var (
 
 var (
 	parentHash     = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
-	stateRoot      = common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880")
+	stateRoot      = common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073")
 	extrinsicsRoot = common.MustHexToHash("0xfbe77e9def055a8d31a21675651765b9438e338d7ff02760b91dcca8bd6ff0fe")
 	blockNumber    = uint(1)
 	sealDigest     = gossamertypes.SealDigest{
@@ -47,16 +51,6 @@ var (
 		Data: []byte{158, 127, 40, 221, 220, 242, 124, 30, 107, 50, 141, 86, 148, 195, 104, 213, 178, 236, 93, 190,
 			14, 65, 42, 225, 201, 143, 136, 213, 59, 228, 216, 80, 47, 172, 87, 31, 63, 25, 201, 202, 175, 40, 26,
 			103, 51, 25, 36, 30, 12, 80, 149, 166, 131, 173, 52, 49, 98, 4, 8, 138, 54, 164, 189, 134},
-	}
-
-	preRuntimeDigest = gossamertypes.PreRuntimeDigest{
-		ConsensusEngineID: gossamertypes.BabeEngineID,
-		// bytes for PreRuntimeDigest that was created in setupHeaderFile function
-		Data: []byte{1, 60, 0, 0, 0, 150, 89, 189, 15, 0, 0, 0, 0, 112, 237, 173, 28, 144, 100, 255,
-			247, 140, 177, 132, 53, 34, 61, 138, 218, 245, 234, 4, 194, 75, 26, 135, 102, 227, 220, 1, 235, 3, 204,
-			106, 12, 17, 183, 151, 147, 212, 227, 28, 192, 153, 8, 56, 34, 156, 68, 254, 209, 102, 154, 124, 124,
-			121, 225, 230, 208, 169, 99, 116, 214, 73, 103, 40, 6, 157, 30, 247, 57, 226, 144, 73, 122, 14, 59, 114,
-			143, 168, 143, 203, 221, 58, 85, 4, 224, 239, 222, 2, 66, 231, 168, 6, 221, 79, 169, 38, 12},
 	}
 )
 
@@ -89,6 +83,16 @@ func Test_CoreVersion(t *testing.T) {
 }
 
 func Test_CoreInitializeBlock(t *testing.T) {
+	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: gossamertypes.BabeEngineID,
+		// bytes for PreRuntimeDigest that was created in setupHeaderFile function
+		Data: []byte{1, 60, 0, 0, 0, 150, 89, 189, 15, 0, 0, 0, 0, 112, 237, 173, 28, 144, 100, 255,
+			247, 140, 177, 132, 53, 34, 61, 138, 218, 245, 234, 4, 194, 75, 26, 135, 102, 227, 220, 1, 235, 3, 204,
+			106, 12, 17, 183, 151, 147, 212, 227, 28, 192, 153, 8, 56, 34, 156, 68, 254, 209, 102, 154, 124, 124,
+			121, 225, 230, 208, 169, 99, 116, 214, 73, 103, 40, 6, 157, 30, 247, 57, 226, 144, 73, 122, 14, 59, 114,
+			143, 168, 143, 203, 221, 58, 85, 4, 224, 239, 222, 2, 66, 231, 168, 6, 221, 79, 169, 38, 12},
+	}
+
 	expectedStorageDigest := gossamertypes.NewDigest()
 
 	digest := gossamertypes.NewDigest()
@@ -191,18 +195,43 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
+	assert.NoError(t, err)
+
 	idata := gossamertypes.NewInherentData()
 	time := time.Now().UnixMilli()
-	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
 
+	buffer := &bytes.Buffer{}
+	buffer.Write(bytesSlotDuration)
+
+	slotDuration := sc.DecodeU64(buffer)
+	buffer.Reset()
+
+	slot := sc.U64(time) / slotDuration
+
+	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: aura.EngineId,
+		Data:              slot.Bytes(),
+	}
+
+	digest := gossamertypes.NewDigest()
+	assert.NoError(t, digest.Add(preRuntimeDigest))
+
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time))
 	assert.NoError(t, err)
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
-
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
-
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
 
@@ -216,6 +245,8 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 
 	assert.Equal(t, []byte{1}, storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
 	assert.Equal(t, sc.U64(time).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+
+	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
@@ -389,27 +420,36 @@ func Test_BlockExecution(t *testing.T) {
 	// blockBuilder.ApplyExtrinsics
 	// blockBuilder.FinalizeBlock
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	storageRoot := common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073") // Depends on timestamp
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	expectedStorageDigest := gossamertypes.NewDigest()
 	digest := gossamertypes.NewDigest()
 
-	preRuntimeDigestItem := gossamertypes.NewDigestItem()
-	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
-	prdi, err := preRuntimeDigestItem.Value()
+	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
-	assert.NoError(t, digest.Add(prdi))
 
-	assert.NoError(t, expectedStorageDigest.Add(prdi))
+	buffer := &bytes.Buffer{}
+	buffer.Write(bytesSlotDuration)
+
+	slotDuration := sc.DecodeU64(buffer)
+	buffer.Reset()
+
+	slot := sc.U64(time.UnixMilli()) / slotDuration
+
+	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: aura.EngineId,
+		Data:              slot.Bytes(),
+	}
+	assert.NoError(t, digest.Add(preRuntimeDigest))
+	assert.NoError(t, expectedStorageDigest.Add(preRuntimeDigest))
 
 	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
-
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
@@ -467,7 +507,6 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, inherentExt)
 
-	buffer := &bytes.Buffer{}
 	buffer.Write([]byte{inherentExt[0]})
 
 	totalInherents := sc.DecodeCompact(buffer)
@@ -508,20 +547,38 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
 	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+
+	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
 }
 
 func Test_ExecuteBlock(t *testing.T) {
 	// blockBuilder.Inherent_Extrinsics
 	// blockBuilder.ExecuteBlock
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	storageRoot := common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073") // Depends on timestamp
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
+	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
+	assert.NoError(t, err)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(bytesSlotDuration)
+
+	slotDuration := sc.DecodeU64(buffer)
+	buffer.Reset()
+
+	slot := sc.U64(time.UnixMilli()) / slotDuration
+
+	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: aura.EngineId,
+		Data:              slot.Bytes(),
+	}
+
 	idata := gossamertypes.NewInherentData()
-	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
 
 	assert.NoError(t, err)
 
@@ -543,7 +600,6 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, inherentExt)
 
-	buffer := &bytes.Buffer{}
 	buffer.Write([]byte{inherentExt[0]})
 
 	totalInherents := sc.DecodeCompact(buffer)
@@ -563,12 +619,8 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	preRuntimeDigestItem := gossamertypes.NewDigestItem()
-	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
-
-	prdi, err := preRuntimeDigestItem.Value()
 	assert.NoError(t, err)
-	assert.NoError(t, digest.Add(prdi))
+	assert.NoError(t, digest.Add(preRuntimeDigest))
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
@@ -598,4 +650,56 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
 	assert.Equal(t, expectedStorageDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+
+	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
+}
+
+func Test_Aura_Authorities_Empty(t *testing.T) {
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	result, err := rt.Exec("AuraApi_authorities", []byte{})
+	assert.NoError(t, err)
+
+	assert.Equal(t, []byte{0}, result)
+}
+
+func Test_Aura_Authorities(t *testing.T) {
+	pubKey1 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee")
+	pubKey2 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ef")
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(pubKey1)
+
+	bytesPubKey1, err := common.Read32Bytes(buffer)
+	assert.NoError(t, err)
+
+	buffer.Write(pubKey2)
+	bytesPubKey2, err := common.Read32Bytes(buffer)
+	assert.NoError(t, err)
+
+	authorities := [][32]byte{
+		bytesPubKey1,
+		bytesPubKey2,
+	}
+
+	bytesAuthorities, err := scale.Marshal(authorities)
+	assert.NoError(t, err)
+
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+
+	err = storage.Put(append(keyAuraHash, keyAuthoritiesHash...), bytesAuthorities)
+	assert.NoError(t, err)
+
+	result, err := rt.Exec("AuraApi_authorities", []byte{})
+	assert.NoError(t, err)
+
+	assert.Equal(t, bytesAuthorities, result)
+
+	var resultAuthorities [][32]byte
+	err = scale.Unmarshal(result, &resultAuthorities)
+	assert.NoError(t, err)
+
+	assert.Equal(t, authorities, resultAuthorities)
 }

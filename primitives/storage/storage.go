@@ -58,8 +58,13 @@ func NextKey(key int64) int64 {
 	panic("not implemented")
 }
 
-func Read(key int64, value_out int64, offset int32) int64 {
-	panic("not implemented")
+func Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
+	value := read(key, valueOut, offset)
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(value)
+
+	return sc.DecodeOption[sc.U32](buffer)
 }
 
 func Root(version int32) []byte {
@@ -115,5 +120,18 @@ func get(key []byte) []byte {
 	valueOffsetSize := env.ExtStorageGetVersion1(keyOffsetSize)
 	offset, size := utils.Int64ToOffsetAndSize(valueOffsetSize)
 	value := utils.ToWasmMemorySlice(offset, size)
+	return value
+}
+
+// read reads the given key value from storage, placing the value into buffer valueOut depending on offset.
+// The wasm memory slice represents an encoded Option<sc.U32> representing the number of bytes left at supplied offset.
+func read(key []byte, valueOut []byte, offset int32) []byte {
+	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	valueOutOffsetSize := utils.BytesToOffsetAndSize(valueOut)
+
+	resultOffsetSize := env.ExtStorageReadVersion1(keyOffsetSize, valueOutOffsetSize, offset)
+	offset, size := utils.Int64ToOffsetAndSize(resultOffsetSize)
+	value := utils.ToWasmMemorySlice(offset, size)
+
 	return value
 }

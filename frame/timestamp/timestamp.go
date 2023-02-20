@@ -2,28 +2,19 @@ package timestamp
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/constants/timestamp"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
-	MinimumPeriod           = 1 * 1000   // 1 second
-	ModuleIndex             = 3
-	FunctionIndex           = 0
-)
-
-var (
-	InherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
-)
-
 func CreateInherent(inherent types.InherentData) []byte {
-	inherentData := inherent.Data[InherentIdentifier]
+	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")
@@ -31,25 +22,25 @@ func CreateInherent(inherent types.InherentData) []byte {
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
-	timestamp := sc.DecodeU64(buffer)
+	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 	buffer.Reset()
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
 
-	nextTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64) + MinimumPeriod
+	nextTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64) + timestamp.MinimumPeriod
 
-	if timestamp > nextTimestamp {
-		nextTimestamp = timestamp
+	if ts > nextTimestamp {
+		nextTimestamp = ts
 	}
 
 	extrinsic := types.UncheckedExtrinsic{
 		Version: types.ExtrinsicFormatVersion,
 		Function: types.Call{
 			CallIndex: types.CallIndex{
-				ModuleIndex:   ModuleIndex,
-				FunctionIndex: FunctionIndex,
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionIndex,
 			},
 			Args: sc.BytesToSequenceU8(nextTimestamp.Bytes()),
 		},
@@ -64,14 +55,14 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 	t := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	inherentData := inherent.Data[InherentIdentifier]
+	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")
 	}
 
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
-	timestamp := sc.DecodeU64(buffer)
+	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 	buffer.Reset()
 
@@ -79,8 +70,8 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 	nowHash := hashing.Twox128(constants.KeyNow)
 	systemNow := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
 
-	minimum := systemNow + MinimumPeriod
-	if t > timestamp+MaxTimestampDriftMillis {
+	minimum := systemNow + timestamp.MinimumPeriod
+	if t > ts+timestamp.MaxTimestampDriftMillis {
 		return types.NewTimestampError(types.TimestampErrorTooFarInFuture)
 	} else if t < minimum {
 		return types.NewTimestampError(types.TimestampErrorValidateTimestamp, minimum)
@@ -102,7 +93,7 @@ func Set(now sc.U64) {
 	nowHash := hashing.Twox128(constants.KeyNow)
 	previousTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
 
-	if !(previousTimestamp == 0 || now >= previousTimestamp+MinimumPeriod) {
+	if !(previousTimestamp == 0 || now >= previousTimestamp+timestamp.MinimumPeriod) {
 		log.Critical("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
 	}
 
@@ -111,6 +102,7 @@ func Set(now sc.U64) {
 
 	// TODO: Every consensus that uses the timestamp must implement
 	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
+	aura.OnTimestampSet(now)
 }
 
 func OnFinalize() {

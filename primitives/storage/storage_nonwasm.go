@@ -35,7 +35,7 @@ func NextKey(key int64) int64 {
 	panic("not implemented")
 }
 
-func Read(key int64, value_out int64, offset int32) int64 {
+func Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
 	panic("not implemented")
 }
 
