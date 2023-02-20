@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +23,7 @@ var (
 )
 
 func Test_InherentData_Encode(t *testing.T) {
-	inherent := types.NewInherentData()
+	inherent := NewInherentData()
 	assert.Nil(t, inherent.Put(key0, value0))
 	assert.Nil(t, inherent.Put(key1, value1))
 
@@ -37,7 +36,7 @@ func Test_InherentData_Decode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(expectedEncoded)
 
-	res, err := types.DecodeInherentData(buffer)
+	res, err := DecodeInherentData(buffer)
 	assert.Nil(t, err)
 
 	buffer.Reset()

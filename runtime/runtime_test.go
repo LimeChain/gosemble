@@ -49,8 +49,8 @@ var (
 	}
 )
 
-// const WASM_RUNTIME = "../../build/polkadot_runtime-v9370.compact.compressed.wasm"
-// const WASM_RUNTIME = "../../build/westend_runtime-v9370.compact.compressed.wasm"
-// const WASM_RUNTIME = "../../build/node_template_runtime.wasm"
-// const WASM_RUNTIME = "../../build/runtime-optimized.wasm" // min memory: 257
-const WASM_RUNTIME = "../../build/runtime.wasm"
+// const WASM_RUNTIME = "../build/polkadot_runtime-v9370.compact.compressed.wasm"
+// const WASM_RUNTIME = "../build/westend_runtime-v9370.compact.compressed.wasm"
+// const WASM_RUNTIME = "../build/node_template_runtime.wasm"
+// const WASM_RUNTIME = "../build/runtime-optimized.wasm" // min memory: 257
+const WASM_RUNTIME = "../build/runtime.wasm"

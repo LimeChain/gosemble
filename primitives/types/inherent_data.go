@@ -3,8 +3,9 @@ package types
 import (
 	"bytes"
 	"errors"
-	sc "github.com/LimeChain/goscale"
 	"sort"
+
+	sc "github.com/LimeChain/goscale"
 )
 
 type InherentData struct {

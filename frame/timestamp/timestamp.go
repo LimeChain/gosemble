@@ -15,21 +15,12 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
-	MinimumPeriod           = 1 * 1000   // 1 second
-)
-
 var Module = support.ModuleMetadata{
 	Index: 3,
 	Functions: map[string]support.FunctionMetadata{
 		"set": {Index: 0, Func: Set},
 	},
 }
-
-var (
-	InherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
-)
 
 func CreateInherent(inherent types.InherentData) []byte {
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
