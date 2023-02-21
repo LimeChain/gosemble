@@ -8,6 +8,7 @@ import (
 
 var (
 	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
+	keyAccountHash, _          = common.Twox128Hash(constants.KeyAccount)
 	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
 	keyAuraHash, _             = common.Twox128Hash(constants.KeyAura)
 	keyAuthoritiesHash, _      = common.Twox128Hash(constants.KeyAuthorities)
