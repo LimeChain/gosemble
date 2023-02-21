@@ -50,7 +50,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 				ModuleIndex:   Module.Index,
 				FunctionIndex: Module.Functions["set"].Index,
 			},
-			Args: sc.BytesToSequenceU8(nextTimestamp.Bytes()),
+			Args: sc.BytesToSequenceU8(sc.ToCompact(uint64(nextTimestamp)).Bytes()),
 		},
 	}
 
@@ -60,7 +60,8 @@ func CreateInherent(inherent types.InherentData) []byte {
 func CheckInherent(call types.Call, inherent types.InherentData) types.TimestampError {
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(call.Args))
-	t := sc.DecodeU64(buffer)
+	compactTimestamp := sc.DecodeCompact(buffer)
+	t := sc.U64(compactTimestamp.ToBigInt().Uint64())
 	buffer.Reset()
 
 	inherentData := inherent.Data[timestamp.InherentIdentifier]

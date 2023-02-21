@@ -99,7 +99,7 @@ func Test_BlockExecution(t *testing.T) {
 			ModuleIndex:   timestamp.Module.Index,
 			FunctionIndex: timestamp.Module.Functions["set"].Index,
 		},
-		Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		Args: sc.BytesToSequenceU8(sc.ToCompact(time.UnixMilli()).Bytes()),
 	})
 
 	ienc, err := idata.Encode()
@@ -192,7 +192,7 @@ func Test_ExecuteBlock(t *testing.T) {
 			ModuleIndex:   timestamp.Module.Index,
 			FunctionIndex: timestamp.Module.Functions["set"].Index,
 		},
-		Args: sc.BytesToSequenceU8(sc.U64(time.UnixMilli()).Bytes()),
+		Args: sc.BytesToSequenceU8(sc.ToCompact(time.UnixMilli()).Bytes()),
 	})
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)

@@ -109,7 +109,9 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 		case timestamp.Module.Functions["set"].Index:
 			buffer := &bytes.Buffer{}
 			buffer.Write(sc.SequenceU8ToBytes(call.Args))
-			ts := sc.DecodeU64(buffer)
+			compactTs := sc.DecodeCompact(buffer)
+			ts := sc.U64(compactTs.ToBigInt().Uint64())
+
 			timestamp.Set(ts)
 		default:
 			log.Critical("system.function with index " + string(call.CallIndex.ModuleIndex) + "not found")
