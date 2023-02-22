@@ -19,6 +19,12 @@ func Twox64(value []byte) []byte {
 	return utils.ToWasmMemorySlice(r, 8)
 }
 
+func Blake128(value []byte) []byte {
+	keyOffsetSize := utils.BytesToOffsetAndSize(value)
+	r := env.ExtHashingBlake2128Version1(keyOffsetSize)
+	return utils.ToWasmMemorySlice(r, 16)
+}
+
 func Blake256(value []byte) []byte {
 	keyOffsetSize := utils.BytesToOffsetAndSize(value)
 	r := env.ExtHashingBlake2256Version1(keyOffsetSize)

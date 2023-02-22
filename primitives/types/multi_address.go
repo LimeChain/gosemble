@@ -44,17 +44,7 @@ func (a MultiAddress) AsAccountId() AccountId {
 }
 
 // It's an account index.
-type AccountIndex struct {
-	sc.U64
-}
-
-func (a AccountIndex) Encode(buffer *bytes.Buffer) {
-	a.U64.Encode(buffer)
-}
-
-func DecodeAccountIndex(buffer *bytes.Buffer) AccountIndex {
-	return AccountIndex{sc.DecodeU64(buffer)}
-}
+type AccountIndex = sc.U32
 
 func (a MultiAddress) IsAccountIndex() sc.Bool {
 	switch a[0].(type) {
@@ -236,7 +226,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 	case 0:
 		return MultiAddress{DecodeAccountId(buffer)}
 	case 1:
-		return MultiAddress{DecodeAccountIndex(buffer)}
+		return MultiAddress{sc.DecodeU32(buffer)}
 	case 2:
 		return MultiAddress{DecodeAccountRaw(buffer)}
 	case 3:

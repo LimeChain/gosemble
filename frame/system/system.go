@@ -288,3 +288,18 @@ func StorageGetBlockNumber() types.BlockNumber {
 	numberHash := hashing.Twox128(constants.KeyNumber)
 	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 }
+
+func StorageAccountNonce(who types.PublicKey) types.AccountIndex {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	accountHash := hashing.Twox128(constants.KeyAccount)
+
+	whoBytes := sc.FixedSequenceU8ToBytes(who)
+
+	key := append(systemHash, accountHash...)
+	key = append(key, hashing.Blake128(whoBytes)...)
+	key = append(key, whoBytes...)
+
+	accountInfo := storage.GetDecode(key, types.DecodeAccountInfo)
+
+	return accountInfo.Nonce
+}

@@ -4,6 +4,7 @@ Targets WebAssembly MVP
 package main
 
 import (
+	"github.com/LimeChain/gosemble/frame/account_nonce"
 	"github.com/LimeChain/gosemble/frame/aura"
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
@@ -63,4 +64,9 @@ func AuraApiSlotDuration(dataPtr int32, dataLen int32) int64 {
 //go:export AuraApi_authorities
 func AuraApiAuthorities(dataPtr int32, dataLen int32) int64 {
 	return aura.Authorities()
+}
+
+//go:export AccountNonceApi_account_nonce
+func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
+	return account_nonce.AccountNonce(dataPtr, dataLen)
 }

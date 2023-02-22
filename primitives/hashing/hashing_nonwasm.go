@@ -16,6 +16,11 @@ func Twox64(value []byte) []byte {
 	return h[:]
 }
 
+func Blake128(value []byte) []byte {
+	h, _ := common.Blake2b128(value)
+	return h[:]
+}
+
 func Blake256(value []byte) []byte {
 	h, _ := common.Blake2bHash(value)
 	return h[:]

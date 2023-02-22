@@ -2,6 +2,7 @@ package constants
 
 var (
 	KeySystem             = []byte("System")
+	KeyAccount            = []byte("Account")
 	KeyAllExtrinsicsLen   = []byte("AllExtrinsicsLen")
 	KeyAura               = []byte("Aura")
 	KeyAuthorities        = []byte("Authorities")
