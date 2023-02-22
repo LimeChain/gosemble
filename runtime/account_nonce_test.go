@@ -19,11 +19,6 @@ func Test_AccountNonceApi_account_nonce_Empty(t *testing.T) {
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
-	hash, _ := common.Blake2b128(pubKey1)
-	key := append(keySystemHash, keyAccountHash...)
-	key = append(key, hash...)
-	key = append(key, pubKey1...)
-
 	result, err := rt.Exec("AccountNonceApi_account_nonce", pubKey1)
 	assert.NoError(t, err)
 
