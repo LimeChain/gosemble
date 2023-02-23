@@ -44,7 +44,7 @@ func (a MultiAddress) AsAccountId() AccountId {
 }
 
 // It's an account index.
-type AccountIndex = sc.U32
+type AccountIndex = sc.U32 // TODO: encode as Compact
 
 func (a MultiAddress) IsAccountIndex() sc.Bool {
 	switch a[0].(type) {
@@ -134,10 +134,6 @@ func (a MultiAddress) AsAddress32() Address32 {
 	}
 
 	panic("unreachable")
-}
-
-func (a Address32) Validate() (ok ValidTransaction, err TransactionValidityError) {
-	return ok, err
 }
 
 func (a Address32) PreDispatch() (ok Pre, err TransactionValidityError) {

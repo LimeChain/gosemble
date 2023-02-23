@@ -35,31 +35,3 @@ func DecodeDispatchInfo(buffer *bytes.Buffer) DispatchInfo {
 func (di DispatchInfo) Bytes() []byte {
 	return sc.EncodedBytes(di)
 }
-
-func (di DispatchInfo) Validate() (ok ValidTransaction, err TransactionValidityError) {
-	// TODO:
-	return ok, err
-}
-
-func (di DispatchInfo) ValidateUnsigned() (ok ValidTransaction, err TransactionValidityError) {
-	// TODO:
-	return ok, err
-}
-
-func (di DispatchInfo) PreDispatch() (ok Pre, err TransactionValidityError) {
-	// TODO:
-	ok = Pre{}
-	return ok, err
-}
-
-func (di DispatchInfo) PreDispatchUnsigned() (ok Pre, err TransactionValidityError) {
-	// TODO:
-	ok = Pre{}
-	return ok, err
-}
-
-func (di DispatchInfo) PostDispatch() (ok Pre, err TransactionValidityError) {
-	// TODO:
-	ok = Pre{}
-	return ok, err
-}

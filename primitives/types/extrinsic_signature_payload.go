@@ -12,28 +12,21 @@ import (
 // Note that the payload that we sign to produce unchecked extrinsic signature
 // is going to be different than the `SignaturePayload` - so the thing the extrinsic
 // actually contains.
-type SignedPayload struct { // TODO: make it generic [C Call, E SignedExtension]
+//
+// TODO: make it generic
+// generic::SignedPayload<RuntimeCall, SignedExtra>;
+type SignedPayload struct {
 	// Address   MultiAddress
 	// Signature MultiSignature
 
+	// Mi: the indicator of the Polkadot module
+	// Fi(m):  the function indicator of the module
 	Call Call
 
-	Extra Extra
-	// Weight
+	Extra SignedExtra
 
 	AdditionalSigned
 }
-
-// type SignedExtension struct {
-// 	// Mi: the indicator of the Polkadot module
-// 	// Fi(m):  the function indicator of the module
-// 	Call Call
-
-// 	// E: the extra data
-// 	Extra Extra
-
-// 	AdditionalSigned
-// }
 
 type AdditionalSigned struct {
 	// Rv: a UINT32 containing the specification version of 14.
@@ -56,7 +49,7 @@ type AdditionalSigned struct {
 // Create new `SignedPayload`.
 //
 // This function may fail if `additional_signed` of `Extra` is not available.
-func NewSignedPayload(call Call, extra Extra) (sp SignedPayload, err TransactionValidityError) {
+func NewSignedPayload(call Call, extra SignedExtra) (sp SignedPayload, err TransactionValidityError) {
 	additionalSigned, err := extra.AdditionalSigned()
 	if err != nil {
 		return sp, err

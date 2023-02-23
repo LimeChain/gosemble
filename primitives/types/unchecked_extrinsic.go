@@ -11,10 +11,10 @@ import (
 )
 
 // A extrinsic right from the external world. This is unchecked and so can contain a signature.
+//
+// TODO: make it generic
+// generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 type UncheckedExtrinsic struct {
-	// TODO:
-	// make it generic
-	// UncheckedExtrinsic[Address, Call, Signature, Extra] where Extra: SignedExtension
 	Version sc.U8
 
 	// The signature, address, number of extrinsics have come before from
@@ -34,7 +34,7 @@ func NewUncheckedExtrinsic(function Call, signedData sc.Option[ExtrinsicSignatur
 }
 
 // New instance of a signed extrinsic aka "transaction".
-func NewSignedUncheckedExtrinsic(function Call, address MultiAddress, signature MultiSignature, extra Extra) UncheckedExtrinsic {
+func NewSignedUncheckedExtrinsic(function Call, address MultiAddress, signature MultiSignature, extra SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version: sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned),
 		Signature: sc.NewOption[ExtrinsicSignature](
@@ -99,10 +99,7 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	var extSignature sc.Option[ExtrinsicSignature]
 	if isSigned {
-		// extSignature = sc.DecodeOption[ExtrinsicSignature](buffer)
-		if hasValue := sc.DecodeU8(buffer); hasValue == 1 {
-			extSignature = sc.NewOption[ExtrinsicSignature](DecodeExtrinsicSignature(buffer))
-		}
+		extSignature = sc.DecodeOptionWith(buffer, DecodeExtrinsicSignature)
 	}
 
 	function := DecodeCall(buffer)
@@ -130,9 +127,9 @@ func (uxt UncheckedExtrinsic) Bytes() []byte {
 func (uxt UncheckedExtrinsic) Check(lookup AccountIdLookup) (xt CheckedExtrinsic, err TransactionValidityError) {
 	switch uxt.Signature.HasValue {
 	case true:
-		signed, signature, extra := uxt.Signature.Value.Signer, uxt.Signature.Value.Signature, uxt.Signature.Value.Extra
+		signer, signature, extra := uxt.Signature.Value.Signer, uxt.Signature.Value.Signature, uxt.Signature.Value.Extra
 
-		signedAddress, err := lookup.Lookup(signed)
+		signedAddress, err := lookup.Lookup(signer)
 		if err != nil {
 			return xt, err
 		}
@@ -151,7 +148,7 @@ func (uxt UncheckedExtrinsic) Check(lookup AccountIdLookup) (xt CheckedExtrinsic
 		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
 
 		xt = CheckedExtrinsic{
-			Signed:   sc.NewOption[AccountIdExtra](AccountIdExtra{Address32: signedAddress, Extra: extra}),
+			Signed:   sc.NewOption[AccountIdExtra](AccountIdExtra{Address32: signedAddress, SignedExtra: extra}),
 			Function: function,
 		}
 	case false:

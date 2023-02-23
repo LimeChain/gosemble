@@ -7,13 +7,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type TransactionPriority sc.U64
-
-func (tp TransactionPriority) SaturatingAdd(otherTp TransactionPriority) TransactionPriority {
-	// TODO:
-	return tp + otherTp
-}
-
+type TransactionPriority = sc.U64
 type TransactionLongevity = sc.U64
 type TransactionTag = sc.Sequence[sc.U8]
 
@@ -54,12 +48,21 @@ type ValidTransaction struct {
 }
 
 func (tx ValidTransaction) Encode(buffer *bytes.Buffer) {
-	// TODO:
+	tx.Priority.Encode(buffer)
+	tx.Requires.Encode(buffer)
+	tx.Provides.Encode(buffer)
+	tx.Longevity.Encode(buffer)
+	tx.Propagate.Encode(buffer)
 }
 
 func DecodeValidTransaction(buffer *bytes.Buffer) ValidTransaction {
-	// TODO:
-	return ValidTransaction{}
+	return ValidTransaction{
+		Priority:  sc.DecodeU64(buffer),
+		Requires:  sc.DecodeSequence[TransactionTag](buffer),
+		Provides:  sc.DecodeSequence[TransactionTag](buffer),
+		Longevity: sc.DecodeU64(buffer),
+		Propagate: sc.DecodeBool(buffer),
+	}
 }
 
 func (tx ValidTransaction) Bytes() []byte {

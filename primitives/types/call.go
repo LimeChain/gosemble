@@ -47,30 +47,3 @@ func DecodeCallIndex(buffer *bytes.Buffer) CallIndex {
 func (ci CallIndex) Bytes() []byte {
 	return sc.EncodedBytes(ci)
 }
-
-func (c Call) Validate() (ok ValidTransaction, err TransactionValidityError) {
-	// TODO
-	return ok, err
-}
-
-func (c Call) ValidateUnsigned() (ok ValidTransaction, err TransactionValidityError) {
-	// TODO
-	return ok, err
-}
-
-func (c Call) PreDispatch() (ok Pre, err TransactionValidityError) {
-	// TODO
-	ok = Pre{}
-	return ok, err
-}
-
-func (c Call) PreDispatchUnsigned() (ok Pre, err TransactionValidityError) {
-	// TODO
-	ok = Pre{}
-	return ok, err
-}
-
-func (c Call) Dispatch(i interface{}) (ok PostDispatchInfo, err DispatchError) {
-	// TODO
-	return ok, err
-}
