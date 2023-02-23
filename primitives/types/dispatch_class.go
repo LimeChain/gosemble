@@ -10,7 +10,7 @@ import (
 
 const (
 	// A normal dispatch.
-	NormalDispatch DispatchClassValue = iota
+	NormalDispatch sc.U8 = iota
 
 	// An operational dispatch.
 	OperationalDispatch
@@ -32,24 +32,17 @@ const (
 )
 
 // A generalized group of dispatch types.
-type DispatchClassValue sc.U8
-
-func (cl DispatchClassValue) Encode(buffer *bytes.Buffer) {
-	sc.U8(cl).Encode(buffer)
-}
-
-func DecodeDispatchClassValue(buffer *bytes.Buffer) DispatchClassValue {
-	return DispatchClassValue(sc.DecodeU8(buffer))
-}
-
-func (cl DispatchClassValue) Bytes() []byte {
-	return sc.EncodedBytes(cl)
-}
-
 type DispatchClass sc.VaryingData
 
-func NewDispatchClass(value DispatchClassValue) DispatchClass {
-	return DispatchClass(sc.NewVaryingData(value))
+func NewDispatchClass(value sc.U8) DispatchClass {
+	switch value {
+	case NormalDispatch, OperationalDispatch, MandatoryDispatch:
+		return DispatchClass(sc.NewVaryingData(value))
+	default:
+		log.Critical("invalid DispatchClass type")
+	}
+
+	panic("unreachable")
 }
 
 func (dc DispatchClass) Encode(buffer *bytes.Buffer) {
@@ -84,4 +77,27 @@ func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 
 func (dc DispatchClass) Bytes() []byte {
 	return sc.EncodedBytes(dc)
+}
+
+func (dc DispatchClass) Is(value sc.U8) sc.Bool {
+	switch value {
+	case NormalDispatch, OperationalDispatch, MandatoryDispatch:
+		return dc[0] == value
+	default:
+		log.Critical("invalid DispatchClass type")
+	}
+
+	panic("unreachable")
+}
+
+// A struct holding value for each `DispatchClass`.
+type PerDispatchClass[T sc.Encodable] struct {
+	// Value for `Normal` extrinsics.
+	Normal T
+
+	// Value for `Operational` extrinsics.
+	Operational T
+
+	// Value for `Mandatory` extrinsics.
+	Mandatory T
 }

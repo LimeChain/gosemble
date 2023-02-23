@@ -111,6 +111,9 @@ func Set(now sc.U64) {
 
 	// TODO: Every consensus that uses the timestamp must implement
 	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
+
+	// TODO:
+	// timestamp module should not depend on the aura module
 	aura.OnTimestampSet(now)
 }
 

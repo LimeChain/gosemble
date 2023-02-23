@@ -185,10 +185,7 @@ func ResetEvents() {
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
 
-	limit := sc.Option[sc.U32]{
-		HasValue: true,
-		Value:    sc.U32(math.MaxUint32),
-	}
+	limit := sc.NewOption[sc.U32](sc.U32(math.MaxUint32))
 	storage.ClearPrefix(append(systemHash, eventTopicHash...), limit.Bytes())
 }
 
@@ -239,7 +236,7 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 	storage.Set(constants.KeyExtrinsicIndex, nextExtrinsicIndex.Bytes())
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), (types.NewPhase(types.PhaseApplyExtrinsic, nextExtrinsicIndex)).Bytes())
+	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), (types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, nextExtrinsicIndex)).Bytes())
 }
 
 // Gets the index of extrinsic that is currently executing.
@@ -287,6 +284,12 @@ func StorageGetBlockNumber() types.BlockNumber {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
 	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
+}
+
+func StorageGetAllExtrinsicsLen() sc.U32 {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
+	return storage.GetDecode(append(systemHash, allExtrinsicsLenHash...), sc.DecodeU32)
 }
 
 func StorageAccountNonce(who types.PublicKey) types.AccountIndex {

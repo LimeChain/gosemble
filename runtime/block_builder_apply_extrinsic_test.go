@@ -99,10 +99,10 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 		),
 	)
 
-	extra := types.Extra{
-		Era:   types.ExtrinsicEra{},
-		Nonce: sc.ToCompact(0),
-		Fee:   sc.ToCompact(0),
+	extra := types.SignedExtra{
+		Era:   types.Era{},
+		Nonce: 0,
+		Fee:   0,
 	}
 
 	uxt := types.NewSignedUncheckedExtrinsic(call, signer, signature, extra)
@@ -179,10 +179,10 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 		),
 	)
 
-	extra := types.Extra{
-		Era:   types.ExtrinsicEra{},
-		Nonce: sc.ToCompact(1), // instead of 0 to make the signature invalid
-		Fee:   sc.ToCompact(0),
+	extra := types.SignedExtra{
+		Era:   types.Era{},
+		Nonce: 1, // instead of 0 to make the signature invalid
+		Fee:   0,
 	}
 
 	invalidSignature := types.NewMultiSignature(
