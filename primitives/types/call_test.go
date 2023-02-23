@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 var call = Call{
@@ -37,9 +37,9 @@ func Test_NewCall(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			require.Equal(t, testExample.input.CallIndex.ModuleIndex, testExample.expectation.CallIndex.ModuleIndex)
-			require.Equal(t, testExample.input.CallIndex.FunctionIndex, testExample.expectation.CallIndex.FunctionIndex)
-			require.Equal(t, testExample.input.Args, testExample.expectation.Args)
+			assert.Equal(t, testExample.input.CallIndex.ModuleIndex, testExample.expectation.CallIndex.ModuleIndex)
+			assert.Equal(t, testExample.input.CallIndex.FunctionIndex, testExample.expectation.CallIndex.FunctionIndex)
+			assert.Equal(t, testExample.input.Args, testExample.expectation.Args)
 		})
 	}
 }
@@ -63,7 +63,7 @@ func Test_EncodeCall(t *testing.T) {
 
 			testExample.input.Encode(buffer)
 
-			require.Equal(t, testExample.expectation, buffer.Bytes())
+			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
 }
@@ -88,7 +88,7 @@ func Test_DecodeCall(t *testing.T) {
 
 			result := DecodeCall(buffer)
 
-			require.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }

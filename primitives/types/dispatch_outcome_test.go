@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 // dispatchOutcome.Encode(buffer)
@@ -25,7 +25,7 @@ func Test_EncodeDispatchOutcome(t *testing.T) {
 
 			testExample.input.Encode(buffer)
 
-			require.Equal(t, testExample.expectation, buffer.Bytes())
+			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
 }
@@ -47,7 +47,7 @@ func Test_DecodeDispatchOutcome(t *testing.T) {
 
 			result := DecodeDispatchOutcome(buffer)
 
-			require.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }

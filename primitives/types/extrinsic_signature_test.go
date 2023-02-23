@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_EncodeExtrinsicSignature(t *testing.T) {
@@ -31,7 +31,7 @@ func Test_EncodeExtrinsicSignature(t *testing.T) {
 
 			testExample.input.Encode(buffer)
 
-			require.Equal(t, testExample.expectation, buffer.Bytes())
+			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
 }
@@ -60,7 +60,7 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 
 			s := DecodeExtrinsicSignature(buffer)
 
-			require.Equal(t, testExample.expectation.Signer, s.Signer)
+			assert.Equal(t, testExample.expectation.Signer, s.Signer)
 		})
 	}
 }

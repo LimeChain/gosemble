@@ -16,7 +16,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
@@ -95,12 +94,12 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	signature := types.NewMultiSignature(
 		types.NewEd25519(
-			0xb5, 0x1b, 0xc6, 0xf6, 0xe9, 0xf7, 0x07, 0x90, 0x03, 0xad, 0xc9, 0x8e, 0xd2, 0x16, 0x22, 0xd0, 0xd8, 0x87, 0xd6, 0x8e, 0x86, 0x45, 0xb5, 0xcb, 0x99, 0xe3, 0xd6, 0x08, 0x0a, 0xa8, 0xc9, 0xdd, 0x40, 0x8c, 0xa3, 0x9c, 0x91, 0xd9, 0xc7, 0x0a, 0x49, 0xa3, 0x77, 0xbc, 0x2b, 0x55, 0x04, 0xe3, 0x64, 0x27, 0xe1, 0x84, 0x5b, 0x38, 0x20, 0xc5, 0x8c, 0x95, 0xf1, 0x46, 0xf0, 0xce, 0xc2, 0x03,
+			0x35, 0x94, 0x65, 0x0a, 0x75, 0x2f, 0x5b, 0x8a, 0x48, 0x53, 0xb6, 0x63, 0x90, 0xea, 0x20, 0x78, 0xb4, 0x47, 0x25, 0x24, 0x6d, 0x65, 0x4e, 0xc9, 0x45, 0x09, 0xee, 0x2f, 0xa8, 0x99, 0x16, 0xa7, 0x4f, 0xa8, 0xd7, 0x70, 0xf3, 0x4b, 0x81, 0xb1, 0x6a, 0xdb, 0x08, 0x89, 0x9f, 0xf2, 0x23, 0xe4, 0xf6, 0x11, 0x78, 0xe9, 0x8c, 0x42, 0xc6, 0xa9, 0xbf, 0xef, 0xb9, 0x87, 0xa4, 0x17, 0x62, 0x08,
 		),
 	)
 
 	extra := types.SignedExtra{
-		Era:   types.Era{},
+		Era:   types.NewEra(types.ImmortalEra{}),
 		Nonce: 0,
 		Fee:   0,
 	}
@@ -111,7 +110,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	currentExtrinsicIndex := sc.U32(1)
 	extrinsicIndexValue := rt.GetContext().Storage.Get(constants.KeyExtrinsicIndex)
-	require.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
+	assert.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
 
 	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicDataHash...)
 
@@ -122,11 +121,11 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
 	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
 
-	require.Equal(t, uxt.Bytes(), storageUxt)
+	assert.Equal(t, uxt.Bytes(), storageUxt)
 
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	require.Equal(t,
+	assert.Equal(t,
 		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
 		res,
 	)
@@ -152,9 +151,9 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
 
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	require.Equal(t,
+	assert.Equal(t,
 		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
 		res,
 	)
@@ -180,7 +179,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	)
 
 	extra := types.SignedExtra{
-		Era:   types.Era{},
+		Era:   types.NewEra(types.ImmortalEra{}),
 		Nonce: 1, // instead of 0 to make the signature invalid
 		Fee:   0,
 	}
@@ -197,11 +196,11 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 
 	extrinsicIndex := sc.U32(0)
 	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
-	require.Equal(t, []byte(nil), extrinsicIndexValue)
+	assert.Equal(t, []byte(nil), extrinsicIndexValue)
 
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
-	require.Equal(t,
+	assert.Equal(t,
 		types.NewApplyExtrinsicResult(
 			types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadProofError)),
 		).Bytes(),

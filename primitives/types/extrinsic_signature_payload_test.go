@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_UsingEncoded_SignedPayload256(t *testing.T) {
@@ -25,7 +25,7 @@ func Test_UsingEncoded_SignedPayload256(t *testing.T) {
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
 			enc := sc.SequenceU8ToBytes(testExample.input.UsingEncoded())
-			require.Equal(t, testExample.expectation, enc)
+			assert.Equal(t, testExample.expectation, enc)
 		})
 	}
 }
@@ -48,7 +48,7 @@ func Test_UsingEncoded_SignedPayload257(t *testing.T) {
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
 			enc := sc.SequenceU8ToBytes(testExample.input.UsingEncoded())
-			require.Equal(t, testExample.expectation, enc)
+			assert.Equal(t, testExample.expectation, enc)
 		})
 	}
 }

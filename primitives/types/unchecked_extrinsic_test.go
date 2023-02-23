@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 var remarkCall = Call{
@@ -35,8 +35,8 @@ func Test_EncodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 
 			testExample.input.Encode(buffer)
 
-			require.Equal(t, testExample.expectation, buffer.Bytes())
-			require.Equal(t, sc.Bool(false), testExample.input.IsSigned())
+			assert.Equal(t, testExample.expectation, buffer.Bytes())
+			assert.Equal(t, sc.Bool(false), testExample.input.IsSigned())
 		})
 	}
 }
@@ -61,7 +61,7 @@ func Test_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 
 			result := DecodeUncheckedExtrinsic(buffer)
 
-			require.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }
@@ -93,9 +93,9 @@ func Test_EncodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 			testExample.input.Encode(buffer)
 
-			require.Equal(t, testExample.expectation, buffer.Bytes())
-			require.Equal(t, sc.Bool(true), testExample.input.IsSigned())
-			require.Equal(t, sc.U8(132), testExample.input.Version)
+			assert.Equal(t, testExample.expectation, buffer.Bytes())
+			assert.Equal(t, sc.Bool(true), testExample.input.IsSigned())
+			assert.Equal(t, sc.U8(132), testExample.input.Version)
 		})
 	}
 }
@@ -128,7 +128,7 @@ func Test_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 			result := DecodeUncheckedExtrinsic(buffer)
 
-			require.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }
