@@ -74,14 +74,14 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	// Decode parameters and dispatch
 	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
 
-	validator := types.UnsignedValidatorForChecked{}
-	res, err := extrinsic.Extrinsic(xt).Apply(validator, &dispatchInfo, encodedLen)
+	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
+	res, err := extrinsic.Extrinsic(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if res.HasError && (reflect.ValueOf(dispatchInfo.Class) == reflect.ValueOf(types.NewDispatchClass(types.MandatoryDispatch))) {
+	if res.HasError && dispatchInfo.Class.Is(types.MandatoryDispatch) {
 		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadMandatoryError))
 	}
 
@@ -158,7 +158,7 @@ func runtimeUpgrade() sc.Bool {
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
 
 		valueLru := append(
-			sc.ToCompact(uint64(constants.RuntimeVersion.SpecVersion)).Bytes(),
+			sc.ToCompact(constants.RuntimeVersion.SpecVersion).Bytes(),
 			constants.RuntimeVersion.SpecName.Bytes()...)
 		storage.Set(keyLru, valueLru)
 
@@ -225,12 +225,11 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	log.Trace("dispatch_info")
 	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
 
-	if reflect.ValueOf(dispatchInfo.Class) == reflect.ValueOf(types.NewDispatchClass(types.MandatoryDispatch)) {
+	if dispatchInfo.Class.Is(types.MandatoryDispatch) {
 		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.MandatoryValidationError))
 	}
 
 	log.Trace("validate")
-	validator := types.UnsignedValidatorForChecked{}
-
-	return extrinsic.Extrinsic(xt).Validate(validator, source, &dispatchInfo, encodedLen)
+	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
+	return extrinsic.Extrinsic(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
