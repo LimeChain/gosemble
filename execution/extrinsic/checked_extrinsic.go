@@ -38,7 +38,7 @@ func (xt Extrinsic) Apply(validator types.UnsignedValidator, info *types.Dispatc
 
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
-		pre, err := system.PreDispatch(extra, &id, &xt.Function, info, length)
+		pre, err := system.Extra(extra).PreDispatch(&id, &xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
@@ -52,7 +52,7 @@ func (xt Extrinsic) Apply(validator types.UnsignedValidator, info *types.Dispatc
 		//
 		// If you ever override this function, you need to make sure to always
 		// perform the same validation as in `ValidateUnsigned`.
-		_, err := system.PreDispatchUnsigned(&xt.Function, info, length)
+		_, err := system.Extra{}.PreDispatchUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
@@ -74,7 +74,7 @@ func (xt Extrinsic) Apply(validator types.UnsignedValidator, info *types.Dispatc
 	postInfo = postDispatchInfo
 
 	dispatchResult := types.NewDispatchResult(resWithInfo.Err)
-	_, err = system.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	_, err = system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
 	dispatchResultWithPostInfo := types.DispatchResultWithPostInfo[types.PostDispatchInfo]{}
 	if resWithInfo.HasError {

@@ -2,7 +2,6 @@ package system
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -42,8 +41,6 @@ func (e Extra) Validate(who *types.Address32, call *types.Call, info *types.Disp
 
 	// TODO: ChargeAssetTxPayment<Runtime>
 
-	log.Info("Ext: Longevity: " + ok.Longevity.String())
-
 	return valid, err
 }
 
@@ -62,24 +59,42 @@ func (e Extra) ValidateUnsigned(call *types.Call, info *types.DispatchInfo, leng
 // Do any pre-flight stuff for a signed transaction.
 //
 // Make sure to perform the same checks as in [`Validate`].
-func PreDispatch(e types.SignedExtra, who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
-	// TODO:
-	return ok, err
-}
-
-func PreDispatchUnsigned(call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
-	// TODO:
-	// ValidateUnsigned(call, info, length)
-	return ok, err
-}
-
-func PostDispatch(pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
-	// TODO:
-
-	switch pre.HasValue {
-	case true:
-	case false:
+func (e Extra) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = CheckNonZeroAddress(*who).PreDispatch(who, call, info, length)
+	if err != nil {
+		return ok, err
 	}
 
+	// TODO: CheckSpecVersion<Runtime>
+	// TODO: CheckTxVersion<Runtime>
+	// TODO: CheckGenesis<Runtime>
+
+	_, err = CheckMortality(e.Era).PreDispatch(who, call, info, length)
+	if err != nil {
+		return ok, err
+	}
+
+	_, err = CheckNonce(e.Nonce).PreDispatch(who, call, info, length)
+	if err != nil {
+		return ok, err
+	}
+
+	_, err = CheckWeight(e.Weight).PreDispatch(who, call, info, length)
+	if err != nil {
+		return ok, err
+	}
+
+	// TODO: ChargeAssetTxPayment<Runtime>
+
+	return ok, err
+}
+
+func (e Extra) PreDispatchUnsigned(call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = CheckWeight(e.Weight).PreDispatchUnsigned(call, info, length)
+	return ok, err
+}
+
+func (e Extra) PostDispatch(pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = CheckWeight(e.Weight).PostDispatch(pre, info, postInfo, length, result)
 	return ok, err
 }

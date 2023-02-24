@@ -23,3 +23,8 @@ func (who CheckNonZeroAddress) Validate(_who *types.Address32, _call *types.Call
 
 	return ok, err
 }
+
+func (a CheckNonZeroAddress) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = a.Validate(who, call, info, length)
+	return ok, err
+}

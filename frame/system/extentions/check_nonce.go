@@ -42,3 +42,8 @@ func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *typ
 
 	return ok, err
 }
+
+func (n CheckNonce) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = n.Validate(who, call, info, length)
+	return ok, err
+}

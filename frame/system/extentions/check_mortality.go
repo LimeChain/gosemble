@@ -19,3 +19,8 @@ func (e CheckMortality) Validate(_who *types.Address32, _call *types.Call, _info
 
 	return ok, err
 }
+
+func (e CheckMortality) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+	_, err = e.Validate(who, call, info, length)
+	return ok, err
+}
