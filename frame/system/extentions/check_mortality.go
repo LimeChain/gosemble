@@ -7,10 +7,10 @@ import (
 )
 
 // to be able to provide a custom implementation of the Validate function
-type CheckEra types.Era
+type CheckMortality types.Era
 
-func (e CheckEra) Validate(_who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	currentU64 := sc.U64(system.StorageGetBlockNumber()) // TDOO: module's implementation
+func (e CheckMortality) Validate(_who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+	currentU64 := sc.U64(system.StorageGetBlockNumber()) // TDOO: per module implementation
 
 	validTill := types.Era(e).Death(currentU64)
 

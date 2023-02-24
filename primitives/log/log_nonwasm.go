@@ -33,5 +33,5 @@ func Trace(message string) {
 }
 
 func log(level int32, target []byte, message []byte) {
-	panic("not implemented")
+	// TODO: implement
 }

@@ -9,6 +9,7 @@ import (
 
 type TransactionPriority = sc.U64
 type TransactionLongevity = sc.U64
+
 type TransactionTag = sc.Sequence[sc.U8]
 
 // Contains information concerning a valid transaction.
@@ -71,10 +72,10 @@ func (tx ValidTransaction) Bytes() []byte {
 
 func DefaultValidTransaction() ValidTransaction {
 	return ValidTransaction{
-		Priority:  0,
+		Priority:  TransactionPriority(0),
 		Requires:  sc.Sequence[TransactionTag]{},
 		Provides:  sc.Sequence[TransactionTag]{},
-		Longevity: TransactionLongevity(math.MaxInt64),
+		Longevity: TransactionLongevity(math.MaxUint64),
 		Propagate: true,
 	}
 }
@@ -86,7 +87,7 @@ func (vt ValidTransaction) CombineWith(otherVt ValidTransaction) ValidTransactio
 	priority := vt.Priority.SaturatingAdd(otherVt.Priority)
 	requires := append(vt.Requires, otherVt.Requires...)
 	provides := append(vt.Provides, otherVt.Provides...)
-	longevity := sc.U64(math.Min(float64(vt.Longevity), float64(otherVt.Longevity)))
+	longevity := vt.Longevity.Min(otherVt.Longevity)
 	propagate := vt.Propagate && otherVt.Propagate
 
 	return ValidTransaction{

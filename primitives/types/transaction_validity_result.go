@@ -39,11 +39,9 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) TransactionValidityRe
 
 	switch b {
 	case 0:
-		value := DecodeValidTransaction(buffer)
-		return NewTransactionValidityResult(value)
+		return NewTransactionValidityResult(DecodeValidTransaction(buffer))
 	case 1:
-		value := DecodeTransactionValidityError(buffer)
-		return NewTransactionValidityResult(value)
+		return NewTransactionValidityResult(DecodeTransactionValidityError(buffer))
 	default:
 		log.Critical("invalid TransactionValidityResult type")
 	}
@@ -53,4 +51,23 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) TransactionValidityRe
 
 func (r TransactionValidityResult) Bytes() []byte {
 	return sc.EncodedBytes(r)
+}
+
+func (r TransactionValidityResult) IsValidTransaction() sc.Bool {
+	switch r[0].(type) {
+	case ValidTransaction:
+		return true
+	default:
+		return false
+	}
+}
+
+func (r TransactionValidityResult) AsValidTransaction() ValidTransaction {
+	if r.IsValidTransaction() {
+		return r[0].(ValidTransaction)
+	} else {
+		log.Critical("not a ValidTransaction type")
+	}
+
+	panic("unreachable")
 }
