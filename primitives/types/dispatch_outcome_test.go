@@ -7,8 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// dispatchOutcome.Encode(buffer)
-
 func Test_EncodeDispatchOutcome(t *testing.T) {
 	var testExamples = []struct {
 		label       string

@@ -21,13 +21,8 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(types.Call{
-		CallIndex: types.CallIndex{
-			ModuleIndex:   timestamp.Module.Index,
-			FunctionIndex: timestamp.Module.Functions["set"].Index,
-		},
-		Args: sc.BytesToSequenceU8(sc.ToCompact(time).Bytes()),
-	})
+	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time).Bytes()...)
+	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
