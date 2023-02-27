@@ -9,23 +9,23 @@ import (
 // If only runtime implementation changes and behavior does not,
 // then leave spec_version as is and increment impl_version.
 
-const SPEC_NAME = "node-template"
-const IMPL_NAME = "node-template"
-const AUTHORING_VERSION = 1
-const SPEC_VERSION = 100
-const IMPL_VERSION = 1
-const TRANSACTION_VERSION = 1
-const STATE_VERSION = 1
+const SpecName = "node-template"
+const ImplName = "node-template"
+const AuthoringVersion = 1
+const SpecVersion = 100
+const ImplVersion = 1
+const TransactionVersion = 1
+const StateVersion = 1
 const StorageVersion = 0
 
 const BlockHashCount = sc.U32(2400)
 
 var RuntimeVersion = types.RuntimeVersion{
-	SpecName:         sc.Str(SPEC_NAME),
-	ImplName:         sc.Str(IMPL_NAME),
-	AuthoringVersion: sc.U32(AUTHORING_VERSION),
-	SpecVersion:      sc.U32(SPEC_VERSION),
-	ImplVersion:      sc.U32(IMPL_VERSION),
+	SpecName:         sc.Str(SpecName),
+	ImplName:         sc.Str(ImplName),
+	AuthoringVersion: sc.U32(AuthoringVersion),
+	SpecVersion:      sc.U32(SpecVersion),
+	ImplVersion:      sc.U32(ImplVersion),
 	Apis: sc.Sequence[types.ApiItem]{
 		{
 			Name:    sc.NewFixedSequence[sc.U8](8, 223, 106, 203, 104, 153, 7, 96, 155),
@@ -76,6 +76,6 @@ var RuntimeVersion = types.RuntimeVersion{
 			Version: sc.U32(1),
 		},
 	},
-	TransactionVersion: sc.U32(TRANSACTION_VERSION),
-	StateVersion:       sc.U8(STATE_VERSION),
+	TransactionVersion: sc.U32(TransactionVersion),
+	StateVersion:       sc.U8(StateVersion),
 }

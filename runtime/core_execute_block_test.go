@@ -60,8 +60,8 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, err)
 
 	lrui := types.LastRuntimeUpgradeInfo{
-		SpecVersion: sc.ToCompact(constants.SPEC_VERSION),
-		SpecName:    constants.SPEC_NAME,
+		SpecVersion: sc.ToCompact(constants.SpecVersion),
+		SpecName:    constants.SpecName,
 	}
 	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
 
