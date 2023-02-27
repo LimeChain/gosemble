@@ -1,9 +1,13 @@
 package system
 
 import (
+	"reflect"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
+
+var ZeroAddress = types.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 type CheckNonZeroAddress types.Address32
 
@@ -12,11 +16,9 @@ func (who CheckNonZeroAddress) Validate(_who *types.Address32, _call *types.Call
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
-	for _, v := range who.Bytes() {
-		if v != 0 {
-			ok = types.DefaultValidTransaction()
-			return ok, err
-		}
+	if !reflect.DeepEqual(who, ZeroAddress) {
+		ok = types.DefaultValidTransaction()
+		return ok, err
 	}
 
 	err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadSignerError))
