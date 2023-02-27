@@ -3,7 +3,7 @@ package extrinsic
 import (
 	sc "github.com/LimeChain/goscale"
 
-	system "github.com/LimeChain/gosemble/frame/system/extentions"
+	system "github.com/LimeChain/gosemble/frame/system/extensions"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
