@@ -15,7 +15,7 @@ func (e Extra) Validate(who *types.Address32, call *types.Call, info *types.Disp
 	if err != nil {
 		return ok, err
 	}
-	valid.CombineWith(ok)
+	valid = valid.CombineWith(ok)
 
 	// TODO: CheckSpecVersion<Runtime>
 	// TODO: CheckTxVersion<Runtime>
@@ -25,19 +25,19 @@ func (e Extra) Validate(who *types.Address32, call *types.Call, info *types.Disp
 	if err != nil {
 		return ok, err
 	}
-	valid.CombineWith(ok)
+	valid = valid.CombineWith(ok)
 
 	ok, err = CheckNonce(e.Nonce).Validate(who, call, info, length)
 	if err != nil {
 		return ok, err
 	}
-	valid.CombineWith(ok)
+	valid = valid.CombineWith(ok)
 
 	ok, err = CheckWeight(e.Weight).Validate(who, call, info, length)
 	if err != nil {
 		return ok, err
 	}
-	valid.CombineWith(ok)
+	valid = valid.CombineWith(ok)
 
 	// TODO: ChargeAssetTxPayment<Runtime>
 
@@ -51,7 +51,7 @@ func (e Extra) ValidateUnsigned(call *types.Call, info *types.DispatchInfo, leng
 	if err != nil {
 		return ok, err
 	}
-	valid.CombineWith(ok)
+	valid = valid.CombineWith(ok)
 
 	return valid, err
 }

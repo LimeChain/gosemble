@@ -22,7 +22,7 @@ type SignedExtra struct {
 
 	// Pt: a compact integer containing the transactor pay including tip.
 	Fee sc.U64 // encode as Compact
-	// 	TransactionPayment sc.Compact
+	// TransactionPayment sc.Compact
 
 	Weight Weight
 
