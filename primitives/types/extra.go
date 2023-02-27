@@ -18,7 +18,7 @@ type SignedExtra struct {
 	// N: a compact integer containing the nonce of the sender.
 	// The nonce must be incremented by one for each extrinsic created,
 	// otherwise the Polkadot network will reject the extrinsic.
-	Nonce sc.U64 // encode as Compact
+	Nonce sc.U32 // encode as Compact
 
 	// Pt: a compact integer containing the transactor pay including tip.
 	Fee sc.U64 // encode as Compact
@@ -40,7 +40,7 @@ func (e SignedExtra) Encode(buffer *bytes.Buffer) {
 func DecodeExtra(buffer *bytes.Buffer) SignedExtra {
 	e := SignedExtra{}
 	e.Era = DecodeEra(buffer)
-	e.Nonce = sc.U64(sc.U128(sc.DecodeCompact(buffer)).ToBigInt().Uint64())
+	e.Nonce = sc.U32(sc.U128(sc.DecodeCompact(buffer)).ToBigInt().Uint64())
 	e.Fee = sc.U64(sc.U128(sc.DecodeCompact(buffer)).ToBigInt().Uint64())
 	return e
 }

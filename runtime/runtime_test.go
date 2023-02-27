@@ -91,7 +91,7 @@ func newTestSignature(hexSig string) types.MultiSignature {
 	return types.NewMultiSignature(types.NewEd25519(res...))
 }
 
-func newTestExtra(era types.Era, nonce sc.U64, fee sc.U64) types.SignedExtra {
+func newTestExtra(era types.Era, nonce sc.U32, fee sc.U64) types.SignedExtra {
 	return types.SignedExtra{
 		Era:   era,
 		Nonce: nonce,

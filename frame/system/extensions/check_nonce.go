@@ -8,25 +8,25 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type CheckNonce sc.U64
+type CheckNonce sc.U32
 
 func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _lenght sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	// TODO: check if we can use just who
 	accountNonce := system.StorageAccountNonce((*who).FixedSequence) // account = Account::<T>::get(who)
 
-	if sc.U64(n) < sc.U64(accountNonce) {
+	if sc.U32(n) < accountNonce {
 		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.StaleError))
 		return ok, err
 	}
 
 	encoded := (*who).Bytes()
-	encoded = append(encoded, sc.ToCompact(sc.U64(n)).Bytes()...) // TODO: confirm if it is compact encoded
+	encoded = append(encoded, sc.ToCompact(sc.U32(n)).Bytes()...)
 	provides := sc.Sequence[types.TransactionTag]{sc.BytesToSequenceU8(encoded)}
 
 	var requires sc.Sequence[types.TransactionTag]
-	if sc.U64(accountNonce) < sc.U64(n) {
+	if accountNonce < sc.U32(n) {
 		encoded := (*who).Bytes()
-		encoded = append(encoded, sc.ToCompact(sc.U64(n)-1).Bytes()...)
+		encoded = append(encoded, sc.ToCompact(sc.U32(n)-1).Bytes()...)
 		requires = sc.Sequence[types.TransactionTag]{sc.BytesToSequenceU8(encoded)}
 	} else {
 		requires = sc.Sequence[types.TransactionTag]{}

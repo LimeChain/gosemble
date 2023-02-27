@@ -44,7 +44,7 @@ func (a MultiAddress) AsAccountId() AccountId {
 }
 
 // It's an account index.
-type AccountIndex = sc.U32 // TODO: encode as Compact
+type AccountIndex = sc.U32
 
 func (a MultiAddress) IsAccountIndex() sc.Bool {
 	switch a[0].(type) {
