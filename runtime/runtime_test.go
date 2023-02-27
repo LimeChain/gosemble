@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
@@ -77,8 +78,17 @@ func newTestSigner() types.MultiAddress {
 	)
 }
 
-func newTestSignature(bytes ...sc.U8) types.MultiSignature {
-	return types.NewMultiSignature(types.NewEd25519(bytes...))
+func newTestSignature(hexSig string) types.MultiSignature {
+	bytes, err := hex.DecodeString(hexSig)
+	if err != nil {
+		panic(err)
+	}
+	res := []sc.U8{}
+	for _, b := range bytes {
+		res = append(res, sc.U8(b))
+	}
+
+	return types.NewMultiSignature(types.NewEd25519(res...))
 }
 
 func newTestExtra(era types.Era, nonce sc.U64, fee sc.U64) types.SignedExtra {
