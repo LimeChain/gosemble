@@ -15,7 +15,7 @@ func AccountNonce(dataPtr int32, dataLen int32) int64 {
 	buffer.Write(b)
 
 	publicKey := types.DecodePublicKey(buffer)
-	nonce := system.StorageAccountNonce(publicKey)
+	nonce := system.StorageGetAccount(publicKey).Nonce
 
 	return utils.BytesToOffsetAndSize(nonce.Bytes())
 }

@@ -292,7 +292,7 @@ func StorageGetAllExtrinsicsLen() sc.U32 {
 	return storage.GetDecode(append(systemHash, allExtrinsicsLenHash...), sc.DecodeU32)
 }
 
-func StorageAccountNonce(who types.PublicKey) types.AccountIndex {
+func StorageGetAccount(who types.PublicKey) types.AccountInfo {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	accountHash := hashing.Twox128(constants.KeyAccount)
 
@@ -302,7 +302,18 @@ func StorageAccountNonce(who types.PublicKey) types.AccountIndex {
 	key = append(key, hashing.Blake128(whoBytes)...)
 	key = append(key, whoBytes...)
 
-	accountInfo := storage.GetDecode(key, types.DecodeAccountInfo)
+	return storage.GetDecode(key, types.DecodeAccountInfo)
+}
 
-	return accountInfo.Nonce
+func StorageSetAccount(who types.PublicKey, account types.AccountInfo) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	accountHash := hashing.Twox128(constants.KeyAccount)
+
+	whoBytes := sc.FixedSequenceU8ToBytes(who)
+
+	key := append(systemHash, accountHash...)
+	key = append(key, hashing.Blake128(whoBytes)...)
+	key = append(key, whoBytes...)
+
+	storage.Set(key, account.Bytes())
 }
