@@ -7,14 +7,9 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type TransactionPriority sc.U64
-
-func (tp TransactionPriority) SaturatingAdd(otherTp TransactionPriority) TransactionPriority {
-	// TODO:
-	return tp + otherTp
-}
-
+type TransactionPriority = sc.U64
 type TransactionLongevity = sc.U64
+
 type TransactionTag = sc.Sequence[sc.U8]
 
 // Contains information concerning a valid transaction.
@@ -54,12 +49,21 @@ type ValidTransaction struct {
 }
 
 func (tx ValidTransaction) Encode(buffer *bytes.Buffer) {
-	// TODO:
+	tx.Priority.Encode(buffer)
+	tx.Requires.Encode(buffer)
+	tx.Provides.Encode(buffer)
+	tx.Longevity.Encode(buffer)
+	tx.Propagate.Encode(buffer)
 }
 
 func DecodeValidTransaction(buffer *bytes.Buffer) ValidTransaction {
-	// TODO:
-	return ValidTransaction{}
+	return ValidTransaction{
+		Priority:  sc.DecodeU64(buffer),
+		Requires:  sc.DecodeSequence[TransactionTag](buffer),
+		Provides:  sc.DecodeSequence[TransactionTag](buffer),
+		Longevity: sc.DecodeU64(buffer),
+		Propagate: sc.DecodeBool(buffer),
+	}
 }
 
 func (tx ValidTransaction) Bytes() []byte {
@@ -68,10 +72,10 @@ func (tx ValidTransaction) Bytes() []byte {
 
 func DefaultValidTransaction() ValidTransaction {
 	return ValidTransaction{
-		Priority:  0,
+		Priority:  TransactionPriority(0),
 		Requires:  sc.Sequence[TransactionTag]{},
 		Provides:  sc.Sequence[TransactionTag]{},
-		Longevity: TransactionLongevity(math.MaxInt64),
+		Longevity: TransactionLongevity(math.MaxUint64),
 		Propagate: true,
 	}
 }
@@ -83,7 +87,7 @@ func (vt ValidTransaction) CombineWith(otherVt ValidTransaction) ValidTransactio
 	priority := vt.Priority.SaturatingAdd(otherVt.Priority)
 	requires := append(vt.Requires, otherVt.Requires...)
 	provides := append(vt.Provides, otherVt.Provides...)
-	longevity := sc.U64(math.Min(float64(vt.Longevity), float64(otherVt.Longevity)))
+	longevity := vt.Longevity.Min(otherVt.Longevity)
 	propagate := vt.Propagate && otherVt.Propagate
 
 	return ValidTransaction{

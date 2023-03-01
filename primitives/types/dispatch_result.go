@@ -35,12 +35,6 @@ func (r DispatchResult) Bytes() []byte {
 	return sc.EncodedBytes(r)
 }
 
-func (r DispatchResult) PostDispatch() (ok Pre, err TransactionValidityError) {
-	// TODO:
-	ok = Pre{}
-	return ok, err
-}
-
 // Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
 // the `Dispatchable` that is only known post dispatch.
 //

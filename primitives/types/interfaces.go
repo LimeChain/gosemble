@@ -55,6 +55,8 @@ type UnsignedValidator interface {
 // Means by which a transaction may be extended. This type embodies both the data and the logic
 // that should be additionally associated with the transaction. It should be plain old data.
 type SignedExtension interface {
+	sc.Encodable
+
 	// Unique identifier of this signed extension.
 	//
 	// This will be exposed in the metadata to identify the signed extension used
@@ -87,12 +89,12 @@ type SignedExtension interface {
 	// that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch` function.
-	Validate(_who *AccountId, _call *Call, _info *DispatchInfo, _length sc.Compact) (ok ValidTransaction, err TransactionValidityError)
+	Validate(_who *Address32, _call *Call, _info *DispatchInfo, _length sc.Compact) (ok ValidTransaction, err TransactionValidityError)
 
 	// Do any pre-flight stuff for a signed transaction.
 	//
 	// Make sure to perform the same checks as in [`Self::validate`].
-	PreDispatch(e Extra, who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok Pre, err TransactionValidityError)
+	PreDispatch(e SignedExtra, who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ok Pre, err TransactionValidityError)
 
 	// Validate an unsigned transaction for the transaction queue.
 	//

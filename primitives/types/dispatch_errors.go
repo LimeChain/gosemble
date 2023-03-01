@@ -143,12 +143,15 @@ type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 }
 
 func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) {
-	// TODO:
+	e.PostInfo.Encode(buffer)
+	e.DispatchError.Encode(buffer)
 }
 
 func DecodeErrorWithPostInfo(buffer *bytes.Buffer) DispatchErrorWithPostInfo[PostDispatchInfo] {
-	// TODO:
-	return DispatchErrorWithPostInfo[PostDispatchInfo]{}
+	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
+	e.PostInfo = DecodePostDispatchInfo(buffer)
+	e.DispatchError = DecodeDispatchError(buffer)
+	return e
 }
 
 func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {

@@ -9,6 +9,9 @@ import (
 // Definition of something that the external world might want to say; its
 // existence implies that it has been checked and is good, particularly with
 // regards to the signature.
+//
+// TODO: make it generic
+// generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 type CheckedExtrinsic struct {
 	Version sc.U8
 
@@ -18,13 +21,18 @@ type CheckedExtrinsic struct {
 	Function Call
 }
 
-func (ex CheckedExtrinsic) Encode(buffer *bytes.Buffer) {
-	// TODO:
+func (xt CheckedExtrinsic) Encode(buffer *bytes.Buffer) {
+	xt.Version.Encode(buffer)
+	xt.Signed.Encode(buffer)
+	xt.Function.Encode(buffer)
 }
 
 func DecodeCheckedExtrinsic(buffer *bytes.Buffer) CheckedExtrinsic {
-	// TODO:
-	return CheckedExtrinsic{}
+	xt := CheckedExtrinsic{}
+	xt.Version = sc.DecodeU8(buffer)
+	xt.Signed = sc.DecodeOptionWith(buffer, DecodeAccountIdExtra)
+	xt.Function = DecodeCall(buffer)
+	return xt
 }
 
 func (ex CheckedExtrinsic) Bytes() []byte {
@@ -33,47 +41,21 @@ func (ex CheckedExtrinsic) Bytes() []byte {
 
 type AccountIdExtra struct {
 	Address32
-	Extra
+	SignedExtra
 }
 
 func (ae AccountIdExtra) Encode(buffer *bytes.Buffer) {
 	ae.Address32.Encode(buffer)
-	ae.Extra.Encode(buffer)
+	ae.SignedExtra.Encode(buffer)
 }
 
 func DecodeAccountIdExtra(buffer *bytes.Buffer) AccountIdExtra {
 	ae := AccountIdExtra{}
 	ae.Address32 = DecodeAddress32(buffer)
-	ae.Extra = DecodeExtra(buffer)
+	ae.SignedExtra = DecodeExtra(buffer)
 	return ae
 }
 
 func (ae AccountIdExtra) Bytes() []byte {
 	return sc.EncodedBytes(ae)
-}
-
-type UnsignedValidatorForChecked struct{}
-
-// Validate the call right before dispatch.
-//
-// This method should be used to prevent transactions already in the pool
-// (i.e. passing [`validate_unsigned`](Self::validate_unsigned)) from being included in blocks
-// in case they became invalid since being added to the pool.
-//
-// By default it's a good idea to call [`validate_unsigned`](Self::validate_unsigned) from
-// within this function again to make sure we never include an invalid transaction. Otherwise
-// the implementation of the call or this method will need to provide proper validation to
-// ensure that the transaction is valid.
-//
-// Changes made to storage *WILL* be persisted if the call returns `Ok`.
-func (v UnsignedValidatorForChecked) PreDispatch(call *Call) (ok sc.Empty, err TransactionValidityError) {
-	_, err = v.ValidateUnsigned(NewTransactionSource(InBlock), call) // .map(|_| ()).map_err(Into::into)
-	return ok, err
-}
-
-// Information on a transaction's validity and, if valid, on how it relates to other transactions.
-func (v UnsignedValidatorForChecked) ValidateUnsigned(source TransactionSource, call *Call) (ok ValidTransaction, err TransactionValidityError) {
-	// TODO:
-	// implement it for a specific pallet
-	return ok, err
 }

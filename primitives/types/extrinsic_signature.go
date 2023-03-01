@@ -11,10 +11,9 @@ import (
 type ExtrinsicSignature struct {
 	// is the 32-byte address of the sender of the extrinsic
 	// as described in https://docs.substrate.io/reference/address-formats/
-	// AccountId AccountId // size 32
 	Signer    MultiAddress
 	Signature MultiSignature
-	Extra     Extra
+	Extra     SignedExtra
 }
 
 func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) {

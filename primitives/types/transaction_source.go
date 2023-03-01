@@ -18,7 +18,7 @@ const (
 	// since it's already in the received block. Note that the custom validation logic
 	// using either `Local` or `External` should most likely just allow `InBlock`
 	// transactions as well.
-	InBlock TransactionSourceValue = iota
+	InBlock sc.U8 = iota
 
 	// Transaction is coming from a local source.
 	//
@@ -34,23 +34,9 @@ const (
 	External
 )
 
-type TransactionSourceValue sc.U8
-
-func (ts TransactionSourceValue) Encode(buffer *bytes.Buffer) {
-	sc.U8(ts).Encode(buffer)
-}
-
-func DecodeTransactionSourceValue(buffer *bytes.Buffer) TransactionSourceValue {
-	return TransactionSourceValue(sc.DecodeU8(buffer))
-}
-
-func (ts TransactionSourceValue) Bytes() []byte {
-	return sc.EncodedBytes(ts)
-}
-
 type TransactionSource sc.VaryingData
 
-func NewTransactionSource(value TransactionSourceValue) TransactionSource {
+func NewTransactionSource(value sc.U8) TransactionSource {
 	return TransactionSource(sc.NewVaryingData(value))
 }
 

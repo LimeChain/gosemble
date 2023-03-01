@@ -94,13 +94,9 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(types.Call{
-		CallIndex: types.CallIndex{
-			ModuleIndex:   timestamp.Module.Index,
-			FunctionIndex: timestamp.Module.Functions["set"].Index,
-		},
-		Args: sc.BytesToSequenceU8(sc.ToCompact(time.UnixMilli()).Bytes()),
-	})
+	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+
+	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
@@ -187,13 +183,8 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(types.Call{
-		CallIndex: types.CallIndex{
-			ModuleIndex:   timestamp.Module.Index,
-			FunctionIndex: timestamp.Module.Functions["set"].Index,
-		},
-		Args: sc.BytesToSequenceU8(sc.ToCompact(time.UnixMilli()).Bytes()),
-	})
+	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)

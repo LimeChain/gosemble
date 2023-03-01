@@ -136,16 +136,6 @@ func (a MultiAddress) AsAddress32() Address32 {
 	panic("unreachable")
 }
 
-func (a Address32) Validate() (ok ValidTransaction, err TransactionValidityError) {
-	return ok, err
-}
-
-func (a Address32) PreDispatch() (ok Pre, err TransactionValidityError) {
-	// TODO:
-	ok = Pre{}
-	return ok, err
-}
-
 // Its a 20 byte representation.
 type Address20 struct {
 	sc.FixedSequence[sc.U8] // size 20

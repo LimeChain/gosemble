@@ -2,6 +2,8 @@
 
 package log
 
+import "fmt"
+
 const (
 	CriticalLevel = iota
 	WarnLevel
@@ -33,5 +35,19 @@ func Trace(message string) {
 }
 
 func log(level int32, target []byte, message []byte) {
-	panic("not implemented")
+	var levelStr string
+	switch level {
+	case CriticalLevel:
+		levelStr = "CRITICAL"
+	case WarnLevel:
+		levelStr = "WARN"
+	case InfoLevel:
+		levelStr = "INFO"
+	case DebugLevel:
+		levelStr = "DEBUG"
+	case TraceLevel:
+		levelStr = "TRACE"
+	}
+
+	fmt.Println(levelStr, " target="+string(target), " message="+string(message))
 }
