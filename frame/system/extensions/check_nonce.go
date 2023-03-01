@@ -10,6 +10,11 @@ import (
 
 type CheckNonce sc.U32
 
+func (n CheckNonce) AdditionalSigned() (ok sc.Empty, err types.TransactionValidityError) {
+	ok = sc.Empty{}
+	return ok, err
+}
+
 func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _lenght sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	// TODO: check if we can use just who
 	account := system.StorageGetAccount((*who).FixedSequence)

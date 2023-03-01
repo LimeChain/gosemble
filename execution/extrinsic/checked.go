@@ -7,9 +7,9 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Extrinsic types.CheckedExtrinsic
+type Checked types.CheckedExtrinsic
 
-func (xt Extrinsic) Validate(validator types.UnsignedValidator, source types.TransactionSource, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (xt Checked) Validate(validator types.UnsignedValidator, source types.TransactionSource, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
 		ok, err = system.Extra(extra).Validate(&id, &xt.Function, info, length)
@@ -30,7 +30,7 @@ func (xt Extrinsic) Validate(validator types.UnsignedValidator, source types.Tra
 	return ok, err
 }
 
-func (xt Extrinsic) Apply(validator types.UnsignedValidator, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
+func (xt Checked) Apply(validator types.UnsignedValidator, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[types.Address32]
 		maybePre sc.Option[types.Pre]

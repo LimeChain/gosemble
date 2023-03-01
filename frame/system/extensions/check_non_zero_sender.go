@@ -11,6 +11,11 @@ var ZeroAddress = types.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 type CheckNonZeroAddress types.Address32
 
+func (a CheckNonZeroAddress) AdditionalSigned() (ok sc.Empty, err types.TransactionValidityError) {
+	ok = sc.Empty{}
+	return ok, err
+}
+
 func (who CheckNonZeroAddress) Validate(_who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.

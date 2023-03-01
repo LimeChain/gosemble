@@ -317,3 +317,35 @@ func StorageSetAccount(who types.PublicKey, account types.AccountInfo) {
 
 	storage.Set(key, account.Bytes())
 }
+
+// Map of block numbers to block hashes.
+func StorageGetBlockHash(blockNumber sc.U32) types.Blake2bHash {
+	// Module prefix
+	systemHash := hashing.Twox128(constants.KeySystem)
+	// Storage prefix
+	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
+	// Block number hash
+	blockNumHash := hashing.Twox64(blockNumber.Bytes())
+
+	key := append(systemHash, blockHashHash...)
+	key = append(key, blockNumHash...)
+	key = append(key, blockNumber.Bytes()...)
+
+	return storage.GetDecode(key, types.DecodeBlake2bHash)
+}
+
+// Map of block numbers to block hashes.
+func StorageExistsBlockHash(blockNumber sc.U32) sc.Bool {
+	// Module prefix
+	systemHash := hashing.Twox128(constants.KeySystem)
+	// Storage prefix
+	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
+	// Block number hash
+	blockNumHash := hashing.Twox64(blockNumber.Bytes())
+
+	key := append(systemHash, blockHashHash...)
+	key = append(key, blockNumHash...)
+	key = append(key, blockNumber.Bytes()...)
+
+	return storage.Exists(key) == 1
+}

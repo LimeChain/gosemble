@@ -7,28 +7,17 @@ import (
 )
 
 // implements SignedExtension
+// Extra data, E, is a tuple containing additional meta data about the extrinsic and the system it is meant to be executed in.
 type SignedExtra struct {
-	// Extra data, E, is a tuple containing additional meta data about the extrinsic and the system it is meant to be executed in.
-	// E := (Tmor, N, Pt)
-
-	// NonZeroSender MultiAddress
-
 	Era Era
 
-	// N: a compact integer containing the nonce of the sender.
+	// a compact integer containing the nonce of the sender.
 	// The nonce must be incremented by one for each extrinsic created,
 	// otherwise the Polkadot network will reject the extrinsic.
 	Nonce sc.U32 // encode as Compact
 
-	// Pt: a compact integer containing the transactor pay including tip.
+	// a compact integer containing the transactor pay including tip.
 	Fee sc.U64 // encode as Compact
-	// TransactionPayment sc.Compact
-
-	Weight Weight
-
-	// SpecVersion sc.U32
-	// TxVersion   sc.U32
-	// Genesis     H256
 }
 
 func (e SignedExtra) Encode(buffer *bytes.Buffer) {
@@ -47,15 +36,4 @@ func DecodeExtra(buffer *bytes.Buffer) SignedExtra {
 
 func (e SignedExtra) Bytes() []byte {
 	return sc.EncodedBytes(e)
-}
-
-func (e SignedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
-	return AdditionalSigned{
-		SpecVersion:   sc.U32(RuntimeVersion{}.SpecVersion),
-		FormatVersion: ExtrinsicFormatVersion,
-		// GenesisHash:   H256(),
-		// BlockHash: H256(),
-		// TransactionVersion sc.U32
-		// BlockNumber
-	}, nil
 }

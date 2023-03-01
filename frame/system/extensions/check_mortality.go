@@ -6,6 +6,20 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+func (e CheckMortality) AdditionalSigned() (ok types.H256, err types.TransactionValidityError) {
+	current := sc.U64(system.StorageGetBlockNumber()) // TODO: impl saturated_into::<u64>()
+	n := sc.U32(types.Era(e).Birth(current))          // TODO: impl saturated_into::<T::BlockNumber>()
+
+	if !system.StorageExistsBlockHash(n) {
+		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.AncientBirthBlockError))
+		return ok, err
+	} else {
+		ok = types.H256(system.StorageGetBlockHash(n))
+	}
+
+	return ok, err
+}
+
 // to be able to provide a custom implementation of the Validate function
 type CheckMortality types.Era
 

@@ -9,15 +9,20 @@ import (
 
 type CheckWeight types.Weight
 
-func (w CheckWeight) Validate(_who *types.Address32, _call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (_ CheckWeight) AdditionalSigned() (ok sc.Empty, err types.TransactionValidityError) {
+	ok = sc.Empty{}
+	return ok, err
+}
+
+func (_ CheckWeight) Validate(_who *types.Address32, _call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	return DoValidate(info, length)
 }
 
-func (w CheckWeight) ValidateUnsigned(_call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (_ CheckWeight) ValidateUnsigned(_call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	return DoValidate(info, length)
 }
 
-func (w CheckWeight) PreDispatch(_who *types.Address32, _call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+func (_ CheckWeight) PreDispatch(_who *types.Address32, _call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
 	_, err = DoPreDispatch(info, length)
 	return ok, err
 }
@@ -27,7 +32,7 @@ func (w CheckWeight) PreDispatchUnsigned(_call *types.Call, info *types.Dispatch
 	return ok, err
 }
 
-func (w CheckWeight) PostDispatch(_pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, _length sc.Compact, _result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
+func (_ CheckWeight) PostDispatch(_pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, _length sc.Compact, _result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
 	// TODO:
 
 	// let unspent = post_info.calc_unspent(info);

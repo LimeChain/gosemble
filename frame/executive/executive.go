@@ -59,7 +59,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	log.Info("apply_extrinsic")
 
 	// Verify that the signature is good.
-	xt, err := uxt.Check(types.DefaultAccountIdLookup())
+	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
 	if err != nil {
 		return ok, err
 	}
@@ -72,10 +72,10 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
 	// Decode parameters and dispatch
-	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
+	dispatchInfo := extrinsic.GetDispatchInfo(xt)
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
-	res, err := extrinsic.Extrinsic(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
+	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
@@ -122,19 +122,11 @@ func executeExtrinsicsWithBookKeeping(block types.Block) {
 
 func initialChecks(block types.Block) {
 	header := block.Header
-
 	blockNumber := header.Number
 
 	if blockNumber > 0 {
-		systemHash := hashing.Twox128(constants.KeySystem)
-		previousBlock := blockNumber - 1
-		blockNumHash := hashing.Twox64(previousBlock.Bytes())
+		storageParentHash := system.StorageGetBlockHash(blockNumber - 1)
 
-		blockNumKey := append(systemHash, hashing.Twox128(constants.KeyBlockHash)...)
-		blockNumKey = append(blockNumKey, blockNumHash...)
-		blockNumKey = append(blockNumKey, previousBlock.Bytes()...)
-
-		storageParentHash := storage.GetDecode(blockNumKey, types.DecodeBlake2bHash)
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")
 		}
@@ -217,7 +209,7 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	xt, err := uxt.Check(types.DefaultAccountIdLookup())
+	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
 	if err != nil {
 		return ok, err
 	}
@@ -231,5 +223,5 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 
 	log.Trace("validate")
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
-	return extrinsic.Extrinsic(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
+	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }

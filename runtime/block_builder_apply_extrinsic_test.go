@@ -77,10 +77,20 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	digest := gossamertypes.NewDigest()
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
 	extra := newTestExtra(types.NewImmortalEra(), 0, 0)
 	call := newTestCall(0, 0, 0xab, 0xcd)
 	signer := newTestSigner()
-	signature := newTestSignature("3594650a752f5b8a4853b66390ea2078b44725246d654ec94509ee2fa89916a74fa8d770f34b81b16adb08899ff223e4f61178e98c42c6a9bfefb987a4176208")
+	signature := newTestSignature("a1a9379907dce053d6f4ff0d7b4f529889b5e506ccdacaa9096eb08dab52730c93460027cd500b5db15af8218a35663bb0f0a6165dc93a8fe9211865bae3ae0e")
 	uxt := types.NewSignedUncheckedExtrinsic(call, signer, signature, extra)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
@@ -129,11 +139,20 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	storage := trie.NewEmptyTrie()
 	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	digest := gossamertypes.NewDigest()
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
 	extra := newTestExtra(types.NewImmortalEra(), 1, 0) // instead of 0 to make the signature invalid
 	call := newTestCall(0, 0, 0xab, 0xcd)
 	signer := newTestSigner()
-	invalidSignature := newTestSignature("b51bc6f6e9f7079003adc98ed21622d0d887d68e8645b5cb99e3d6080aa8c9dd408ca39c91d9c70a49a377bc2b5504e36427e1845b3820c58c95f146f0cec203")
-
+	invalidSignature := newTestSignature("a1a9379907dce053d6f4ff0d7b4f529889b5e506ccdacaa9096eb08dab52730c93460027cd500b5db15af8218a35663bb0f0a6165dc93a8fe9211865bae3ae0e")
 	uxt := types.NewSignedUncheckedExtrinsic(call, signer, invalidSignature, extra)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
@@ -199,7 +218,7 @@ func Test_ApplyExtrinsic_FutureError(t *testing.T) {
 	extra := newTestExtra(types.NewImmortalEra(), 5, 0)
 	call := newTestCall(0, 0, 0xab, 0xcd)
 	signer := newTestSigner()
-	signature := newTestSignature("64278529b1d03ca91fd4435d75899e145328d1af0dfb7ab2e324e49196dbcc22963ec1fa6257bc7476be532b8f91bbd0ec46ccac704517cb39a64103929e7800")
+	signature := newTestSignature("b45bbfce8b0571b958a8184a0592850c80193cc1a7f62776a24735d6fac32daf7bc326914ffe3d9329ce9f5d8ed7d9e6acfdb1b5b4613933332a18632fe4240e")
 	tx := types.NewSignedUncheckedExtrinsic(call, signer, signature, extra)
 
 	encTransactionValidityResult, err := rt.Exec("BlockBuilder_apply_extrinsic", tx.Bytes())
