@@ -96,11 +96,9 @@ func Finalize() types.Header {
 }
 
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
-	initializationPhase := sc.U32(constants.ExecutionPhaseInitialization)
-
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseInitialization).Bytes())
 
 	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
@@ -155,11 +153,9 @@ func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
 }
 
 func NoteFinishedInitialize() {
-	initializationPhase := sc.U32(constants.ExecutionPhaseApplyExtrinsic)
-
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, sc.U32(0)).Bytes())
 }
 
 func NoteFinishedExtrinsics() {
@@ -171,22 +167,21 @@ func NoteFinishedExtrinsics() {
 	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
 
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	finalizationPhase := sc.U32(constants.ExecutionPhaseFinalization)
 
-	storage.Set(append(systemHash, executionPhaseHash...), finalizationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseFinalization).Bytes())
 }
 
 func ResetEvents() {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	eventsHash := hashing.Twox128(constants.KeyEvents)
 	eventCountHash := hashing.Twox128(constants.KeyEventCount)
-	eventTopicHash := hashing.Twox128(constants.KeyEventTopic)
+	eventTopicsHash := hashing.Twox128(constants.KeyEventTopics)
 
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
 
 	limit := sc.NewOption[sc.U32](sc.U32(math.MaxUint32))
-	storage.ClearPrefix(append(systemHash, eventTopicHash...), limit.Bytes())
+	storage.ClearPrefix(append(systemHash, eventTopicsHash...), limit.Bytes())
 }
 
 // Note what the extrinsic data of the current extrinsic index is.

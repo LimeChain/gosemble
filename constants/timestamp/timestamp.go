@@ -1,10 +1,13 @@
 package timestamp
 
 const (
+	ModuleIndex      = 3
+	FunctionSetIndex = 0
+)
+
+const (
 	MaxTimestampDriftMillis = 30 * 1_000 // 30 Seconds
 	MinimumPeriod           = 1 * 1_000  // 1 second
-	ModuleIndex             = 3
-	FunctionSetIndex        = 0
 )
 
 var (

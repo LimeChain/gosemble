@@ -9,7 +9,7 @@ import (
 
 const (
 	// Applying an extrinsic.
-	PhaseApplyExtrinsic sc.U32 = iota
+	PhaseApplyExtrinsic sc.U8 = iota
 
 	// Finalizing the block.
 	PhaseFinalization
@@ -45,16 +45,16 @@ func (p ExtrinsicPhase) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func Decode(buffer *bytes.Buffer) ExtrinsicPhase {
+func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case sc.U8(0):
+	case PhaseApplyExtrinsic:
 		value := sc.DecodeU32(buffer)
 		return NewExtrinsicPhase(PhaseApplyExtrinsic, value)
-	case sc.U8(1):
+	case PhaseFinalization:
 		return NewExtrinsicPhase(PhaseFinalization)
-	case sc.U8(2):
+	case PhaseInitialization:
 		return NewExtrinsicPhase(PhaseInitialization)
 	default:
 		log.Critical("invalid Phase type")
