@@ -29,7 +29,7 @@ func depositEventIndexed(topics []types.H256, event types.Event) {
 
 	storageSetEventCount(newEventCount)
 
-	storageAppendKeyEvent(eventRecord)
+	storageAppendEvent(eventRecord)
 
 	topicValue := sc.NewVaryingData(blockNumber, oldEventCount)
 	for _, topic := range topics {

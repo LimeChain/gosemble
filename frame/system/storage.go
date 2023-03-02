@@ -102,7 +102,7 @@ func storageSetEventCount(eventCount sc.U32) {
 	storage.Set(key, eventCount.Bytes())
 }
 
-func storageAppendKeyEvent(eventRecord types.EventRecord) {
+func storageAppendEvent(eventRecord types.EventRecord) {
 	systemHash := hashing.Twox128(constants.KeySystem)
 
 	key := append(systemHash, hashing.Twox128(constants.KeyEvents)...)
