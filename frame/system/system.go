@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"math"
 
-	"github.com/LimeChain/gosemble/constants/system"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/system"
+	"github.com/LimeChain/gosemble/frame"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -343,4 +343,10 @@ func StorageExistsBlockHash(blockNumber sc.U32) sc.Bool {
 	key = append(key, blockNumber.Bytes()...)
 
 	return storage.Exists(key) == 1
+}
+
+func onCreatedAccount(who types.PublicKey) {
+	// hook on creating new account, currently not used in Substrate
+	//T::OnNewAccount::on_new_account(&who);
+	frame.DepositEvent(NewEventNewAccount(who), StorageGetBlockNumber())
 }
