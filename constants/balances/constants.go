@@ -1,9 +1,12 @@
 package balances
 
-import "github.com/LimeChain/gosemble/constants"
+import (
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
+)
 
 const (
-	ModuleIndex                    = 5
+	ModuleIndex                    = sc.U8(5)
 	FunctionTransferIndex          = 0
 	FunctionSetBalanceIndex        = 1
 	FunctionForceTransferIndex     = 2
