@@ -7,7 +7,7 @@ const (
 	FunctionTransferIndex          = 0
 	FunctionSetBalanceIndex        = 1
 	FunctionForceTransferIndex     = 2
-	FunctionTransferKeepAliceIndex = 3
+	FunctionTransferKeepAliveIndex = 3
 	FunctionTransferAllIndex       = 4
 	FunctionForceFreeIndex         = 5
 )
