@@ -8,7 +8,7 @@ package env
 
 //go:wasm-module env
 //go:export ext_storage_append_version_1
-func ExtStorageAppendVersion1(key int64, value int64) int64
+func ExtStorageAppendVersion1(key int64, value int64)
 
 //go:wasm-module env
 //go:export ext_storage_clear_version_1

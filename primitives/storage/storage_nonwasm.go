@@ -8,6 +8,10 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+func Append(key []byte, value []byte) {
+	panic("not implemented")
+}
+
 func ChangesRoot(parent_hash int64) int64 {
 	panic("not implemented")
 }

@@ -13,7 +13,7 @@ var (
 	KeyDigest             = []byte("Digest")
 	KeyEventCount         = []byte("EventCount")
 	KeyEvents             = []byte("Events")
-	KeyEventTopic         = []byte("EventTopics")
+	KeyEventTopics        = []byte("EventTopics")
 	KeyExecutionPhase     = []byte("ExecutionPhase")
 	KeyExtrinsicCount     = []byte("ExtrinsicCount")
 	KeyExtrinsicData      = []byte("ExtrinsicData")

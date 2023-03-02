@@ -10,6 +10,12 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+func Append(key []byte, value []byte) {
+	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	valueOffsetSize := utils.BytesToOffsetAndSize(value)
+	env.ExtStorageAppendVersion1(keyOffsetSize, valueOffsetSize)
+}
+
 func ChangesRoot(parent_hash int64) int64 {
 	panic("not implemented")
 }

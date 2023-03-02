@@ -20,7 +20,7 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 		case system.Module.Functions["remark"].Index:
 			// TODO: Implement
 		default:
-			log.Critical("system.function with index " + string(call.CallIndex.ModuleIndex) + "not found")
+			log.Critical("system.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
 		}
 	case timestamp.Module.Index:
 		switch call.CallIndex.FunctionIndex {
@@ -33,7 +33,7 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 
 			timestamp.Set(ts)
 		default:
-			log.Critical("system.function with index " + string(call.CallIndex.ModuleIndex) + "not found")
+			log.Critical("timestamp.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
 		}
 
 	default:

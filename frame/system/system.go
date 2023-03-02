@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"math"
 
-	"github.com/LimeChain/gosemble/constants/system"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -96,11 +95,9 @@ func Finalize() types.Header {
 }
 
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
-	initializationPhase := sc.U32(constants.ExecutionPhaseInitialization)
-
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseInitialization).Bytes())
 
 	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
@@ -155,11 +152,9 @@ func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
 }
 
 func NoteFinishedInitialize() {
-	initializationPhase := sc.U32(constants.ExecutionPhaseApplyExtrinsic)
-
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), initializationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, sc.U32(0)).Bytes())
 }
 
 func NoteFinishedExtrinsics() {
@@ -171,22 +166,21 @@ func NoteFinishedExtrinsics() {
 	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
 
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	finalizationPhase := sc.U32(constants.ExecutionPhaseFinalization)
 
-	storage.Set(append(systemHash, executionPhaseHash...), finalizationPhase.Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseFinalization).Bytes())
 }
 
 func ResetEvents() {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	eventsHash := hashing.Twox128(constants.KeyEvents)
 	eventCountHash := hashing.Twox128(constants.KeyEventCount)
-	eventTopicHash := hashing.Twox128(constants.KeyEventTopic)
+	eventTopicsHash := hashing.Twox128(constants.KeyEventTopics)
 
 	storage.Clear(append(systemHash, eventsHash...))
 	storage.Clear(append(systemHash, eventCountHash...))
 
 	limit := sc.NewOption[sc.U32](sc.U32(math.MaxUint32))
-	storage.ClearPrefix(append(systemHash, eventTopicHash...), limit.Bytes())
+	storage.ClearPrefix(append(systemHash, eventTopicsHash...), limit.Bytes())
 }
 
 // Note what the extrinsic data of the current extrinsic index is.
@@ -279,73 +273,8 @@ func EnsureInherentsAreFirst(block types.Block) int {
 	return -1
 }
 
-// The current block number being processed. Set by `execute_block`.
-func StorageGetBlockNumber() types.BlockNumber {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	numberHash := hashing.Twox128(constants.KeyNumber)
-	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
-}
-
-func StorageGetAllExtrinsicsLen() sc.U32 {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
-	return storage.GetDecode(append(systemHash, allExtrinsicsLenHash...), sc.DecodeU32)
-}
-
-func StorageGetAccount(who types.PublicKey) types.AccountInfo {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	accountHash := hashing.Twox128(constants.KeyAccount)
-
-	whoBytes := sc.FixedSequenceU8ToBytes(who)
-
-	key := append(systemHash, accountHash...)
-	key = append(key, hashing.Blake128(whoBytes)...)
-	key = append(key, whoBytes...)
-
-	return storage.GetDecode(key, types.DecodeAccountInfo)
-}
-
-func StorageSetAccount(who types.PublicKey, account types.AccountInfo) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	accountHash := hashing.Twox128(constants.KeyAccount)
-
-	whoBytes := sc.FixedSequenceU8ToBytes(who)
-
-	key := append(systemHash, accountHash...)
-	key = append(key, hashing.Blake128(whoBytes)...)
-	key = append(key, whoBytes...)
-
-	storage.Set(key, account.Bytes())
-}
-
-// Map of block numbers to block hashes.
-func StorageGetBlockHash(blockNumber sc.U32) types.Blake2bHash {
-	// Module prefix
-	systemHash := hashing.Twox128(constants.KeySystem)
-	// Storage prefix
-	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
-	// Block number hash
-	blockNumHash := hashing.Twox64(blockNumber.Bytes())
-
-	key := append(systemHash, blockHashHash...)
-	key = append(key, blockNumHash...)
-	key = append(key, blockNumber.Bytes()...)
-
-	return storage.GetDecode(key, types.DecodeBlake2bHash)
-}
-
-// Map of block numbers to block hashes.
-func StorageExistsBlockHash(blockNumber sc.U32) sc.Bool {
-	// Module prefix
-	systemHash := hashing.Twox128(constants.KeySystem)
-	// Storage prefix
-	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
-	// Block number hash
-	blockNumHash := hashing.Twox64(blockNumber.Bytes())
-
-	key := append(systemHash, blockHashHash...)
-	key = append(key, blockNumHash...)
-	key = append(key, blockNumber.Bytes()...)
-
-	return storage.Exists(key) == 1
+func onCreatedAccount(who types.PublicKey) {
+	// hook on creating new account, currently not used in Substrate
+	//T::OnNewAccount::on_new_account(&who);
+	DepositEvent(NewEventNewAccount(who))
 }
