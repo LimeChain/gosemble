@@ -6,7 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type Event = sc.Encodable
+type Event = sc.VaryingData
 
 type EventRecord struct {
 	Phase  ExtrinsicPhase
