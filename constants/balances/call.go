@@ -2,7 +2,6 @@ package balances
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 )
 
 const (
@@ -13,10 +12,4 @@ const (
 	FunctionTransferKeepAliveIndex = 3
 	FunctionTransferAllIndex       = 4
 	FunctionForceFreeIndex         = 5
-)
-
-const (
-	ExistentialDeposit = 1 * constants.Dollar
-	MaxLocks           = 50
-	MaxReserves        = 50
 )
