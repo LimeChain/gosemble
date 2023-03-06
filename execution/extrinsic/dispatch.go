@@ -51,7 +51,7 @@ func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
 		return types.DispatchInfo{
 			Weight:  types.WeightFromRefTime(sc.U64(len(xt.Bytes()))),
 			Class:   types.NewDispatchClass(types.NormalDispatch),
-			PaysFee: types.NewPays(types.PaysYes),
+			PaysFee: types.NewPaysYes(),
 		}
 
 	case timestamp.Module.Index:

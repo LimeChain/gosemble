@@ -24,46 +24,8 @@ func DecodeAccountId(buffer *bytes.Buffer) AccountId {
 	return AccountId{sc.DecodeU64(buffer)}
 }
 
-func (a MultiAddress) IsAccountId() sc.Bool {
-	switch a[0].(type) {
-	case AccountId:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAccountId() AccountId {
-	if a.IsAccountId() {
-		return a[0].(AccountId)
-	} else {
-		log.Critical("not a AccountId type")
-	}
-
-	panic("unreachable")
-}
-
 // It's an account index.
 type AccountIndex = sc.U32
-
-func (a MultiAddress) IsAccountIndex() sc.Bool {
-	switch a[0].(type) {
-	case AccountIndex:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAccountIndex() AccountIndex {
-	if a.IsAccountIndex() {
-		return a[0].(AccountIndex)
-	} else {
-		log.Critical("not a AccountIndex type")
-	}
-
-	panic("unreachable")
-}
 
 // It's some arbitrary raw bytes.
 type AccountRaw struct {
@@ -76,25 +38,6 @@ func (a AccountRaw) Encode(buffer *bytes.Buffer) {
 
 func DecodeAccountRaw(buffer *bytes.Buffer) AccountRaw {
 	return AccountRaw{sc.DecodeSequence[sc.U8](buffer)}
-}
-
-func (a MultiAddress) IsRaw() sc.Bool {
-	switch a[0].(type) {
-	case AccountRaw:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsRaw() AccountRaw {
-	if a.IsRaw() {
-		return a[0].(AccountRaw)
-	} else {
-		log.Critical("not an AccountRaw type")
-	}
-
-	panic("unreachable")
 }
 
 // It's a 32 byte representation.
@@ -117,25 +60,6 @@ func DecodeAddress32(buffer *bytes.Buffer) Address32 {
 	return Address32{sc.DecodeFixedSequence[sc.U8](32, buffer)}
 }
 
-func (a MultiAddress) IsAddress32() sc.Bool {
-	switch a[0].(type) {
-	case Address32:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAddress32() Address32 {
-	if a.IsAddress32() {
-		return a[0].(Address32)
-	} else {
-		log.Critical("not a Address32 type")
-	}
-
-	panic("unreachable")
-}
-
 // Its a 20 byte representation.
 type Address20 struct {
 	sc.FixedSequence[sc.U8] // size 20
@@ -154,25 +78,6 @@ func (a Address20) Encode(buffer *bytes.Buffer) {
 
 func DecodeAddress20(buffer *bytes.Buffer) Address20 {
 	return Address20{sc.DecodeFixedSequence[sc.U8](20, buffer)}
-}
-
-func (a MultiAddress) IsAddress20() sc.Bool {
-	switch a[0].(type) {
-	case Address20:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAddress20() Address20 {
-	if a.IsAddress20() {
-		return a[0].(Address20)
-	} else {
-		log.Critical("not a Address20 type")
-	}
-
-	panic("unreachable")
 }
 
 type MultiAddress sc.VaryingData
@@ -225,6 +130,101 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 		return MultiAddress{DecodeAddress20(buffer)}
 	default:
 		log.Critical("invalid MultiAddress type in Decode")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAddress20() sc.Bool {
+	switch a[0].(type) {
+	case Address20:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAddress20() Address20 {
+	if a.IsAddress20() {
+		return a[0].(Address20)
+	} else {
+		log.Critical("not a Address20 type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsRaw() sc.Bool {
+	switch a[0].(type) {
+	case AccountRaw:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsRaw() AccountRaw {
+	if a.IsRaw() {
+		return a[0].(AccountRaw)
+	} else {
+		log.Critical("not an AccountRaw type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAccountIndex() sc.Bool {
+	switch a[0].(type) {
+	case AccountIndex:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAccountIndex() AccountIndex {
+	if a.IsAccountIndex() {
+		return a[0].(AccountIndex)
+	} else {
+		log.Critical("not a AccountIndex type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAddress32() sc.Bool {
+	switch a[0].(type) {
+	case Address32:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAddress32() Address32 {
+	if a.IsAddress32() {
+		return a[0].(Address32)
+	} else {
+		log.Critical("not a Address32 type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAccountId() sc.Bool {
+	switch a[0].(type) {
+	case AccountId:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAccountId() AccountId {
+	if a.IsAccountId() {
+		return a[0].(AccountId)
+	} else {
+		log.Critical("not a AccountId type")
 	}
 
 	panic("unreachable")

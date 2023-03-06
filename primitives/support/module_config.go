@@ -32,5 +32,5 @@ func ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 
 func PaysFee(baseWeight types.Weight) types.Pays {
 	// TODO:
-	return types.NewPays(types.PaysYes)
+	return types.NewPaysYes()
 }
