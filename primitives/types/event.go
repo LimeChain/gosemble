@@ -8,6 +8,13 @@ import (
 
 type Event = sc.VaryingData
 
+func NewEvent(module sc.U8, event sc.U8, values ...sc.Encodable) Event {
+	args := []sc.Encodable{module, event}
+	args = append(args, values...)
+
+	return sc.NewVaryingData(args...)
+}
+
 type EventRecord struct {
 	Phase  ExtrinsicPhase
 	Event  Event

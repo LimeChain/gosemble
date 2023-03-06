@@ -23,43 +23,43 @@ const (
 )
 
 func NewEventEndowed(account types.PublicKey, freeBalance types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventEndowed, account, freeBalance}
+	return types.NewEvent(balances.ModuleIndex, EventEndowed, account, freeBalance)
 }
 
 func NewEventDustLost(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventDustLost, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventDustLost, account, amount)
 }
 
 func NewEventTransfer(from types.PublicKey, to types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventTransfer, from, to, amount}
+	return types.NewEvent(balances.ModuleIndex, EventTransfer, from, to, amount)
 }
 
 func NewEventBalanceSet(account types.PublicKey, free types.Balance, reserved types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventBalanceSet, account, free, reserved}
+	return types.NewEvent(balances.ModuleIndex, EventBalanceSet, account, free, reserved)
 }
 
 func NewEventReserved(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventReserved, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventReserved, account, amount)
 }
 
 func NewEventUnreserved(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventUnreserved, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventUnreserved, account, amount)
 }
 
 func NewEventReserveRepatriated(from types.PublicKey, to types.PublicKey, amount types.Balance, destinationStatus types.BalanceStatus) types.Event {
-	return types.Event{balances.ModuleIndex, EventReserveRepatriated, from, to, amount, destinationStatus}
+	return types.NewEvent(balances.ModuleIndex, EventReserveRepatriated, from, to, amount, destinationStatus)
 }
 
 func NewEventDeposit(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventDeposit, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventDeposit, account, amount)
 }
 
 func NewEventWithdraw(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventWithdraw, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventWithdraw, account, amount)
 }
 
 func NewEventSlashed(account types.PublicKey, amount types.Balance) types.Event {
-	return types.Event{balances.ModuleIndex, EventSlashed, account, amount}
+	return types.NewEvent(balances.ModuleIndex, EventSlashed, account, amount)
 }
 
 func DecodeEvent(buffer *bytes.Buffer) types.Event {

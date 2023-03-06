@@ -19,27 +19,27 @@ const (
 )
 
 func NewEventExtrinsicSuccess(dispatchInfo types.DispatchInfo) types.Event {
-	return types.Event{system.ModuleIndex, EventCodeUpdated, dispatchInfo}
+	return types.NewEvent(system.ModuleIndex, EventCodeUpdated, dispatchInfo)
 }
 
 func NewEventExtrinsicFailed(dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {
-	return types.Event{system.ModuleIndex, EventCodeUpdated, dispatchError, dispatchInfo}
+	return types.NewEvent(system.ModuleIndex, EventCodeUpdated, dispatchError, dispatchInfo)
 }
 
 func NewEventCodeUpdated() types.Event {
-	return types.Event{system.ModuleIndex, EventCodeUpdated}
+	return types.NewEvent(system.ModuleIndex, EventCodeUpdated)
 }
 
 func NewEventNewAccount(account types.PublicKey) types.Event {
-	return types.Event{system.ModuleIndex, EventNewAccount, account}
+	return types.NewEvent(system.ModuleIndex, EventNewAccount, account)
 }
 
 func NewEventKilledAccount(account types.PublicKey) types.Event {
-	return types.Event{system.ModuleIndex, EventKilledAccount, account}
+	return types.NewEvent(system.ModuleIndex, EventKilledAccount, account)
 }
 
 func NewEventRemarked(sender types.PublicKey, hash types.H256) types.Event {
-	return types.Event{system.ModuleIndex, EventRemarked, sender, hash}
+	return types.NewEvent(system.ModuleIndex, EventRemarked, sender, hash)
 }
 
 func DecodeEvent(buffer *bytes.Buffer) types.Event {
