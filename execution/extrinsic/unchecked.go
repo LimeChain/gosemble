@@ -19,7 +19,7 @@ func (uxt Unchecked) Check(lookup types.AccountIdLookup) (ok types.CheckedExtrin
 
 		rawPayload, err := NewSignedPayload(uxt.Function, extra)
 		if err != nil {
-			err = types.NewTransactionValidityError(types.NewUnknownTransaction(err))
+			err = types.NewTransactionValidityError(err)
 			return ok, err
 		}
 

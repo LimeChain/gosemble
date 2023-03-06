@@ -129,7 +129,7 @@ func (e CustomModuleError) Bytes() []byte {
 }
 
 func (e DataLookupError) ToTransactionValidityError() TransactionValidityError {
-	return NewTransactionValidityError(NewUnknownTransaction(CannotLookupError))
+	return NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 }
 
 // Result of a `Dispatchable` which contains the `DispatchResult` and additional information about

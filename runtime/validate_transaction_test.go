@@ -86,7 +86,7 @@ func Test_ValidateTransaction_NoUnsignedValidatorError(t *testing.T) {
 	assert.Equal(t,
 		types.NewTransactionValidityResult(
 			types.NewTransactionValidityError(
-				types.NewUnknownTransaction(types.NoUnsignedValidatorError),
+				types.NewUnknownTransactionNoUnsignedValidator(),
 			),
 		),
 		transactionValidityResult,

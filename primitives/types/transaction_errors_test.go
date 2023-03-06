@@ -22,7 +22,7 @@ func Test_EncodeTransactionValidityError(t *testing.T) {
 		},
 		{
 			label:       "Encode(TransactionValidityError(UnknownTransaction(0)))",
-			input:       NewTransactionValidityError(NewUnknownTransaction(CannotLookupError)),
+			input:       NewTransactionValidityError(NewUnknownTransactionCannotLookup()),
 			expectation: []byte{0x01, 0x00},
 		},
 	}
@@ -52,7 +52,7 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 		{
 			label:       "Encode(TransactionValidityError(UnknownTransaction(0)))",
 			input:       []byte{0x01, 0x00},
-			expectation: NewTransactionValidityError(NewUnknownTransaction(CannotLookupError)),
+			expectation: NewTransactionValidityError(NewUnknownTransactionCannotLookup()),
 		},
 	}
 

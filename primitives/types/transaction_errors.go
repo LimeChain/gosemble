@@ -202,61 +202,43 @@ func (e InvalidTransaction) Bytes() []byte {
 
 const (
 	// Could not lookup some information that is required to validate the transaction. Reject
-	CannotLookupError sc.U8 = iota
+	UnknownTransactionCannotLookup sc.U8 = iota
 
 	// No validator found for the given unsigned transaction. Reject
-	NoUnsignedValidatorError
+	UnknownTransactionNoUnsignedValidator
 
 	// Any other custom unknown validity that is not covered by this type. Reject
-	CustomUnknownTransactionError // + sc.U8
+	UnknownTransactionCustomUnknownTransaction // + sc.U8
 )
 
-type UnknownTransaction sc.VaryingData
+type UnknownTransaction = sc.VaryingData
 
-func NewUnknownTransaction(values ...sc.Encodable) UnknownTransaction {
-	switch values[0] {
-	case CannotLookupError, NoUnsignedValidatorError:
-		return UnknownTransaction(sc.NewVaryingData(values[0]))
-	case CustomUnknownTransactionError:
-		return UnknownTransaction(sc.NewVaryingData(values[0:2]...))
-	default:
-		log.Critical("invalid UnknownTransaction type")
-	}
-
-	panic("unreachable")
+func NewUnknownTransactionCannotLookup() UnknownTransaction {
+	return sc.NewVaryingData(UnknownTransactionCannotLookup)
 }
 
-func (e UnknownTransaction) Encode(buffer *bytes.Buffer) {
-	switch e[0] {
-	case CannotLookupError:
-		sc.U8(0).Encode(buffer)
-	case NoUnsignedValidatorError:
-		sc.U8(1).Encode(buffer)
-	case CustomUnknownTransactionError:
-		sc.U8(2).Encode(buffer)
-	default:
-		log.Critical("invalid UnknownTransaction type")
-	}
+func NewUnknownTransactionNoUnsignedValidator() UnknownTransaction {
+	return sc.NewVaryingData(UnknownTransactionNoUnsignedValidator)
+}
+
+func NewUnknownTransactionCustomUnknownTransaction(unknown sc.U8) UnknownTransaction {
+	return sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)
 }
 
 func DecodeUnknownTransaction(buffer *bytes.Buffer) UnknownTransaction {
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case sc.U8(0):
-		return NewUnknownTransaction(CannotLookupError)
-	case sc.U8(1):
-		return NewUnknownTransaction(NoUnsignedValidatorError)
-	case sc.U8(2):
+	case UnknownTransactionCannotLookup:
+		return NewUnknownTransactionCannotLookup()
+	case UnknownTransactionNoUnsignedValidator:
+		return NewUnknownTransactionNoUnsignedValidator()
+	case UnknownTransactionCustomUnknownTransaction:
 		v := sc.DecodeU8(buffer)
-		return NewUnknownTransaction(CustomUnknownTransactionError, v)
+		return NewUnknownTransactionCustomUnknownTransaction(v)
 	default:
 		log.Critical("invalid UnknownTransaction type")
 	}
 
 	panic("unreachable")
-}
-
-func (e UnknownTransaction) Bytes() []byte {
-	return sc.EncodedBytes(e)
 }
