@@ -104,7 +104,7 @@ func checkBlockLength(info *types.DispatchInfo, length sc.Compact) (ok sc.U32, e
 	}
 
 	if nextLen > maxLimit {
-		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.ExhaustsResourcesError))
+		err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
 	} else {
 		ok = sc.U32(sc.ToCompact(nextLen).ToBigInt().Uint64())
 	}
@@ -119,7 +119,7 @@ func checkExtrinsicWeight(info *types.DispatchInfo) (ok sc.Empty, err types.Tran
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
-			err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.ExhaustsResourcesError))
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
 		} else {
 			ok = sc.Empty{}
 		}

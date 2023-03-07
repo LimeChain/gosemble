@@ -165,7 +165,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 
 	assert.Equal(t,
 		types.NewApplyExtrinsicResult(
-			types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadProofError)),
+			types.NewTransactionValidityError(types.NewInvalidTransactionBadProof()),
 		).Bytes(),
 		res,
 	)
@@ -231,7 +231,7 @@ func Test_ApplyExtrinsic_FutureError(t *testing.T) {
 	assert.Equal(t,
 		types.NewTransactionValidityResult(
 			types.NewTransactionValidityError(
-				types.NewInvalidTransaction(types.FutureError),
+				types.NewInvalidTransactionFuture(),
 			),
 		),
 		transactionValidityResult,

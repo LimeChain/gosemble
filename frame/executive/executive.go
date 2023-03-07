@@ -82,7 +82,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
 	if res.HasError && dispatchInfo.Class.Is(types.MandatoryDispatch) {
-		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadMandatoryError))
+		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionBadMandatory())
 	}
 
 	system.NoteAppliedExtrinsic(&res, dispatchInfo)
@@ -218,7 +218,7 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
 
 	if dispatchInfo.Class.Is(types.MandatoryDispatch) {
-		return ok, types.NewTransactionValidityError(types.NewInvalidTransaction(types.MandatoryValidationError))
+		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionMandatoryValidation())
 	}
 
 	log.Trace("validate")

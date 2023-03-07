@@ -26,7 +26,7 @@ func (who CheckNonZeroAddress) Validate(_who *types.Address32, _call *types.Call
 		return ok, err
 	}
 
-	err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadSignerError))
+	err = types.NewTransactionValidityError(types.NewInvalidTransactionBadSigner())
 
 	return ok, err
 }

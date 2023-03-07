@@ -156,7 +156,7 @@ func Test_ValidateTransaction_StaleError(t *testing.T) {
 	assert.Equal(t,
 		types.NewTransactionValidityResult(
 			types.NewTransactionValidityError(
-				types.NewInvalidTransaction(types.StaleError),
+				types.NewInvalidTransactionStale(),
 			),
 		),
 		transactionValidityResult,
@@ -197,7 +197,7 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 	assert.Equal(t,
 		types.NewTransactionValidityResult(
 			types.NewTransactionValidityError(
-				types.NewInvalidTransaction(types.ExhaustsResourcesError),
+				types.NewInvalidTransactionExhaustsResources(),
 			),
 		),
 		transactionValidityResult,

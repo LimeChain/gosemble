@@ -24,7 +24,7 @@ func (uxt Unchecked) Check(lookup types.AccountIdLookup) (ok types.CheckedExtrin
 		}
 
 		if !signature.Verify(rawPayload.UsingEncoded(), signedAddress) {
-			err := types.NewTransactionValidityError(types.NewInvalidTransaction(types.BadProofError))
+			err := types.NewTransactionValidityError(types.NewInvalidTransactionBadProof())
 			return ok, err
 		}
 
