@@ -27,7 +27,7 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 					isInherent = true
 					err := timestamp.CheckInherent(call, data)
 					if err != nil {
-						err := result.PutError(cts.InherentIdentifier, err)
+						err := result.PutError(cts.InherentIdentifier, err.(types.IsFatalError))
 						if err != nil {
 							panic(err)
 						}

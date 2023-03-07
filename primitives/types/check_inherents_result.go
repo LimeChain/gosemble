@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -15,18 +16,32 @@ const (
 )
 
 const (
-	errDecodeInherentData       = "failed to decode InherentData"
-	errInvalidInherentErrorType = "invalid InherentError Type"
+	errDecodeInherentData = "failed to decode InherentData"
 )
 
-type InherentError sc.VaryingData
+type InherentError struct {
+	sc.VaryingData
+}
 
-func NewInherentError(values ...sc.Encodable) InherentError {
-	return InherentError{sc.NewVaryingData(values...)}
+func NewInherentErrorInherentDataExists(inherentIdentifier sc.Sequence[sc.U8]) InherentError {
+	return InherentError{sc.NewVaryingData(InherentErrorInherentDataExists, inherentIdentifier)}
+}
+
+func NewInherentErrorDecodingFailed(inherentIdentifier sc.Sequence[sc.U8]) InherentError {
+	return InherentError{sc.NewVaryingData(InherentErrorDecodingFailed, inherentIdentifier)}
+}
+
+func NewInherentErrorFatalErrorReported() InherentError {
+	return InherentError{sc.NewVaryingData(InherentErrorFatalErrorReported)}
+}
+
+func NewInherentErrorApplication() InherentError {
+	// TODO: encode additional value
+	return InherentError{sc.NewVaryingData(InherentErrorApplication)}
 }
 
 func (ie InherentError) IsFatal() sc.Bool {
-	switch ie[0] {
+	switch ie.VaryingData[0] {
 	case InherentErrorFatalErrorReported:
 		return true
 	default:
@@ -34,26 +49,21 @@ func (ie InherentError) IsFatal() sc.Bool {
 	}
 }
 
-func (ie InherentError) Encode(buffer *bytes.Buffer) {
-	switch ie[0] {
+func (ie InherentError) Error() string {
+	switch ie.VaryingData[0] {
 	case InherentErrorInherentDataExists:
-		ie[0].Encode(buffer)
-		ie[1].Encode(buffer)
+		return fmt.Sprintf("Inherent data already exists for identifier: [%v]", ie.VaryingData[1])
 	case InherentErrorDecodingFailed:
-		ie[0].Encode(buffer)
-		ie[1].Encode(buffer)
+		return fmt.Sprintf("Failed to decode inherent data for identifier: [%v]", ie.VaryingData[1])
 	case InherentErrorFatalErrorReported:
-		ie[0].Encode(buffer)
+		return "There was already a fatal error reported and no other errors are allowed"
 	case InherentErrorApplication:
-		ie[0].Encode(buffer)
-		// TODO: encode additional value
+		return "Inherent error application"
 	default:
-		log.Critical(errInvalidInherentErrorType)
+		log.Critical("invalid inherent error")
 	}
-}
 
-func (ie InherentError) Bytes() []byte {
-	return sc.EncodedBytes(ie)
+	panic("unreachable")
 }
 
 type CheckInherentsResult struct {
@@ -76,9 +86,9 @@ func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) {
 	cir.Errors.Encode(buffer)
 }
 
-func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFatalError) IsFatalError {
+func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFatalError) error {
 	if cir.FatalError {
-		return InherentError{}
+		return NewInherentErrorFatalErrorReported()
 	}
 
 	if error.IsFatal() {

@@ -1,10 +1,7 @@
 package types
 
 import (
-	"bytes"
-
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -16,37 +13,34 @@ const (
 	errInvalidTimestampType = "invalid TimestampError type"
 )
 
-type TimestampError sc.VaryingData
-
-func NewTimestampError(values ...sc.Encodable) TimestampError {
-	switch values[0] {
-	case TimestampErrorTooEarly, TimestampErrorTooFarInFuture:
-		return TimestampError{sc.NewVaryingData(values[0])}
-	default:
-		log.Critical(errInvalidTimestampType)
-	}
-
-	panic("unreachable")
+type TimestampError struct {
+	sc.VaryingData
 }
 
-func (te TimestampError) Encode(buffer *bytes.Buffer) {
-	switch te[0] {
-	case TimestampErrorTooEarly, TimestampErrorTooFarInFuture:
-		te[0].Encode(buffer)
-	default:
-		log.Critical(errInvalidTimestampType)
-	}
+func NewTimestampErrorTooEarly() TimestampError {
+	return TimestampError{sc.NewVaryingData(TimestampErrorTooEarly)}
 }
 
-func (te TimestampError) Bytes() []byte {
-	return sc.EncodedBytes(te)
+func NewTimestampErrorTooFarInFuture() TimestampError {
+	return TimestampError{sc.NewVaryingData(TimestampErrorTooFarInFuture)}
 }
 
 func (te TimestampError) IsFatal() sc.Bool {
-	switch te[0] {
+	switch te.VaryingData[0] {
 	case TimestampErrorTooEarly, TimestampErrorTooFarInFuture:
 		return true
 	default:
 		return false
 	}
+}
+
+func (te TimestampError) Error() string {
+	switch te.VaryingData[0] {
+	case TimestampErrorTooEarly:
+		return "The time since the last timestamp is lower than the minimum period."
+	case TimestampErrorTooFarInFuture:
+		return "The timestamp of the block is too far in the future."
+	}
+
+	panic("unreachable")
 }
