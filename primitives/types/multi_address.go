@@ -135,20 +135,41 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAddress20() sc.Bool {
+func (a MultiAddress) IsAccountId() sc.Bool {
 	switch a.VaryingData[0] {
-	case MultiAddress20:
+	case MultiAddressId:
 		return true
 	default:
 		return false
 	}
 }
 
-func (a MultiAddress) AsAddress20() Address20 {
-	if a.IsAddress20() {
-		return a.VaryingData[1].(Address20)
+func (a MultiAddress) AsAccountId() AccountId {
+	if a.IsAccountId() {
+		return a.VaryingData[1].(AccountId)
 	} else {
-		log.Critical("not a Address20 type")
+		log.Critical("not an AccountId type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAccountIndex() sc.Bool {
+	switch a.VaryingData[0] {
+	case MultiAddressIndex:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAccountIndex() AccountIndex {
+	if a.IsAccountIndex() {
+		compact := a.VaryingData[1].(sc.Compact).ToBigInt()
+
+		return sc.U32(compact.Int64())
+	} else {
+		log.Critical("not an AccountIndex type")
 	}
 
 	panic("unreachable")
@@ -173,25 +194,6 @@ func (a MultiAddress) AsRaw() AccountRaw {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAccountIndex() sc.Bool {
-	switch a.VaryingData[0] {
-	case MultiAddressIndex:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAccountIndex() AccountIndex {
-	if a.IsAccountIndex() {
-		return a.VaryingData[1].(AccountIndex)
-	} else {
-		log.Critical("not a AccountIndex type")
-	}
-
-	panic("unreachable")
-}
-
 func (a MultiAddress) IsAddress32() sc.Bool {
 	switch a.VaryingData[0] {
 	case MultiAddress32:
@@ -205,26 +207,26 @@ func (a MultiAddress) AsAddress32() Address32 {
 	if a.IsAddress32() {
 		return a.VaryingData[1].(Address32)
 	} else {
-		log.Critical("not a Address32 type")
+		log.Critical("not an Address32 type")
 	}
 
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAccountId() sc.Bool {
+func (a MultiAddress) IsAddress20() sc.Bool {
 	switch a.VaryingData[0] {
-	case MultiAddressId:
+	case MultiAddress20:
 		return true
 	default:
 		return false
 	}
 }
 
-func (a MultiAddress) AsAccountId() AccountId {
-	if a.IsAccountId() {
-		return a.VaryingData[1].(AccountId)
+func (a MultiAddress) AsAddress20() Address20 {
+	if a.IsAddress20() {
+		return a.VaryingData[1].(Address20)
 	} else {
-		log.Critical("not a AccountId type")
+		log.Critical("not an Address20 type")
 	}
 
 	panic("unreachable")

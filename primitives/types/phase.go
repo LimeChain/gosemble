@@ -37,8 +37,8 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
 
 	switch b {
 	case PhaseApplyExtrinsic:
-		value := sc.DecodeU32(buffer)
-		return NewExtrinsicPhaseApply(value)
+		index := sc.DecodeU32(buffer)
+		return NewExtrinsicPhaseApply(index)
 	case PhaseFinalization:
 		return NewExtrinsicPhaseFinalization()
 	case PhaseInitialization:

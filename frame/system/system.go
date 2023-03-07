@@ -97,7 +97,7 @@ func Finalize() types.Header {
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseFinalization().Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseInitialization().Bytes())
 
 	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
