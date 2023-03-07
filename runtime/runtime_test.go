@@ -80,7 +80,7 @@ func newTestKeyPair() ([]byte, []byte) {
 
 func newTestSigner() types.MultiAddress {
 	_, pubKey := newTestKeyPair()
-	return types.NewMultiAddress(types.NewAddress32(sc.BytesToFixedSequenceU8(pubKey)...))
+	return types.NewMultiAddress32(types.NewAddress32(sc.BytesToFixedSequenceU8(pubKey)...))
 }
 
 func newTestSignature(hexSig string) types.MultiSignature {
