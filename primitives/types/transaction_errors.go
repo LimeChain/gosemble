@@ -8,6 +8,11 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
+const (
+	TransactionValidityErrorInvalidTransaction sc.U8 = iota
+	TransactionValidityErrorUnknownTransaction
+)
+
 // Errors that can occur while checking the validity of a transaction.
 type TransactionValidityError sc.VaryingData
 
@@ -42,10 +47,10 @@ func DecodeTransactionValidityError(buffer *bytes.Buffer) TransactionValidityErr
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case 0:
+	case TransactionValidityErrorInvalidTransaction:
 		value := DecodeInvalidTransaction(buffer)
 		return NewTransactionValidityError(value)
-	case 1:
+	case TransactionValidityErrorUnknownTransaction:
 		value := DecodeUnknownTransaction(buffer)
 		return NewTransactionValidityError(value)
 	default:

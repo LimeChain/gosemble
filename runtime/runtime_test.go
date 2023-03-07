@@ -93,7 +93,7 @@ func newTestSignature(hexSig string) types.MultiSignature {
 		res = append(res, sc.U8(b))
 	}
 
-	return types.NewMultiSignature(types.NewEd25519(res...))
+	return types.NewMultiSignatureEd25519(types.NewEd25519(res...))
 }
 
 func signEd25519(digest []byte, privKey []byte) []byte {

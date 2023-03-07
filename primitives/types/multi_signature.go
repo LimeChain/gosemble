@@ -7,22 +7,31 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-type MultiSignature sc.VaryingData
+const (
+	MultiSignatureEd25519 sc.U8 = iota
+	MultiSignatureSr25519
+	MultiSignatureEcdsa
+)
 
-func NewMultiSignature(value sc.Encodable) MultiSignature {
-	switch value.(type) {
-	case Ed25519, Sr25519, Ecdsa:
-		return MultiSignature(sc.NewVaryingData(value))
-	default:
-		log.Critical("invalid Signature type")
-	}
+type MultiSignature struct {
+	sc.VaryingData
+}
 
-	panic("unreachable")
+func NewMultiSignatureEd25519(signature Ed25519) MultiSignature {
+	return MultiSignature{sc.NewVaryingData(MultiSignatureEd25519, signature)}
+}
+
+func NewMultiSignatureSr25519(signature Sr25519) MultiSignature {
+	return MultiSignature{sc.NewVaryingData(MultiSignatureSr25519, signature)}
+}
+
+func NewMultiSignatureEcdsa(signature Ecdsa) MultiSignature {
+	return MultiSignature{sc.NewVaryingData(MultiSignatureEcdsa, signature)}
 }
 
 func (s MultiSignature) IsEd25519() sc.Bool {
-	switch s[0].(type) {
-	case Ed25519:
+	switch s.VaryingData[0] {
+	case MultiSignatureEd25519:
 		return true
 	default:
 		return false
@@ -31,7 +40,7 @@ func (s MultiSignature) IsEd25519() sc.Bool {
 
 func (s MultiSignature) AsEd25519() Ed25519 {
 	if s.IsEd25519() {
-		return s[0].(Ed25519)
+		return s.VaryingData[1].(Ed25519)
 	} else {
 		log.Critical("not a Ed25519 signature type")
 	}
@@ -40,8 +49,8 @@ func (s MultiSignature) AsEd25519() Ed25519 {
 }
 
 func (s MultiSignature) IsSr25519() sc.Bool {
-	switch s[0].(type) {
-	case Sr25519:
+	switch s.VaryingData[0] {
+	case MultiSignatureSr25519:
 		return true
 	default:
 		return false
@@ -50,7 +59,7 @@ func (s MultiSignature) IsSr25519() sc.Bool {
 
 func (s MultiSignature) AsSr25519() Sr25519 {
 	if s.IsSr25519() {
-		return s[0].(Sr25519)
+		return s.VaryingData[1].(Sr25519)
 	} else {
 		log.Critical("not a Sr25519 signature type")
 	}
@@ -59,8 +68,8 @@ func (s MultiSignature) AsSr25519() Sr25519 {
 }
 
 func (s MultiSignature) IsEcdsa() sc.Bool {
-	switch s[0].(type) {
-	case Ecdsa:
+	switch s.VaryingData[0] {
+	case MultiSignatureEcdsa:
 		return true
 	default:
 		return false
@@ -69,7 +78,7 @@ func (s MultiSignature) IsEcdsa() sc.Bool {
 
 func (s MultiSignature) AsEcdsa() Ecdsa {
 	if s.IsEcdsa() {
-		return s[0].(Ecdsa)
+		return s.VaryingData[0].(Ecdsa)
 	} else {
 		log.Critical("not a Ecdsa signature type")
 	}
@@ -77,31 +86,16 @@ func (s MultiSignature) AsEcdsa() Ecdsa {
 	panic("unreachable")
 }
 
-func (s MultiSignature) Encode(buffer *bytes.Buffer) {
-	if s.IsEd25519() {
-		sc.U8(0).Encode(buffer)
-		s.AsEd25519().Encode(buffer)
-	} else if s.IsSr25519() {
-		sc.U8(1).Encode(buffer)
-		s.AsSr25519().Encode(buffer)
-	} else if s.IsEcdsa() {
-		sc.U8(2).Encode(buffer)
-		s.AsEcdsa().Encode(buffer)
-	} else {
-		log.Critical("invalid MultiSignature type in Encode")
-	}
-}
-
 func DecodeMultiSignature(buffer *bytes.Buffer) MultiSignature {
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case 0:
-		return MultiSignature{DecodeEd25519(buffer)}
-	case 1:
-		return MultiSignature{DecodeSr25519(buffer)}
-	case 2:
-		return MultiSignature{DecodeEcdsa(buffer)}
+	case MultiSignatureEd25519:
+		return NewMultiSignatureEd25519(DecodeEd25519(buffer))
+	case MultiSignatureSr25519:
+		return NewMultiSignatureSr25519(DecodeSr25519(buffer))
+	case MultiSignatureEcdsa:
+		return NewMultiSignatureEcdsa(DecodeEcdsa(buffer))
 	default:
 		log.Critical("invalid MultiSignature type in Decode: " + string(b))
 	}
