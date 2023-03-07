@@ -93,11 +93,11 @@ func checkBlockLength(info *types.DispatchInfo, length sc.Compact) (ok sc.U32, e
 	nextLen := currentLen.SaturatingAdd(addedLen)
 
 	var maxLimit sc.U32
-	if info.Class.Is(types.NormalDispatch) {
+	if info.Class.Is(types.DispatchClassNormal) {
 		maxLimit = lengthLimit.Max.Normal
-	} else if info.Class.Is(types.OperationalDispatch) {
+	} else if info.Class.Is(types.DispatchClassOperational) {
 		maxLimit = lengthLimit.Max.Operational
-	} else if info.Class.Is(types.MandatoryDispatch) {
+	} else if info.Class.Is(types.DispatchClassMandatory) {
 		maxLimit = lengthLimit.Max.Mandatory
 	} else {
 		log.Critical("invalid DispatchClass type in CheckBlockLength()")

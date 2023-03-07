@@ -50,7 +50,7 @@ func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
 		// TODO: Implement
 		return types.DispatchInfo{
 			Weight:  types.WeightFromRefTime(sc.U64(len(xt.Bytes()))),
-			Class:   types.NewDispatchClass(types.NormalDispatch),
+			Class:   types.NewDispatchClassNormal(),
 			PaysFee: types.NewPaysYes(),
 		}
 
