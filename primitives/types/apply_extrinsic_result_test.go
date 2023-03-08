@@ -19,12 +19,12 @@ func Test_EncodeApplyExtrinsicResult(t *testing.T) {
 			expectation: []byte{0x00, 0x00},
 		},
 		{
-			label:       "Encode ApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin)",
+			label:       "Encode ApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin))",
 			input:       NewApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin())),
 			expectation: []byte{0x00, 0x01, 0x02},
 		},
 		{
-			label:       "Encode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransaction(CallError)))",
+			label:       "Encode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall))",
 			input:       NewApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall())),
 			expectation: []byte{0x01, 0x00, 0x00},
 		},
@@ -58,7 +58,7 @@ func Test_DecodeApplyExtrinsicResult(t *testing.T) {
 			input:       []byte{0x00, 0x01, 0x02},
 		},
 		{
-			label:       "Decode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransaction(CallError)))",
+			label:       "Decode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall)",
 			expectation: NewApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall())),
 			input:       []byte{0x01, 0x00, 0x00},
 		},

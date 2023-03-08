@@ -14,7 +14,7 @@ func Test_EncodeDispatchOutcome(t *testing.T) {
 		expectation []byte
 	}{
 		{label: "Encode DispatchOutcome(None)", input: NewDispatchOutcome(nil), expectation: []byte{0x00}},
-		{label: "Encode  DispatchOutcome(DispatchError(BadOriginError))", input: NewDispatchOutcome(NewDispatchErrorBadOrigin()), expectation: []byte{0x01, 0x02}},
+		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: NewDispatchOutcome(NewDispatchErrorBadOrigin()), expectation: []byte{0x01, 0x02}},
 	}
 
 	for _, testExample := range testExamples {

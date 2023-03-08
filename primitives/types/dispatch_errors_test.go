@@ -14,9 +14,9 @@ func Test_EncodeDispatchError(t *testing.T) {
 		expectation []byte
 	}{
 		{label: "Encode(DispatchError('unknown error'))", input: NewDispatchErrorOther("unknown error"), expectation: []byte{0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72}},
-		{label: "Encode(DispatchError(DataLookupError))", input: NewDispatchErrorCannotLookup(), expectation: []byte{0x01}},
-		{label: "Encode(DispatchError(BadOriginError))", input: NewDispatchErrorBadOrigin(), expectation: []byte{0x02}},
-		{label: "Encode(DispatchError(CustomModuleError))", input: NewDispatchErrorModule(CustomModuleError{}), expectation: []byte{0x03, 0x00, 0x00, 0x00}},
+		{label: "Encode(DispatchErrorCannotLookup)", input: NewDispatchErrorCannotLookup(), expectation: []byte{0x01}},
+		{label: "Encode(DispatchErrorBadOrigin)", input: NewDispatchErrorBadOrigin(), expectation: []byte{0x02}},
+		{label: "Encode(DispatchErrorCustomModule)", input: NewDispatchErrorModule(CustomModuleError{}), expectation: []byte{0x03, 0x00, 0x00, 0x00}},
 	}
 
 	for _, testExample := range testExamples {
