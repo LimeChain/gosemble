@@ -17,7 +17,7 @@ func (l AccountIdLookup) Lookup(a MultiAddress) (ok Address32, err TransactionVa
 	if address.HasValue {
 		ok = address.Value
 	} else {
-		err = DataLookupError{}.ToTransactionValidityError()
+		err = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 	}
 
 	return ok, err
