@@ -6,8 +6,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
@@ -16,8 +14,7 @@ import (
 func Test_AccountNonceApi_account_nonce_Empty(t *testing.T) {
 	pubKey1 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee")
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	result, err := rt.Exec("AccountNonceApi_account_nonce", pubKey1)
 	assert.NoError(t, err)
@@ -41,8 +38,7 @@ func Test_AccountNonceApi_account_nonce(t *testing.T) {
 		},
 	}
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	hash, _ := common.Blake2b128(pubKey1)
 	key := append(keySystemHash, keyAccountHash...)

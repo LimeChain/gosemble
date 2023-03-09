@@ -5,15 +5,12 @@ import (
 	"testing"
 
 	runtimetypes "github.com/ChainSafe/gossamer/lib/runtime"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_CoreVersion(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	res, err := rt.Exec("Core_version", []byte{})
 	assert.NoError(t, err)

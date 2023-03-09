@@ -94,7 +94,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -156,8 +156,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	storageRoot := common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073") // Depends on timestamp
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
@@ -183,7 +182,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
