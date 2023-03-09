@@ -18,31 +18,18 @@ const (
 	PhaseInitialization
 )
 
-type ExtrinsicPhase sc.VaryingData
+type ExtrinsicPhase = sc.VaryingData
 
-func NewExtrinsicPhase(values ...sc.Encodable) ExtrinsicPhase {
-	switch values[0] {
-	case PhaseApplyExtrinsic:
-		return ExtrinsicPhase(sc.NewVaryingData(values[0:2]...))
-	case PhaseFinalization, PhaseInitialization:
-		return ExtrinsicPhase(sc.NewVaryingData(values[0]))
-	default:
-		log.Critical("invalid phase type")
-	}
-
-	panic("unreachable")
+func NewExtrinsicPhaseApply(index sc.U32) ExtrinsicPhase {
+	return sc.NewVaryingData(PhaseApplyExtrinsic, index)
 }
 
-func (p ExtrinsicPhase) Encode(buffer *bytes.Buffer) {
-	switch p[0] {
-	case PhaseApplyExtrinsic:
-		sc.U8(0).Encode(buffer)
-		p[1].Encode(buffer)
-	case PhaseFinalization:
-		sc.U8(1).Encode(buffer)
-	case PhaseInitialization:
-		sc.U8(2).Encode(buffer)
-	}
+func NewExtrinsicPhaseFinalization() ExtrinsicPhase {
+	return sc.NewVaryingData(PhaseFinalization)
+}
+
+func NewExtrinsicPhaseInitialization() ExtrinsicPhase {
+	return sc.NewVaryingData(PhaseInitialization)
 }
 
 func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
@@ -50,19 +37,15 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
 
 	switch b {
 	case PhaseApplyExtrinsic:
-		value := sc.DecodeU32(buffer)
-		return NewExtrinsicPhase(PhaseApplyExtrinsic, value)
+		index := sc.DecodeU32(buffer)
+		return NewExtrinsicPhaseApply(index)
 	case PhaseFinalization:
-		return NewExtrinsicPhase(PhaseFinalization)
+		return NewExtrinsicPhaseFinalization()
 	case PhaseInitialization:
-		return NewExtrinsicPhase(PhaseInitialization)
+		return NewExtrinsicPhaseInitialization()
 	default:
 		log.Critical("invalid Phase type")
 	}
 
 	panic("unreachable")
-}
-
-func (p ExtrinsicPhase) Bytes() []byte {
-	return sc.EncodedBytes(p)
 }

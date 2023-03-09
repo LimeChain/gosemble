@@ -27,10 +27,10 @@ func WeighData(baseWeight types.Weight, args sc.Sequence[sc.U8]) types.Weight {
 
 func ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	// TODO:
-	return types.NewDispatchClass(types.NormalDispatch)
+	return types.NewDispatchClassNormal()
 }
 
 func PaysFee(baseWeight types.Weight) types.Pays {
 	// TODO:
-	return types.NewPays(types.PaysYes)
+	return types.NewPaysYes()
 }

@@ -68,7 +68,7 @@ func Test_BlockExecution(t *testing.T) {
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
 	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
 
-	expectedExecutionPhase := types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, sc.U32(0))
+	expectedExecutionPhase := types.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
 	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))

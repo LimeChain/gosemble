@@ -7,100 +7,119 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-// Some unknown error occurred.
-type UnknownError = sc.Str
+const (
+	DispatchErrorOther sc.U8 = iota
+	DispatchErrorCannotLookup
+	DispatchErrorBadOrigin
+	DispatchErrorModule
+	DispatchErrorConsumerRemaining
+	DispatchErrorNoProviders
+	DispatchErrorTooManyConsumers
+	DispatchErrorToken
+	DispatchErrorArithmetic
+	DispatchErrorTransactional
+	DispatchErrorExhausted
+	DispatchErrorCorruption
+	DispatchErrorUnavailable
+)
 
-// Failed to lookup some data.
-type DataLookupError struct {
-	sc.Empty
+type DispatchError = sc.VaryingData
+
+func NewDispatchErrorOther(str sc.Str) DispatchError {
+	return sc.NewVaryingData(DispatchErrorOther, str)
 }
 
-// A bad origin.
-type BadOriginError struct {
-	sc.Empty
+func NewDispatchErrorCannotLookup() DispatchError {
+	return sc.NewVaryingData(DispatchErrorCannotLookup)
 }
 
-// // At least one consumer is remaining so the account cannot be destroyed.
-// ConsumerRemainingError
-
-// // There are no providers so the account cannot be created.
-// NoProvidersError
-
-// // There are too many consumers so the account cannot be created.
-// TooManyConsumersError
-
-// // An error to do with tokens.
-// Token(TokenError)
-
-// // An arithmetic error.
-// Arithmetic(ArithmeticError)
-
-// // The number of transactional layers has been reached, or we are not in a transactional
-// // layer.
-// Transactional(TransactionalError)
-
-// // Resources exhausted, e.g. attempt to read/write data which is too large to manipulate.
-// ExhaustedError
-
-// // The state is corrupt; this is generally not going to fix itself.
-// CorruptionError
-
-// // Some resource (e.g. a preimage) is unavailable right now. This might fix itself later.
-// UnavailableError
-
-type DispatchError sc.VaryingData
-
-func NewDispatchError(value sc.Encodable) DispatchError {
-	switch value.(type) {
-	case UnknownError, DataLookupError, BadOriginError, CustomModuleError:
-		return DispatchError(sc.NewVaryingData(value))
-	default:
-		log.Critical("invalid DispatchError type")
-	}
-
-	panic("unreachable")
+func NewDispatchErrorBadOrigin() DispatchError {
+	return sc.NewVaryingData(DispatchErrorBadOrigin)
 }
 
-func (e DispatchError) Encode(buffer *bytes.Buffer) {
-	switch e[0].(type) {
-	case UnknownError:
-		sc.U8(0).Encode(buffer)
-		e[0].Encode(buffer)
-	case DataLookupError:
-		sc.U8(1).Encode(buffer)
-	case BadOriginError:
-		sc.U8(2).Encode(buffer)
-	case CustomModuleError:
-		sc.U8(3).Encode(buffer)
-		e[0].Encode(buffer)
-	default:
-		log.Critical("invalid DispatchError type")
-	}
+func NewDispatchErrorModule(customModuleError CustomModuleError) DispatchError {
+	return sc.NewVaryingData(DispatchErrorModule, customModuleError)
+}
+
+func NewDispatchErrorConsumerRemaining() DispatchError {
+	return sc.NewVaryingData(DispatchErrorConsumerRemaining)
+}
+
+func NewDispatchErrorNoProviders() DispatchError {
+	return sc.NewVaryingData(DispatchErrorNoProviders)
+}
+
+func NewDispatchErrorTooManyConsumers() DispatchError {
+	return sc.NewVaryingData(DispatchErrorTooManyConsumers)
+}
+
+func NewDispatchErrorToken(tokenError TokenError) DispatchError {
+	// TODO: type safety
+	return sc.NewVaryingData(DispatchErrorToken, tokenError)
+}
+
+func NewDispatchErrorArithmetic(arithmeticError ArithmeticError) DispatchError {
+	// TODO: type safety
+	return sc.NewVaryingData(DispatchErrorArithmetic, arithmeticError)
+}
+
+func NewDispatchErrorTransactional(transactionalError TransactionalError) DispatchError {
+	// TODO: type safety
+	return sc.NewVaryingData(DispatchErrorTransactional, transactionalError)
+}
+
+func NewDispatchErrorExhausted() DispatchError {
+	return sc.NewVaryingData(DispatchErrorExhausted)
+}
+
+func NewDispatchErrorCorruption() DispatchError {
+	return sc.NewVaryingData(DispatchErrorCorruption)
+}
+
+func NewDispatchErrorUnavailable() DispatchError {
+	return sc.NewVaryingData(DispatchErrorUnavailable)
 }
 
 func DecodeDispatchError(buffer *bytes.Buffer) DispatchError {
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case 0:
+	case DispatchErrorOther:
 		value := sc.DecodeStr(buffer)
-		return NewDispatchError(value)
-	case 1:
-		return NewDispatchError(DataLookupError{})
-	case 2:
-		return NewDispatchError(BadOriginError{})
-	case 3:
-		value := DecodeCustomModuleError(buffer)
-		return NewDispatchError(value)
+		return NewDispatchErrorOther(value)
+	case DispatchErrorCannotLookup:
+		return NewDispatchErrorCannotLookup()
+	case DispatchErrorBadOrigin:
+		return NewDispatchErrorBadOrigin()
+	case DispatchErrorModule:
+		module := DecodeCustomModuleError(buffer)
+		return NewDispatchErrorModule(module)
+	case DispatchErrorConsumerRemaining:
+		return NewDispatchErrorConsumerRemaining()
+	case DispatchErrorNoProviders:
+		return NewDispatchErrorNoProviders()
+	case DispatchErrorTooManyConsumers:
+		return NewDispatchErrorTooManyConsumers()
+	case DispatchErrorToken:
+		tokenError := DecodeTokenError(buffer)
+		return NewDispatchErrorToken(tokenError)
+	case DispatchErrorArithmetic:
+		arithmeticError := DecodeArithmeticError(buffer)
+		return NewDispatchErrorArithmetic(arithmeticError)
+	case DispatchErrorTransactional:
+		transactionalError := DecodeTransactionalError(buffer)
+		return NewDispatchErrorTransactional(transactionalError)
+	case DispatchErrorExhausted:
+		return NewDispatchErrorExhausted()
+	case DispatchErrorCorruption:
+		return NewDispatchErrorCorruption()
+	case DispatchErrorUnavailable:
+		return NewDispatchErrorUnavailable()
 	default:
 		log.Critical("invalid DispatchError type")
 	}
 
 	panic("unreachable")
-}
-
-func (e DispatchError) Bytes() []byte {
-	return sc.EncodedBytes(e)
 }
 
 // A custom error in a module.
@@ -126,10 +145,6 @@ func DecodeCustomModuleError(buffer *bytes.Buffer) CustomModuleError {
 
 func (e CustomModuleError) Bytes() []byte {
 	return sc.EncodedBytes(e)
-}
-
-func (e DataLookupError) ToTransactionValidityError() TransactionValidityError {
-	return NewTransactionValidityError(NewUnknownTransaction(CannotLookupError))
 }
 
 // Result of a `Dispatchable` which contains the `DispatchResult` and additional information about

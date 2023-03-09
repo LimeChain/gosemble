@@ -13,10 +13,10 @@ func Test_EncodeDispatchError(t *testing.T) {
 		input       DispatchError
 		expectation []byte
 	}{
-		{label: "Encode(DispatchError('unknwon error'))", input: NewDispatchError(UnknownError("unknown error")), expectation: []byte{0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72}},
-		{label: "Encode(DispatchError(DataLookupError))", input: NewDispatchError(DataLookupError{}), expectation: []byte{0x01}},
-		{label: "Encode(DispatchError(BadOriginError))", input: NewDispatchError(BadOriginError{}), expectation: []byte{0x02}},
-		{label: "Encode(DispatchError(CustomModuleError))", input: NewDispatchError(CustomModuleError{}), expectation: []byte{0x03, 0x00, 0x00, 0x00}},
+		{label: "Encode(DispatchError('unknown error'))", input: NewDispatchErrorOther("unknown error"), expectation: []byte{0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72}},
+		{label: "Encode(DispatchErrorCannotLookup)", input: NewDispatchErrorCannotLookup(), expectation: []byte{0x01}},
+		{label: "Encode(DispatchErrorBadOrigin)", input: NewDispatchErrorBadOrigin(), expectation: []byte{0x02}},
+		{label: "Encode(DispatchErrorCustomModule)", input: NewDispatchErrorModule(CustomModuleError{}), expectation: []byte{0x03, 0x00, 0x00, 0x00}},
 	}
 
 	for _, testExample := range testExamples {
@@ -37,10 +37,10 @@ func Test_DecodeDispatchError(t *testing.T) {
 		expectation DispatchError
 	}{
 
-		{label: "DecodeDispatchError(0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72)", input: []byte{0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72}, expectation: NewDispatchError(UnknownError("unknown error"))},
-		{label: "DecodeDispatchError(0x01)", input: []byte{0x01}, expectation: NewDispatchError(DataLookupError{})},
-		{label: "DecodeDispatchError(0x02)", input: []byte{0x02}, expectation: NewDispatchError(BadOriginError{})},
-		{label: "DecodeDispatchError(0x03, 0x00, 0x00, 0x00)", input: []byte{0x03, 0x00, 0x00, 0x00}, expectation: NewDispatchError(CustomModuleError{})},
+		{label: "DecodeDispatchError(0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72)", input: []byte{0x00, 0x34, 0x75, 0x6e, 0x6b, 0x6e, 0x6f, 0x77, 0x6e, 0x20, 0x65, 0x72, 0x72, 0x6f, 0x72}, expectation: NewDispatchErrorOther("unknown error")},
+		{label: "DecodeDispatchError(0x01)", input: []byte{0x01}, expectation: NewDispatchErrorCannotLookup()},
+		{label: "DecodeDispatchError(0x02)", input: []byte{0x02}, expectation: NewDispatchErrorBadOrigin()},
+		{label: "DecodeDispatchError(0x03, 0x00, 0x00, 0x00)", input: []byte{0x03, 0x00, 0x00, 0x00}, expectation: NewDispatchErrorModule(CustomModuleError{})},
 	}
 
 	for _, testExample := range testExamples {

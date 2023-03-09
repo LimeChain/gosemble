@@ -93,18 +93,18 @@ func checkBlockLength(info *types.DispatchInfo, length sc.Compact) (ok sc.U32, e
 	nextLen := currentLen.SaturatingAdd(addedLen)
 
 	var maxLimit sc.U32
-	if info.Class.Is(types.NormalDispatch) {
+	if info.Class.Is(types.DispatchClassNormal) {
 		maxLimit = lengthLimit.Max.Normal
-	} else if info.Class.Is(types.OperationalDispatch) {
+	} else if info.Class.Is(types.DispatchClassOperational) {
 		maxLimit = lengthLimit.Max.Operational
-	} else if info.Class.Is(types.MandatoryDispatch) {
+	} else if info.Class.Is(types.DispatchClassMandatory) {
 		maxLimit = lengthLimit.Max.Mandatory
 	} else {
 		log.Critical("invalid DispatchClass type in CheckBlockLength()")
 	}
 
 	if nextLen > maxLimit {
-		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.ExhaustsResourcesError))
+		err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
 	} else {
 		ok = sc.U32(sc.ToCompact(nextLen).ToBigInt().Uint64())
 	}
@@ -119,7 +119,7 @@ func checkExtrinsicWeight(info *types.DispatchInfo) (ok sc.Empty, err types.Tran
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
-			err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.ExhaustsResourcesError))
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
 		} else {
 			ok = sc.Empty{}
 		}

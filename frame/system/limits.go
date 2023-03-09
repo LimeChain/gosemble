@@ -165,11 +165,11 @@ func DefaultBlockWeights() BlockWeights {
 
 // Get per-class weight settings.
 func (bw BlockWeights) Get(class types.DispatchClass) *WeightsPerClass {
-	if class.Is(types.NormalDispatch) {
+	if class.Is(types.DispatchClassNormal) {
 		return &bw.PerClass.Normal
-	} else if class.Is(types.OperationalDispatch) {
+	} else if class.Is(types.DispatchClassOperational) {
 		return &bw.PerClass.Operational
-	} else if class.Is(types.MandatoryDispatch) {
+	} else if class.Is(types.DispatchClassMandatory) {
 		return &bw.PerClass.Mandatory
 	} else {
 		log.Critical("Invalid dispatch class")

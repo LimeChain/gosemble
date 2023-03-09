@@ -14,7 +14,7 @@ func Test_EncodeDispatchOutcome(t *testing.T) {
 		expectation []byte
 	}{
 		{label: "Encode DispatchOutcome(None)", input: NewDispatchOutcome(nil), expectation: []byte{0x00}},
-		{label: "Encode  DispatchOutcome(DispatchError(BadOriginError))", input: NewDispatchOutcome(NewDispatchError(BadOriginError{})), expectation: []byte{0x01, 0x02}},
+		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: NewDispatchOutcome(NewDispatchErrorBadOrigin()), expectation: []byte{0x01, 0x02}},
 	}
 
 	for _, testExample := range testExamples {
@@ -35,7 +35,7 @@ func Test_DecodeDispatchOutcome(t *testing.T) {
 		expectation DispatchOutcome
 	}{
 		{label: "0x00", input: []byte{0x00}, expectation: NewDispatchOutcome(nil)},
-		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: NewDispatchOutcome(NewDispatchError(BadOriginError{}))},
+		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: NewDispatchOutcome(NewDispatchErrorBadOrigin())},
 	}
 
 	for _, testExample := range testExamples {

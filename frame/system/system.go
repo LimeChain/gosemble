@@ -97,7 +97,7 @@ func Finalize() types.Header {
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseInitialization).Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseInitialization().Bytes())
 
 	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
@@ -154,7 +154,7 @@ func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
 func NoteFinishedInitialize() {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, sc.U32(0)).Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseApply(sc.U32(0)).Bytes())
 }
 
 func NoteFinishedExtrinsics() {
@@ -167,7 +167,7 @@ func NoteFinishedExtrinsics() {
 
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhase(types.PhaseFinalization).Bytes())
+	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseFinalization().Bytes())
 }
 
 func ResetEvents() {
@@ -230,7 +230,7 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 	storage.Set(constants.KeyExtrinsicIndex, nextExtrinsicIndex.Bytes())
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), (types.NewExtrinsicPhase(types.PhaseApplyExtrinsic, nextExtrinsicIndex)).Bytes())
+	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), types.NewExtrinsicPhaseApply(nextExtrinsicIndex).Bytes())
 }
 
 // Gets the index of extrinsic that is currently executing.

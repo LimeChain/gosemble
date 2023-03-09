@@ -24,46 +24,8 @@ func DecodeAccountId(buffer *bytes.Buffer) AccountId {
 	return AccountId{sc.DecodeU64(buffer)}
 }
 
-func (a MultiAddress) IsAccountId() sc.Bool {
-	switch a[0].(type) {
-	case AccountId:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAccountId() AccountId {
-	if a.IsAccountId() {
-		return a[0].(AccountId)
-	} else {
-		log.Critical("not a AccountId type")
-	}
-
-	panic("unreachable")
-}
-
 // It's an account index.
 type AccountIndex = sc.U32
-
-func (a MultiAddress) IsAccountIndex() sc.Bool {
-	switch a[0].(type) {
-	case AccountIndex:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAccountIndex() AccountIndex {
-	if a.IsAccountIndex() {
-		return a[0].(AccountIndex)
-	} else {
-		log.Critical("not a AccountIndex type")
-	}
-
-	panic("unreachable")
-}
 
 // It's some arbitrary raw bytes.
 type AccountRaw struct {
@@ -76,25 +38,6 @@ func (a AccountRaw) Encode(buffer *bytes.Buffer) {
 
 func DecodeAccountRaw(buffer *bytes.Buffer) AccountRaw {
 	return AccountRaw{sc.DecodeSequence[sc.U8](buffer)}
-}
-
-func (a MultiAddress) IsRaw() sc.Bool {
-	switch a[0].(type) {
-	case AccountRaw:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsRaw() AccountRaw {
-	if a.IsRaw() {
-		return a[0].(AccountRaw)
-	} else {
-		log.Critical("not an AccountRaw type")
-	}
-
-	panic("unreachable")
 }
 
 // It's a 32 byte representation.
@@ -117,25 +60,6 @@ func DecodeAddress32(buffer *bytes.Buffer) Address32 {
 	return Address32{sc.DecodeFixedSequence[sc.U8](32, buffer)}
 }
 
-func (a MultiAddress) IsAddress32() sc.Bool {
-	switch a[0].(type) {
-	case Address32:
-		return true
-	default:
-		return false
-	}
-}
-
-func (a MultiAddress) AsAddress32() Address32 {
-	if a.IsAddress32() {
-		return a[0].(Address32)
-	} else {
-		log.Critical("not a Address32 type")
-	}
-
-	panic("unreachable")
-}
-
 // Its a 20 byte representation.
 type Address20 struct {
 	sc.FixedSequence[sc.U8] // size 20
@@ -156,9 +80,142 @@ func DecodeAddress20(buffer *bytes.Buffer) Address20 {
 	return Address20{sc.DecodeFixedSequence[sc.U8](20, buffer)}
 }
 
+const (
+	MultiAddressId sc.U8 = iota
+	MultiAddressIndex
+	MultiAddressRaw
+	MultiAddress32
+	MultiAddress20
+)
+
+type MultiAddress struct {
+	sc.VaryingData
+}
+
+func NewMultiAddressId(id AccountId) MultiAddress {
+	return MultiAddress{sc.NewVaryingData(MultiAddressId, id)}
+}
+
+func NewMultiAddressIndex(index AccountIndex) MultiAddress {
+	return MultiAddress{sc.NewVaryingData(MultiAddressIndex, sc.ToCompact(index))}
+}
+
+func NewMultiAddressRaw(accountRaw AccountRaw) MultiAddress {
+	return MultiAddress{sc.NewVaryingData(MultiAddressRaw, accountRaw)}
+}
+
+func NewMultiAddress32(address Address32) MultiAddress {
+	return MultiAddress{sc.NewVaryingData(MultiAddress32, address)}
+}
+
+func NewMultiAddress20(address Address20) MultiAddress {
+	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
+}
+
+func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
+	b := sc.DecodeU8(buffer)
+
+	switch b {
+	case MultiAddressId:
+		return NewMultiAddressId(DecodeAccountId(buffer))
+	case MultiAddressIndex:
+		compact := sc.DecodeCompact(buffer)
+		index := sc.U32(compact.ToBigInt().Int64())
+		return NewMultiAddressIndex(index)
+	case MultiAddressRaw:
+		return NewMultiAddressRaw(DecodeAccountRaw(buffer))
+	case MultiAddress32:
+		return NewMultiAddress32(DecodeAddress32(buffer))
+	case MultiAddress20:
+		return NewMultiAddress20(DecodeAddress20(buffer))
+	default:
+		log.Critical("invalid MultiAddress type in Decode")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAccountId() sc.Bool {
+	switch a.VaryingData[0] {
+	case MultiAddressId:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAccountId() AccountId {
+	if a.IsAccountId() {
+		return a.VaryingData[1].(AccountId)
+	} else {
+		log.Critical("not an AccountId type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAccountIndex() sc.Bool {
+	switch a.VaryingData[0] {
+	case MultiAddressIndex:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAccountIndex() AccountIndex {
+	if a.IsAccountIndex() {
+		compact := a.VaryingData[1].(sc.Compact).ToBigInt()
+
+		return sc.U32(compact.Int64())
+	} else {
+		log.Critical("not an AccountIndex type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsRaw() sc.Bool {
+	switch a.VaryingData[0] {
+	case MultiAddressRaw:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsRaw() AccountRaw {
+	if a.IsRaw() {
+		return a.VaryingData[1].(AccountRaw)
+	} else {
+		log.Critical("not an AccountRaw type")
+	}
+
+	panic("unreachable")
+}
+
+func (a MultiAddress) IsAddress32() sc.Bool {
+	switch a.VaryingData[0] {
+	case MultiAddress32:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a MultiAddress) AsAddress32() Address32 {
+	if a.IsAddress32() {
+		return a.VaryingData[1].(Address32)
+	} else {
+		log.Critical("not an Address32 type")
+	}
+
+	panic("unreachable")
+}
+
 func (a MultiAddress) IsAddress20() sc.Bool {
-	switch a[0].(type) {
-	case Address20:
+	switch a.VaryingData[0] {
+	case MultiAddress20:
 		return true
 	default:
 		return false
@@ -167,64 +224,9 @@ func (a MultiAddress) IsAddress20() sc.Bool {
 
 func (a MultiAddress) AsAddress20() Address20 {
 	if a.IsAddress20() {
-		return a[0].(Address20)
+		return a.VaryingData[1].(Address20)
 	} else {
-		log.Critical("not a Address20 type")
-	}
-
-	panic("unreachable")
-}
-
-type MultiAddress sc.VaryingData
-
-func NewMultiAddress(value sc.Encodable) MultiAddress {
-	switch value.(type) {
-	case AccountId, AccountIndex, AccountRaw, Address32, Address20:
-		return MultiAddress(sc.NewVaryingData(value))
-	default:
-		log.Critical("invalid Address type")
-	}
-
-	panic("unreachable")
-}
-
-func (a MultiAddress) Encode(buffer *bytes.Buffer) {
-	if a.IsAccountId() {
-		sc.U8(0).Encode(buffer)
-		a.AsAccountId().Encode(buffer)
-	} else if a.IsAccountIndex() {
-		sc.U8(1).Encode(buffer)
-		a.AsAccountIndex().Encode(buffer)
-	} else if a.IsRaw() {
-		sc.U8(2).Encode(buffer)
-		a.AsRaw().Encode(buffer)
-	} else if a.IsAddress32() {
-		sc.U8(3).Encode(buffer)
-		a.AsAddress32().Encode(buffer)
-	} else if a.IsAddress20() {
-		sc.U8(4).Encode(buffer)
-		a.AsAddress20().Encode(buffer)
-	} else {
-		log.Critical("invalid MultiAddress type in Encode")
-	}
-}
-
-func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
-	b := sc.DecodeU8(buffer)
-
-	switch b {
-	case 0:
-		return MultiAddress{DecodeAccountId(buffer)}
-	case 1:
-		return MultiAddress{sc.DecodeU32(buffer)}
-	case 2:
-		return MultiAddress{DecodeAccountRaw(buffer)}
-	case 3:
-		return MultiAddress{DecodeAddress32(buffer)}
-	case 4:
-		return MultiAddress{DecodeAddress20(buffer)}
-	default:
-		log.Critical("invalid MultiAddress type in Decode")
+		log.Critical("not an Address20 type")
 	}
 
 	panic("unreachable")

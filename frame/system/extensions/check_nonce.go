@@ -20,7 +20,7 @@ func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *typ
 	account := system.StorageGetAccount((*who).FixedSequence)
 
 	if sc.U32(n) < account.Nonce {
-		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.StaleError))
+		err = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
 		return ok, err
 	}
 
@@ -53,9 +53,9 @@ func (n CheckNonce) PreDispatch(who *types.Address32, call *types.Call, info *ty
 
 	if sc.U32(n) != account.Nonce {
 		if sc.U32(n) < account.Nonce {
-			err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.StaleError))
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
 		} else {
-			err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.FutureError))
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionFuture())
 		}
 		return ok, err
 	}

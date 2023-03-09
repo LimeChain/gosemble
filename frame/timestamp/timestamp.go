@@ -57,7 +57,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(call types.Call, inherent types.InherentData) types.TimestampError {
+func CheckInherent(call types.Call, inherent types.InherentData) error {
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(call.Args))
 	compactTimestamp := sc.DecodeCompact(buffer)
@@ -81,9 +81,9 @@ func CheckInherent(call types.Call, inherent types.InherentData) types.Timestamp
 
 	minimum := systemNow + timestamp.MinimumPeriod
 	if t > ts+timestamp.MaxTimestampDriftMillis {
-		return types.NewTimestampError(types.TimestampErrorTooFarInFuture)
+		return types.NewTimestampErrorTooFarInFuture()
 	} else if t < minimum {
-		return types.NewTimestampError(types.TimestampErrorTooEarly)
+		return types.NewTimestampErrorTooEarly()
 	}
 
 	return nil

@@ -11,7 +11,7 @@ func (e CheckMortality) AdditionalSigned() (ok types.H256, err types.Transaction
 	n := sc.U32(types.Era(e).Birth(current))          // TODO: impl saturated_into::<T::BlockNumber>()
 
 	if !system.StorageExistsBlockHash(n) {
-		err = types.NewTransactionValidityError(types.NewInvalidTransaction(types.AncientBirthBlockError))
+		err = types.NewTransactionValidityError(types.NewInvalidTransactionAncientBirthBlock())
 		return ok, err
 	} else {
 		ok = types.H256(system.StorageGetBlockHash(n))

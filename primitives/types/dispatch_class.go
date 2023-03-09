@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -10,10 +9,10 @@ import (
 
 const (
 	// A normal dispatch.
-	NormalDispatch sc.U8 = iota
+	DispatchClassNormal sc.U8 = iota
 
 	// An operational dispatch.
-	OperationalDispatch
+	DispatchClassOperational
 
 	// A mandatory dispatch. These kinds of dispatch are always included regardless of their
 	// weight, therefore it is critical that they are separately validated to ensure that a
@@ -28,46 +27,36 @@ const (
 	// initialization is sufficiently heavy to mean that those inherents do not fit into the
 	// block. Essentially, we assume that in these exceptional circumstances, it is better to
 	// allow an overweight block to be created than to not allow any block at all to be created.
-	MandatoryDispatch
+	DispatchClassMandatory
 )
 
 // A generalized group of dispatch types.
-type DispatchClass sc.VaryingData
-
-func NewDispatchClass(value sc.U8) DispatchClass {
-	switch value {
-	case NormalDispatch, OperationalDispatch, MandatoryDispatch:
-		return DispatchClass(sc.NewVaryingData(value))
-	default:
-		log.Critical("invalid DispatchClass type")
-	}
-
-	panic("unreachable")
+type DispatchClass struct {
+	sc.VaryingData
 }
 
-func (dc DispatchClass) Encode(buffer *bytes.Buffer) {
-	switch reflect.TypeOf(dc) {
-	case reflect.TypeOf(NewDispatchClass(NormalDispatch)):
-		sc.U8(0).Encode(buffer)
-	case reflect.TypeOf(NewDispatchClass(OperationalDispatch)):
-		sc.U8(1).Encode(buffer)
-	case reflect.TypeOf(NewDispatchClass(MandatoryDispatch)):
-		sc.U8(2).Encode(buffer)
-	default:
-		log.Critical("invalid DispatchClass type")
-	}
+func NewDispatchClassNormal() DispatchClass {
+	return DispatchClass{sc.NewVaryingData(DispatchClassNormal)}
+}
+
+func NewDispatchClassOperational() DispatchClass {
+	return DispatchClass{sc.NewVaryingData(DispatchClassOperational)}
+}
+
+func NewDispatchClassMandatory() DispatchClass {
+	return DispatchClass{sc.NewVaryingData(DispatchClassMandatory)}
 }
 
 func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case 0:
-		return NewDispatchClass(NormalDispatch)
-	case 1:
-		return NewDispatchClass(OperationalDispatch)
-	case 2:
-		return NewDispatchClass(MandatoryDispatch)
+	case DispatchClassNormal:
+		return NewDispatchClassNormal()
+	case DispatchClassOperational:
+		return NewDispatchClassOperational()
+	case DispatchClassMandatory:
+		return NewDispatchClassMandatory()
 	default:
 		log.Critical("invalid DispatchClass type")
 	}
@@ -75,16 +64,13 @@ func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
 	panic("unreachable")
 }
 
-func (dc DispatchClass) Bytes() []byte {
-	return sc.EncodedBytes(dc)
-}
-
 func (dc DispatchClass) Is(value sc.U8) sc.Bool {
+	// TODO: type safety
 	switch value {
-	case NormalDispatch, OperationalDispatch, MandatoryDispatch:
-		return dc[0] == value
+	case DispatchClassNormal, DispatchClassOperational, DispatchClassMandatory:
+		return dc.VaryingData[0] == value
 	default:
-		log.Critical("invalid DispatchClass type")
+		log.Critical("invalid DispatchClass value")
 	}
 
 	panic("unreachable")
