@@ -6,25 +6,12 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/support"
 	"github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
-
-var Module = support.ModuleMetadata{
-	Index: system.ModuleIndex,
-	Functions: map[string]support.FunctionMetadata{
-		"remark": {Index: system.FunctionRemarkIndex, Func: Remark},
-	},
-}
-
-func Remark(args sc.Sequence[sc.U8]) {
-	// TODO:
-}
 
 func Finalize() types.Header {
 	systemHash := hashing.Twox128(constants.KeySystem)
@@ -129,7 +116,7 @@ func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
 
 	storage.Get(append(systemHash, blockWeightHash...))
 
-	// TODO: weights
+	// TODO: weight
 	/**
 	let weight = <frame_system::Pallet<System>>::block_weight();
 	let max_weight = <System::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
@@ -206,7 +193,8 @@ func NoteExtrinsic(encodedExt []byte) {
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
 func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatchInfo], info types.DispatchInfo) {
-	// TODO:
+	// TODO: weight
+	//
 	// info.Weight = extract_actual_weight(r, &info).saturating_add(T::BlockWeights::get().get(info.class).base_extrinsic)
 	// info.PaysFee = extract_actual_pays_fee(r, &info)
 
@@ -251,9 +239,9 @@ func EnsureInherentsAreFirst(block types.Block) int {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
 			switch call.CallIndex.ModuleIndex {
-			case timestamp.Module.Index:
-				for funcKey := range timestamp.Module.Functions {
-					if call.CallIndex.FunctionIndex == timestamp.Module.Functions[funcKey].Index {
+			case timestamp.Module.Index():
+				for _, moduleFn := range timestamp.Module.Functions() {
+					if call.CallIndex.FunctionIndex == moduleFn.Index() {
 						isInherent = true
 					}
 				}

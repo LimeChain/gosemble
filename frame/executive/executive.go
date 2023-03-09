@@ -52,7 +52,7 @@ func InitializeBlock(header types.Header) {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) { // types.ApplyExtrinsicResult
+func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -73,6 +73,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 
 	// Decode parameters and dispatch
 	dispatchInfo := extrinsic.GetDispatchInfo(xt)
+	log.Info("DispatchInfo.Weight.RefTime " + dispatchInfo.Weight.RefTime.String())
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
 	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
@@ -215,7 +216,7 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	}
 
 	log.Trace("dispatch_info")
-	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
+	dispatchInfo := extrinsic.GetDispatchInfo(xt)
 
 	if dispatchInfo.Class.Is(types.DispatchClassMandatory) {
 		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionMandatoryValidation())

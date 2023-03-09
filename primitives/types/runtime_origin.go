@@ -10,18 +10,20 @@ const (
 	RawOriginNone
 )
 
-type RawOrigin = sc.VaryingData // [T AccountId]
+type RawOrigin struct {
+	sc.VaryingData // [T AccountId]
+}
 
 func NewRawOriginRoot() RawOrigin {
-	return sc.NewVaryingData(RawOriginRoot)
+	return RawOrigin{sc.NewVaryingData(RawOriginRoot)}
 }
 
 func NewRawOriginSigned(account Address32) RawOrigin {
-	return sc.NewVaryingData(RawOriginSigned, account)
+	return RawOrigin{sc.NewVaryingData(RawOriginSigned, account)}
 }
 
 func NewRawOriginNone() RawOrigin {
-	return sc.NewVaryingData(RawOriginNone)
+	return RawOrigin{sc.NewVaryingData(RawOriginNone)}
 }
 
 func RawOriginFrom(a sc.Option[Address32]) RawOrigin {
@@ -30,6 +32,18 @@ func RawOriginFrom(a sc.Option[Address32]) RawOrigin {
 	} else {
 		return NewRawOriginNone()
 	}
+}
+
+func (o RawOrigin) IsRootOrigin() sc.Bool {
+	return o.VaryingData[0] == RawOriginRoot
+}
+
+func (o RawOrigin) IsSignedOrigin() sc.Bool {
+	return o.VaryingData[0] == RawOriginSigned
+}
+
+func (o RawOrigin) IsNoneOrigin() sc.Bool {
+	return o.VaryingData[0] == RawOriginNone
 }
 
 type RuntimeOrigin = RawOrigin

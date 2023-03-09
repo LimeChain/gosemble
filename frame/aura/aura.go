@@ -67,14 +67,10 @@ func OnInitialize() types.Weight {
 			*/
 		}
 
-		// TODO: db weight
-		// return T::DbWeight::get().reads_writes(2, 1)
+		return constants.DbWeight.ReadsWrites(2, 1)
 	} else {
-		// TODO: db weight
-		// return T::DbWeight::get().reads(1)
+		return constants.DbWeight.Reads(1)
 	}
-
-	return types.Weight{}
 }
 
 func OnGenesisSession() {
