@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -33,4 +34,8 @@ func DecodeAccountData(buffer *bytes.Buffer) AccountData {
 		MiscFrozen: sc.DecodeU128(buffer),
 		FeeFrozen:  sc.DecodeU128(buffer),
 	}
+}
+
+func (ad AccountData) Total() *big.Int {
+	return new(big.Int).Add(ad.Free.ToBigInt(), ad.Reserved.ToBigInt())
 }

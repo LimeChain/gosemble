@@ -65,13 +65,17 @@ func (xt Checked) Apply(validator types.UnsignedValidator, info *types.DispatchI
 		maybeWho, maybePre = sc.NewOption[types.Address32](nil), sc.NewOption[types.Pre](nil)
 	}
 
-	postDispatchInfo, resWithInfo := Dispatch(xt.Function, types.RawOriginFrom(maybeWho))
+	resWithInfo := Dispatch(xt.Function, types.RawOriginFrom(maybeWho))
 
 	var postInfo types.PostDispatchInfo
 	if resWithInfo.HasError {
 		postInfo = resWithInfo.Err.PostInfo
+	} else {
+		postInfo = types.PostDispatchInfo{
+			ActualWeight: sc.NewOption[types.Weight](info.Weight),
+			PaysFee:      info.PaysFee[0].(sc.U8),
+		}
 	}
-	postInfo = postDispatchInfo
 
 	dispatchResult := types.NewDispatchResult(resWithInfo.Err)
 	_, err = system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)

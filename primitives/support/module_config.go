@@ -7,11 +7,10 @@ import (
 
 type ModuleMetadata struct {
 	Index     sc.U8
-	Functions map[string]FunctionMetadata
+	Functions map[sc.U8]FunctionMetadata
 }
 
 type FunctionMetadata struct {
-	Index      sc.U8
 	Func       interface{}
 	BaseWeight types.Weight // converted to fee
 	WeightFee  types.Pays

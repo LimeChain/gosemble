@@ -15,7 +15,7 @@ func (n CheckNonce) AdditionalSigned() (ok sc.Empty, err types.TransactionValidi
 	return ok, err
 }
 
-func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _lenght sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (n CheckNonce) Validate(who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	// TODO: check if we can use just who
 	account := system.StorageGetAccount((*who).FixedSequence)
 

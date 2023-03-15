@@ -125,7 +125,7 @@ func DecodeDispatchError(buffer *bytes.Buffer) DispatchError {
 // A custom error in a module.
 type CustomModuleError struct {
 	Index   sc.U8             // Module index matching the metadata module index.
-	Error   sc.U8             // Module specific error value.
+	Error   sc.U32            // Module specific error value.
 	Message sc.Option[sc.Str] // Varying data type Option (Definition 190). The optional value is a SCALE encoded byte array containing a valid UTF-8 sequence.
 }
 
@@ -138,7 +138,7 @@ func (e CustomModuleError) Encode(buffer *bytes.Buffer) {
 func DecodeCustomModuleError(buffer *bytes.Buffer) CustomModuleError {
 	e := CustomModuleError{}
 	e.Index = sc.DecodeU8(buffer)
-	e.Error = sc.DecodeU8(buffer)
+	e.Error = sc.DecodeU32(buffer)
 	e.Message = sc.DecodeOption[sc.Str](buffer)
 	return e
 }
@@ -154,18 +154,18 @@ type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 	PostInfo T
 
 	// The actual `DispatchResult` indicating whether the dispatch was successful.
-	DispatchError
+	Error DispatchError
 }
 
 func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) {
 	e.PostInfo.Encode(buffer)
-	e.DispatchError.Encode(buffer)
+	e.Error.Encode(buffer)
 }
 
 func DecodeErrorWithPostInfo(buffer *bytes.Buffer) DispatchErrorWithPostInfo[PostDispatchInfo] {
 	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
 	e.PostInfo = DecodePostDispatchInfo(buffer)
-	e.DispatchError = DecodeDispatchError(buffer)
+	e.Error = DecodeDispatchError(buffer)
 	return e
 }
 

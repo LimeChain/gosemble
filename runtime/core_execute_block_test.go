@@ -13,6 +13,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
+	cts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -94,7 +95,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.Module.Index, cts.FunctionSetIndex, sc.ToCompact(time.UnixMilli()).Bytes()...)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -183,7 +184,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index, timestamp.Module.Functions["set"].Index, sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.Module.Index, cts.FunctionSetIndex, sc.ToCompact(time.UnixMilli()).Bytes()...)
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)

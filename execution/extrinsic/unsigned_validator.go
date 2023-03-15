@@ -2,6 +2,10 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
+	cb "github.com/LimeChain/gosemble/constants/balances"
+	cs "github.com/LimeChain/gosemble/constants/system"
+	cts "github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/frame/balances"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -35,7 +39,7 @@ func (v UnsignedValidatorForChecked) ValidateUnsigned(_source types.TransactionS
 	switch call.CallIndex.ModuleIndex {
 	case system.Module.Index:
 		switch call.CallIndex.FunctionIndex {
-		case system.Module.Functions["remark"].Index:
+		case cs.FunctionRemarkIndex:
 			ok = types.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
@@ -43,12 +47,24 @@ func (v UnsignedValidatorForChecked) ValidateUnsigned(_source types.TransactionS
 
 	case timestamp.Module.Index:
 		switch call.CallIndex.FunctionIndex {
-		case timestamp.Module.Functions["set"].Index:
+		case cts.FunctionSetIndex:
 			ok = types.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
+	case balances.Module.Index:
+		switch call.CallIndex.FunctionIndex {
+		case cb.FunctionTransferIndex,
+			cb.FunctionSetBalanceIndex,
+			cb.FunctionForceTransferIndex,
+			cb.FunctionTransferKeepAliveIndex,
+			cb.FunctionTransferAllIndex,
+			cb.FunctionForceFreeIndex:
 
+			ok = types.DefaultValidTransaction()
+		default:
+			err = noUnsignedValidatorError
+		}
 	default:
 		log.Critical("no module found")
 	}

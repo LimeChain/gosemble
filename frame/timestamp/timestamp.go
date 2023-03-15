@@ -16,8 +16,8 @@ import (
 
 var Module = support.ModuleMetadata{
 	Index: timestamp.ModuleIndex,
-	Functions: map[string]support.FunctionMetadata{
-		"set": {Index: timestamp.FunctionSetIndex, Func: Set},
+	Functions: map[sc.U8]support.FunctionMetadata{
+		timestamp.FunctionSetIndex: {Func: Set},
 	},
 }
 
@@ -48,7 +48,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 		Function: types.Call{
 			CallIndex: types.CallIndex{
 				ModuleIndex:   Module.Index,
-				FunctionIndex: Module.Functions["set"].Index,
+				FunctionIndex: timestamp.FunctionSetIndex,
 			},
 			Args: sc.BytesToSequenceU8(sc.ToCompact(uint64(nextTimestamp)).Bytes()),
 		},

@@ -23,7 +23,7 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 		switch call.CallIndex.ModuleIndex {
 		case timestamp.Module.Index:
 			for funcKey := range timestamp.Module.Functions {
-				if call.CallIndex.FunctionIndex == timestamp.Module.Functions[funcKey].Index {
+				if funcKey == call.CallIndex.FunctionIndex {
 					isInherent = true
 					err := timestamp.CheckInherent(call, data)
 					if err != nil {
