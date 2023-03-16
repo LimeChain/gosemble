@@ -33,17 +33,17 @@ func (v UnsignedValidatorForChecked) ValidateUnsigned(_source types.TransactionS
 	noUnsignedValidatorError := types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
 	// TODO: Add more modules
 	switch call.CallIndex.ModuleIndex {
-	case system.Module.Index:
+	case system.Module.Index():
 		switch call.CallIndex.FunctionIndex {
-		case system.Module.Functions["remark"].Index:
+		case system.Module.Remark.Index():
 			ok = types.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
 
-	case timestamp.Module.Index:
+	case timestamp.Module.Index():
 		switch call.CallIndex.FunctionIndex {
-		case timestamp.Module.Functions["set"].Index:
+		case timestamp.Module.Set.Index():
 			ok = types.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError

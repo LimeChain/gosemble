@@ -19,44 +19,49 @@ import (
 // InitializeBlock initialises a block with the given header,
 // starting the execution of a particular block.
 func InitializeBlock(header types.Header) {
+	log.Trace("init_block")
 	system.ResetEvents()
 
+	weight := types.WeightZero()
 	if runtimeUpgrade() {
-		// TODO: weight
-		/*
-			weight = weight.saturating_add(Self::execute_on_runtime_upgrade());
-		*/
+		weight = weight.SaturatingAdd(executeOnRuntimeUpgrade())
 	}
 
 	system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	// TODO: weight + on_initialize
-	/*
-		weight = weight.saturating_add(<AllPalletsWithSystem as OnInitialize<
-					System::BlockNumber,
-				>>::on_initialize(*block_number));
-				weight = weight.saturating_add(
-					<System::BlockWeights as frame_support::traits::Get<_>>::get().base_block,
-				);
-				<frame_system::Pallet<System>>::register_extra_weight_unchecked(
-					weight,
-					DispatchClass::Mandatory,
-				);
-	*/
-	aura.OnInitialize()
+	allPalletsWeight := aura.OnInitialize()
+	weight = weight.SaturatingAdd(allPalletsWeight)
+	weight = weight.SaturatingAdd(system.DefaultBlockWeights().BaseBlock)
+
+	// use in case of dynamic weight calculation
+	system.RegisterExtraWeightUnchecked(weight, types.NewDispatchClassMandatory())
 
 	system.NoteFinishedInitialize()
+}
+
+func ExecuteBlock(block types.Block) {
+	InitializeBlock(block.Header)
+
+	initialChecks(block)
+
+	crypto.ExtCryptoStartBatchVerify()
+	executeExtrinsicsWithBookKeeping(block)
+	if crypto.ExtCryptoFinishBatchVerify() != 1 {
+		log.Critical("Signature verification failed")
+	}
+
+	finalChecks(&block.Header)
 }
 
 // ApplyExtrinsic applies extrinsic outside the block execution function.
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) { // types.ApplyExtrinsicResult
+func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
-	log.Info("apply_extrinsic")
+	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
 	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
@@ -73,6 +78,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 
 	// Decode parameters and dispatch
 	dispatchInfo := extrinsic.GetDispatchInfo(xt)
+	log.Trace("get_dispatch_info: weight ref time " + dispatchInfo.Weight.RefTime.String())
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
 	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
@@ -94,18 +100,36 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 	return types.NewDispatchOutcome(nil), err
 }
 
-func ExecuteBlock(block types.Block) {
-	InitializeBlock(block.Header)
+// Check a given signed transaction for validity. This doesn't execute any
+// side-effects; it merely checks whether the transaction would panic if it were included or
+// not.
+//
+// Changes made to storage should be discarded.
+func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
+	currentBlockNumber := system.StorageGetBlockNumber()
+	system.Initialize(currentBlockNumber+1, blockHash, types.Digest{})
 
-	initialChecks(block)
+	log.Trace("validate_transaction")
 
-	crypto.ExtCryptoStartBatchVerify()
-	executeExtrinsicsWithBookKeeping(block)
-	if crypto.ExtCryptoFinishBatchVerify() != 1 {
-		log.Critical("Signature verification failed")
+	log.Trace("using_encoded")
+	encodedLen := sc.ToCompact(len(uxt.Bytes()))
+
+	log.Trace("check")
+	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
+	if err != nil {
+		return ok, err
 	}
 
-	finalChecks(&block.Header)
+	log.Trace("dispatch_info")
+	dispatchInfo := extrinsic.GetDispatchInfo(xt)
+
+	if dispatchInfo.Class.Is(types.DispatchClassMandatory) {
+		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionMandatoryValidation())
+	}
+
+	log.Trace("validate")
+	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
+	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
 func executeExtrinsicsWithBookKeeping(block types.Block) {
@@ -117,7 +141,8 @@ func executeExtrinsicsWithBookKeeping(block types.Block) {
 	}
 
 	system.NoteFinishedExtrinsics()
-	system.IdleAndFinalizeHook(block.Header.Number)
+
+	IdleAndFinalizeHook(block.Header.Number)
 }
 
 func initialChecks(block types.Block) {
@@ -194,34 +219,9 @@ func finalChecks(header *types.Header) {
 	}
 }
 
-// Check a given signed transaction for validity. This doesn't execute any
-// side-effects; it merely checks whether the transaction would panic if it were included or
-// not.
-//
-// Changes made to storage should be discarded.
-func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	currentBlockNumber := system.StorageGetBlockNumber()
-	system.Initialize(currentBlockNumber+1, blockHash, types.Digest{})
-
-	log.Trace("validate_transaction")
-
-	log.Trace("using_encoded")
-	encodedLen := sc.ToCompact(len(uxt.Bytes()))
-
-	log.Trace("check")
-	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
-	if err != nil {
-		return ok, err
-	}
-
-	log.Trace("dispatch_info")
-	dispatchInfo := extrinsic.GetDispatchInfo(xt) // xt.GetDispatchInfo()
-
-	if dispatchInfo.Class.Is(types.DispatchClassMandatory) {
-		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionMandatoryValidation())
-	}
-
-	log.Trace("validate")
-	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
-	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
+// Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.
+func executeOnRuntimeUpgrade() types.Weight {
+	// TODO: ex: balances
+	// call on_runtime_upgrade hook for all modules that implement it
+	return onRuntimeUpgrade()
 }

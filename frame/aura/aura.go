@@ -35,48 +35,6 @@ func SlotDuration() int64 {
 	return utils.BytesToOffsetAndSize(slotDuration.Bytes())
 }
 
-func OnInitialize() types.Weight {
-	slot := currentSlotFromDigests()
-
-	if slot.HasValue {
-		newSlot := slot.Value
-
-		auraHash := hashing.Twox128(constants.KeyAura)
-		currentSlotHash := hashing.Twox128(constants.KeyCurrentSlot)
-
-		currentSlot := storage.GetDecode(append(auraHash, currentSlotHash...), sc.DecodeU64)
-
-		if currentSlot >= newSlot {
-			log.Critical("Slot must increase")
-		}
-
-		storage.Set(append(auraHash, currentSlotHash...), newSlot.Bytes())
-
-		totalAuthorities := totalAuthorities()
-		if totalAuthorities.HasValue {
-			_ = currentSlot % totalAuthorities.Value
-
-			// TODO: implement once  Session module is added
-			/*
-				if T::DisabledValidators::is_disabled(authority_index as u32) {
-							panic!(
-								"Validator with index {:?} is disabled and should not be attempting to author blocks.",
-								authority_index,
-							);
-						}
-			*/
-		}
-
-		// TODO: db weight
-		// return T::DbWeight::get().reads_writes(2, 1)
-	} else {
-		// TODO: db weight
-		// return T::DbWeight::get().reads(1)
-	}
-
-	return types.Weight{}
-}
-
 func OnGenesisSession() {
 	// TODO: implement once Session module is added
 }

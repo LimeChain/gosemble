@@ -7,6 +7,7 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
@@ -55,6 +56,13 @@ var (
 			103, 51, 25, 36, 30, 12, 80, 149, 166, 131, 173, 52, 49, 98, 4, 8, 138, 54, 164, 189, 134},
 	}
 )
+
+func newTestRuntime(t *testing.T) (*wasmer.Instance, *trie.Trie) {
+	wasmer.DefaultTestLogLvl = 3
+	storage := trie.NewEmptyTrie()
+	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	return rt, storage
+}
 
 func newTestKeyPair() ([]byte, []byte) {
 	privKey := []byte{

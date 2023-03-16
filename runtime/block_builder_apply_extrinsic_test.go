@@ -8,8 +8,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -19,8 +17,7 @@ import (
 )
 
 func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
@@ -74,8 +71,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -119,8 +115,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	call := newTestCall(0, 0, 0xab, 0xcd)
 	uxt := types.NewUnsignedUncheckedExtrinsic(call)
@@ -136,8 +131,7 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -176,8 +170,7 @@ func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_FutureError(t *testing.T) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	pubKey1 := []byte{0x15, 0xb0, 0x7f, 0xe2, 0xe7, 0x81, 0x87, 0x4a, 0xd9, 0x7f, 0xbe, 0x3f, 0xcb, 0xf9, 0xab, 0xaf, 0x8e, 0x96, 0x5d, 0x2d, 0xb5, 0x30, 0xba, 0xb0, 0x89, 0xc1, 0xf3, 0xaa, 0x21, 0xf4, 0x20, 0x63}
 

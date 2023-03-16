@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+
 	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -43,8 +44,8 @@ func NewEventRemarked(sender types.PublicKey, hash types.H256) types.Event {
 }
 
 func DecodeEvent(buffer *bytes.Buffer) types.Event {
-	module := sc.DecodeU8(buffer)
-	if module != system.ModuleIndex {
+	moduleIndex := sc.DecodeU8(buffer)
+	if moduleIndex != Module.Index() {
 		log.Critical("invalid system.Event")
 	}
 

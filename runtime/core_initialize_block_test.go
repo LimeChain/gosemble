@@ -5,8 +5,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -48,8 +46,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)

@@ -2,78 +2,84 @@ package extrinsic
 
 import (
 	"bytes"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/support"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispatchInfo, err types.DispatchResultWithPostInfo[types.PostDispatchInfo]) {
-	switch call.CallIndex.ModuleIndex {
-	// TODO: Add more modules
-	case system.Module.Index:
-		switch call.CallIndex.FunctionIndex {
-		// TODO: Add more functions
-		case system.Module.Functions["remark"].Index:
-			// TODO: Implement
-		default:
-			log.Critical("system.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
+func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
+	// TODO: add more module functions
+	switch xt.Function.CallIndex.ModuleIndex {
+	case system.Module.Index():
+		switch xt.Function.CallIndex.FunctionIndex {
+		case system.Module.Remark.Index():
+			baseWeight := system.Module.Remark.BaseWeight(xt.Function.Args)
+
+			return types.DispatchInfo{
+				Weight:  system.Module.Remark.WeightInfo(baseWeight, xt.Function.Args),
+				Class:   system.Module.Remark.ClassifyDispatch(baseWeight, xt.Function.Args),
+				PaysFee: system.Module.Remark.PaysFee(baseWeight, xt.Function.Args),
+			}
 		}
-	case timestamp.Module.Index:
+
+	case timestamp.Module.Index():
+		switch xt.Function.CallIndex.FunctionIndex {
+		case timestamp.Module.Set.Index():
+			baseWeight := timestamp.Module.Set.BaseWeight(xt.Function.Args)
+
+			return types.DispatchInfo{
+				Weight:  timestamp.Module.Set.WeightInfo(baseWeight, xt.Function.Args),
+				Class:   timestamp.Module.Set.ClassifyDispatch(baseWeight, xt.Function.Args),
+				PaysFee: timestamp.Module.Set.PaysFee(baseWeight, xt.Function.Args),
+			}
+		}
+
+	default:
+		log.Trace(fmt.Sprintf("module with index %d not found", xt.Function.CallIndex.ModuleIndex))
+	}
+
+	log.Trace(fmt.Sprintf("function with index %d not found", xt.Function.CallIndex.FunctionIndex))
+	return types.DispatchInfo{
+		Weight:  types.WeightFromParts(sc.U64(len(xt.Bytes())), sc.U64(0)),
+		Class:   types.NewDispatchClassNormal(),
+		PaysFee: types.NewPaysYes(),
+	}
+}
+
+func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispatchInfo, err types.DispatchResultWithPostInfo[types.PostDispatchInfo]) {
+	// TODO: Add more modules and functions
+	switch call.CallIndex.ModuleIndex {
+	case system.Module.Index():
 		switch call.CallIndex.FunctionIndex {
-		// TODO: Add more functions
-		case timestamp.Module.Functions["set"].Index:
+		case system.Module.Remark.Index():
+			res := system.Module.Remark.Dispatch(maybeWho, call.Args)
+			if res.HasError {
+				err = res
+				return ok, err
+			}
+			ok = res.Ok
+		default:
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
+		}
+	case timestamp.Module.Index():
+		switch call.CallIndex.FunctionIndex {
+		case timestamp.Module.Set.Index():
 			buffer := &bytes.Buffer{}
 			buffer.Write(sc.SequenceU8ToBytes(call.Args))
 			compactTs := sc.DecodeCompact(buffer)
 			ts := sc.U64(compactTs.ToBigInt().Uint64())
-
-			timestamp.Set(ts)
+			timestamp.Module.Set.Dispatch(types.NewRawOriginNone(), ts)
 		default:
-			log.Critical("timestamp.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
 		}
 
 	default:
-		log.Critical("module with index " + string(call.CallIndex.ModuleIndex) + "not found")
+		log.Trace(fmt.Sprintf("module with index %d not found", call.CallIndex.ModuleIndex))
 	}
 
 	return ok, err
-}
-
-func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
-	switch xt.Function.CallIndex.ModuleIndex {
-	// TODO: Add more modules
-	case system.Module.Index:
-		// TODO: Implement
-		return types.DispatchInfo{
-			Weight:  types.WeightFromRefTime(sc.U64(len(xt.Bytes()))),
-			Class:   types.NewDispatchClassNormal(),
-			PaysFee: types.NewPaysYes(),
-		}
-
-	case timestamp.Module.Index:
-		switch xt.Function.CallIndex.FunctionIndex {
-		// TODO: Add more functions
-		case timestamp.Module.Functions["set"].Index:
-			baseWeight := timestamp.Module.Functions["set"].BaseWeight
-			weight := support.WeighData(baseWeight, xt.Function.Args)
-			class := support.ClassifyDispatch(baseWeight)
-			paysFee := support.PaysFee(baseWeight)
-
-			return types.DispatchInfo{
-				Weight:  weight,
-				Class:   class,
-				PaysFee: paysFee,
-			}
-		default:
-			log.Critical("system.function with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
-		}
-	default:
-		log.Critical("module with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
-	}
-
-	panic("unreachable")
 }

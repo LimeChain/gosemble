@@ -6,8 +6,6 @@ import (
 	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -25,8 +23,7 @@ func Test_CheckInherents(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, _ := newTestRuntime(t)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
