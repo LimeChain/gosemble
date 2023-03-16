@@ -23,11 +23,15 @@ func (l AccountIdLookup) Lookup(a MultiAddress) (Address32, TransactionValidityE
 
 // Lookup an address to get an Id, if there's one there.
 func LookupAddress(a MultiAddress) sc.Option[Address32] { // TODO: MultiAddress[AccountId, AccountIndex]
-	if a.IsAddress32() == true {
+	if a.IsAccountId() {
+		return sc.NewOption[Address32](a.AsAccountId().Address32)
+	}
+
+	if a.IsAddress32() {
 		return sc.NewOption[Address32](a.AsAddress32())
 	}
 
-	if a.IsAccountIndex() == true {
+	if a.IsAccountIndex() {
 		return sc.NewOption[Address32](LookupIndex(a.AsAccountIndex()))
 	}
 

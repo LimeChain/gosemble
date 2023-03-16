@@ -31,7 +31,7 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) types.DispatchResul
 		// TODO: Add more functions
 		case timestamp_constants.FunctionSetIndex:
 			buffer := &bytes.Buffer{}
-			buffer.Write(sc.SequenceU8ToBytes(call.Args))
+			buffer.Write(call.Args)
 			compactTs := sc.DecodeCompact(buffer)
 			ts := sc.U64(compactTs.ToBigInt().Uint64())
 
@@ -41,7 +41,7 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) types.DispatchResul
 		}
 	case balances.Module.Index:
 		buffer := &bytes.Buffer{}
-		buffer.Write(sc.SequenceU8ToBytes(call.Args))
+		buffer.Write(call.Args)
 
 		switch call.CallIndex.FunctionIndex {
 		case balances_constants.FunctionTransferIndex:

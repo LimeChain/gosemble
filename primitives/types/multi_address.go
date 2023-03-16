@@ -9,19 +9,11 @@ import (
 
 // It's an account ID (pubkey).
 type AccountId struct {
-	sc.U64
-}
-
-func NewAccountId(value sc.U64) AccountId {
-	return AccountId{U64: value}
-}
-
-func (a AccountId) Encode(buffer *bytes.Buffer) {
-	a.U64.Encode(buffer)
+	Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
 }
 
 func DecodeAccountId(buffer *bytes.Buffer) AccountId {
-	return AccountId{sc.DecodeU64(buffer)}
+	return AccountId{DecodeAddress32(buffer)} // TODO: length 32 or 33 depending on algorithm
 }
 
 // It's an account index.

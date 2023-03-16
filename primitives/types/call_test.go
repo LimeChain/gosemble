@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +12,7 @@ var call = Call{
 		ModuleIndex:   0,
 		FunctionIndex: 0,
 	},
-	Args: sc.Sequence[sc.U8]{0xab, 0xcd},
+	Args: []byte{0xab, 0xcd},
 }
 
 func Test_NewCall(t *testing.T) {
@@ -30,7 +29,7 @@ func Test_NewCall(t *testing.T) {
 					ModuleIndex:   0,
 					FunctionIndex: 0,
 				},
-				Args: sc.Sequence[sc.U8]{0xab, 0xcd},
+				Args: []byte{0xab, 0xcd},
 			},
 		},
 	}

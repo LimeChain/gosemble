@@ -8,18 +8,20 @@ import (
 
 type Call struct {
 	CallIndex CallIndex
-	Args      sc.Sequence[sc.U8]
+	Args      []byte
 }
 
 func (c Call) Encode(buffer *bytes.Buffer) {
 	c.CallIndex.Encode(buffer)
-	c.Args.Encode(buffer)
+	//c.Args.Encode(buffer)
+	buffer.Write(c.Args)
 }
 
 func DecodeCall(buffer *bytes.Buffer) Call {
 	c := Call{}
 	c.CallIndex = DecodeCallIndex(buffer)
-	c.Args = sc.DecodeSequence[sc.U8](buffer)
+	c.Args = buffer.Bytes()
+	buffer.Reset()
 	return c
 }
 

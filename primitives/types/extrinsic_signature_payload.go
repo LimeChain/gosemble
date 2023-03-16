@@ -38,10 +38,10 @@ func (sp SignedPayload) Encode(buffer *bytes.Buffer) {
 	sp.Call.Encode(buffer)
 	sp.Extra.Encode(buffer)
 	sp.SpecVersion.Encode(buffer)
+	sp.TransactionVersion.Encode(buffer)
 	// sp.FormatVersion.Encode(buffer)
 	sp.GenesisHash.Encode(buffer)
 	sp.BlockHash.Encode(buffer)
-	sp.TransactionVersion.Encode(buffer)
 }
 
 func DecodeSignedPayload(buffer *bytes.Buffer) SignedPayload {
@@ -49,10 +49,10 @@ func DecodeSignedPayload(buffer *bytes.Buffer) SignedPayload {
 	sp.Call = DecodeCall(buffer)
 	sp.Extra = DecodeExtra(buffer)
 	sp.SpecVersion = sc.DecodeU32(buffer)
+	sp.TransactionVersion = sc.DecodeU32(buffer)
 	// sp.FormatVersion = sc.DecodeU32(buffer)
 	sp.GenesisHash = DecodeH256(buffer)
 	sp.BlockHash = DecodeH256(buffer)
-	sp.TransactionVersion = sc.DecodeU32(buffer)
 	return sp
 }
 

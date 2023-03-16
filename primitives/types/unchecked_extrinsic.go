@@ -99,7 +99,7 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	var extSignature sc.Option[ExtrinsicSignature]
 	if isSigned {
-		extSignature = sc.DecodeOptionWith(buffer, DecodeExtrinsicSignature)
+		extSignature = sc.NewOption[ExtrinsicSignature](DecodeExtrinsicSignature(buffer))
 	}
 
 	function := DecodeCall(buffer)

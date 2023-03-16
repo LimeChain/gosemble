@@ -16,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const POLKADOT_RUNTIME = "../build/polkadot_runtime-v9370.compact.compressed.wasm"
+
 // const WASM_RUNTIME = "../build/polkadot_runtime-v9370.compact.compressed.wasm"
 // const WASM_RUNTIME = "../build/westend_runtime-v9370.compact.compressed.wasm"
 // const WASM_RUNTIME = "../build/node_template_runtime.wasm"
@@ -114,7 +116,7 @@ func newTestCall(moduleIndex sc.U8, functionIndex sc.U8, args ...byte) types.Cal
 			ModuleIndex:   sc.U8(moduleIndex),
 			FunctionIndex: sc.U8(functionIndex),
 		},
-		Args: sc.BytesToSequenceU8(args),
+		Args: args,
 	}
 }
 

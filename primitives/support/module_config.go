@@ -19,9 +19,9 @@ type FunctionMetadata struct {
 
 // TODO: move elsewhere
 
-func WeighData(baseWeight types.Weight, args sc.Sequence[sc.U8]) types.Weight {
+func WeighData(baseWeight types.Weight, args []byte) types.Weight {
 	// TODO:
-	return types.WeightFromRefTime(sc.U64(len(args.Bytes()))) // + baseWeight
+	return types.WeightFromRefTime(sc.U64(len(args))) // + baseWeight
 }
 
 func ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
