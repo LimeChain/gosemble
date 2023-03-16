@@ -52,7 +52,7 @@ func Test_EncodeCall(t *testing.T) {
 		{
 			label:       "Encode(Call(System.remark(0xab, 0xcd)))",
 			input:       call,
-			expectation: []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
+			expectation: []byte{0x0, 0x0, 0xab, 0xcd},
 		},
 	}
 
@@ -75,7 +75,7 @@ func Test_DecodeCall(t *testing.T) {
 	}{
 		{
 			label:       "Decode(0x0, 0x0, 0x8, 0xab, 0xcd)",
-			input:       []byte{0x0, 0x0, 0x8, 0xab, 0xcd},
+			input:       []byte{0x0, 0x0, 0xab, 0xcd},
 			expectation: call,
 		},
 	}

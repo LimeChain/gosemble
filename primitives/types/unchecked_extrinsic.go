@@ -70,7 +70,7 @@ func (uxt UncheckedExtrinsic) Encode(buffer *bytes.Buffer) {
 
 	if uxt.Signature.HasValue {
 		sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned).Encode(tempBuffer)
-		uxt.Signature.Encode(tempBuffer)
+		uxt.Signature.Value.Encode(tempBuffer)
 	} else {
 		sc.U8(ExtrinsicFormatVersion & ExtrinsicUnmaskVersion).Encode(tempBuffer)
 	}

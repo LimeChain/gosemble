@@ -66,7 +66,7 @@ func Test_ValidateTransaction_NoUnsignedValidatorError(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	call := newTestCall(0, 65, 0xab, 0xcd) // non existing function
+	call := newTestCall(0, 65, 0xab, 0xcd) // non-existing function
 	tx := types.NewUnsignedUncheckedExtrinsic(call)
 	txSource := types.NewTransactionSourceExternal()
 	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())

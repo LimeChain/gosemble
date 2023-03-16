@@ -20,6 +20,7 @@ func (c Call) Encode(buffer *bytes.Buffer) {
 func DecodeCall(buffer *bytes.Buffer) Call {
 	c := Call{}
 	c.CallIndex = DecodeCallIndex(buffer)
+	// TODO: Move switch case from dispatch here or you would not be able to know how much to read from buffer in terms of function arguments.
 	c.Args = buffer.Bytes()
 	buffer.Reset()
 	return c
