@@ -2,12 +2,11 @@ package extrinsic
 
 import (
 	"bytes"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
-	balances_constants "github.com/LimeChain/gosemble/constants/balances"
-	system_constants "github.com/LimeChain/gosemble/constants/system"
-	timestamp_constants "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/balances"
+	"github.com/LimeChain/gosemble/frame/balances/constants"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -15,156 +14,102 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
+	// TODO: add more module functions
+	var function support.FunctionMetadata
+	switch xt.Function.CallIndex.ModuleIndex {
+	case system.Module.Index():
+		function = system.Module.Functions()[xt.Function.CallIndex.FunctionIndex]
+	case timestamp.Module.Index():
+		function = timestamp.Module.Functions()[xt.Function.CallIndex.FunctionIndex]
+	case balances.Module.Index():
+		function = balances.Module.Functions()[xt.Function.CallIndex.FunctionIndex]
+	default:
+		log.Trace(fmt.Sprintf("module with index %d not found", xt.Function.CallIndex.ModuleIndex))
+	}
+
+	log.Trace(fmt.Sprintf("function with index %d not found", xt.Function.CallIndex.FunctionIndex))
+
+	baseWeight := function.BaseWeight(xt.Function.Args)
+	return types.DispatchInfo{
+		Weight:  timestamp.Module.Set.WeightInfo(baseWeight, xt.Function.Args),
+		Class:   timestamp.Module.Set.ClassifyDispatch(baseWeight, xt.Function.Args),
+		PaysFee: timestamp.Module.Set.PaysFee(baseWeight, xt.Function.Args),
+	}
+}
+
 func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	// TODO: Add more modules and functions
 	switch call.CallIndex.ModuleIndex {
-	// TODO: Add more modules
-	case system.Module.Index:
+	case system.Module.Index():
 		switch call.CallIndex.FunctionIndex {
-		// TODO: Add more functions
-		case system_constants.FunctionRemarkIndex:
-			// TODO: Implement
+		case system.Module.Remark.Index():
+			return system.Module.Remark.Dispatch(maybeWho, call.Args)
 		default:
-			log.Critical("system.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
 		}
-	case timestamp.Module.Index:
+	case timestamp.Module.Index():
 		switch call.CallIndex.FunctionIndex {
-		// TODO: Add more functions
-		case timestamp_constants.FunctionSetIndex:
+		case timestamp.Module.Set.Index():
 			buffer := &bytes.Buffer{}
 			buffer.Write(call.Args)
 			compactTs := sc.DecodeCompact(buffer)
 			ts := sc.U64(compactTs.ToBigInt().Uint64())
-
-			timestamp.Set(ts)
+			timestamp.Module.Set.Dispatch(types.NewRawOriginNone(), ts)
 		default:
-			log.Critical("timestamp.function with index " + string(call.CallIndex.FunctionIndex) + "not found")
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
 		}
-	case balances.Module.Index:
+	case balances.Module.Index():
 		buffer := &bytes.Buffer{}
 		buffer.Write(call.Args)
 
+		var err types.DispatchError
 		switch call.CallIndex.FunctionIndex {
-		case balances_constants.FunctionTransferIndex:
+		case constants.FunctionTransferIndex:
 			to := types.DecodeMultiAddress(buffer)
 			value := sc.DecodeCompact(buffer)
 
-			return balances.Transfer(maybeWho, to, sc.U128(value))
-		case balances_constants.FunctionSetBalanceIndex:
+			_, err = balances.Module.Transfer.Dispatch(maybeWho, to, sc.U128(value))
+		case constants.FunctionSetBalanceIndex:
 			to := types.DecodeMultiAddress(buffer)
 			newFree := sc.DecodeCompact(buffer)
 			newReserved := sc.DecodeCompact(buffer)
 
-			return balances.SetBalance(maybeWho, to, newFree.ToBigInt(), newReserved.ToBigInt())
-		case balances_constants.FunctionForceTransferIndex:
+			_, err = balances.Module.SetBalance.Dispatch(maybeWho, to, newFree.ToBigInt(), newReserved.ToBigInt())
+		case constants.FunctionForceTransferIndex:
 			from := types.DecodeMultiAddress(buffer)
 			to := types.DecodeMultiAddress(buffer)
 			value := sc.DecodeCompact(buffer)
 
-			return balances.ForceTransfer(maybeWho, from, to, sc.U128(value))
-		case balances_constants.FunctionTransferKeepAliveIndex:
+			_, err = balances.Module.ForceTransfer.Dispatch(maybeWho, from, to, sc.U128(value))
+		case constants.FunctionTransferKeepAliveIndex:
 			destination := types.DecodeMultiAddress(buffer)
 			value := sc.DecodeCompact(buffer)
 
-			return balances.TransferKeepAlive(maybeWho, destination, sc.U128(value))
-		case balances_constants.FunctionTransferAllIndex:
+			_, err = balances.Module.TransferKeepAlive.Dispatch(maybeWho, destination, sc.U128(value))
+		case constants.FunctionTransferAllIndex:
 			destination := types.DecodeMultiAddress(buffer)
 			keepAlive := sc.DecodeBool(buffer)
 
-			result := balances.TransferAll(maybeWho, destination, bool(keepAlive))
-			if result != nil {
-				return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-					HasError: true,
-					Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-						PostInfo: types.PostDispatchInfo{
-							ActualWeight: sc.Option[types.Weight]{
-								HasValue: false,
-							},
-							PaysFee: 0,
-						},
-						Error: result,
-					},
-				}
-			}
-		case balances_constants.FunctionForceFreeIndex:
+			_, err = balances.Module.TransferAll.Dispatch(maybeWho, destination, bool(keepAlive))
+		case constants.FunctionForceFreeIndex:
 			to := types.DecodeMultiAddress(buffer)
 			value := sc.DecodeCompact(buffer)
 
-			result := balances.ForceFree(maybeWho, to, value.ToBigInt())
-			if result != nil {
-				return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-					HasError: true,
-					Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-						PostInfo: types.PostDispatchInfo{
-							ActualWeight: sc.Option[types.Weight]{
-								HasValue: false,
-							},
-							PaysFee: 0,
-						},
-						Error: result,
-					},
-				}
+			_, err = balances.Module.ForceFree.Dispatch(maybeWho, to, value.ToBigInt())
+		}
+		if err != nil {
+			return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+				HasError: true,
+				Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+					Error: err,
+				},
 			}
 		}
 
 	default:
-		log.Critical("module with index " + string(call.CallIndex.ModuleIndex) + "not found")
+		log.Trace(fmt.Sprintf("module with index %d not found", call.CallIndex.ModuleIndex))
 	}
 
 	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{}
-}
-
-func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
-	switch xt.Function.CallIndex.ModuleIndex {
-	// TODO: Add more modules
-	case system.Module.Index:
-		// TODO: Implement
-		return types.DispatchInfo{
-			Weight:  types.WeightFromRefTime(sc.U64(len(xt.Bytes()))),
-			Class:   types.NewDispatchClassNormal(),
-			PaysFee: types.NewPaysYes(),
-		}
-
-	case timestamp.Module.Index:
-		switch xt.Function.CallIndex.FunctionIndex {
-		case timestamp_constants.FunctionSetIndex:
-			baseWeight := timestamp.Module.Functions[xt.Function.CallIndex.FunctionIndex].BaseWeight
-			weight := support.WeighData(baseWeight, xt.Function.Args)
-			class := support.ClassifyDispatch(baseWeight)
-			paysFee := support.PaysFee(baseWeight)
-
-			return types.DispatchInfo{
-				Weight:  weight,
-				Class:   class,
-				PaysFee: paysFee,
-			}
-		default:
-			log.Critical("system.function with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
-		}
-	case balances.Module.Index:
-		switch xt.Function.CallIndex.FunctionIndex {
-		case balances_constants.FunctionTransferIndex,
-			balances_constants.FunctionSetBalanceIndex,
-			balances_constants.FunctionForceTransferIndex,
-			balances_constants.FunctionTransferKeepAliveIndex,
-			balances_constants.FunctionTransferAllIndex,
-			balances_constants.FunctionForceFreeIndex:
-
-			baseWeight := timestamp.Module.Functions[xt.Function.CallIndex.FunctionIndex].BaseWeight
-			weight := support.WeighData(baseWeight, xt.Function.Args)
-			class := support.ClassifyDispatch(baseWeight)
-			paysFee := support.PaysFee(baseWeight)
-
-			return types.DispatchInfo{
-				Weight:  weight,
-				Class:   class,
-				PaysFee: paysFee,
-			}
-		default:
-			log.Critical("system.function with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
-		}
-	default:
-		log.Critical("module with index " + string(xt.Function.CallIndex.ModuleIndex) + "not found")
-	}
-
-	panic("unreachable")
 }

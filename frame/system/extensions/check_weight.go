@@ -27,22 +27,18 @@ func (_ CheckWeight) PreDispatch(_who *types.Address32, _call *types.Call, info 
 	return ok, err
 }
 
-func (w CheckWeight) PreDispatchUnsigned(_call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+func (_ CheckWeight) PreDispatchUnsigned(_call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
 	_, err = DoPreDispatch(info, length)
 	return ok, err
 }
 
 func (_ CheckWeight) PostDispatch(_pre sc.Option[types.Pre], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, _length sc.Compact, _result *types.DispatchResult) (ok types.Pre, err types.TransactionValidityError) {
-	// TODO:
-
-	// let unspent = post_info.calc_unspent(info);
-	// if unspent.any_gt(Weight::zero()) {
-	// 	crate::BlockWeight::<T>::mutate(|current_weight| {
-	// 		current_weight.reduce(unspent, info.class);
-	// 	})
-	// }
-	// Ok(())
-
+	unspent := postInfo.CalcUnspent(info)
+	if unspent.AnyGt(types.WeightZero()) {
+		currentWeight := system.StorageGetBlockWeight()
+		currentWeight.Reduce(unspent, info.Class)
+		system.StorageSetBlockWeight(currentWeight)
+	}
 	ok = types.Pre{}
 	return ok, err
 }
@@ -71,14 +67,24 @@ func DoValidate(info *types.DispatchInfo, length sc.Compact) (ok types.ValidTran
 }
 
 func DoPreDispatch(info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	// TODO:
-	// let next_len = Self::check_block_length(info, len)?;
-	// let next_weight = Self::check_block_weight(info)?;
-	// Self::check_extrinsic_weight(info)?;
+	nextLength, err := checkBlockLength(info, length)
+	if err != nil {
+		return ok, err
+	}
 
-	// crate::AllExtrinsicsLen::<T>::put(next_len);
-	// crate::BlockWeight::<T>::put(next_weight);
-	// Ok(())
+	nextWeight, err := checkBlockWeight(info)
+	if err != nil {
+		return ok, err
+	}
+
+	_, err = checkExtrinsicWeight(info)
+	if err != nil {
+		return ok, err
+	}
+
+	system.StorageSetAllExtrinsicsLen(nextLength)
+	system.StorageSetBlockWeight(nextWeight)
+
 	return ok, err
 }
 
@@ -112,6 +118,15 @@ func checkBlockLength(info *types.DispatchInfo, length sc.Compact) (ok sc.U32, e
 	return ok, err
 }
 
+// Checks if the current extrinsic can fit into the block with respect to block weight limits.
+//
+// Upon successes, it returns the new block weight as a `Result`.
+func checkBlockWeight(info *types.DispatchInfo) (ok types.ConsumedWeight, err types.TransactionValidityError) {
+	maximumWeight := system.DefaultBlockWeights()
+	allWeight := system.StorageGetBlockWeight()
+	return CalculateConsumedWeight(maximumWeight, allWeight, info)
+}
+
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
 func checkExtrinsicWeight(info *types.DispatchInfo) (ok sc.Empty, err types.TransactionValidityError) {
@@ -124,6 +139,60 @@ func checkExtrinsicWeight(info *types.DispatchInfo) (ok sc.Empty, err types.Tran
 			ok = sc.Empty{}
 		}
 	}
+
+	return ok, err
+}
+
+func CalculateConsumedWeight(maximumWeight system.BlockWeights, allWeight types.ConsumedWeight, info *types.DispatchInfo) (ok types.ConsumedWeight, err types.TransactionValidityError) {
+	extrinsicWeight := info.Weight.SaturatingAdd(maximumWeight.Get(info.Class).BaseExtrinsic)
+	limitPerClass := maximumWeight.Get(info.Class)
+
+	// add the weight. If class is unlimited, use saturating add instead of checked one.
+	if !limitPerClass.MaxTotal.HasValue && !limitPerClass.Reserved.HasValue {
+		allWeight.SaturatingAdd(extrinsicWeight, info.Class)
+	} else {
+		// TODO:
+		_, e := allWeight.CheckedAccrue(extrinsicWeight, info.Class)
+		if e != nil {
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
+			return ok, err
+		}
+	}
+
+	perClass := allWeight.Get(info.Class)
+
+	// Check if we don't exceed per-class allowance
+	switch limitPerClass.MaxTotal.HasValue {
+	case true:
+		max := limitPerClass.MaxTotal.Value
+		if perClass.AnyGt(max) {
+			err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
+			return ok, err
+		}
+	case false:
+		// There is no `max_total` limit (`None`),
+		// or we are below the limit.
+		// TODO:
+	}
+
+	// In cases total block weight is exceeded, we need to fall back
+	// to `reserved` pool if there is any.
+	if allWeight.Total().AnyGt(maximumWeight.MaxBlock) {
+		if limitPerClass.Reserved.HasValue {
+			// We are over the limit in reserved pool.
+			reserved := limitPerClass.Reserved.Value
+			if perClass.AnyGt(reserved) {
+				err = types.NewTransactionValidityError(types.NewInvalidTransactionExhaustsResources())
+				return ok, err
+			}
+		} else {
+			// There is either no limit in reserved pool (`None`),
+			// or we are below the limit.
+			// TODO:
+		}
+	}
+
+	ok = allWeight
 
 	return ok, err
 }

@@ -1,10 +1,10 @@
-package balances
+package events
 
 import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/balances"
+	"github.com/LimeChain/gosemble/frame/balances/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -23,48 +23,48 @@ const (
 )
 
 func NewEventEndowed(account types.PublicKey, freeBalance types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventEndowed, account, freeBalance)
+	return types.NewEvent(constants.ModuleIndex, EventEndowed, account, freeBalance)
 }
 
 func NewEventDustLost(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventDustLost, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventDustLost, account, amount)
 }
 
 func NewEventTransfer(from types.PublicKey, to types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventTransfer, from, to, amount)
+	return types.NewEvent(constants.ModuleIndex, EventTransfer, from, to, amount)
 }
 
 func NewEventBalanceSet(account types.PublicKey, free types.Balance, reserved types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventBalanceSet, account, free, reserved)
+	return types.NewEvent(constants.ModuleIndex, EventBalanceSet, account, free, reserved)
 }
 
 func NewEventReserved(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventReserved, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventReserved, account, amount)
 }
 
 func NewEventUnreserved(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventUnreserved, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventUnreserved, account, amount)
 }
 
 func NewEventReserveRepatriated(from types.PublicKey, to types.PublicKey, amount types.Balance, destinationStatus types.BalanceStatus) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventReserveRepatriated, from, to, amount, destinationStatus)
+	return types.NewEvent(constants.ModuleIndex, EventReserveRepatriated, from, to, amount, destinationStatus)
 }
 
 func NewEventDeposit(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventDeposit, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventDeposit, account, amount)
 }
 
 func NewEventWithdraw(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventWithdraw, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventWithdraw, account, amount)
 }
 
 func NewEventSlashed(account types.PublicKey, amount types.Balance) types.Event {
-	return types.NewEvent(balances.ModuleIndex, EventSlashed, account, amount)
+	return types.NewEvent(constants.ModuleIndex, EventSlashed, account, amount)
 }
 
 func DecodeEvent(buffer *bytes.Buffer) types.Event {
 	module := sc.DecodeU8(buffer)
-	if module != balances.ModuleIndex {
+	if module != constants.ModuleIndex {
 		log.Critical("invalid balances.Event module")
 	}
 

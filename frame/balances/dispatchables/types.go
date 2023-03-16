@@ -1,18 +1,15 @@
-package balances
+package dispatchables
 
 import (
 	"bytes"
 	"math/big"
 
-	"github.com/LimeChain/gosemble/constants"
-
-	"github.com/LimeChain/gosemble/primitives/hashing"
-
-	"github.com/LimeChain/gosemble/primitives/storage"
-
-	"github.com/LimeChain/gosemble/frame/system"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/balances/events"
+	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -77,6 +74,6 @@ func (dcv DustCleanerValue) Bytes() []byte {
 }
 
 func (dcv DustCleanerValue) Drop() {
-	system.DepositEvent(NewEventDustLost(dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
+	system.DepositEvent(events.NewEventDustLost(dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
 	dcv.NegativeImbalance.Drop()
 }

@@ -69,7 +69,7 @@ func FinalizeBlock() int64 {
 
 	blockNumber := system.StorageGetBlockNumber()
 
-	system.IdleAndFinalizeHook(blockNumber)
+	executive.IdleAndFinalizeHook(blockNumber)
 
 	header := system.Finalize()
 	encodedHeader := header.Bytes()

@@ -2,36 +2,24 @@ package system
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/support"
 	"github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-var Module = support.ModuleMetadata{
-	Index: system.ModuleIndex,
-	Functions: map[sc.U8]support.FunctionMetadata{
-		system.FunctionRemarkIndex: {Func: Remark},
-	},
-}
-
-func Remark(args sc.Sequence[sc.U8]) {
-	// TODO:
-}
-
 func Finalize() types.Header {
 	systemHash := hashing.Twox128(constants.KeySystem)
-	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Clear(append(systemHash, executionPhaseHash...))
+
+	StorageClearExecutionPhase()
 
 	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
 	storage.Clear(append(systemHash, allExtrinsicsLenHash...))
@@ -98,8 +86,8 @@ func Finalize() types.Header {
 
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
 	systemHash := hashing.Twox128(constants.KeySystem)
-	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseInitialization().Bytes())
+
+	StorageSetExecutionPhase(types.NewExtrinsicPhaseInitialization())
 
 	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
 
@@ -121,42 +109,11 @@ func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, dig
 
 	storage.Set(blockNumKey, parentHash.Bytes())
 
-	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
-	storage.Clear(append(systemHash, blockWeightHash...))
-}
-
-func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
-
-	storage.Get(append(systemHash, blockWeightHash...))
-
-	// TODO: weights
-	/**
-	let weight = <frame_system::Pallet<System>>::block_weight();
-	let max_weight = <System::BlockWeights as frame_support::traits::Get<_>>::get().max_block;
-	let remaining_weight = max_weight.saturating_sub(weight.total());
-
-	if remaining_weight.all_gt(Weight::zero()) {
-		let used_weight = <AllPalletsWithSystem as OnIdle<System::BlockNumber>>::on_idle(
-			block_number,
-			remaining_weight,
-		);
-		<frame_system::Pallet<System>>::register_extra_weight_unchecked(
-			used_weight,
-			DispatchClass::Mandatory,
-		);
-	}
-	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
-	<AllPalletsWithSystem as OnFinalize<System::BlockNumber>>::on_finalize(block_number);
-	*/
-	timestamp.OnFinalize()
+	StorageClearBlockWeight()
 }
 
 func NoteFinishedInitialize() {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseApply(sc.U32(0)).Bytes())
+	StorageSetExecutionPhase(types.NewExtrinsicPhaseApply(sc.U32(0)))
 }
 
 func NoteFinishedExtrinsics() {
@@ -167,9 +124,7 @@ func NoteFinishedExtrinsics() {
 
 	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
 
-	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-
-	storage.Set(append(systemHash, executionPhaseHash...), types.NewExtrinsicPhaseFinalization().Bytes())
+	StorageSetExecutionPhase(types.NewExtrinsicPhaseFinalization())
 }
 
 func ResetEvents() {
@@ -194,7 +149,7 @@ func NoteExtrinsic(encodedExt []byte) {
 	keyExtrinsicData := hashing.Twox128(constants.KeyExtrinsicData)
 
 	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicData...)
-	extrinsicIndex := extrinsicIndexValue()
+	extrinsicIndex := StorageGetExtrinsicIndex()
 
 	hashIndex := hashing.Twox64(extrinsicIndex.Bytes())
 
@@ -208,24 +163,18 @@ func NoteExtrinsic(encodedExt []byte) {
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
 func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatchInfo], info types.DispatchInfo) {
-	// TODO:
-	// info.Weight = extract_actual_weight(r, &info).saturating_add(T::BlockWeights::get().get(info.class).base_extrinsic)
-	// info.PaysFee = extract_actual_pays_fee(r, &info)
+	baseWeight := DefaultBlockWeights().Get(info.Class).BaseExtrinsic
+	info.Weight = types.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
+	info.PaysFee = types.ExtractActualPaysFee(r, &info)
 
-	// Self::deposit_event(match r {
-	// 	Ok(_) => Event::ExtrinsicSuccess { dispatch_info: info },
-	// 	Err(err) => {
-	// 		log::trace!(
-	// 			target: LOG_TARGET,
-	// 			"Extrinsic failed at block({:?}): {:?}",
-	// 			Self::block_number(),
-	// 			err,
-	// 		);
-	// 		Event::ExtrinsicFailed { dispatch_error: err.error, dispatch_info: info }
-	// 	},
-	// });
+	if r.HasError {
+		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", StorageGetBlockNumber(), r.Err))
+		DepositEvent(NewEventExtrinsicFailed(r.Err.Error, info))
+	} else {
+		DepositEvent(NewEventExtrinsicSuccess(info))
+	}
 
-	nextExtrinsicIndex := extrinsicIndexValue() + sc.U32(1)
+	nextExtrinsicIndex := StorageGetExtrinsicIndex() + sc.U32(1)
 
 	keySystemHash := hashing.Twox128(constants.KeySystem)
 
@@ -233,11 +182,6 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), types.NewExtrinsicPhaseApply(nextExtrinsicIndex).Bytes())
-}
-
-// Gets the index of extrinsic that is currently executing.
-func extrinsicIndexValue() sc.U32 {
-	return storage.GetDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
 }
 
 func EnsureInherentsAreFirst(block types.Block) int {
@@ -253,9 +197,9 @@ func EnsureInherentsAreFirst(block types.Block) int {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
 			switch call.CallIndex.ModuleIndex {
-			case timestamp.Module.Index:
-				for funcKey := range timestamp.Module.Functions {
-					if funcKey == call.CallIndex.FunctionIndex {
+			case timestamp.Module.Index():
+				for _, moduleFn := range timestamp.Module.Functions() {
+					if call.CallIndex.FunctionIndex == moduleFn.Index() {
 						isInherent = true
 					}
 				}
@@ -424,12 +368,22 @@ func CanDecProviders(who types.Address32) bool {
 	return acc.Consumers == 0 || acc.Providers > 1
 }
 
-func onCreatedAccount(who types.Address32) {
-	// hook on creating new account, currently not used in Substrate
-	//T::OnNewAccount::on_new_account(&who);
-	DepositEvent(NewEventNewAccount(who.FixedSequence))
-}
-
-func onKilledAccount(who types.Address32) {
-	DepositEvent(NewEventKilledAccount(who.FixedSequence))
+// current block.
+//
+// NOTE: use with extra care; this function is made public only be used for certain pallets
+// that need it. A runtime that does not have dynamic calls should never need this and should
+// stick to static weights. A typical use case for this is inner calls or smart contract calls.
+// Furthermore, it only makes sense to use this when it is presumably  _cheap_ to provide the
+// argument `weight`; In other words, if this function is to be used to account for some
+// unknown, user provided call's weight, it would only make sense to use it if you are sure you
+// can rapidly compute the weight of the inner call.
+//
+// Even more dangerous is to note that this function does NOT take any action, if the new sum
+// of block weight is more than the block weight limit. This is what the _unchecked_.
+//
+// Another potential use-case could be for the `on_initialize` and `on_finalize` hooks.
+func RegisterExtraWeightUnchecked(weight types.Weight, class types.DispatchClass) {
+	currentWeight := StorageGetBlockWeight()
+	currentWeight.Accrue(weight, class)
+	StorageSetBlockWeight(currentWeight)
 }

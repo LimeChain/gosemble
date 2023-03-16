@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -19,30 +20,6 @@ import (
 // `frame_system` tracks consumption of each of these resources separately for each
 // `DispatchClass`. This module contains configuration object for both resources,
 // which should be passed to `frame_system` configuration when runtime is being set up.
-
-// TODO: needs to be benchmarked
-
-const FiveMbPerBlockPerExtrinsic sc.U32 = 1024 // TODO: 5 * 1024 * 1024
-
-const WeightRefTimePerSecond sc.U64 = 1_000_000_000_000
-const WeightRefTimePerNanos sc.U64 = 1_000
-
-// Time to execute an empty block.
-// Calculated by multiplying the *Average* with `1.0` and adding `0`.
-//
-// Stats nanoseconds:
-//
-//	Min, Max: 377_722, 414_752
-//	Average:  381_015
-//	Median:   379_751
-//	Std-Dev:  5462.64
-//
-// Percentiles nanoseconds:
-//
-//	99th: 413_074
-//	95th: 384_876
-//	75th: 380_642
-var BlockExecutionWeight types.Weight = types.WeightFromRefTime(WeightRefTimePerNanos.SaturatingMul(381_015))
 
 // A ratio of `Normal` dispatch class within block, used as default value for
 // `BlockWeight` and `BlockLength`. The `Default` impls are provided mostly for convenience
@@ -80,7 +57,7 @@ type BlockLength struct {
 }
 
 func DefaultBlockLength() BlockLength {
-	return MaxWithNormalRatio(FiveMbPerBlockPerExtrinsic, DefaultNormalRatio)
+	return MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, DefaultNormalRatio)
 }
 
 // Create new `BlockLength` with `max` for `Operational` & `Mandatory`
@@ -157,7 +134,7 @@ type BlockWeights struct {
 
 func DefaultBlockWeights() BlockWeights {
 	WithSensibleDefaults(
-		types.WeightFromParts(WeightRefTimePerSecond, math.MaxUint64),
+		types.WeightFromParts(constants.WeightRefTimePerSecond, math.MaxUint64),
 		DefaultNormalRatio,
 	)
 	return BlockWeights{}
@@ -189,14 +166,14 @@ func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio Perbill)
 	//
 	// By default all kinds except of `Mandatory` extrinsics are disallowed.
 	WeightsForNormalAndOperational := WeightsPerClass{
-		BaseExtrinsic: BlockExecutionWeight,
+		BaseExtrinsic: constants.BlockExecutionWeight,
 		MaxExtrinsic:  sc.NewOption[types.Weight](nil),
 		MaxTotal:      sc.NewOption[types.Weight](nil),
 		Reserved:      sc.NewOption[types.Weight](nil),
 	}
 
 	WeightsForMandatory := WeightsPerClass{
-		BaseExtrinsic: BlockExecutionWeight,
+		BaseExtrinsic: constants.BlockExecutionWeight,
 		MaxExtrinsic:  sc.NewOption[types.Weight](nil),
 		MaxTotal:      sc.NewOption[types.Weight](types.WeightZero()),
 		Reserved:      sc.NewOption[types.Weight](types.WeightZero()),
@@ -210,7 +187,7 @@ func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio Perbill)
 
 	builder := BlockWeightsBuilder{
 		Weights: BlockWeights{
-			BaseBlock: BlockExecutionWeight,
+			BaseBlock: constants.BlockExecutionWeight,
 			MaxBlock:  types.WeightZero(),
 			PerClass:  weightsPerClass,
 		},
