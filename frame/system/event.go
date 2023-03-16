@@ -16,7 +16,7 @@ func depositEventIndexed(topics []types.H256, event types.Event) {
 	}
 
 	eventRecord := types.EventRecord{
-		Phase:  storageExtrinsicPhase(),
+		Phase:  StorageExecutionPhase(),
 		Event:  event,
 		Topics: topics,
 	}

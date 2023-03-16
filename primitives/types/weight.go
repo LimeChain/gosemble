@@ -67,6 +67,40 @@ func (lhs Weight) SaturatingAdd(rhs Weight) Weight {
 	}
 }
 
+// Saturating [`Weight`] subtraction. Computes `self - rhs`, saturating at the numeric bounds
+// of all fields instead of overflowing.
+func (lhs Weight) SaturatingSub(rhs Weight) Weight {
+	return Weight{
+		RefTime:   lhs.RefTime.SaturatingSub(rhs.RefTime),
+		ProofSize: lhs.ProofSize.SaturatingSub(rhs.ProofSize),
+	}
+}
+
+// Increment [`Weight`] by `amount` via saturating addition.
+func (w *Weight) SaturatingAccrue(amount Weight) {
+	*w = w.SaturatingAdd(amount)
+}
+
+// Reduce [`Weight`] by `amount` via saturating subtraction.
+func (w *Weight) SaturatingReduce(amount Weight) {
+	*w = w.SaturatingSub(amount)
+}
+
+// Checked [`Weight`] addition. Computes `self + rhs`, returning `None` if overflow occurred.
+func (lhs Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
+	refTime, err := lhs.RefTime.CheckedAdd(rhs.RefTime)
+	if err != nil {
+		return sc.NewOption[Weight](nil)
+	}
+
+	proofSize, err := lhs.ProofSize.CheckedAdd(rhs.ProofSize)
+	if err != nil {
+		return sc.NewOption[Weight](nil)
+	}
+
+	return sc.NewOption[Weight](Weight{refTime, proofSize})
+}
+
 func (lhs Weight) Sub(rhs Weight) Weight {
 	return Weight{
 		RefTime:   lhs.RefTime - rhs.RefTime,
@@ -88,9 +122,24 @@ func (w Weight) SaturatingMul(b sc.U64) Weight {
 	}
 }
 
+// Get the conservative min of `self` and `other` weight.
+func (lhs Weight) Min(rhs Weight) Weight {
+	return Weight{
+		RefTime:   lhs.RefTime.Min(rhs.RefTime),
+		ProofSize: lhs.ProofSize.Min(rhs.ProofSize),
+	}
+}
+
+// Returns true if all of `self`'s constituent weights is strictly greater than that of the
+// `other`'s, otherwise returns false.
+func (lhs Weight) AllGt(rhs Weight) sc.Bool {
+	return lhs.RefTime > rhs.RefTime && lhs.ProofSize > rhs.ProofSize
+}
+
+// / Returns true if any of `self`'s constituent weights is strictly greater than that of the
+// / `other`'s, otherwise returns false.
 func (w Weight) AnyGt(otherW Weight) sc.Bool {
-	// TODO: check if this is correct
-	return w.RefTime > otherW.RefTime // || w.ProofSize > otherW.ProofSize
+	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
 }
 
 // Construct [`Weight`] from weight parts, namely reference time and proof size weights.

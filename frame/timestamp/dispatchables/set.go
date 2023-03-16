@@ -27,9 +27,9 @@ func (_ FnSet) BaseWeight(b ...any) types.Weight {
 	//  Measured:  `312`
 	//  Estimated: `1006`
 	// Minimum execution time: 9_106 nanoseconds.
-	return types.WeightFromParts(9_258_000, 1006).
-		SaturatingAdd(constants.DbWeight.Reads(2)).
-		SaturatingAdd(constants.DbWeight.Writes(1))
+	r := constants.DbWeight.Reads(2)
+	w := constants.DbWeight.Writes(1)
+	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
 func (_ FnSet) WeightInfo(baseWeight types.Weight, target sc.Sequence[sc.U8]) types.Weight {

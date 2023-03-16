@@ -25,8 +25,8 @@ func (_ FnRemark) BaseWeight(args ...any) types.Weight {
 	// Minimum execution time: 2_018 nanoseconds.
 	// Standard Error: 0
 	b := args[0].(sc.Sequence[sc.U8])
-	return types.WeightFromParts(2_091_000, 0).
-		SaturatingAdd(types.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b))))
+	w := types.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b)))
+	return types.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
 func (_ FnRemark) WeightInfo(baseWeight types.Weight, target sc.Sequence[sc.U8]) types.Weight {

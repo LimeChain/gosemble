@@ -15,10 +15,17 @@ func StorageGetBlockNumber() types.BlockNumber {
 	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 }
 
+// Total length (in bytes) for all extrinsics put together, for the current block.
 func StorageGetAllExtrinsicsLen() sc.U32 {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
 	return storage.GetDecode(append(systemHash, allExtrinsicsLenHash...), sc.DecodeU32)
+}
+
+func StorageSetAllExtrinsicsLen(length sc.U32) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
+	storage.Set(append(systemHash, allExtrinsicsLenHash...), length.Bytes())
 }
 
 func StorageGetAccount(who types.PublicKey) types.AccountInfo {
@@ -79,11 +86,22 @@ func StorageExistsBlockHash(blockNumber sc.U32) sc.Bool {
 	return storage.Exists(key) == 1
 }
 
-func storageExtrinsicPhase() types.ExtrinsicPhase {
+func StorageExecutionPhase() types.ExtrinsicPhase {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
-
 	return storage.GetDecode(append(systemHash, executionPhaseHash...), types.DecodeExtrinsicPhase)
+}
+
+func StorageSetExecutionPhase(phase types.ExtrinsicPhase) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
+	storage.Set(append(systemHash, executionPhaseHash...), phase.Bytes())
+}
+
+func StorageClearExecutionPhase() {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	executionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
+	storage.Clear(append(systemHash, executionPhaseHash...))
 }
 
 func storageEventCount() sc.U32 {
@@ -117,4 +135,28 @@ func storageAppendTopic(topic types.H256, value sc.VaryingData) {
 
 	key := append(eventTopicsPrefix, topic.Bytes()...)
 	storage.Append(key, value.Bytes())
+}
+
+// block weight
+func StorageGetBlockWeight() types.ConsumedWeight {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
+	return storage.GetDecode(append(systemHash, blockWeightHash...), types.DecodeConsumedWeight)
+}
+
+func StorageSetBlockWeight(weight types.ConsumedWeight) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
+	storage.Set(append(systemHash, blockWeightHash...), weight.Bytes())
+}
+
+func StorageClearBlockWeight() {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
+	storage.Clear(append(systemHash, blockWeightHash...))
+}
+
+// Gets the index of extrinsic that is currently executing.
+func StorageGetExtrinsicIndex() sc.U32 {
+	return storage.GetDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
 }

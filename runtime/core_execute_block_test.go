@@ -25,7 +25,7 @@ func Test_BlockExecution(t *testing.T) {
 	// blockBuilder.ApplyExtrinsics
 	// blockBuilder.FinalizeBlock
 
-	storageRoot := common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073") // Depends on timestamp
+	storageRoot := common.MustHexToHash("0x5ed8ef407f6aac308017234fc0df7697946d332260748fe81828a13887fd2161") // Depends on timestamp
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	expectedStorageDigest := gossamertypes.NewDigest()
@@ -53,6 +53,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, expectedStorageDigest.Add(preRuntimeDigest))
 
 	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -153,7 +154,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	// blockBuilder.Inherent_Extrinsics
 	// blockBuilder.ExecuteBlock
 
-	storageRoot := common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073") // Depends on timestamp
+	storageRoot := common.MustHexToHash("0x5ed8ef407f6aac308017234fc0df7697946d332260748fe81828a13887fd2161") // Depends on timestamp
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	rt, storage := newTestRuntime(t)

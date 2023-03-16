@@ -13,7 +13,6 @@ import (
 
 func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
 	// TODO: add more module functions
-
 	switch xt.Function.CallIndex.ModuleIndex {
 	case system.Module.Index():
 		switch xt.Function.CallIndex.FunctionIndex {
@@ -40,10 +39,10 @@ func GetDispatchInfo(xt types.CheckedExtrinsic) types.DispatchInfo {
 		}
 
 	default:
-		log.Info(fmt.Sprintf("module with index %d not found", xt.Function.CallIndex.ModuleIndex))
+		log.Trace(fmt.Sprintf("module with index %d not found", xt.Function.CallIndex.ModuleIndex))
 	}
 
-	log.Info(fmt.Sprintf("function with index %d not found", xt.Function.CallIndex.FunctionIndex))
+	log.Trace(fmt.Sprintf("function with index %d not found", xt.Function.CallIndex.FunctionIndex))
 	return types.DispatchInfo{
 		Weight:  types.WeightFromParts(sc.U64(len(xt.Bytes())), sc.U64(0)),
 		Class:   types.NewDispatchClassNormal(),
@@ -64,7 +63,7 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 			}
 			ok = res.Ok
 		default:
-			log.Info(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
 		}
 	case timestamp.Module.Index():
 		switch call.CallIndex.FunctionIndex {
@@ -75,11 +74,11 @@ func Dispatch(call types.Call, maybeWho types.RuntimeOrigin) (ok types.PostDispa
 			ts := sc.U64(compactTs.ToBigInt().Uint64())
 			timestamp.Module.Set.Dispatch(types.NewRawOriginNone(), ts)
 		default:
-			log.Info(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
+			log.Trace(fmt.Sprintf("function index %d not found", call.CallIndex.FunctionIndex))
 		}
 
 	default:
-		log.Info(fmt.Sprintf("module with index %d not found", call.CallIndex.ModuleIndex))
+		log.Trace(fmt.Sprintf("module with index %d not found", call.CallIndex.ModuleIndex))
 	}
 
 	return ok, err
