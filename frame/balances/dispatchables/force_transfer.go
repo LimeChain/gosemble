@@ -1,6 +1,8 @@
 package dispatchables
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/balances"
@@ -25,6 +27,18 @@ func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
+}
+
+func (_ FnForceTransfer) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{
+		types.DecodeMultiAddress(buffer),
+		types.DecodeMultiAddress(buffer),
+		sc.U128(sc.DecodeCompact(buffer)),
+	}
+}
+
+func (_ FnForceTransfer) IsInherent() bool {
+	return false
 }
 
 func (_ FnForceTransfer) WeightInfo(baseWeight types.Weight) types.Weight {

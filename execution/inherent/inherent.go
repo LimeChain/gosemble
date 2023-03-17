@@ -1,11 +1,10 @@
 package inherent
 
 import (
-	types2 "github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/timestamp/module"
+	"github.com/LimeChain/gosemble/execution/types"
 )
 
-func EnsureInherentsAreFirst(block types2.Block) int {
+func EnsureInherentsAreFirst(block types.Block) int {
 	signedExtrinsicFound := false
 
 	for i, extrinsic := range block.Extrinsics {
@@ -17,14 +16,8 @@ func EnsureInherentsAreFirst(block types2.Block) int {
 		} else {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
-			switch call.CallIndex.ModuleIndex {
-			case module.Module.Index():
-				for _, moduleFn := range module.Module.Functions() {
-					if call.CallIndex.FunctionIndex == moduleFn.Index() {
-						isInherent = true
-					}
-				}
-
+			if call.Function.IsInherent() {
+				isInherent = true
 			}
 		}
 

@@ -1,13 +1,13 @@
 package dispatchables
 
 import (
+	"bytes"
 	"math/big"
 	"reflect"
 
-	"github.com/LimeChain/gosemble/constants/balances"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -32,6 +32,13 @@ func (_ FnTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
+}
+
+func (_ FnTransfer) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{
+		types.DecodeMultiAddress(buffer),
+		sc.U128(sc.DecodeCompact(buffer)),
+	}
 }
 
 func (_ FnTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
@@ -61,6 +68,10 @@ func (fn FnTransfer) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) 
 		HasError: false,
 		Ok:       types.PostDispatchInfo{},
 	}
+}
+
+func (_ FnTransfer) IsInherent() bool {
+	return false
 }
 
 func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {

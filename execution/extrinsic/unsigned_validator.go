@@ -2,10 +2,10 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
+	bc "github.com/LimeChain/gosemble/constants/balances"
+	system_constants "github.com/LimeChain/gosemble/constants/system"
+	tsc "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
-	balances "github.com/LimeChain/gosemble/frame/balances/module"
-	system "github.com/LimeChain/gosemble/frame/system/module"
-	timestamp "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -35,29 +35,29 @@ func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.Transac
 	noUnsignedValidatorError := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	// TODO: Add more modules
 	switch call.CallIndex.ModuleIndex {
-	case system.Module.Index():
+	case system_constants.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case system.Module.Remark.Index():
+		case system_constants.FunctionRemarkIndex:
 			ok = primitives.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
 
-	case timestamp.Module.Index():
+	case tsc.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case timestamp.Module.Set.Index():
+		case tsc.FunctionSetIndex:
 			ok = primitives.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
-	case balances.Module.Index():
+	case bc.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case balances.Module.Transfer.Index(),
-			balances.Module.SetBalance.Index(),
-			balances.Module.ForceTransfer.Index(),
-			balances.Module.TransferKeepAlive.Index(),
-			balances.Module.TransferAll.Index(),
-			balances.Module.ForceFree.Index():
+		case bc.FunctionTransferIndex,
+			bc.FunctionSetBalanceIndex,
+			bc.FunctionForceTransferIndex,
+			bc.FunctionTransferKeepAliveIndex,
+			bc.FunctionTransferAllIndex,
+			bc.FunctionForceFreeIndex:
 
 			ok = primitives.DefaultValidTransaction()
 		default:

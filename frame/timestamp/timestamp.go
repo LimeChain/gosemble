@@ -3,20 +3,17 @@ package timestamp
 import (
 	"bytes"
 
-	types2 "github.com/LimeChain/gosemble/execution/types"
-
-	"github.com/LimeChain/gosemble/frame/timestamp/module"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-func CreateInherent(inherent types.InherentData) []byte {
+func CreateInherent(inherent primitives.InherentData) []byte {
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
 	if inherentData == nil {
@@ -38,12 +35,12 @@ func CreateInherent(inherent types.InherentData) []byte {
 		nextTimestamp = ts
 	}
 
-	extrinsic := types2.UncheckedExtrinsic{
+	extrinsic := types.UncheckedExtrinsic{
 		Version: types.ExtrinsicFormatVersion,
-		Function: types2.Call{
-			CallIndex: types.CallIndex{
-				ModuleIndex:   module.Module.Index(),
-				FunctionIndex: module.Module.Set.Index(),
+		Function: types.Call{
+			CallIndex: primitives.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionSetIndex,
 			},
 			Args: []sc.Encodable{sc.ToCompact(uint64(nextTimestamp))},
 		},
@@ -52,7 +49,7 @@ func CreateInherent(inherent types.InherentData) []byte {
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(args []sc.Encodable, inherent types.InherentData) error {
+func CheckInherent(args []sc.Encodable, inherent primitives.InherentData) error {
 	t := args[0].(sc.U64)
 
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
@@ -73,9 +70,9 @@ func CheckInherent(args []sc.Encodable, inherent types.InherentData) error {
 
 	minimum := systemNow + timestamp.MinimumPeriod
 	if t > ts+timestamp.MaxTimestampDriftMillis {
-		return types.NewTimestampErrorTooFarInFuture()
+		return primitives.NewTimestampErrorTooFarInFuture()
 	} else if t < minimum {
-		return types.NewTimestampErrorTooEarly()
+		return primitives.NewTimestampErrorTooEarly()
 	}
 
 	return nil

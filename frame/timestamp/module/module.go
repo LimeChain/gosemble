@@ -3,24 +3,25 @@ package module
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/timestamp"
-	dispatchables "github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
+	"github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/support"
 )
 
 var Module = TimestampModule{}
 
 type TimestampModule struct {
-	Set dispatchables.FnSet
-	// TODO: add more dispatchables
+	functions map[sc.U8]support.FunctionMetadata
 }
 
-func (m TimestampModule) Functions() []support.FunctionMetadata {
-	return []support.FunctionMetadata{
-		m.Set,
-		// TODO: add more dispatchables
+func NewTimestampModule() TimestampModule {
+	functions := make(map[sc.U8]support.FunctionMetadata)
+	functions[timestamp.FunctionSetIndex] = dispatchables.FnSet{}
+
+	return TimestampModule{
+		functions: functions,
 	}
 }
 
-func (m TimestampModule) Index() sc.U8 {
-	return timestamp.ModuleIndex
+func (tm TimestampModule) Functions() map[sc.U8]support.FunctionMetadata {
+	return tm.functions
 }

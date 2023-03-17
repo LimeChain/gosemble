@@ -1,6 +1,7 @@
 package dispatchables
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 
@@ -31,6 +32,17 @@ func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
+}
+
+func (_ FnForceFree) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{
+		types.DecodeMultiAddress(buffer),
+		sc.U128(sc.DecodeCompact(buffer)),
+	}
+}
+
+func (_ FnForceFree) IsInherent() bool {
+	return false
 }
 
 func (_ FnForceFree) WeightInfo(baseWeight types.Weight) types.Weight {

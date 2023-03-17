@@ -10,25 +10,23 @@ import (
 var Module = BalancesModule{}
 
 type BalancesModule struct {
-	Transfer          dispatchables.FnTransfer
-	SetBalance        dispatchables.FnSetBalance
-	ForceTransfer     dispatchables.FnForceTransfer
-	TransferKeepAlive dispatchables.FnTransferKeepAlive
-	TransferAll       dispatchables.FnTransferAll
-	ForceFree         dispatchables.FnForceFree
+	functions map[sc.U8]support.FunctionMetadata
 }
 
-func (bm BalancesModule) Functions() []support.FunctionMetadata {
-	return []support.FunctionMetadata{
-		bm.Transfer,
-		bm.SetBalance,
-		bm.ForceTransfer,
-		bm.TransferKeepAlive,
-		bm.TransferAll,
-		bm.ForceFree,
+func NewBalancesModule() BalancesModule {
+	functions := make(map[sc.U8]support.FunctionMetadata)
+	functions[balances.FunctionTransferIndex] = dispatchables.FnTransfer{}
+	functions[balances.FunctionSetBalanceIndex] = dispatchables.FnSetBalance{}
+	functions[balances.FunctionForceTransferIndex] = dispatchables.FnForceTransfer{}
+	functions[balances.FunctionTransferKeepAliveIndex] = dispatchables.FnTransferKeepAlive{}
+	functions[balances.FunctionTransferAllIndex] = dispatchables.FnTransferAll{}
+	functions[balances.FunctionForceFreeIndex] = dispatchables.FnForceFree{}
+
+	return BalancesModule{
+		functions: functions,
 	}
 }
 
-func (bm BalancesModule) Index() sc.U8 {
-	return balances.ModuleIndex
+func (bm BalancesModule) Functions() map[sc.U8]support.FunctionMetadata {
+	return bm.functions
 }

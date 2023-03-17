@@ -1,6 +1,8 @@
 package dispatchables
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/balances"
@@ -11,6 +13,17 @@ type FnTransferKeepAlive struct{}
 
 func (_ FnTransferKeepAlive) Index() sc.U8 {
 	return balances.FunctionTransferKeepAliveIndex
+}
+
+func (_ FnTransferKeepAlive) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{
+		types.DecodeMultiAddress(buffer),
+		sc.U128(sc.DecodeCompact(buffer)),
+	}
+}
+
+func (_ FnTransferKeepAlive) IsInherent() bool {
+	return false
 }
 
 func (_ FnTransferKeepAlive) BaseWeight(b ...any) types.Weight {

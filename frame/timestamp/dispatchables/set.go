@@ -1,6 +1,8 @@
-package timestamp
+package dispatchables
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
@@ -8,15 +10,10 @@ import (
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnSet struct{}
-
-func (_ FnSet) Index() sc.U8 {
-	return timestamp.FunctionSetIndex
-}
 
 // Storage: Timestamp Now (r:1 w:1)
 // Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
@@ -30,6 +27,16 @@ func (_ FnSet) BaseWeight(b ...any) types.Weight {
 	r := constants.DbWeight.Reads(2)
 	w := constants.DbWeight.Writes(1)
 	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
+}
+
+func (_ FnSet) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{
+		sc.DecodeU64(buffer),
+	}
+}
+
+func (_ FnSet) IsInherent() bool {
+	return true
 }
 
 func (_ FnSet) WeightInfo(baseWeight types.Weight) types.Weight {

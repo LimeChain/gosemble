@@ -2,16 +2,16 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	types2 "github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/execution/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Applyable interface {
-	Apply(validator UnsignedValidator, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError)
+	Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], err primitives.TransactionValidityError)
 }
 
 type Validatable interface {
-	Validate(validator UnsignedValidator, source types.TransactionSource, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError)
+	Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError)
 }
 
 // Provide validation for unsigned extrinsics.
@@ -37,7 +37,7 @@ type UnsignedValidator interface {
 	// ensure that the transaction is valid.
 	//
 	// Changes made to storage *WILL* be persisted if the call returns `Ok`.
-	PreDispatch(call *types2.Call) (ok sc.Empty, err types.TransactionValidityError)
+	PreDispatch(call *types.Call) (ok sc.Empty, err primitives.TransactionValidityError)
 
 	// Return the validity of the call
 	//
@@ -51,5 +51,5 @@ type UnsignedValidator interface {
 	// like checking that the unsigned extrinsic was send by an authority in the active set.
 	//
 	// Changes made to storage should be discarded by caller.
-	ValidateUnsigned(source types.TransactionSource, call *types2.Call) (ok types.ValidTransaction, err types.TransactionValidityError)
+	ValidateUnsigned(source primitives.TransactionSource, call *types.Call) (ok primitives.ValidTransaction, err primitives.TransactionValidityError)
 }

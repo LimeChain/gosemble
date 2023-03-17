@@ -10,17 +10,19 @@ import (
 var Module = SystemModule{}
 
 type SystemModule struct {
-	Remark dispatchables.FnRemark
+	functions map[sc.U8]support.FunctionMetadata
 	// TODO: add more dispatchables
 }
 
-func (m SystemModule) Functions() []support.FunctionMetadata {
-	return []support.FunctionMetadata{
-		m.Remark,
-		// TODO: add more dispatchables
+func NewSystemModule() SystemModule {
+	functions := make(map[sc.U8]support.FunctionMetadata)
+	functions[system.FunctionRemarkIndex] = dispatchables.FnRemark{}
+
+	return SystemModule{
+		functions: functions,
 	}
 }
 
-func (m SystemModule) Index() sc.U8 {
-	return system.ModuleIndex
+func (sm SystemModule) Functions() map[sc.U8]support.FunctionMetadata {
+	return sm.functions
 }

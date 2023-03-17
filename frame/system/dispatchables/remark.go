@@ -1,16 +1,17 @@
 package system
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 
-	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnRemark struct{}
 
-func (_ FnRemark) Index() sc.U8 {
-	return system.FunctionRemarkIndex
+func (_ FnRemark) Decode(buffer *bytes.Buffer) []sc.Encodable {
+	return []sc.Encodable{}
 }
 
 // Make some on-chain remark.
@@ -27,6 +28,10 @@ func (_ FnRemark) BaseWeight(args ...any) types.Weight {
 	b := args[0].(sc.Sequence[sc.U8])
 	w := types.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b)))
 	return types.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
+}
+
+func (_ FnRemark) IsInherent() bool {
+	return false
 }
 
 func (_ FnRemark) WeightInfo(baseWeight types.Weight) types.Weight {

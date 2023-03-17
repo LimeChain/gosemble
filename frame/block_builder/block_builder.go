@@ -128,7 +128,7 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	}
 	buffer.Reset()
 
-	checkInherentsResult := inherent.CheckInherents(*inherentData, block)
+	checkInherentsResult := inherent.CheckExtrinsics(*inherentData, block)
 
 	checkInherentsResult.Encode(buffer)
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
