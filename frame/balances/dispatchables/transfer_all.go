@@ -3,9 +3,10 @@ package dispatchables
 import (
 	"fmt"
 
+	"github.com/LimeChain/gosemble/constants/balances"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -13,7 +14,7 @@ import (
 type FnTransferAll struct{}
 
 func (_ FnTransferAll) Index() sc.U8 {
-	return bc.FunctionTransferAllIndex
+	return balances.FunctionTransferAllIndex
 }
 
 func (_ FnTransferAll) BaseWeight(b ...any) types.Weight {
@@ -30,25 +31,38 @@ func (_ FnTransferAll) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnTransferAll) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnTransferAll) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnTransferAll) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnTransferAll) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnTransferAll) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnTransferAll) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransferAll) Dispatch(origin types.RuntimeOrigin, dest types.MultiAddress, keepAlive bool) (ok sc.Empty, err types.DispatchError) {
-	return transferAll(origin, dest, keepAlive)
+func (fn FnTransferAll) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
-func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) (sc.Empty, types.DispatchError) {
+func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 
 	transactor := origin.AsSigned()
@@ -57,7 +71,7 @@ func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool
 	to, err := types.DefaultAccountIdLookup().Lookup(dest)
 	if err != nil {
 		log.Debug(fmt.Sprintf("Failed to lookup [%s]", dest.Bytes()))
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
 	keep := types.ExistenceRequirementKeepAlive
@@ -65,5 +79,5 @@ func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool
 		keep = types.ExistenceRequirementAllowDeath
 	}
 
-	return sc.Empty{}, trans(transactor, to, reducibleBalance, keep)
+	return trans(transactor, to, reducibleBalance, keep)
 }

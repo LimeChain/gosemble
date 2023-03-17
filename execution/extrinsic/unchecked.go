@@ -2,12 +2,13 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/execution/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Unchecked types.UncheckedExtrinsic
 
-func (uxt Unchecked) Check(lookup types.AccountIdLookup) (ok types.CheckedExtrinsic, err types.TransactionValidityError) {
+func (uxt Unchecked) Check(lookup primitives.AccountIdLookup) (ok types.CheckedExtrinsic, err primitives.TransactionValidityError) {
 	switch uxt.Signature.HasValue {
 	case true:
 		signer, signature, extra := uxt.Signature.Value.Signer, uxt.Signature.Value.Signature, uxt.Signature.Value.Extra
@@ -19,24 +20,24 @@ func (uxt Unchecked) Check(lookup types.AccountIdLookup) (ok types.CheckedExtrin
 
 		rawPayload, err := NewSignedPayload(uxt.Function, extra)
 		if err != nil {
-			err = types.NewTransactionValidityError(err)
+			err = primitives.NewTransactionValidityError(err)
 			return ok, err
 		}
 
 		if !signature.Verify(rawPayload.UsingEncoded(), signedAddress) {
-			err := types.NewTransactionValidityError(types.NewInvalidTransactionBadProof())
+			err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 			return ok, err
 		}
 
 		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
 
 		ok = types.CheckedExtrinsic{
-			Signed:   sc.NewOption[types.AccountIdExtra](types.AccountIdExtra{Address32: signedAddress, SignedExtra: extra}),
-			Function: function,
+			Signed:   sc.NewOption[primitives.AccountIdExtra](primitives.AccountIdExtra{Address32: signedAddress, SignedExtra: extra}),
+			Function: function.(types.Call),
 		}
 	case false:
 		ok = types.CheckedExtrinsic{
-			Signed:   sc.NewOption[types.AccountIdExtra](nil),
+			Signed:   sc.NewOption[primitives.AccountIdExtra](nil),
 			Function: uxt.Function,
 		}
 	}

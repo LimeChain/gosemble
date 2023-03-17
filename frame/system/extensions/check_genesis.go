@@ -2,23 +2,24 @@ package system
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckGenesis struct{}
 
-func (_ CheckGenesis) AdditionalSigned() (ok types.H256, err types.TransactionValidityError) {
-	ok = types.H256(system.StorageGetBlockHash(sc.U32(0)))
+func (_ CheckGenesis) AdditionalSigned() (ok primitives.H256, err primitives.TransactionValidityError) {
+	ok = primitives.H256(system.StorageGetBlockHash(sc.U32(0)))
 	return ok, err
 }
 
-func (_ CheckGenesis) Validate(_who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	ok = types.DefaultValidTransaction()
+func (_ CheckGenesis) Validate(_who *primitives.Address32, _call *types.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+	ok = primitives.DefaultValidTransaction()
 	return ok, err
 }
 
-func (g CheckGenesis) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+func (g CheckGenesis) PreDispatch(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = g.Validate(who, call, info, length)
 	return ok, err
 }

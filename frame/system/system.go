@@ -8,7 +8,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -182,41 +181,6 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), types.NewExtrinsicPhaseApply(nextExtrinsicIndex).Bytes())
-}
-
-func EnsureInherentsAreFirst(block types.Block) int {
-	signedExtrinsicFound := false
-
-	for i, extrinsic := range block.Extrinsics {
-		isInherent := false
-
-		if extrinsic.IsSigned() {
-			// Signed extrinsics are not inherents
-			isInherent = false
-		} else {
-			call := extrinsic.Function
-			// Iterate through all calls and check if the given call is inherent
-			switch call.CallIndex.ModuleIndex {
-			case timestamp.Module.Index():
-				for _, moduleFn := range timestamp.Module.Functions() {
-					if call.CallIndex.FunctionIndex == moduleFn.Index() {
-						isInherent = true
-					}
-				}
-
-			}
-		}
-
-		if !isInherent {
-			signedExtrinsicFound = true
-		}
-
-		if signedExtrinsicFound && isInherent {
-			return i
-		}
-	}
-
-	return -1
 }
 
 func Mutate(who types.Address32, f func(who *types.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {

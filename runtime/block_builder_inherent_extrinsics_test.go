@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LimeChain/gosemble/frame/timestamp/module"
+
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +20,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time).Bytes()...)
+	call := newTestCall(module.Module.Index(), module.Module.Set.Index(), sc.ToCompact(time).Bytes()...)
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	ienc, err := idata.Encode()

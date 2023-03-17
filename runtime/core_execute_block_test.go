@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LimeChain/gosemble/frame/timestamp/module"
+
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
@@ -13,7 +15,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -95,7 +96,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(module.Module.Index(), module.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -183,7 +184,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(module.Module.Index(), module.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)

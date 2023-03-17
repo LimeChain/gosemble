@@ -44,10 +44,6 @@ func NewAddress32(values ...sc.U8) Address32 {
 	return Address32{sc.NewFixedSequence(32, values...)}
 }
 
-func (a Address32) Encode(buffer *bytes.Buffer) {
-	a.FixedSequence.Encode(buffer)
-}
-
 func DecodeAddress32(buffer *bytes.Buffer) Address32 {
 	return Address32{sc.DecodeFixedSequence[sc.U8](32, buffer)}
 }
@@ -62,10 +58,6 @@ func NewAddress20(values ...sc.U8) Address20 {
 		log.Critical("Address20 should be of size 20")
 	}
 	return Address20{sc.NewFixedSequence(20, values...)}
-}
-
-func (a Address20) Encode(buffer *bytes.Buffer) {
-	a.FixedSequence.Encode(buffer)
 }
 
 func DecodeAddress20(buffer *bytes.Buffer) Address20 {

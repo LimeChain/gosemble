@@ -29,19 +29,19 @@ func (_ FnRemark) BaseWeight(args ...any) types.Weight {
 	return types.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
-func (_ FnRemark) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnRemark) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnRemark) ClassifyDispatch(baseWeight types.Weight, args []byte) types.DispatchClass {
+func (_ FnRemark) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnRemark) PaysFee(baseWeight types.Weight, args []byte) types.Pays {
+func (_ FnRemark) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ FnRemark) Dispatch(origin types.RuntimeOrigin, _remark []byte) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ FnRemark) Dispatch(origin types.RuntimeOrigin, _ ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	return remark(origin)
 }
 

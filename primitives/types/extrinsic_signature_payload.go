@@ -16,7 +16,7 @@ import (
 // TODO: make it generic
 // generic::SignedPayload<RuntimeCall, SignedExtra>;
 type SignedPayload struct {
-	Call  Call
+	Call  sc.Encodable // TODO: switch to inteface that is more recognizable than sc.Encodable
 	Extra SignedExtra
 	AdditionalSigned
 }
@@ -42,18 +42,6 @@ func (sp SignedPayload) Encode(buffer *bytes.Buffer) {
 	// sp.FormatVersion.Encode(buffer)
 	sp.GenesisHash.Encode(buffer)
 	sp.BlockHash.Encode(buffer)
-}
-
-func DecodeSignedPayload(buffer *bytes.Buffer) SignedPayload {
-	sp := SignedPayload{}
-	sp.Call = DecodeCall(buffer)
-	sp.Extra = DecodeExtra(buffer)
-	sp.SpecVersion = sc.DecodeU32(buffer)
-	sp.TransactionVersion = sc.DecodeU32(buffer)
-	// sp.FormatVersion = sc.DecodeU32(buffer)
-	sp.GenesisHash = DecodeH256(buffer)
-	sp.BlockHash = DecodeH256(buffer)
-	return sp
 }
 
 func (sp SignedPayload) Bytes() []byte {

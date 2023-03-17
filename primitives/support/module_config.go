@@ -13,9 +13,10 @@ type ModuleMetadata interface {
 type FunctionMetadata interface {
 	Index() sc.U8
 	BaseWeight(...any) types.Weight
-	WeightInfo(baseWeight types.Weight, target []byte) types.Weight
-	ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass
-	PaysFee(baseWeight types.Weight, target []byte) types.Pays
+	WeightInfo(baseWeight types.Weight) types.Weight
+	ClassifyDispatch(baseWeight types.Weight) types.DispatchClass
+	PaysFee(baseWeight types.Weight) types.Pays
+	Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo]
 
 	// WeightFee        types.Pays
 	// LengthFee        types.Pays

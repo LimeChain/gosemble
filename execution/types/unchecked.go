@@ -1,6 +1,3 @@
-/*
-Implementation of an unchecked (pre-verification) extrinsic.
-*/
 package types
 
 import (
@@ -8,23 +5,31 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-// A extrinsic right from the external world. This is unchecked and so can contain a signature.
-//
-// TODO: make it generic
-// generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+const (
+	// Current version of the [`UncheckedExtrinsic`] encoded format.
+	//
+	// This version needs to be bumped if the encoded representation changes.
+	// It ensures that if the representation is changed and the format is not known,
+	// the decoding fails.
+	ExtrinsicFormatVersion = 4
+	ExtrinsicBitSigned     = 0b1000_0000
+	ExtrinsicUnmaskVersion = 0b0111_1111
+)
+
 type UncheckedExtrinsic struct {
 	Version sc.U8
 
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
-	Signature sc.Option[ExtrinsicSignature]
+	Signature sc.Option[types.ExtrinsicSignature]
 	Function  Call
 }
 
-func NewUncheckedExtrinsic(function Call, signedData sc.Option[ExtrinsicSignature]) UncheckedExtrinsic {
+func NewUncheckedExtrinsic(function Call, signedData sc.Option[types.ExtrinsicSignature]) UncheckedExtrinsic {
 	if signedData.HasValue {
 		address, signature, extra := signedData.Value.Signer, signedData.Value.Signature, signedData.Value.Extra
 		return NewSignedUncheckedExtrinsic(function, address, signature, extra)
@@ -34,11 +39,11 @@ func NewUncheckedExtrinsic(function Call, signedData sc.Option[ExtrinsicSignatur
 }
 
 // New instance of a signed extrinsic aka "transaction".
-func NewSignedUncheckedExtrinsic(function Call, address MultiAddress, signature MultiSignature, extra SignedExtra) UncheckedExtrinsic {
+func NewSignedUncheckedExtrinsic(function Call, address types.MultiAddress, signature types.MultiSignature, extra types.SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version: sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned),
-		Signature: sc.NewOption[ExtrinsicSignature](
-			ExtrinsicSignature{
+		Signature: sc.NewOption[types.ExtrinsicSignature](
+			types.ExtrinsicSignature{
 				Signer:    address,
 				Signature: signature,
 				Extra:     extra,
@@ -52,7 +57,7 @@ func NewSignedUncheckedExtrinsic(function Call, address MultiAddress, signature 
 func NewUnsignedUncheckedExtrinsic(function Call) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version:   sc.U8(ExtrinsicFormatVersion),
-		Signature: sc.NewOption[ExtrinsicSignature](nil),
+		Signature: sc.NewOption[types.ExtrinsicSignature](nil),
 		Function:  function,
 	}
 }
@@ -97,9 +102,9 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 		log.Critical("invalid Extrinsic version")
 	}
 
-	var extSignature sc.Option[ExtrinsicSignature]
+	var extSignature sc.Option[types.ExtrinsicSignature]
 	if isSigned {
-		extSignature = sc.NewOption[ExtrinsicSignature](DecodeExtrinsicSignature(buffer))
+		extSignature = sc.NewOption[types.ExtrinsicSignature](types.DecodeExtrinsicSignature(buffer))
 	}
 
 	function := DecodeCall(buffer)

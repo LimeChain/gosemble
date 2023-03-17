@@ -3,9 +3,10 @@ package dispatchables
 import (
 	"math/big"
 
+	"github.com/LimeChain/gosemble/constants/balances"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -14,7 +15,7 @@ import (
 type FnSetBalance struct{}
 
 func (_ FnSetBalance) Index() sc.U8 {
-	return bc.FunctionSetBalanceIndex
+	return balances.FunctionSetBalanceIndex
 }
 
 func (_ FnSetBalance) BaseWeight(b ...any) types.Weight {
@@ -31,33 +32,46 @@ func (_ FnSetBalance) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnSetBalance) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnSetBalance) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnSetBalance) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnSetBalance) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnSetBalance) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnSetBalance) Dispatch(origin types.RuntimeOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) (ok sc.Empty, err types.DispatchError) {
-	return setBalance(origin, who, newFree, newReserved)
+func (fn FnSetBalance) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := setBalance(origin, args[0].(types.MultiAddress), args[1].(sc.U128).ToBigInt(), args[2].(sc.U128).ToBigInt())
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
-func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) (sc.Empty, types.DispatchError) {
+func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 
 	address, err := types.DefaultAccountIdLookup().Lookup(who)
 	if err != nil {
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
-	existentialDeposit := bc.ExistentialDeposit
+	existentialDeposit := balances.ExistentialDeposit
 	sum := new(big.Int).Add(newFree, newReserved)
 
 	if sum.Cmp(existentialDeposit) < 0 {
@@ -108,5 +122,5 @@ func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int
 			sc.NewU128FromBigInt(newReserved),
 		),
 	)
-	return sc.Empty{}, nil
+	return nil
 }

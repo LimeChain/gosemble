@@ -32,20 +32,20 @@ func (_ FnSet) BaseWeight(b ...any) types.Weight {
 	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ FnSet) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnSet) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnSet) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnSet) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnSet) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnSet) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnSet) Dispatch(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, err types.DispatchError) {
-	return set(origin, now)
+func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	return set(origin, args[0].(sc.U64))
 }
 
 // Set the current time.
@@ -63,9 +63,14 @@ func (fn FnSet) Dispatch(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, e
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func set(origin types.RuntimeOrigin, now sc.U64) (sc.Empty, types.DispatchError) {
+func set(origin types.RuntimeOrigin, now sc.U64) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	if !origin.IsNoneOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: types.NewDispatchErrorBadOrigin(),
+			},
+		}
 	}
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
@@ -94,5 +99,8 @@ func set(origin types.RuntimeOrigin, now sc.U64) (sc.Empty, types.DispatchError)
 	// timestamp module should not depend on the aura module
 	aura.OnTimestampSet(now)
 
-	return sc.Empty{}, nil
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }

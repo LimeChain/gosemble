@@ -7,6 +7,8 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
+	"github.com/LimeChain/gosemble/execution/inherent"
+	types2 "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/crypto"
@@ -39,7 +41,7 @@ func InitializeBlock(header types.Header) {
 	system.NoteFinishedInitialize()
 }
 
-func ExecuteBlock(block types.Block) {
+func ExecuteBlock(block types2.Block) {
 	InitializeBlock(block.Header)
 
 	initialChecks(block)
@@ -57,7 +59,7 @@ func ExecuteBlock(block types.Block) {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) {
+func ApplyExtrinsic(uxt types2.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -105,7 +107,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 // not.
 //
 // Changes made to storage should be discarded.
-func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func ValidateTransaction(source types.TransactionSource, uxt types2.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
 	currentBlockNumber := system.StorageGetBlockNumber()
 	system.Initialize(currentBlockNumber+1, blockHash, types.Digest{})
 
@@ -132,7 +134,7 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
-func executeExtrinsicsWithBookKeeping(block types.Block) {
+func executeExtrinsicsWithBookKeeping(block types2.Block) {
 	for _, ext := range block.Extrinsics {
 		_, err := ApplyExtrinsic(ext)
 		if err != nil {
@@ -145,7 +147,7 @@ func executeExtrinsicsWithBookKeeping(block types.Block) {
 	IdleAndFinalizeHook(block.Header.Number)
 }
 
-func initialChecks(block types.Block) {
+func initialChecks(block types2.Block) {
 	header := block.Header
 	blockNumber := header.Number
 
@@ -157,7 +159,7 @@ func initialChecks(block types.Block) {
 		}
 	}
 
-	inherentsAreFirst := system.EnsureInherentsAreFirst(block)
+	inherentsAreFirst := inherent.EnsureInherentsAreFirst(block)
 
 	if inherentsAreFirst >= 0 {
 		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))

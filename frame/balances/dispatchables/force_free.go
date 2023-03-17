@@ -6,7 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
+	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -16,7 +16,7 @@ import (
 type FnForceFree struct{}
 
 func (_ FnForceFree) Index() sc.U8 {
-	return bc.FunctionForceFreeIndex
+	return balances.FunctionForceFreeIndex
 }
 
 func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
@@ -33,38 +33,51 @@ func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceFree) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnForceFree) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnForceFree) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnForceFree) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnForceFree) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, who types.MultiAddress, amount *big.Int) (ok sc.Empty, err types.DispatchError) {
-	return forceFree(origin, who, amount)
+func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := forceFree(origin, args[0].(types.MultiAddress), args[1].(sc.U128).ToBigInt())
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
 // ForceFree
 // Consider Substrate fn force_unreserve
-func forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) (sc.Empty, types.DispatchError) {
+func forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 
 	target, err := types.DefaultAccountIdLookup().Lookup(who)
 	if err != nil {
 		log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
 	force(target, amount)
 
-	return sc.Empty{}, nil
+	return nil
 }
 
 // forceFree frees some funds, returning the amount that has not been freed.

@@ -2,19 +2,19 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-
+	"github.com/LimeChain/gosemble/execution/types"
 	system "github.com/LimeChain/gosemble/frame/system/extensions"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Checked types.CheckedExtrinsic
 
-func (xt Checked) Validate(validator types.UnsignedValidator, source types.TransactionSource, info *types.DispatchInfo, length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (xt Checked) Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
 		ok, err = system.Extra(extra).Validate(&id, &xt.Function, info, length)
 	} else {
-		valid, err := system.Extra(types.SignedExtra{}).ValidateUnsigned(&xt.Function, info, length)
+		valid, err := system.Extra(primitives.SignedExtra{}).ValidateUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
@@ -30,10 +30,10 @@ func (xt Checked) Validate(validator types.UnsignedValidator, source types.Trans
 	return ok, err
 }
 
-func (xt Checked) Apply(validator types.UnsignedValidator, info *types.DispatchInfo, length sc.Compact) (ok types.DispatchResultWithPostInfo[types.PostDispatchInfo], err types.TransactionValidityError) {
+func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], err primitives.TransactionValidityError) {
 	var (
-		maybeWho sc.Option[types.Address32]
-		maybePre sc.Option[types.Pre]
+		maybeWho sc.Option[primitives.Address32]
+		maybePre sc.Option[primitives.Pre]
 	)
 
 	if xt.Signed.HasValue {
@@ -42,7 +42,7 @@ func (xt Checked) Apply(validator types.UnsignedValidator, info *types.DispatchI
 		if err != nil {
 			return ok, err
 		}
-		maybeWho, maybePre = sc.NewOption[types.Address32](id), sc.NewOption[types.Pre](pre)
+		maybeWho, maybePre = sc.NewOption[primitives.Address32](id), sc.NewOption[primitives.Pre](pre)
 	} else {
 		// Do any pre-flight stuff for an unsigned transaction.
 		//
@@ -62,25 +62,25 @@ func (xt Checked) Apply(validator types.UnsignedValidator, info *types.DispatchI
 			return ok, err
 		}
 
-		maybeWho, maybePre = sc.NewOption[types.Address32](nil), sc.NewOption[types.Pre](nil)
+		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
 	}
 
-	resWithInfo := Dispatch(xt.Function, types.RawOriginFrom(maybeWho))
+	resWithInfo := xt.Function.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args)
 
-	var postInfo types.PostDispatchInfo
+	var postInfo primitives.PostDispatchInfo
 	if resWithInfo.HasError {
 		postInfo = resWithInfo.Err.PostInfo
 	} else {
-		postInfo = types.PostDispatchInfo{
-			ActualWeight: sc.NewOption[types.Weight](info.Weight),
+		postInfo = primitives.PostDispatchInfo{
+			ActualWeight: sc.NewOption[primitives.Weight](info.Weight),
 			PaysFee:      info.PaysFee[0].(sc.U8),
 		}
 	}
 
-	dispatchResult := types.NewDispatchResult(resWithInfo.Err)
+	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
 	_, err = system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
-	dispatchResultWithPostInfo := types.DispatchResultWithPostInfo[types.PostDispatchInfo]{}
+	dispatchResultWithPostInfo := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
 	if resWithInfo.HasError {
 		dispatchResultWithPostInfo.HasError = true
 		dispatchResultWithPostInfo.Err = resWithInfo.Err

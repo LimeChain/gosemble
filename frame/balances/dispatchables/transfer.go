@@ -4,9 +4,10 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/LimeChain/gosemble/constants/balances"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -16,7 +17,7 @@ import (
 type FnTransfer struct{}
 
 func (_ FnTransfer) Index() sc.U8 {
-	return bc.FunctionTransferIndex
+	return balances.FunctionTransferIndex
 }
 
 func (_ FnTransfer) BaseWeight(b ...any) types.Weight {
@@ -33,35 +34,48 @@ func (_ FnTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnTransfer) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnTransfer) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnTransfer) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransfer) Dispatch(origin types.RuntimeOrigin, dest types.MultiAddress, value sc.U128) (ok sc.Empty, err types.DispatchError) {
-	return transfer(origin, dest, value)
+func (fn FnTransfer) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := transfer(origin, args[0].(types.MultiAddress), args[1].(sc.U128))
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
-func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) (sc.Empty, types.DispatchError) {
+func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 
 	to, e := types.DefaultAccountIdLookup().Lookup(dest)
 	if e != nil {
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
 	transactor := origin.AsSigned()
 
-	return sc.Empty{}, trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
+	return trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
 }
 
 func trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
@@ -78,7 +92,7 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   bc.ModuleIndex,
+						Index:   balances.ModuleIndex,
 						Error:   sc.U32(errors.ErrorLiquidityRestrictions),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -89,12 +103,12 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 			newToAccountFree := new(big.Int).Add(toAccount.Free.ToBigInt(), value.ToBigInt())
 			toAccount.Free = sc.NewU128FromBigInt(newToAccountFree)
 
-			existentialDeposit := bc.ExistentialDeposit
+			existentialDeposit := balances.ExistentialDeposit
 			if toAccount.Total().Cmp(existentialDeposit) < 0 {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   bc.ModuleIndex,
+						Index:   balances.ModuleIndex,
 						Error:   sc.U32(errors.ErrorExistentialDeposit),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -116,7 +130,7 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   bc.ModuleIndex,
+						Index:   balances.ModuleIndex,
 						Error:   sc.U32(errors.ErrorKeepAlive),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -144,7 +158,7 @@ func ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reaso
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Cmp(newBalance) > 0 {
 		return types.NewDispatchErrorModule(types.CustomModuleError{
-			Index:   bc.ModuleIndex,
+			Index:   balances.ModuleIndex,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})
@@ -213,7 +227,7 @@ func postMutation(
 	new types.AccountData) (sc.Option[types.AccountData], sc.Option[NegativeImbalance]) {
 	total := new.Total()
 
-	if total.Cmp(bc.ExistentialDeposit) < 0 {
+	if total.Cmp(balances.ExistentialDeposit) < 0 {
 		if total.Cmp(constants.Zero) == 0 {
 			return sc.NewOption[types.AccountData](nil), sc.NewOption[NegativeImbalance](nil)
 		} else {
@@ -245,7 +259,7 @@ func reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
 		return sc.NewU128FromBigInt(liquid)
 	}
 
-	existentialDeposit := bc.ExistentialDeposit
+	existentialDeposit := balances.ExistentialDeposit
 	diff := new(big.Int).Sub(accountData.Total(), liquid)
 
 	mustRemainToExist := new(big.Int).Sub(existentialDeposit, diff)

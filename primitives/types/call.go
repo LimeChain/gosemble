@@ -6,30 +6,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type Call struct {
-	CallIndex CallIndex
-	Args      []byte
-}
-
-func (c Call) Encode(buffer *bytes.Buffer) {
-	c.CallIndex.Encode(buffer)
-	//c.Args.Encode(buffer)
-	buffer.Write(c.Args)
-}
-
-func DecodeCall(buffer *bytes.Buffer) Call {
-	c := Call{}
-	c.CallIndex = DecodeCallIndex(buffer)
-	// TODO: Move switch case from dispatch here or you would not be able to know how much to read from buffer in terms of function arguments.
-	c.Args = buffer.Bytes()
-	buffer.Reset()
-	return c
-}
-
-func (c Call) Bytes() []byte {
-	return sc.EncodedBytes(c)
-}
-
 type CallIndex struct {
 	ModuleIndex   sc.U8
 	FunctionIndex sc.U8

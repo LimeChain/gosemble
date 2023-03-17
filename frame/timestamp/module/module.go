@@ -1,4 +1,4 @@
-package timestamp
+package module
 
 import (
 	sc "github.com/LimeChain/goscale"

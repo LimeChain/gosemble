@@ -1,8 +1,8 @@
-package balances
+package module
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/balances/constants"
+	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/support"
 )
@@ -30,5 +30,5 @@ func (bm BalancesModule) Functions() []support.FunctionMetadata {
 }
 
 func (bm BalancesModule) Index() sc.U8 {
-	return constants.ModuleIndex
+	return balances.ModuleIndex
 }

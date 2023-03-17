@@ -3,14 +3,14 @@ package dispatchables
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
+	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnForceTransfer struct{}
 
 func (_ FnForceTransfer) Index() sc.U8 {
-	return bc.FunctionForceTransferIndex
+	return balances.FunctionForceTransferIndex
 }
 
 func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
@@ -27,40 +27,48 @@ func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceTransfer) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnForceTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnForceTransfer) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnForceTransfer) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceTransfer) Dispatch(origin types.RuntimeOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) (ok sc.Empty, err types.DispatchError) {
-	return forceTransfer(origin, source, dest, value)
+func (fn FnForceTransfer) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), args[2].(sc.U128))
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
-func forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) (sc.Empty, types.DispatchError) {
+func forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 
 	sourceAddress, err := types.DefaultAccountIdLookup().Lookup(source)
 	if err != nil {
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 	destinationAddress, err := types.DefaultAccountIdLookup().Lookup(dest)
 	if err != nil {
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
-	e := trans(sourceAddress, destinationAddress, value, types.ExistenceRequirementAllowDeath)
-	if e != nil {
-		return sc.Empty{}, e
-	}
-
-	return sc.Empty{}, nil
+	return trans(sourceAddress, destinationAddress, value, types.ExistenceRequirementAllowDeath)
 }

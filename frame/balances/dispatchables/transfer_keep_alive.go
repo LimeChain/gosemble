@@ -3,14 +3,14 @@ package dispatchables
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	bc "github.com/LimeChain/gosemble/frame/balances/constants"
+	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnTransferKeepAlive struct{}
 
 func (_ FnTransferKeepAlive) Index() sc.U8 {
-	return bc.FunctionTransferKeepAliveIndex
+	return balances.FunctionTransferKeepAliveIndex
 }
 
 func (_ FnTransferKeepAlive) BaseWeight(b ...any) types.Weight {
@@ -27,32 +27,45 @@ func (_ FnTransferKeepAlive) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnTransferKeepAlive) WeightInfo(baseWeight types.Weight, target []byte) types.Weight {
+func (_ FnTransferKeepAlive) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnTransferKeepAlive) ClassifyDispatch(baseWeight types.Weight, target []byte) types.DispatchClass {
+func (_ FnTransferKeepAlive) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnTransferKeepAlive) PaysFee(baseWeight types.Weight, target []byte) types.Pays {
+func (_ FnTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, dest types.MultiAddress, value sc.U128) (ok sc.Empty, err types.DispatchError) {
-	return transferKeepAlive(origin, dest, value)
+func (fn FnTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := transferKeepAlive(origin, args[0].(types.MultiAddress), args[1].(sc.U128))
+	if err != nil {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: err,
+			},
+		}
+	}
+
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
+	}
 }
 
-func transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) (sc.Empty, types.DispatchError) {
+func transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return sc.Empty{}, types.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 	transactor := origin.AsSigned()
 
 	address, err := types.DefaultAccountIdLookup().Lookup(dest)
 	if err != nil {
-		return sc.Empty{}, types.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
-	return sc.Empty{}, trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
+	return trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
 }

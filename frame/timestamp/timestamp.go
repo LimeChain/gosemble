@@ -3,6 +3,10 @@ package timestamp
 import (
 	"bytes"
 
+	types2 "github.com/LimeChain/gosemble/execution/types"
+
+	"github.com/LimeChain/gosemble/frame/timestamp/module"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
@@ -34,26 +38,22 @@ func CreateInherent(inherent types.InherentData) []byte {
 		nextTimestamp = ts
 	}
 
-	extrinsic := types.UncheckedExtrinsic{
+	extrinsic := types2.UncheckedExtrinsic{
 		Version: types.ExtrinsicFormatVersion,
-		Function: types.Call{
+		Function: types2.Call{
 			CallIndex: types.CallIndex{
-				ModuleIndex:   Module.Index(),
-				FunctionIndex: Module.Set.Index(),
+				ModuleIndex:   module.Module.Index(),
+				FunctionIndex: module.Module.Set.Index(),
 			},
-			Args: sc.ToCompact(uint64(nextTimestamp)).Bytes(),
+			Args: []sc.Encodable{sc.ToCompact(uint64(nextTimestamp))},
 		},
 	}
 
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(call types.Call, inherent types.InherentData) error {
-	buffer := &bytes.Buffer{}
-	buffer.Write(call.Args)
-	compactTimestamp := sc.DecodeCompact(buffer)
-	t := sc.U64(compactTimestamp.ToBigInt().Uint64())
-	buffer.Reset()
+func CheckInherent(args []sc.Encodable, inherent types.InherentData) error {
+	t := args[0].(sc.U64)
 
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
@@ -61,6 +61,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) error {
 		log.Critical("Timestamp inherent must be provided.")
 	}
 
+	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
