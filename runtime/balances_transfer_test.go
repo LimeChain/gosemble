@@ -167,8 +167,8 @@ func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
 	}
 
-	i, e := big.NewInt(0).SetString("500000000000000", 10)
-	assert.True(t, e)
+	mockBalance, ok := big.NewInt(0).SetString("500000000000000", 10)
+	assert.True(t, ok)
 
 	aliceMockaccountInfo := gossamertypes.AccountInfo{
 		Nonce:       0,
@@ -176,7 +176,7 @@ func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(i), //
+			Free:       scale.MustNewUint128(mockBalance), //
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

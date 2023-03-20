@@ -3,9 +3,8 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/types"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Block struct {

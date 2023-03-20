@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	"github.com/LimeChain/gosemble/execution/types"
-
 	"github.com/LimeChain/gosemble/frame/executive"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
