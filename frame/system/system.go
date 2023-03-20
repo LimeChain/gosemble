@@ -218,6 +218,9 @@ func TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Resu
 	}
 
 	result := f(someData)
+	if result.HasError {
+		return result
+	}
 
 	isProviding := someData == nil
 

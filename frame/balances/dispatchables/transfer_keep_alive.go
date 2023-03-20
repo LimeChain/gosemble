@@ -15,11 +15,11 @@ func (_ FnTransferKeepAlive) Index() sc.U8 {
 	return balances.FunctionTransferKeepAliveIndex
 }
 
-func (_ FnTransferKeepAlive) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
+func (_ FnTransferKeepAlive) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
-		sc.U128(sc.DecodeCompact(buffer)),
-	}
+		sc.DecodeCompact(buffer),
+	)
 }
 
 func (_ FnTransferKeepAlive) IsInherent() bool {
@@ -45,15 +45,17 @@ func (_ FnTransferKeepAlive) WeightInfo(baseWeight types.Weight) types.Weight {
 }
 
 func (_ FnTransferKeepAlive) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+	return types.NewDispatchClassNormal()
 }
 
 func (_ FnTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := transferKeepAlive(origin, args[0].(types.MultiAddress), args[1].(sc.U128))
+func (fn FnTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	value := sc.U128(args[1].(sc.Compact))
+
+	err := transferKeepAlive(origin, args[0].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,

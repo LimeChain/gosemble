@@ -4,14 +4,13 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnRemark struct{}
 
-func (_ FnRemark) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{}
+func (_ FnRemark) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData()
 }
 
 // Make some on-chain remark.
@@ -25,7 +24,7 @@ func (_ FnRemark) BaseWeight(args ...any) types.Weight {
 	//  Estimated: `0`
 	// Minimum execution time: 2_018 nanoseconds.
 	// Standard Error: 0
-	b := args[0].(sc.Sequence[sc.U8])
+	b := sc.Sequence[sc.U8]{} // should be args[0], but since it is empty, it should not be created, otherwise the verification will fail.
 	w := types.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b)))
 	return types.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
@@ -46,7 +45,7 @@ func (_ FnRemark) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ FnRemark) Dispatch(origin types.RuntimeOrigin, _ ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ FnRemark) Dispatch(origin types.RuntimeOrigin, _ sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	return remark(origin)
 }
 

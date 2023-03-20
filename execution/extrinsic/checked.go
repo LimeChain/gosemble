@@ -30,7 +30,7 @@ func (xt Checked) Validate(validator UnsignedValidator, source primitives.Transa
 	return ok, err
 }
 
-func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], err primitives.TransactionValidityError) {
+func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[primitives.Address32]
 		maybePre sc.Option[primitives.Pre]
@@ -40,7 +40,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
 		pre, err := system.Extra(extra).PreDispatch(&id, &xt.Function, info, length)
 		if err != nil {
-			return ok, err
+			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 		maybeWho, maybePre = sc.NewOption[primitives.Address32](id), sc.NewOption[primitives.Pre](pre)
 	} else {
@@ -54,12 +54,12 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		// perform the same validation as in `ValidateUnsigned`.
 		_, err := system.Extra{}.PreDispatchUnsigned(&xt.Function, info, length)
 		if err != nil {
-			return ok, err
+			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 
 		_, err = validator.PreDispatch(&xt.Function)
 		if err != nil {
-			return ok, err
+			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 
 		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
@@ -78,9 +78,10 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 	}
 
 	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
-	_, err = system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	_, err := system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
 	dispatchResultWithPostInfo := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
+	// TODO: err should be checked, not resWithInfo again
 	if resWithInfo.HasError {
 		dispatchResultWithPostInfo.HasError = true
 		dispatchResultWithPostInfo.Err = resWithInfo.Err

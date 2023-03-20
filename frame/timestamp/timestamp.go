@@ -42,15 +42,16 @@ func CreateInherent(inherent primitives.InherentData) []byte {
 				ModuleIndex:   timestamp.ModuleIndex,
 				FunctionIndex: timestamp.FunctionSetIndex,
 			},
-			Args: []sc.Encodable{sc.ToCompact(uint64(nextTimestamp))},
+			Args: sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))),
 		},
 	}
 
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(args []sc.Encodable, inherent primitives.InherentData) error {
-	t := args[0].(sc.U64)
+func CheckInherent(args sc.VaryingData, inherent primitives.InherentData) error {
+	compactTs := args[0].(sc.Compact)
+	t := sc.U64(compactTs.ToBigInt().Uint64())
 
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
 

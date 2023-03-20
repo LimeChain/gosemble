@@ -33,15 +33,14 @@ func (_ CheckWeight) PreDispatchUnsigned(_call *types.Call, info *primitives.Dis
 	return ok, err
 }
 
-func (_ CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (_ CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) (primitives.Pre, primitives.TransactionValidityError) {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight := system.StorageGetBlockWeight()
 		currentWeight.Reduce(unspent, info.Class)
 		system.StorageSetBlockWeight(currentWeight)
 	}
-	ok = primitives.Pre{}
-	return ok, err
+	return primitives.Pre{}, nil
 }
 
 // Do the validate checks. This can be applied to both signed and unsigned.

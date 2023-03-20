@@ -14,8 +14,8 @@ type ModuleMetadata interface {
 type FunctionMetadata interface {
 	BaseWeight(...any) types.Weight
 	ClassifyDispatch(baseWeight types.Weight) types.DispatchClass
-	Decode(buffer *bytes.Buffer) []sc.Encodable
-	Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo]
+	Decode(buffer *bytes.Buffer) sc.VaryingData
+	Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo]
 	IsInherent() bool
 	PaysFee(baseWeight types.Weight) types.Pays
 	WeightInfo(baseWeight types.Weight) types.Weight

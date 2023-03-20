@@ -24,7 +24,7 @@ func NewEventExtrinsicSuccess(dispatchInfo types.DispatchInfo) types.Event {
 }
 
 func NewEventExtrinsicFailed(dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventCodeUpdated, dispatchError, dispatchInfo)
+	return types.NewEvent(system.ModuleIndex, EventExtrinsicFailed, dispatchError, dispatchInfo)
 }
 
 func NewEventCodeUpdated() types.Event {

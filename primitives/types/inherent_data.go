@@ -69,7 +69,7 @@ func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
 		}
 		value := sc.DecodeSequence[sc.U8](buffer)
 
-		err = result.Put(key, value)
+		result.Data[key] = value
 		if err != nil {
 			return nil, err
 		}

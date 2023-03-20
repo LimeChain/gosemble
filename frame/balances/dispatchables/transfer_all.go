@@ -17,11 +17,11 @@ func (_ FnTransferAll) Index() sc.U8 {
 	return balances.FunctionTransferAllIndex
 }
 
-func (_ FnTransferAll) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
+func (_ FnTransferAll) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeBool(buffer),
-	}
+	)
 }
 
 func (_ FnTransferAll) IsInherent() bool {
@@ -47,14 +47,14 @@ func (_ FnTransferAll) WeightInfo(baseWeight types.Weight) types.Weight {
 }
 
 func (_ FnTransferAll) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+	return types.NewDispatchClassNormal()
 }
 
 func (_ FnTransferAll) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransferAll) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (fn FnTransferAll) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{

@@ -132,14 +132,14 @@ type CustomModuleError struct {
 func (e CustomModuleError) Encode(buffer *bytes.Buffer) {
 	e.Index.Encode(buffer)
 	e.Error.Encode(buffer)
-	e.Message.Encode(buffer)
+	//e.Message.Encode(buffer) // Skipped in codec
 }
 
 func DecodeCustomModuleError(buffer *bytes.Buffer) CustomModuleError {
 	e := CustomModuleError{}
 	e.Index = sc.DecodeU8(buffer)
 	e.Error = sc.DecodeU32(buffer)
-	e.Message = sc.DecodeOption[sc.Str](buffer)
+	//e.Message = sc.DecodeOption[sc.Str](buffer) // Skipped in codec
 	return e
 }
 

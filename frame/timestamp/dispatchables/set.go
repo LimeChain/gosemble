@@ -29,10 +29,10 @@ func (_ FnSet) BaseWeight(b ...any) types.Weight {
 	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ FnSet) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
-		sc.DecodeU64(buffer),
-	}
+func (_ FnSet) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
+		sc.DecodeCompact(buffer),
+	)
 }
 
 func (_ FnSet) IsInherent() bool {
@@ -51,8 +51,9 @@ func (_ FnSet) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	return set(origin, args[0].(sc.U64))
+func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	compactTs := args[0].(sc.Compact)
+	return set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
 
 // Set the current time.

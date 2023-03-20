@@ -34,11 +34,11 @@ func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceFree) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
+func (_ FnForceFree) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
-		sc.U128(sc.DecodeCompact(buffer)),
-	}
+		sc.DecodeCompact(buffer),
+	)
 }
 
 func (_ FnForceFree) IsInherent() bool {
@@ -50,15 +50,17 @@ func (_ FnForceFree) WeightInfo(baseWeight types.Weight) types.Weight {
 }
 
 func (_ FnForceFree) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+	return types.NewDispatchClassNormal()
 }
 
 func (_ FnForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := forceFree(origin, args[0].(types.MultiAddress), args[1].(sc.U128).ToBigInt())
+func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	amount := args[1].(sc.Compact)
+
+	err := forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,

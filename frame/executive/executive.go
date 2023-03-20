@@ -59,7 +59,7 @@ func ExecuteBlock(block types.Block) {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok primitives.DispatchOutcome, err primitives.TransactionValidityError) {
+func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -68,7 +68,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok primitives.DispatchOutcome
 	// Verify that the signature is good.
 	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
-		return ok, err
+		return primitives.DispatchOutcome{}, err
 	}
 
 	// We don't need to make sure to `note_extrinsic` only after we know it's going to be
@@ -84,22 +84,25 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok primitives.DispatchOutcome
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
 	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
+	if err != nil {
+		return primitives.DispatchOutcome{}, err
+	}
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
 	if res.HasError && dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
-		return ok, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
+		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
 	}
 
 	system.NoteAppliedExtrinsic(&res, dispatchInfo)
 
-	if err != nil {
-		return ok, err
+	if res.HasError {
+		return primitives.NewDispatchOutcome(res.Err.Error), nil
 	}
 
-	return primitives.NewDispatchOutcome(nil), err
+	return primitives.NewDispatchOutcome(nil), nil
 }
 
 // Check a given signed transaction for validity. This doesn't execute any

@@ -29,12 +29,12 @@ func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceTransfer) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
+func (_ FnForceTransfer) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		types.DecodeMultiAddress(buffer),
-		sc.U128(sc.DecodeCompact(buffer)),
-	}
+		sc.DecodeCompact(buffer),
+	)
 }
 
 func (_ FnForceTransfer) IsInherent() bool {
@@ -46,15 +46,17 @@ func (_ FnForceTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
 }
 
 func (_ FnForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+	return types.NewDispatchClassNormal()
 }
 
 func (_ FnForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceTransfer) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), args[2].(sc.U128))
+func (fn FnForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	value := sc.U128(args[2].(sc.Compact))
+
+	err := forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,

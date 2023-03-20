@@ -34,11 +34,11 @@ func (_ FnTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnTransfer) Decode(buffer *bytes.Buffer) []sc.Encodable {
-	return []sc.Encodable{
+func (_ FnTransfer) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
-		sc.U128(sc.DecodeCompact(buffer)),
-	}
+		sc.DecodeCompact(buffer),
+	)
 }
 
 func (_ FnTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
@@ -46,15 +46,17 @@ func (_ FnTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
 }
 
 func (_ FnTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+	return types.NewDispatchClassNormal()
 }
 
 func (_ FnTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransfer) Dispatch(origin types.RuntimeOrigin, args ...sc.Encodable) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := transfer(origin, args[0].(types.MultiAddress), args[1].(sc.U128))
+func (fn FnTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	value := sc.U128(args[1].(sc.Compact))
+
+	err := transfer(origin, args[0].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -126,11 +128,11 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 				}
 			}
 
-			dispatchResult := ensureCanWithdraw(from, value.ToBigInt(), types.ReasonsAll, fromAccount.Free.ToBigInt())
-			if !reflect.DeepEqual(dispatchResult[0], sc.Empty{}) {
+			err := ensureCanWithdraw(from, value.ToBigInt(), types.ReasonsAll, fromAccount.Free.ToBigInt())
+			if err != nil {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
-					Value:    dispatchResult,
+					Value:    err,
 				}
 			}
 
@@ -184,6 +186,9 @@ func mutateAccount(who types.Address32, f func(who *types.AccountData, bool bool
 
 func tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := tryMutateAccountWithDust(who, f)
+	if result.HasError {
+		return result
+	}
 
 	r := result.Value.(sc.VaryingData)
 
@@ -203,6 +208,9 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 		}
 
 		result := f(account, isNew)
+		if result.HasError {
+			return result
+		}
 
 		maybeEndowed := sc.NewOption[types.Balance](nil)
 		if isNew {
@@ -218,6 +226,10 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 			Value:    r,
 		}
 	})
+	if result.HasError {
+		return result
+	}
+
 	resultValue := result.Value.(sc.VaryingData)
 	maybeEndowed := resultValue[0].(sc.Option[types.Balance])
 	if maybeEndowed.HasValue {

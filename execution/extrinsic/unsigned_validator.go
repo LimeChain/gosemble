@@ -32,6 +32,7 @@ func (v UnsignedValidatorForChecked) PreDispatch(call *types.Call) (ok sc.Empty,
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
 // Inherent call is not validated as unsigned
 func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *types.Call) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+	// TODO: This should go though all the pallets and call their ValidateUnsigned method
 	noUnsignedValidatorError := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	// TODO: Add more modules
 	switch call.CallIndex.ModuleIndex {
