@@ -47,7 +47,7 @@ func Test_Balances_ForceFree_BadOrigin(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance), //
+			Free:       scale.MustNewUint128(mockBalance),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

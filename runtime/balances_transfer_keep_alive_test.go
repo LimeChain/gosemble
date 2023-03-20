@@ -52,7 +52,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance), //
+			Free:       scale.MustNewUint128(mockBalance),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
@@ -106,7 +106,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(transferAmount), //
+			Free:       scale.MustNewUint128(transferAmount),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
@@ -126,7 +126,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0).Sub(mockBalance, transferAmount)), //
+			Free:       scale.MustNewUint128(big.NewInt(0).Sub(mockBalance, transferAmount)),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
