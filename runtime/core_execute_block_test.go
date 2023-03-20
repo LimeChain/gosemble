@@ -13,9 +13,10 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/frame/timestamp"
+	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/execution/types"
 	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,7 +61,7 @@ func Test_BlockExecution(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	lrui := types.LastRuntimeUpgradeInfo{
+	lrui := primitives.LastRuntimeUpgradeInfo{
 		SpecVersion: sc.ToCompact(constants.SpecVersion),
 		SpecName:    constants.SpecName,
 	}
@@ -69,7 +70,7 @@ func Test_BlockExecution(t *testing.T) {
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
 	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
 
-	expectedExecutionPhase := types.NewExtrinsicPhaseApply(sc.U32(0))
+	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
 	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
@@ -95,7 +96,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -122,7 +123,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
 		applyResult,
 	)
 
@@ -183,7 +184,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.Module.Index(), timestamp.Module.Set.Index(), sc.ToCompact(time.UnixMilli()).Bytes()...)
+	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)

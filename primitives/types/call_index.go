@@ -6,27 +6,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type Call struct {
-	CallIndex CallIndex
-	Args      sc.Sequence[sc.U8]
-}
-
-func (c Call) Encode(buffer *bytes.Buffer) {
-	c.CallIndex.Encode(buffer)
-	c.Args.Encode(buffer)
-}
-
-func DecodeCall(buffer *bytes.Buffer) Call {
-	c := Call{}
-	c.CallIndex = DecodeCallIndex(buffer)
-	c.Args = sc.DecodeSequence[sc.U8](buffer)
-	return c
-}
-
-func (c Call) Bytes() []byte {
-	return sc.EncodedBytes(c)
-}
-
 type CallIndex struct {
 	ModuleIndex   sc.U8
 	FunctionIndex sc.U8

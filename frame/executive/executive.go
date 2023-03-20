@@ -7,22 +7,24 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
+	"github.com/LimeChain/gosemble/execution/inherent"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/crypto"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 // InitializeBlock initialises a block with the given header,
 // starting the execution of a particular block.
-func InitializeBlock(header types.Header) {
+func InitializeBlock(header primitives.Header) {
 	log.Trace("init_block")
 	system.ResetEvents()
 
-	weight := types.WeightZero()
+	weight := primitives.WeightZero()
 	if runtimeUpgrade() {
 		weight = weight.SaturatingAdd(executeOnRuntimeUpgrade())
 	}
@@ -34,7 +36,7 @@ func InitializeBlock(header types.Header) {
 	weight = weight.SaturatingAdd(system.DefaultBlockWeights().BaseBlock)
 
 	// use in case of dynamic weight calculation
-	system.RegisterExtraWeightUnchecked(weight, types.NewDispatchClassMandatory())
+	system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
 
 	system.NoteFinishedInitialize()
 }
@@ -57,16 +59,16 @@ func ExecuteBlock(block types.Block) {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err types.TransactionValidityError) {
+func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
+	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
-		return ok, err
+		return primitives.DispatchOutcome{}, err
 	}
 
 	// We don't need to make sure to `note_extrinsic` only after we know it's going to be
@@ -82,22 +84,25 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
 	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
+	if err != nil {
+		return primitives.DispatchOutcome{}, err
+	}
 
 	// Mandatory(inherents) are not allowed to fail.
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if res.HasError && dispatchInfo.Class.Is(types.DispatchClassMandatory) {
-		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionBadMandatory())
+	if res.HasError && dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
+		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
 	}
 
 	system.NoteAppliedExtrinsic(&res, dispatchInfo)
 
-	if err != nil {
-		return ok, err
+	if res.HasError {
+		return primitives.NewDispatchOutcome(res.Err.Error), nil
 	}
 
-	return types.NewDispatchOutcome(nil), err
+	return primitives.NewDispatchOutcome(nil), nil
 }
 
 // Check a given signed transaction for validity. This doesn't execute any
@@ -105,9 +110,9 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (ok types.DispatchOutcome, err
 // not.
 //
 // Changes made to storage should be discarded.
-func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtrinsic, blockHash types.Blake2bHash) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	currentBlockNumber := system.StorageGetBlockNumber()
-	system.Initialize(currentBlockNumber+1, blockHash, types.Digest{})
+	system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
 
 	log.Trace("validate_transaction")
 
@@ -115,7 +120,7 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	xt, err := extrinsic.Unchecked(uxt).Check(types.DefaultAccountIdLookup())
+	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return ok, err
 	}
@@ -123,8 +128,8 @@ func ValidateTransaction(source types.TransactionSource, uxt types.UncheckedExtr
 	log.Trace("dispatch_info")
 	dispatchInfo := extrinsic.GetDispatchInfo(xt)
 
-	if dispatchInfo.Class.Is(types.DispatchClassMandatory) {
-		return ok, types.NewTransactionValidityError(types.NewInvalidTransactionMandatoryValidation())
+	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
+		return ok, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
 	log.Trace("validate")
@@ -157,7 +162,7 @@ func initialChecks(block types.Block) {
 		}
 	}
 
-	inherentsAreFirst := system.EnsureInherentsAreFirst(block)
+	inherentsAreFirst := inherent.EnsureInherentsAreFirst(block)
 
 	if inherentsAreFirst >= 0 {
 		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
@@ -169,7 +174,7 @@ func runtimeUpgrade() sc.Bool {
 	lastRuntimeUpgradeHash := hashing.Twox128(constants.KeyLastRuntimeUpgrade)
 
 	keyLru := append(systemHash, lastRuntimeUpgradeHash...)
-	lrupi := storage.GetDecode(keyLru, types.DecodeLastRuntimeUpgradeInfo)
+	lrupi := storage.GetDecode(keyLru, primitives.DecodeLastRuntimeUpgradeInfo)
 
 	if constants.RuntimeVersion.SpecVersion > sc.U32(lrupi.SpecVersion.ToBigInt().Int64()) ||
 		lrupi.SpecName != constants.RuntimeVersion.SpecName {
@@ -185,10 +190,10 @@ func runtimeUpgrade() sc.Bool {
 	return false
 }
 
-func extractPreRuntimeDigest(digest types.Digest) types.Digest {
-	result := types.Digest{}
+func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
+	result := primitives.Digest{}
 	for k, v := range digest {
-		if k == types.DigestTypePreRuntime {
+		if k == primitives.DigestTypePreRuntime {
 			result[k] = v
 		}
 	}
@@ -196,7 +201,7 @@ func extractPreRuntimeDigest(digest types.Digest) types.Digest {
 	return result
 }
 
-func finalChecks(header *types.Header) {
+func finalChecks(header *primitives.Header) {
 	newHeader := system.Finalize()
 
 	if len(header.Digest) != len(newHeader.Digest) {
@@ -220,7 +225,7 @@ func finalChecks(header *types.Header) {
 }
 
 // Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.
-func executeOnRuntimeUpgrade() types.Weight {
+func executeOnRuntimeUpgrade() primitives.Weight {
 	// TODO: ex: balances
 	// call on_runtime_upgrade hook for all modules that implement it
 	return onRuntimeUpgrade()

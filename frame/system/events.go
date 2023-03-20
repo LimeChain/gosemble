@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-
 	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -24,7 +23,7 @@ func NewEventExtrinsicSuccess(dispatchInfo types.DispatchInfo) types.Event {
 }
 
 func NewEventExtrinsicFailed(dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventCodeUpdated, dispatchError, dispatchInfo)
+	return types.NewEvent(system.ModuleIndex, EventExtrinsicFailed, dispatchError, dispatchInfo)
 }
 
 func NewEventCodeUpdated() types.Event {
@@ -45,7 +44,7 @@ func NewEventRemarked(sender types.PublicKey, hash types.H256) types.Event {
 
 func DecodeEvent(buffer *bytes.Buffer) types.Event {
 	moduleIndex := sc.DecodeU8(buffer)
-	if moduleIndex != Module.Index() {
+	if moduleIndex != system.ModuleIndex {
 		log.Critical("invalid system.Event")
 	}
 

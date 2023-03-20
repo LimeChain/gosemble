@@ -1,6 +1,8 @@
-package timestamp
+package dispatchables
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
@@ -8,15 +10,10 @@ import (
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FnSet struct{}
-
-func (_ FnSet) Index() sc.U8 {
-	return timestamp.FunctionSetIndex
-}
 
 // Storage: Timestamp Now (r:1 w:1)
 // Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
@@ -32,20 +29,31 @@ func (_ FnSet) BaseWeight(b ...any) types.Weight {
 	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ FnSet) WeightInfo(baseWeight types.Weight, target sc.Sequence[sc.U8]) types.Weight {
+func (_ FnSet) Decode(buffer *bytes.Buffer) sc.VaryingData {
+	return sc.NewVaryingData(
+		sc.DecodeCompact(buffer),
+	)
+}
+
+func (_ FnSet) IsInherent() bool {
+	return true
+}
+
+func (_ FnSet) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnSet) ClassifyDispatch(baseWeight types.Weight, target sc.Sequence[sc.U8]) types.DispatchClass {
+func (_ FnSet) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassMandatory()
 }
 
-func (_ FnSet) PaysFee(baseWeight types.Weight, target sc.Sequence[sc.U8]) types.Pays {
+func (_ FnSet) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnSet) Dispatch(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, err types.DispatchError) {
-	return set(origin, now)
+func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	compactTs := args[0].(sc.Compact)
+	return set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
 
 // Set the current time.
@@ -63,10 +71,14 @@ func (fn FnSet) Dispatch(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, e
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func set(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, err types.DispatchError) {
-	ok, err = EnsureNone(origin)
-	if err != nil {
-		return ok, err
+func set(origin types.RuntimeOrigin, now sc.U64) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	if !origin.IsNoneOrigin() {
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+			HasError: true,
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
+				Error: types.NewDispatchErrorBadOrigin(),
+			},
+		}
 	}
 
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
@@ -95,15 +107,8 @@ func set(origin types.RuntimeOrigin, now sc.U64) (ok sc.Empty, err types.Dispatc
 	// timestamp module should not depend on the aura module
 	aura.OnTimestampSet(now)
 
-	return ok, err
-}
-
-// Ensure that the origin `o` represents an unsigned extrinsic. Returns `Ok` or an `Err` otherwise.
-func EnsureNone(o types.RuntimeOrigin) (ok sc.Empty, err types.DispatchError) { // [OuterOrigin, AccountId] \ OuterOrigin: Into<Result<RawOrigin<AccountId>, OuterOrigin>>
-	if o.IsNoneOrigin() {
-		ok = sc.Empty{}
-	} else {
-		err = types.NewDispatchErrorBadOrigin()
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		HasError: false,
+		Ok:       types.PostDispatchInfo{},
 	}
-	return ok, err
 }

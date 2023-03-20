@@ -1,9 +1,17 @@
 package balances
 
-import "github.com/LimeChain/gosemble/constants"
+import (
+	"math/big"
+
+	"github.com/LimeChain/gosemble/constants"
+)
 
 const (
-	ExistentialDeposit = 1 * constants.Dollar
-	MaxLocks           = 50
-	MaxReserves        = 50
+	MaxLocks    = 50
+	MaxReserves = 50
+)
+
+var (
+	existentialDeposit = 1 * constants.Dollar
+	ExistentialDeposit = big.NewInt(0).SetUint64(existentialDeposit)
 )

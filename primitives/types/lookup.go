@@ -12,24 +12,26 @@ func DefaultAccountIdLookup() AccountIdLookup {
 }
 
 // TODO: MultiAddress[AccountId, AccountIndex]
-func (l AccountIdLookup) Lookup(a MultiAddress) (ok Address32, err TransactionValidityError) {
+func (l AccountIdLookup) Lookup(a MultiAddress) (Address32, TransactionValidityError) {
 	address := LookupAddress(a)
 	if address.HasValue {
-		ok = address.Value
-	} else {
-		err = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+		return address.Value, nil
 	}
 
-	return ok, err
+	return Address32{}, NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 }
 
 // Lookup an address to get an Id, if there's one there.
 func LookupAddress(a MultiAddress) sc.Option[Address32] { // TODO: MultiAddress[AccountId, AccountIndex]
-	if a.IsAddress32() == true {
+	if a.IsAccountId() {
+		return sc.NewOption[Address32](a.AsAccountId().Address32)
+	}
+
+	if a.IsAddress32() {
 		return sc.NewOption[Address32](a.AsAddress32())
 	}
 
-	if a.IsAccountIndex() == true {
+	if a.IsAccountIndex() {
 		return sc.NewOption[Address32](LookupIndex(a.AsAccountIndex()))
 	}
 

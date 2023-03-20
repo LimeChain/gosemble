@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -36,4 +37,20 @@ func DecodeAccountInfo(buffer *bytes.Buffer) AccountInfo {
 		Sufficients: sc.DecodeU32(buffer),
 		Data:        DecodeAccountData(buffer),
 	}
+}
+
+func (ai AccountInfo) Frozen(reasons Reasons) *big.Int {
+	switch reasons {
+	case ReasonsAll:
+		if ai.Data.MiscFrozen.ToBigInt().Cmp(ai.Data.FeeFrozen.ToBigInt()) > 0 {
+			return ai.Data.MiscFrozen.ToBigInt()
+		}
+		return ai.Data.FeeFrozen.ToBigInt()
+	case ReasonsMisc:
+		return big.NewInt(0).Set(ai.Data.MiscFrozen.ToBigInt())
+	case ReasonsFee:
+		return big.NewInt(0).Set(ai.Data.MiscFrozen.ToBigInt())
+	}
+
+	return big.NewInt(0)
 }

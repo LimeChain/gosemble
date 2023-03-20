@@ -3,8 +3,9 @@ package tagged_transaction_queue
 import (
 	"bytes"
 
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
@@ -24,18 +25,18 @@ func ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	buffer := &bytes.Buffer{}
 	buffer.Write(data)
 
-	txSource := types.DecodeTransactionSource(buffer)
+	txSource := primitives.DecodeTransactionSource(buffer)
 	tx := types.DecodeUncheckedExtrinsic(buffer)
-	blockHash := types.DecodeBlake2bHash(buffer)
+	blockHash := primitives.DecodeBlake2bHash(buffer)
 	buffer.Reset()
 
 	ok, err := executive.ValidateTransaction(txSource, tx, blockHash)
 
-	var res types.TransactionValidityResult
+	var res primitives.TransactionValidityResult
 	if err != nil {
-		res = types.NewTransactionValidityResult(err)
+		res = primitives.NewTransactionValidityResult(err)
 	} else {
-		res = types.NewTransactionValidityResult(ok)
+		res = primitives.NewTransactionValidityResult(ok)
 	}
 
 	return utils.BytesToOffsetAndSize(res.Bytes())

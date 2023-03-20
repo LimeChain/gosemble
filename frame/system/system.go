@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -168,7 +168,7 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 
 	if r.HasError {
 		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", StorageGetBlockNumber(), r.Err))
-		DepositEvent(NewEventExtrinsicFailed(r.Err.DispatchError, info))
+		DepositEvent(NewEventExtrinsicFailed(r.Err.Error, info))
 	} else {
 		DepositEvent(NewEventExtrinsicSuccess(info))
 	}
@@ -183,42 +183,156 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), types.NewExtrinsicPhaseApply(nextExtrinsicIndex).Bytes())
 }
 
-func EnsureInherentsAreFirst(block types.Block) int {
-	signedExtrinsicFound := false
+func Mutate(who types.Address32, f func(who *types.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	accountInfo := StorageGetAccount(who.FixedSequence)
 
-	for i, extrinsic := range block.Extrinsics {
-		isInherent := false
+	result := f(&accountInfo)
+	if !result.HasError {
+		systemHash := hashing.Twox128(constants.KeySystem)
+		accountHash := hashing.Twox128(constants.KeyAccount)
 
-		if extrinsic.IsSigned() {
-			// Signed extrinsics are not inherents
-			isInherent = false
+		whoBytes := sc.FixedSequenceU8ToBytes(who.FixedSequence)
+
+		key := append(systemHash, accountHash...)
+		key = append(key, hashing.Blake128(whoBytes)...)
+		key = append(key, whoBytes...)
+
+		storage.Set(key, accountInfo.Bytes())
+	}
+
+	return result
+}
+
+func TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	account := StorageGetAccount(who.FixedSequence)
+	wasProviding := false
+	if !reflect.DeepEqual(account.Data, types.AccountData{}) {
+		wasProviding = true
+	}
+
+	someData := &types.AccountData{}
+	if wasProviding {
+		someData = &account.Data
+	}
+
+	result := f(someData)
+	if result.HasError {
+		return result
+	}
+
+	isProviding := !reflect.DeepEqual(someData, types.AccountData{})
+
+	if !wasProviding && isProviding {
+		incProviders(who)
+	} else if wasProviding && !isProviding {
+		status, err := decProviders(who)
+		if err != nil {
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    err,
+			}
+		}
+		if status == types.DecRefStatusExists {
+			return result
+		}
+	} else if !wasProviding && !isProviding {
+		return result
+	}
+
+	Mutate(who, func(a *types.AccountInfo) sc.Result[sc.Encodable] {
+		if someData != nil {
+			a.Data = *someData
 		} else {
-			call := extrinsic.Function
-			// Iterate through all calls and check if the given call is inherent
-			switch call.CallIndex.ModuleIndex {
-			case timestamp.Module.Index():
-				for _, moduleFn := range timestamp.Module.Functions() {
-					if call.CallIndex.FunctionIndex == moduleFn.Index() {
-						isInherent = true
-					}
-				}
+			a.Data = types.AccountData{}
+		}
 
+		return sc.Result[sc.Encodable]{}
+	})
+
+	return result
+}
+
+func AccountTryMutateExists(who types.Address32, f func(who *types.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	account := StorageGetAccount(who.FixedSequence)
+
+	result := f(&account)
+
+	if !result.HasError {
+		StorageSetAccount(who.FixedSequence, account)
+	}
+
+	return result
+}
+
+func incProviders(who types.Address32) types.IncRefStatus {
+	result := Mutate(who, func(a *types.AccountInfo) sc.Result[sc.Encodable] {
+		if a.Providers == 0 && a.Sufficients == 0 {
+			a.Providers = 1
+			onCreatedAccount(who)
+
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    types.IncRefStatusCreated,
+			}
+		} else {
+			// saturating_add
+			newProviders := a.Providers + 1
+			if newProviders < a.Providers {
+				newProviders = math.MaxUint32
+			}
+
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    types.IncRefStatusExisted,
+			}
+		}
+	})
+
+	return result.Value.(types.IncRefStatus)
+}
+
+func decProviders(who types.Address32) (types.DecRefStatus, types.DispatchError) {
+	result := AccountTryMutateExists(who, func(account *types.AccountInfo) sc.Result[sc.Encodable] {
+		if account.Providers == 0 {
+			log.Warn("Logic error: Unexpected underflow in reducing provider")
+
+			account.Providers = 1
+		}
+
+		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    types.DecRefStatusReaped,
 			}
 		}
 
-		if !isInherent {
-			signedExtrinsicFound = true
+		if account.Providers == 1 && account.Consumers > 0 {
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    types.NewDispatchErrorConsumerRemaining(),
+			}
 		}
 
-		if signedExtrinsicFound && isInherent {
-			return i
+		account.Providers -= 1
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    types.DecRefStatusExists,
 		}
+	})
+
+	if result.HasError {
+		return sc.U8(0), result.Value.(types.DispatchError)
 	}
 
-	return -1
+	return result.Value.(types.DecRefStatus), nil
 }
 
-// Inform the system pallet of some additional weight that should be accounted for, in the
+func CanDecProviders(who types.Address32) bool {
+	acc := StorageGetAccount(who.FixedSequence)
+
+	return acc.Consumers == 0 || acc.Providers > 1
+}
+
 // current block.
 //
 // NOTE: use with extra care; this function is made public only be used for certain pallets

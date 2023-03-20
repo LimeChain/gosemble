@@ -1,13 +1,14 @@
 package inherent
 
 import (
-	cts "github.com/LimeChain/gosemble/constants/timestamp"
+	tsc "github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/timestamp"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-func CheckInherents(data types.InherentData, block types.Block) types.CheckInherentsResult {
-	result := types.NewCheckInherentsResult()
+func CheckExtrinsics(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
+	result := primitives.NewCheckInherentsResult()
 
 	for _, extrinsic := range block.Extrinsics {
 		// Inherents are before any other extrinsics.
@@ -17,28 +18,25 @@ func CheckInherents(data types.InherentData, block types.Block) types.CheckInher
 		}
 
 		isInherent := false
-
 		call := extrinsic.Function
 
 		switch call.CallIndex.ModuleIndex {
-		case timestamp.Module.Index():
-			for _, moduleFn := range timestamp.Module.Functions() {
-				if call.CallIndex.FunctionIndex == moduleFn.Index() {
-					isInherent = true
-					err := timestamp.CheckInherent(call, data)
+		case tsc.ModuleIndex:
+			switch call.CallIndex.FunctionIndex {
+			case tsc.FunctionSetIndex:
+				isInherent = true
+				err := timestamp.CheckInherent(call.Args, data)
+				if err != nil {
+					err := result.PutError(tsc.InherentIdentifier, err.(primitives.IsFatalError))
 					if err != nil {
-						err := result.PutError(cts.InherentIdentifier, err.(types.IsFatalError))
-						if err != nil {
-							panic(err)
-						}
+						panic(err)
+					}
 
-						if result.FatalError {
-							return result
-						}
+					if result.FatalError {
+						return result
 					}
 				}
 			}
-
 		}
 
 		// Inherents are before any other extrinsics.

@@ -4,34 +4,35 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/execution/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-var ZeroAddress = types.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+var ZeroAddress = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-type CheckNonZeroAddress types.Address32
+type CheckNonZeroAddress primitives.Address32
 
-func (a CheckNonZeroAddress) AdditionalSigned() (ok sc.Empty, err types.TransactionValidityError) {
+func (a CheckNonZeroAddress) AdditionalSigned() (ok sc.Empty, err primitives.TransactionValidityError) {
 	ok = sc.Empty{}
 	return ok, err
 }
 
-func (who CheckNonZeroAddress) Validate(_who *types.Address32, _call *types.Call, _info *types.DispatchInfo, _length sc.Compact) (ok types.ValidTransaction, err types.TransactionValidityError) {
+func (who CheckNonZeroAddress) Validate(_who *primitives.Address32, _call *types.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
 	if !reflect.DeepEqual(who, ZeroAddress) {
-		ok = types.DefaultValidTransaction()
+		ok = primitives.DefaultValidTransaction()
 		return ok, err
 	}
 
-	err = types.NewTransactionValidityError(types.NewInvalidTransactionBadSigner())
+	err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 
 	return ok, err
 }
 
-func (a CheckNonZeroAddress) PreDispatch(who *types.Address32, call *types.Call, info *types.DispatchInfo, length sc.Compact) (ok types.Pre, err types.TransactionValidityError) {
+func (a CheckNonZeroAddress) PreDispatch(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = a.Validate(who, call, info, length)
 	return ok, err
 }

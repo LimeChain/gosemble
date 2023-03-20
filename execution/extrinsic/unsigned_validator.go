@@ -2,10 +2,12 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/frame/timestamp"
+	bc "github.com/LimeChain/gosemble/constants/balances"
+	system_constants "github.com/LimeChain/gosemble/constants/system"
+	tsc "github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type UnsignedValidatorForChecked struct{}
@@ -22,33 +24,46 @@ type UnsignedValidatorForChecked struct{}
 // ensure that the transaction is valid.
 //
 // Changes made to storage *WILL* be persisted if the call returns `Ok`.
-func (v UnsignedValidatorForChecked) PreDispatch(call *types.Call) (ok sc.Empty, err types.TransactionValidityError) {
-	_, err = v.ValidateUnsigned(types.NewTransactionSourceInBlock(), call) // .map(|_| ()).map_err(Into::into)
+func (v UnsignedValidatorForChecked) PreDispatch(call *types.Call) (ok sc.Empty, err primitives.TransactionValidityError) {
+	_, err = v.ValidateUnsigned(primitives.NewTransactionSourceInBlock(), call) // .map(|_| ()).map_err(Into::into)
 	return ok, err
 }
 
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
 // Inherent call is not validated as unsigned
-func (v UnsignedValidatorForChecked) ValidateUnsigned(_source types.TransactionSource, call *types.Call) (ok types.ValidTransaction, err types.TransactionValidityError) {
-	noUnsignedValidatorError := types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *types.Call) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+	// TODO: This should go though all the pallets and call their ValidateUnsigned method
+	noUnsignedValidatorError := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	// TODO: Add more modules
 	switch call.CallIndex.ModuleIndex {
-	case system.Module.Index():
+	case system_constants.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case system.Module.Remark.Index():
-			ok = types.DefaultValidTransaction()
+		case system_constants.FunctionRemarkIndex:
+			ok = primitives.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
 
-	case timestamp.Module.Index():
+	case tsc.ModuleIndex:
 		switch call.CallIndex.FunctionIndex {
-		case timestamp.Module.Set.Index():
-			ok = types.DefaultValidTransaction()
+		case tsc.FunctionSetIndex:
+			ok = primitives.DefaultValidTransaction()
 		default:
 			err = noUnsignedValidatorError
 		}
+	case bc.ModuleIndex:
+		switch call.CallIndex.FunctionIndex {
+		case bc.FunctionTransferIndex,
+			bc.FunctionSetBalanceIndex,
+			bc.FunctionForceTransferIndex,
+			bc.FunctionTransferKeepAliveIndex,
+			bc.FunctionTransferAllIndex,
+			bc.FunctionForceFreeIndex:
 
+			ok = primitives.DefaultValidTransaction()
+		default:
+			err = noUnsignedValidatorError
+		}
 	default:
 		log.Critical("no module found")
 	}

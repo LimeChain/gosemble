@@ -3,9 +3,10 @@ package constants
 import "math/big"
 
 const (
-	MilliCents uint64 = 1_000_000_000
-	Cents             = 1_000 * MilliCents
-	Dollar            = 100 * Cents
+	MilliCents        = Cents / 1000
+	Cents             = Dollar / 100
+	Dollar            = Units
+	Units      uint64 = 10_000_000_000
 )
 
 var (

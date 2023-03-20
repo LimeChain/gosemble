@@ -7,8 +7,9 @@ import (
 	"bytes"
 
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
@@ -47,7 +48,7 @@ func InitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := &bytes.Buffer{}
 	buffer.Write(data)
-	header := types.DecodeHeader(buffer)
+	header := primitives.DecodeHeader(buffer)
 	executive.InitializeBlock(header)
 }
 

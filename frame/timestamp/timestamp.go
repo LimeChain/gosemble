@@ -6,13 +6,14 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-func CreateInherent(inherent types.InherentData) []byte {
+func CreateInherent(inherent primitives.InherentData) []byte {
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
 	if inherentData == nil {
@@ -37,23 +38,20 @@ func CreateInherent(inherent types.InherentData) []byte {
 	extrinsic := types.UncheckedExtrinsic{
 		Version: types.ExtrinsicFormatVersion,
 		Function: types.Call{
-			CallIndex: types.CallIndex{
-				ModuleIndex:   Module.Index(),
-				FunctionIndex: Module.Set.Index(),
+			CallIndex: primitives.CallIndex{
+				ModuleIndex:   timestamp.ModuleIndex,
+				FunctionIndex: timestamp.FunctionSetIndex,
 			},
-			Args: sc.BytesToSequenceU8(sc.ToCompact(uint64(nextTimestamp)).Bytes()),
+			Args: sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))),
 		},
 	}
 
 	return extrinsic.Bytes()
 }
 
-func CheckInherent(call types.Call, inherent types.InherentData) error {
-	buffer := &bytes.Buffer{}
-	buffer.Write(sc.SequenceU8ToBytes(call.Args))
-	compactTimestamp := sc.DecodeCompact(buffer)
-	t := sc.U64(compactTimestamp.ToBigInt().Uint64())
-	buffer.Reset()
+func CheckInherent(args sc.VaryingData, inherent primitives.InherentData) error {
+	compactTs := args[0].(sc.Compact)
+	t := sc.U64(compactTs.ToBigInt().Uint64())
 
 	inherentData := inherent.Data[timestamp.InherentIdentifier]
 
@@ -61,6 +59,7 @@ func CheckInherent(call types.Call, inherent types.InherentData) error {
 		log.Critical("Timestamp inherent must be provided.")
 	}
 
+	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
@@ -72,9 +71,9 @@ func CheckInherent(call types.Call, inherent types.InherentData) error {
 
 	minimum := systemNow + timestamp.MinimumPeriod
 	if t > ts+timestamp.MaxTimestampDriftMillis {
-		return types.NewTimestampErrorTooFarInFuture()
+		return primitives.NewTimestampErrorTooFarInFuture()
 	} else if t < minimum {
-		return types.NewTimestampErrorTooEarly()
+		return primitives.NewTimestampErrorTooEarly()
 	}
 
 	return nil

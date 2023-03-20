@@ -8,11 +8,12 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/inherent"
+	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
@@ -39,11 +40,11 @@ func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	uxt := types.DecodeUncheckedExtrinsic(buffer)
 
 	ok, err := executive.ApplyExtrinsic(uxt)
-	var applyExtrinsicResult types.ApplyExtrinsicResult
+	var applyExtrinsicResult primitives.ApplyExtrinsicResult
 	if err != nil {
-		applyExtrinsicResult = types.NewApplyExtrinsicResult(err)
+		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(err)
 	} else {
-		applyExtrinsicResult = types.NewApplyExtrinsicResult(ok)
+		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(ok)
 	}
 
 	buffer.Reset()
@@ -92,7 +93,7 @@ func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 	buffer := &bytes.Buffer{}
 	buffer.Write(b)
 
-	inherentData, err := types.DecodeInherentData(buffer)
+	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -120,13 +121,13 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 
 	block := types.DecodeBlock(buffer)
 
-	inherentData, err := types.DecodeInherentData(buffer)
+	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
 		log.Critical(err.Error())
 	}
 	buffer.Reset()
 
-	checkInherentsResult := inherent.CheckInherents(*inherentData, block)
+	checkInherentsResult := inherent.CheckExtrinsics(*inherentData, block)
 
 	checkInherentsResult.Encode(buffer)
 	return utils.BytesToOffsetAndSize(buffer.Bytes())

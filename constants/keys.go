@@ -6,6 +6,7 @@ var (
 	KeyAllExtrinsicsLen   = []byte("AllExtrinsicsLen")
 	KeyAura               = []byte("Aura")
 	KeyAuthorities        = []byte("Authorities")
+	KeyBalances           = []byte("Balances")
 	KeyBlockHash          = []byte("BlockHash")
 	KeyBlockWeight        = []byte("BlockWeight")
 	KeyCurrentSlot        = []byte("CurrentSlot")
@@ -23,4 +24,5 @@ var (
 	KeyNumber             = []byte("Number")
 	KeyParentHash         = []byte("ParentHash")
 	KeyTimestamp          = []byte("Timestamp")
+	KeyTotalIssuance      = []byte("TotalIssuance")
 )

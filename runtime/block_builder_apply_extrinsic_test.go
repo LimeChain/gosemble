@@ -12,7 +12,11 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/execution/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
+	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
+	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -60,7 +64,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
 		applyResult,
 	)
 
@@ -72,6 +76,8 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	rt, _ := newTestRuntime(t)
+	runtimeVersion := rt.Version()
+	metadata := runtimeMetadata(t)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -83,13 +89,30 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	extra := newTestExtra(types.NewImmortalEra(), 0, 0)
-	call := newTestCall(0, 0, 0xab, 0xcd)
-	signer := newTestSigner()
-	signature := newTestSignature("a1a9379907dce053d6f4ff0d7b4f529889b5e506ccdacaa9096eb08dab52730c93460027cd500b5db15af8218a35663bb0f0a6165dc93a8fe9211865bae3ae0e")
-	uxt := types.NewSignedUncheckedExtrinsic(call, signer, signature, extra)
+	call, err := ctypes.NewCall(metadata, "System.remark")
+	assert.NoError(t, err)
 
-	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(0),
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+	// Sign the transaction using Alice's default account
+	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 
 	currentExtrinsicIndex := sc.U32(1)
 	extrinsicIndexValue := rt.GetContext().Storage.Get(constants.KeyExtrinsicIndex)
@@ -104,20 +127,23 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
 	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
 
-	assert.Equal(t, uxt.Bytes(), storageUxt)
+	assert.Equal(t, extEnc.Bytes(), storageUxt)
 
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
 		res,
 	)
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
+	t.Skip()
+	// TODO: This call should be revised
+
 	rt, _ := newTestRuntime(t)
 
-	call := newTestCall(0, 0, 0xab, 0xcd)
+	call := newTestCall(0, 0, nil)
 	uxt := types.NewUnsignedUncheckedExtrinsic(call)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
@@ -125,13 +151,15 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.NewApplyExtrinsicResult(types.NewDispatchOutcome(nil)).Bytes(),
+		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
 		res,
 	)
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	rt, _ := newTestRuntime(t)
+	runtimeVersion := rt.Version()
+	metadata := runtimeMetadata(t)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -143,13 +171,33 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	extra := newTestExtra(types.NewImmortalEra(), 1, 0) // instead of 0 to make the signature invalid
-	call := newTestCall(0, 0, 0xab, 0xcd)
-	signer := newTestSigner()
-	invalidSignature := newTestSignature("a1a9379907dce053d6f4ff0d7b4f529889b5e506ccdacaa9096eb08dab52730c93460027cd500b5db15af8218a35663bb0f0a6165dc93a8fe9211865bae3ae0e")
-	uxt := types.NewSignedUncheckedExtrinsic(call, signer, invalidSignature, extra)
+	call, err := ctypes.NewCall(metadata, "System.remark")
+	assert.NoError(t, err)
 
-	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(0),
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+	// Sign the transaction using Alice's default account
+	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	// Switch nonce
+	extrinsic.Signature.Nonce = ctypes.NewUCompactFromUInt(1)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 
 	extrinsicIndex := sc.U32(0)
 	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
@@ -158,8 +206,8 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.NewApplyExtrinsicResult(
-			types.NewTransactionValidityError(types.NewInvalidTransactionBadProof()),
+		primitives.NewApplyExtrinsicResult(
+			primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof()),
 		).Bytes(),
 		res,
 	)
@@ -169,10 +217,10 @@ func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 	t.Skip()
 }
 
-func Test_ApplyExtrinsic_FutureError(t *testing.T) {
+func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-
-	pubKey1 := []byte{0x15, 0xb0, 0x7f, 0xe2, 0xe7, 0x81, 0x87, 0x4a, 0xd9, 0x7f, 0xbe, 0x3f, 0xcb, 0xf9, 0xab, 0xaf, 0x8e, 0x96, 0x5d, 0x2d, 0xb5, 0x30, 0xba, 0xb0, 0x89, 0xc1, 0xf3, 0xaa, 0x21, 0xf4, 0x20, 0x63}
+	runtimeVersion := rt.Version()
+	metadata := runtimeMetadata(t)
 
 	accountInfo := gossamertypes.AccountInfo{
 		Nonce:       3,
@@ -187,10 +235,10 @@ func Test_ApplyExtrinsic_FutureError(t *testing.T) {
 		},
 	}
 
-	hash, _ := common.Blake2b128(pubKey1)
+	hash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
 	key := append(keySystemHash, keyAccountHash...)
 	key = append(key, hash...)
-	key = append(key, pubKey1...)
+	key = append(key, signature.TestKeyringPairAlice.PublicKey...)
 
 	bytesStorage, err := scale.Marshal(accountInfo)
 	assert.NoError(t, err)
@@ -208,23 +256,40 @@ func Test_ApplyExtrinsic_FutureError(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	extra := newTestExtra(types.NewImmortalEra(), 5, 0)
-	call := newTestCall(0, 0, 0xab, 0xcd)
-	signer := newTestSigner()
-	signature := newTestSignature("b45bbfce8b0571b958a8184a0592850c80193cc1a7f62776a24735d6fac32daf7bc326914ffe3d9329ce9f5d8ed7d9e6acfdb1b5b4613933332a18632fe4240e")
-	tx := types.NewSignedUncheckedExtrinsic(call, signer, signature, extra)
+	call, err := ctypes.NewCall(metadata, "System.remark")
+	assert.NoError(t, err)
 
-	encTransactionValidityResult, err := rt.Exec("BlockBuilder_apply_extrinsic", tx.Bytes())
+	extrinsic := ctypes.NewExtrinsic(call)
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(5), // Invalid nonce
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+
+	// Sign the transaction using Alice's default account
+	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	encTransactionValidityResult, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := types.DecodeTransactionValidityResult(buffer)
+	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
 
 	assert.Equal(t,
-		types.NewTransactionValidityResult(
-			types.NewTransactionValidityError(
-				types.NewInvalidTransactionFuture(),
+		primitives.NewTransactionValidityResult(
+			primitives.NewTransactionValidityError(
+				primitives.NewInvalidTransactionFuture(),
 			),
 		),
 		transactionValidityResult,

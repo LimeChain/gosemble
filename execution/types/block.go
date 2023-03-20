@@ -4,10 +4,11 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Block struct {
-	Header     Header
+	Header     types.Header
 	Extrinsics sc.Sequence[UncheckedExtrinsic]
 }
 
@@ -21,7 +22,7 @@ func (b Block) Bytes() []byte {
 }
 
 func DecodeBlock(buffer *bytes.Buffer) Block {
-	header := DecodeHeader(buffer)
+	header := types.DecodeHeader(buffer)
 
 	size := sc.DecodeCompact(buffer)
 	length := size.ToBigInt()

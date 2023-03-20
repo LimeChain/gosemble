@@ -1,10 +1,11 @@
-package balances
+package events
 
 import (
 	"bytes"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/balances"
+
+	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
