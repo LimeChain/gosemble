@@ -7,8 +7,6 @@ import (
 	"github.com/LimeChain/gosemble/primitives/support"
 )
 
-var Module = SystemModule{}
-
 type SystemModule struct {
 	functions map[sc.U8]support.FunctionMetadata
 	// TODO: add more dispatchables

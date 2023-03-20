@@ -7,8 +7,6 @@ import (
 	"github.com/LimeChain/gosemble/primitives/support"
 )
 
-var Module = TimestampModule{}
-
 type TimestampModule struct {
 	functions map[sc.U8]support.FunctionMetadata
 }
