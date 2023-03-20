@@ -202,7 +202,7 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 	result := system.TryMutateExists(who, func(maybeAccount *types.AccountData) sc.Result[sc.Encodable] {
 		account := &types.AccountData{}
 		isNew := true
-		if maybeAccount != nil {
+		if !reflect.DeepEqual(maybeAccount, types.AccountData{}) {
 			account = maybeAccount
 			isNew = false
 		}
@@ -217,7 +217,14 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 			maybeEndowed = sc.NewOption[types.Balance](account.Free)
 		}
 		maybeAccountWithDust, imbalance := postMutation(*account)
-		maybeAccount = &maybeAccountWithDust.Value
+		if !maybeAccountWithDust.HasValue {
+			maybeAccount = &types.AccountData{}
+		} else {
+			maybeAccount.Free = maybeAccountWithDust.Value.Free
+			maybeAccount.MiscFrozen = maybeAccountWithDust.Value.MiscFrozen
+			maybeAccount.FeeFrozen = maybeAccountWithDust.Value.FeeFrozen
+			maybeAccount.Reserved = maybeAccountWithDust.Value.Reserved
+		}
 
 		r := sc.NewVaryingData(maybeEndowed, imbalance, result)
 

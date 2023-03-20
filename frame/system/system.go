@@ -213,8 +213,6 @@ func TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Resu
 	someData := &types.AccountData{}
 	if wasProviding {
 		someData = &account.Data
-	} else {
-		someData = nil
 	}
 
 	result := f(someData)
@@ -222,7 +220,7 @@ func TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Resu
 		return result
 	}
 
-	isProviding := someData == nil
+	isProviding := !reflect.DeepEqual(someData, types.AccountData{})
 
 	if !wasProviding && isProviding {
 		incProviders(who)
