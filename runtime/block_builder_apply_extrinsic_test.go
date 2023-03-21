@@ -295,3 +295,39 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 		transactionValidityResult,
 	)
 }
+
+func Test_ApplyExtrinsic_InvalidLengthPrefix(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	runtimeVersion := rt.Version()
+	metadata := runtimeMetadata(t)
+
+	call, err := ctypes.NewCall(metadata, "System.remark")
+	assert.NoError(t, err)
+
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(0),
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+	// Sign the transaction using Alice's default account
+	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	// Increase extrinsic length by 1
+	bytesExtrinsic := extEnc.Bytes()
+	bytesExtrinsic[0] += 4
+
+	_, err = rt.Exec("BlockBuilder_apply_extrinsic", bytesExtrinsic)
+	assert.Error(t, err)
+}

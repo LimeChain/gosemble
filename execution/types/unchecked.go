@@ -91,9 +91,8 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLength := sc.DecodeCompact(buffer)
-	_ = expectedLength
-	// beforeLength := buffer.Len()
+	expectedLength := int(sc.DecodeCompact(buffer).ToBigInt().Int64())
+	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
 	isSigned := version&ExtrinsicBitSigned != 0
@@ -109,15 +108,11 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 
 	function := DecodeCall(buffer)
 
-	// TODO: this should be resolved, length for the given call must be taken into account, as there are additional bytes left after that.
-	// if Some((beforeLength, afterLength)) = buffer.remaining_len()?.and_then(|a| beforeLength.map(|b| (b, a)))
-	// {
-	// 	length = beforeLength.saturating_sub(after_length)
+	afterLength := buffer.Len()
 
-	// 	if length != expectedLength.0 as usize {
-	// 		return error("invalid length prefix".into())
-	// 	}
-	// }
+	if expectedLength != beforeLength-afterLength {
+		log.Critical("invalid length prefix")
+	}
 
 	return UncheckedExtrinsic{
 		Version:   sc.U8(version),
