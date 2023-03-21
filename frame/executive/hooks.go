@@ -6,7 +6,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -27,7 +26,6 @@ func IdleAndFinalizeHook(blockNumber types.BlockNumber) {
 }
 
 func onRuntimeUpgrade() types.Weight {
-	storage.Set([]byte(":test:key:"), []byte("module"))
 	return types.WeightFromParts(200, 0)
 }
 

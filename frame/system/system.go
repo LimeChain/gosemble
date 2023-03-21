@@ -19,21 +19,12 @@ func Finalize() types.Header {
 	systemHash := hashing.Twox128(constants.KeySystem)
 
 	StorageClearExecutionPhase()
+	StorageClearAllExtrinsicsLength()
 
-	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
-	storage.Clear(append(systemHash, allExtrinsicsLenHash...))
-
-	numberHash := hashing.Twox128(constants.KeyNumber)
-	blockNumber := storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
-
-	parentHashKey := hashing.Twox128(constants.KeyParentHash)
-	parentHash := storage.GetDecode(append(systemHash, parentHashKey...), types.DecodeBlake2bHash)
-
-	digestHash := hashing.Twox128(constants.KeyDigest)
-	digest := storage.GetDecode(append(systemHash, digestHash...), types.DecodeDigest)
-
-	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
-	extrinsicCount := storage.TakeDecode(append(systemHash, extrinsicCountHash...), sc.DecodeU32)
+	blockNumber := StorageGetBlockNumber()
+	parentHash := StorageGetParentHash()
+	digest := StorageGetDigest()
+	extrinsicCount := StorageGetExtrinsicCount(true)
 
 	var extrinsics []byte
 	extrinsicDataPrefixHash := append(systemHash, hashing.Twox128(constants.KeyExtrinsicData)...)
@@ -84,30 +75,12 @@ func Finalize() types.Header {
 }
 
 func Initialize(blockNumber types.BlockNumber, parentHash types.Blake2bHash, digest types.Digest) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-
 	StorageSetExecutionPhase(types.NewExtrinsicPhaseInitialization())
-
-	storage.Set(constants.KeyExtrinsicIndex, sc.U32(0).Bytes())
-
-	numberHash := hashing.Twox128(constants.KeyNumber)
-	storage.Set(append(systemHash, numberHash...), blockNumber.Bytes())
-
-	digestHash := hashing.Twox128(constants.KeyDigest)
-	storage.Set(append(systemHash, digestHash...), digest.Bytes())
-
-	parentHashKey := hashing.Twox128(constants.KeyParentHash)
-	storage.Set(append(systemHash, parentHashKey...), parentHash.Bytes())
-
-	blockHashKeyHash := hashing.Twox128(constants.KeyBlockHash)
-	prevBlock := blockNumber - 1
-	blockNumHash := hashing.Twox64(prevBlock.Bytes())
-	blockNumKey := append(systemHash, blockHashKeyHash...)
-	blockNumKey = append(blockNumKey, blockNumHash...)
-	blockNumKey = append(blockNumKey, prevBlock.Bytes()...)
-
-	storage.Set(blockNumKey, parentHash.Bytes())
-
+	StorageSetExtrinsicIndex(sc.U32(0))
+	StorageSetBlockNumber(blockNumber)
+	StorageSetDigest(digest)
+	StorageSetParentHash(parentHash)
+	StorageSetBlockHash(blockNumber-1, parentHash)
 	StorageClearBlockWeight()
 }
 
@@ -116,27 +89,9 @@ func NoteFinishedInitialize() {
 }
 
 func NoteFinishedExtrinsics() {
-	extrinsicIndex := storage.TakeDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
-
-	systemHash := hashing.Twox128(constants.KeySystem)
-	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
-
-	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
-
+	extrinsicIndex := StorageGetExtrinsicIndex(true)
+	StorageSetExtrinsicCount(extrinsicIndex)
 	StorageSetExecutionPhase(types.NewExtrinsicPhaseFinalization())
-}
-
-func ResetEvents() {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	eventsHash := hashing.Twox128(constants.KeyEvents)
-	eventCountHash := hashing.Twox128(constants.KeyEventCount)
-	eventTopicsHash := hashing.Twox128(constants.KeyEventTopics)
-
-	storage.Clear(append(systemHash, eventsHash...))
-	storage.Clear(append(systemHash, eventCountHash...))
-
-	limit := sc.NewOption[sc.U32](sc.U32(math.MaxUint32))
-	storage.ClearPrefix(append(systemHash, eventTopicsHash...), limit.Bytes())
 }
 
 // Note what the extrinsic data of the current extrinsic index is.
@@ -148,7 +103,7 @@ func NoteExtrinsic(encodedExt []byte) {
 	keyExtrinsicData := hashing.Twox128(constants.KeyExtrinsicData)
 
 	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicData...)
-	extrinsicIndex := StorageGetExtrinsicIndex()
+	extrinsicIndex := StorageGetExtrinsicIndex(false)
 
 	hashIndex := hashing.Twox64(extrinsicIndex.Bytes())
 
@@ -173,11 +128,11 @@ func NoteAppliedExtrinsic(r *types.DispatchResultWithPostInfo[types.PostDispatch
 		DepositEvent(NewEventExtrinsicSuccess(info))
 	}
 
-	nextExtrinsicIndex := StorageGetExtrinsicIndex() + sc.U32(1)
+	nextExtrinsicIndex := StorageGetExtrinsicIndex(false) + sc.U32(1)
 
 	keySystemHash := hashing.Twox128(constants.KeySystem)
 
-	storage.Set(constants.KeyExtrinsicIndex, nextExtrinsicIndex.Bytes())
+	StorageSetExtrinsicIndex(nextExtrinsicIndex)
 
 	keyExecutionPhaseHash := hashing.Twox128(constants.KeyExecutionPhase)
 	storage.Set(append(keySystemHash, keyExecutionPhaseHash...), types.NewExtrinsicPhaseApply(nextExtrinsicIndex).Bytes())
@@ -333,6 +288,7 @@ func CanDecProviders(who types.Address32) bool {
 	return acc.Consumers == 0 || acc.Providers > 1
 }
 
+// Inform the system pallet of some additional weight that should be accounted for, in the
 // current block.
 //
 // NOTE: use with extra care; this function is made public only be used for certain pallets
@@ -351,4 +307,11 @@ func RegisterExtraWeightUnchecked(weight types.Weight, class types.DispatchClass
 	currentWeight := StorageGetBlockWeight()
 	currentWeight.Accrue(weight, class)
 	StorageSetBlockWeight(currentWeight)
+}
+
+func ResetEvents() {
+	StorageClearEvents()
+	StorageClearEventCount()
+	limit := sc.U32(math.MaxUint32)
+	StorageClearEventTopics(limit)
 }

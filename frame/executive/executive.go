@@ -31,10 +31,9 @@ func InitializeBlock(header primitives.Header) {
 
 	system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	allPalletsWeight := aura.OnInitialize()
-	weight = weight.SaturatingAdd(allPalletsWeight)
+	// TODO: accumulate the weight from all pallets that have on_initialize
+	weight = weight.SaturatingAdd(aura.OnInitialize())
 	weight = weight.SaturatingAdd(system.DefaultBlockWeights().BaseBlock)
-
 	// use in case of dynamic weight calculation
 	system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
 
@@ -42,6 +41,8 @@ func InitializeBlock(header primitives.Header) {
 }
 
 func ExecuteBlock(block types.Block) {
+	log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
+
 	InitializeBlock(block.Header)
 
 	initialChecks(block)
@@ -151,6 +152,8 @@ func executeExtrinsicsWithBookKeeping(block types.Block) {
 }
 
 func initialChecks(block types.Block) {
+	log.Trace("initial_checks")
+
 	header := block.Header
 	blockNumber := header.Number
 

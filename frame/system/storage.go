@@ -15,6 +15,12 @@ func StorageGetBlockNumber() types.BlockNumber {
 	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 }
 
+func StorageSetBlockNumber(number types.BlockNumber) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	numberHash := hashing.Twox128(constants.KeyNumber)
+	storage.Set(append(systemHash, numberHash...), number.Bytes())
+}
+
 // Total length (in bytes) for all extrinsics put together, for the current block.
 func StorageGetAllExtrinsicsLen() sc.U32 {
 	systemHash := hashing.Twox128(constants.KeySystem)
@@ -26,6 +32,28 @@ func StorageSetAllExtrinsicsLen(length sc.U32) {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
 	storage.Set(append(systemHash, allExtrinsicsLenHash...), length.Bytes())
+}
+
+func StorageClearAllExtrinsicsLength() {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
+	storage.Clear(append(systemHash, allExtrinsicsLenHash...))
+}
+
+func StorageGetExtrinsicCount(clear sc.Bool) sc.U32 {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
+	if clear {
+		return storage.TakeDecode(append(systemHash, extrinsicCountHash...), sc.DecodeU32)
+	} else {
+		return storage.GetDecode(append(systemHash, extrinsicCountHash...), sc.DecodeU32)
+	}
+}
+
+func StorageSetExtrinsicCount(extrinsicIndex sc.U32) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	extrinsicCountHash := hashing.Twox128(constants.KeyExtrinsicCount)
+	storage.Set(append(systemHash, extrinsicCountHash...), extrinsicIndex.Bytes())
 }
 
 func StorageGetAccount(who types.PublicKey) types.AccountInfo {
@@ -68,6 +96,21 @@ func StorageGetBlockHash(blockNumber sc.U32) types.Blake2bHash {
 	key = append(key, blockNumber.Bytes()...)
 
 	return storage.GetDecode(key, types.DecodeBlake2bHash)
+}
+
+func StorageSetBlockHash(blockNumber sc.U32, parentHash types.Blake2bHash) {
+	// Module prefix
+	systemHash := hashing.Twox128(constants.KeySystem)
+	// Storage prefix
+	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
+	// Block number hash
+	blockNumHash := hashing.Twox64(blockNumber.Bytes())
+
+	key := append(systemHash, blockHashHash...)
+	key = append(key, blockNumHash...)
+	key = append(key, blockNumber.Bytes()...)
+
+	storage.Set(key, parentHash.Bytes())
 }
 
 // Map of block numbers to block hashes.
@@ -115,14 +158,12 @@ func storageEventCount() sc.U32 {
 func storageSetEventCount(eventCount sc.U32) {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	eventCountHash := hashing.Twox128(constants.KeyEventCount)
-
 	key := append(systemHash, eventCountHash...)
 	storage.Set(key, eventCount.Bytes())
 }
 
 func storageAppendEvent(eventRecord types.EventRecord) {
 	systemHash := hashing.Twox128(constants.KeySystem)
-
 	key := append(systemHash, hashing.Twox128(constants.KeyEvents)...)
 	storage.Append(key, eventRecord.Bytes())
 }
@@ -157,6 +198,56 @@ func StorageClearBlockWeight() {
 }
 
 // Gets the index of extrinsic that is currently executing.
-func StorageGetExtrinsicIndex() sc.U32 {
-	return storage.GetDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
+func StorageGetExtrinsicIndex(clear sc.Bool) sc.U32 {
+	if clear {
+		return storage.TakeDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
+	} else {
+		return storage.GetDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)
+	}
+}
+
+func StorageSetExtrinsicIndex(index sc.U32) {
+	storage.Set(constants.KeyExtrinsicIndex, index.Bytes())
+}
+
+func StorageClearEvents() {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	eventsHash := hashing.Twox128(constants.KeyEvents)
+	storage.Clear(append(systemHash, eventsHash...))
+}
+
+func StorageClearEventCount() {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	eventCountHash := hashing.Twox128(constants.KeyEventCount)
+	storage.Clear(append(systemHash, eventCountHash...))
+}
+
+func StorageClearEventTopics(limit sc.U32) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	eventTopicsHash := hashing.Twox128(constants.KeyEventTopics)
+	storage.ClearPrefix(append(systemHash, eventTopicsHash...), sc.NewOption[sc.U32](limit).Bytes())
+}
+
+func StorageGetDigest() types.Digest {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	digestHash := hashing.Twox128(constants.KeyDigest)
+	return storage.GetDecode(append(systemHash, digestHash...), types.DecodeDigest)
+}
+
+func StorageSetDigest(digest types.Digest) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	digestHash := hashing.Twox128(constants.KeyDigest)
+	storage.Set(append(systemHash, digestHash...), digest.Bytes())
+}
+
+func StorageGetParentHash() types.Blake2bHash {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	parentHashHash := hashing.Twox128(constants.KeyParentHash)
+	return storage.GetDecode(append(systemHash, parentHashHash...), types.DecodeBlake2bHash)
+}
+
+func StorageSetParentHash(parentHash types.Blake2bHash) {
+	systemHash := hashing.Twox128(constants.KeySystem)
+	parentHashHash := hashing.Twox128(constants.KeyParentHash)
+	storage.Set(append(systemHash, parentHashHash...), parentHash.Bytes())
 }

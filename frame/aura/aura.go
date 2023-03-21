@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/timestamp"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -61,9 +62,7 @@ func OnTimestampSet(now sc.U64) {
 }
 
 func currentSlotFromDigests() sc.Option[Slot] {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	digestHash := hashing.Twox128(constants.KeyDigest)
-	digest := storage.GetDecode(append(systemHash, digestHash...), types.DecodeDigest)
+	digest := system.StorageGetDigest()
 
 	for keyDigest, dig := range digest {
 		if keyDigest == types.DigestTypePreRuntime {
