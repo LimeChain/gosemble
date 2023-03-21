@@ -19,7 +19,7 @@ func Finalize() types.Header {
 	systemHash := hashing.Twox128(constants.KeySystem)
 
 	StorageClearExecutionPhase()
-	StorageClearExecutionLength()
+	StorageClearAllExtrinsicsLength()
 
 	blockNumber := StorageGetBlockNumber()
 	parentHash := StorageGetParentHash()

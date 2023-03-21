@@ -34,7 +34,7 @@ func StorageSetAllExtrinsicsLen(length sc.U32) {
 	storage.Set(append(systemHash, allExtrinsicsLenHash...), length.Bytes())
 }
 
-func StorageClearExecutionLength() {
+func StorageClearAllExtrinsicsLength() {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
 	storage.Clear(append(systemHash, allExtrinsicsLenHash...))
