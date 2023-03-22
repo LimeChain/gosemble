@@ -10,7 +10,9 @@ import (
 type FnRemark struct{}
 
 func (_ FnRemark) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData()
+	return sc.NewVaryingData(
+		sc.DecodeSequence[sc.U8](buffer),
+	)
 }
 
 // Make some on-chain remark.

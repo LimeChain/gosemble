@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
@@ -42,32 +41,11 @@ func Test_Balances_ForceTransfer_BadOrigin(t *testing.T) {
 		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
 	}
 
-	mockBalance, ok := big.NewInt(0).SetString("500000000000000", 10)
+	// Set Account Info
+	balance, ok := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, ok)
 
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance),
-			Reserved:   scale.MustNewUint128(big.NewInt(0)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-
-	aliceHash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
-	keyStorageAccountAlice := append(keySystemHash, keyAccountHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, aliceHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, signature.TestKeyringPairAlice.PublicKey...)
-
-	bytesStorage, err := scale.Marshal(accountInfo)
-	assert.NoError(t, err)
-
-	err = storage.Put(keyStorageAccountAlice, bytesStorage)
-	assert.NoError(t, err)
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
 	// Sign the transaction using Alice's default account
 	err = ext.Sign(signature.TestKeyringPairAlice, o)

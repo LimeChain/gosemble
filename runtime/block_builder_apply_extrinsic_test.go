@@ -75,9 +75,15 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
-	rt, _ := newTestRuntime(t)
+	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t)
+
+	// Set Account Info
+	balance, e := big.NewInt(0).SetString("500000000000000", 10)
+	assert.True(t, e)
+
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -89,7 +95,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	call, err := ctypes.NewCall(metadata, "System.remark")
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
 
 	extrinsic := ctypes.NewExtrinsic(call)
@@ -127,7 +133,10 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
 	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
 
-	assert.Equal(t, extEnc.Bytes(), storageUxt)
+	expectedExtrinsicDataStorage, err := scale.Marshal(extEnc.Bytes())
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedExtrinsicDataStorage, storageUxt)
 
 	assert.NoError(t, err)
 
@@ -171,7 +180,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	call, err := ctypes.NewCall(metadata, "System.remark")
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
 
 	extrinsic := ctypes.NewExtrinsic(call)
@@ -222,29 +231,8 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t)
 
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       3,
-		Consumers:   2,
-		Producers:   3,
-		Sufficients: 4,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(5)),
-			Reserved:   scale.MustNewUint128(big.NewInt(6)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(7)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(8)),
-		},
-	}
-
-	hash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
-	key := append(keySystemHash, keyAccountHash...)
-	key = append(key, hash...)
-	key = append(key, signature.TestKeyringPairAlice.PublicKey...)
-
-	bytesStorage, err := scale.Marshal(accountInfo)
-	assert.NoError(t, err)
-
-	err = storage.Put(key, bytesStorage)
-	assert.NoError(t, err)
+	// Set Balance & Nonce
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -256,7 +244,7 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	call, err := ctypes.NewCall(metadata, "System.remark")
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
 
 	extrinsic := ctypes.NewExtrinsic(call)
@@ -301,7 +289,7 @@ func Test_ApplyExtrinsic_InvalidLengthPrefix(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t)
 
-	call, err := ctypes.NewCall(metadata, "System.remark")
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
 
 	extrinsic := ctypes.NewExtrinsic(call)

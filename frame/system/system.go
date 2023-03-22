@@ -108,7 +108,7 @@ func NoteExtrinsic(encodedExt []byte) {
 	hashIndex := hashing.Twox64(extrinsicIndex.Bytes())
 
 	keySystemExtrinsicDataHashIndex := append(keyExtrinsicDataPrefixHash, hashIndex...)
-	storage.Set(append(keySystemExtrinsicDataHashIndex, extrinsicIndex.Bytes()...), encodedExt)
+	storage.Set(append(keySystemExtrinsicDataHashIndex, extrinsicIndex.Bytes()...), sc.BytesToSequenceU8(encodedExt).Bytes())
 }
 
 // To be called immediately after an extrinsic has been applied.

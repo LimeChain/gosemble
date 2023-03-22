@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/big"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
@@ -49,7 +50,7 @@ var (
 var (
 	parentHash     = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
 	stateRoot      = common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073")
-	extrinsicsRoot = common.MustHexToHash("0xc66a25cf0cd4cf24a981ecbad2c04fd519f38ac1546d966bd6392263f17b3019") // TODO: why did this change?
+	extrinsicsRoot = common.MustHexToHash("0x041a2ad6a911e57dd3135882449ac1cee00981b111b8b782ddffc93206fbe86b")
 	blockNumber    = uint(1)
 	sealDigest     = gossamertypes.SealDigest{
 		ConsensusEngineID: gossamertypes.BabeEngineID,
@@ -103,4 +104,32 @@ func setBlockNumber(t *testing.T, storage *trie.Trie, blockNumber sc.U64) {
 	numberHash := hashing.Twox128(constants.KeyNumber)
 	err = storage.Put(append(systemHash, numberHash...), blockNumberBytes)
 	assert.NoError(t, err)
+}
+
+func setStorageAccountInfo(t *testing.T, storage *trie.Trie, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {
+	accountInfo := gossamertypes.AccountInfo{
+		Nonce:       nonce,
+		Consumers:   0,
+		Producers:   0,
+		Sufficients: 0,
+		Data: gossamertypes.AccountData{
+			Free:       scale.MustNewUint128(freeBalance),
+			Reserved:   scale.MustNewUint128(big.NewInt(0)),
+			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
+			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
+		},
+	}
+
+	aliceHash, _ := common.Blake2b128(account)
+	keyStorageAccount := append(keySystemHash, keyAccountHash...)
+	keyStorageAccount = append(keyStorageAccount, aliceHash...)
+	keyStorageAccount = append(keyStorageAccount, account...)
+
+	bytesStorage, err := scale.Marshal(accountInfo)
+	assert.NoError(t, err)
+
+	err = storage.Put(keyStorageAccount, bytesStorage)
+	assert.NoError(t, err)
+
+	return keyStorageAccount, accountInfo
 }

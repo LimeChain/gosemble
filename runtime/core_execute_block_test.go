@@ -15,7 +15,6 @@ import (
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
-	primitivestrie "github.com/LimeChain/gosemble/primitives/trie"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -206,8 +205,6 @@ func Test_ExecuteBlock(t *testing.T) {
 	err = scale.Unmarshal(inherentExt, &exts)
 	assert.Nil(t, err)
 
-	extrinsicsRoot := primitivestrie.Blake2256OrderedRoot(inherentExt, constants.StorageVersion)
-
 	digest := gossamertypes.NewDigest()
 
 	assert.NoError(t, err)
@@ -217,7 +214,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.NoError(t, err)
 	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, common.BytesToHash(extrinsicsRoot), blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
 
 	block := gossamertypes.Block{
 		Header: *header,
