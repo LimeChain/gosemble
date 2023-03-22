@@ -125,29 +125,7 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t)
 
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       3,
-		Consumers:   2,
-		Producers:   3,
-		Sufficients: 4,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(5)),
-			Reserved:   scale.MustNewUint128(big.NewInt(6)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(7)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(8)),
-		},
-	}
-
-	hash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
-	key := append(keySystemHash, keyAccountHash...)
-	key = append(key, hash...)
-	key = append(key, signature.TestKeyringPairAlice.PublicKey...)
-
-	bytesStorage, err := scale.Marshal(accountInfo)
-	assert.NoError(t, err)
-
-	err = storage.Put(key, bytesStorage)
-	assert.NoError(t, err)
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
