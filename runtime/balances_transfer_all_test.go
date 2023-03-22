@@ -43,32 +43,11 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
 	}
 
-	mockBalance, e := big.NewInt(0).SetString("500000000000000", 10)
+	// Set Account Info
+	balance, e := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, e)
 
-	aliceAccountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance),
-			Reserved:   scale.MustNewUint128(big.NewInt(0)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-
-	aliceHash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
-	keyStorageAccountAlice := append(keySystemHash, keyAccountHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, aliceHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, signature.TestKeyringPairAlice.PublicKey...)
-
-	bytesStorage, err := scale.Marshal(aliceAccountInfo)
-	assert.NoError(t, err)
-
-	err = storage.Put(keyStorageAccountAlice, bytesStorage)
-	assert.NoError(t, err)
+	keyStorageAccountAlice, aliceAccountInfo := setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
 	// Sign the transaction using Alice's default account
 	err = ext.Sign(signature.TestKeyringPairAlice, o)
@@ -105,7 +84,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance),
+			Free:       scale.MustNewUint128(balance),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
@@ -164,32 +143,11 @@ func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
 	}
 
-	mockBalance, e := big.NewInt(0).SetString("500000000000000", 10)
+	// Set Account Info
+	balance, e := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, e)
 
-	aliceAccountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(mockBalance),
-			Reserved:   scale.MustNewUint128(big.NewInt(0)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-
-	aliceHash, _ := common.Blake2b128(signature.TestKeyringPairAlice.PublicKey)
-	keyStorageAccountAlice := append(keySystemHash, keyAccountHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, aliceHash...)
-	keyStorageAccountAlice = append(keyStorageAccountAlice, signature.TestKeyringPairAlice.PublicKey...)
-
-	bytesStorage, err := scale.Marshal(aliceAccountInfo)
-	assert.NoError(t, err)
-
-	err = storage.Put(keyStorageAccountAlice, bytesStorage)
-	assert.NoError(t, err)
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
 	// Sign the transaction using Alice's default account
 	err = ext.Sign(signature.TestKeyringPairAlice, o)
