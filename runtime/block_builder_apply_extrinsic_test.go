@@ -12,7 +12,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -147,20 +146,28 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
-	t.Skip()
-	// TODO: This call should be revised
-
 	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t)
 
-	call := newTestCall(0, 0, nil)
-	uxt := types.NewUnsignedUncheckedExtrinsic(call)
-
-	res, err := rt.Exec("BlockBuilder_apply_extrinsic", uxt.Bytes())
-
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
 
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		primitives.NewApplyExtrinsicResult(
+			primitives.NewDispatchOutcome(
+				primitives.NewDispatchErrorBadOrigin())).
+			Bytes(),
 		res,
 	)
 }
