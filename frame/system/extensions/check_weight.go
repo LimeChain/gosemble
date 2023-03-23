@@ -143,56 +143,49 @@ func checkExtrinsicWeight(info *primitives.DispatchInfo) (ok sc.Empty, err primi
 	return ok, err
 }
 
-func CalculateConsumedWeight(maximumWeight system.BlockWeights, allWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (ok primitives.ConsumedWeight, err primitives.TransactionValidityError) {
-	extrinsicWeight := info.Weight.SaturatingAdd(maximumWeight.Get(info.Class).BaseExtrinsic)
+func CalculateConsumedWeight(maximumWeight system.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (ok primitives.ConsumedWeight, err primitives.TransactionValidityError) {
 	limitPerClass := maximumWeight.Get(info.Class)
+	extrinsicWeight := info.Weight.SaturatingAdd(limitPerClass.BaseExtrinsic)
 
 	// add the weight. If class is unlimited, use saturating add instead of checked one.
 	if !limitPerClass.MaxTotal.HasValue && !limitPerClass.Reserved.HasValue {
-		allWeight.SaturatingAdd(extrinsicWeight, info.Class)
+		allConsumedWeight.Accrue(extrinsicWeight, info.Class)
 	} else {
-		// TODO:
-		_, e := allWeight.CheckedAccrue(extrinsicWeight, info.Class)
+		_, e := allConsumedWeight.CheckedAccrue(extrinsicWeight, info.Class)
 		if e != nil {
 			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 			return ok, err
 		}
 	}
 
-	perClass := allWeight.Get(info.Class)
+	consumedPerClass := allConsumedWeight.Get(info.Class)
 
 	// Check if we don't exceed per-class allowance
-	switch limitPerClass.MaxTotal.HasValue {
-	case true:
+	if limitPerClass.MaxTotal.HasValue {
 		max := limitPerClass.MaxTotal.Value
-		if perClass.AnyGt(max) {
+		if consumedPerClass.AnyGt(max) {
 			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 			return ok, err
 		}
-	case false:
+	} else {
 		// There is no `max_total` limit (`None`),
 		// or we are below the limit.
-		// TODO:
 	}
 
 	// In cases total block weight is exceeded, we need to fall back
 	// to `reserved` pool if there is any.
-	if allWeight.Total().AnyGt(maximumWeight.MaxBlock) {
+	if allConsumedWeight.Total().AnyGt(maximumWeight.MaxBlock) {
 		if limitPerClass.Reserved.HasValue {
-			// We are over the limit in reserved pool.
 			reserved := limitPerClass.Reserved.Value
-			if perClass.AnyGt(reserved) {
+			if consumedPerClass.AnyGt(reserved) {
 				err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 				return ok, err
 			}
 		} else {
 			// There is either no limit in reserved pool (`None`),
 			// or we are below the limit.
-			// TODO:
 		}
 	}
 
-	ok = allWeight
-
-	return ok, err
+	return allConsumedWeight, err
 }

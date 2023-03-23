@@ -76,6 +76,11 @@ func (dc DispatchClass) Is(value sc.U8) sc.Bool {
 	panic("unreachable")
 }
 
+// Returns an array containing all dispatch classes.
+func DispatchClassAll() []DispatchClass {
+	return []DispatchClass{NewDispatchClassNormal(), NewDispatchClassOperational(), NewDispatchClassMandatory()}
+}
+
 // A struct holding value for each `DispatchClass`.
 type PerDispatchClass[T sc.Encodable] struct {
 	// Value for `Normal` extrinsics.
@@ -123,8 +128,8 @@ func (pdc *PerDispatchClass[T]) Get(class DispatchClass) *T {
 // An object to track the currently used extrinsic weight in a block.
 type ConsumedWeight PerDispatchClass[Weight]
 
-func (pdc ConsumedWeight) Encode(buffer *bytes.Buffer) {
-	PerDispatchClass[Weight](pdc).Encode(buffer)
+func (cw ConsumedWeight) Encode(buffer *bytes.Buffer) {
+	PerDispatchClass[Weight](cw).Encode(buffer)
 }
 
 func DecodeConsumedWeight(buffer *bytes.Buffer) ConsumedWeight {
@@ -135,19 +140,19 @@ func DecodeConsumedWeight(buffer *bytes.Buffer) ConsumedWeight {
 	}
 }
 
-func (pdc ConsumedWeight) Bytes() []byte {
-	return sc.EncodedBytes(pdc)
+func (cw ConsumedWeight) Bytes() []byte {
+	return sc.EncodedBytes(cw)
 }
 
 // Get current value for given class.
-func (pdc *ConsumedWeight) Get(class DispatchClass) *Weight {
+func (cw *ConsumedWeight) Get(class DispatchClass) *Weight {
 	switch class.VaryingData[0] {
 	case DispatchClassNormal:
-		return &pdc.Normal
+		return &cw.Normal
 	case DispatchClassOperational:
-		return &pdc.Operational
+		return &cw.Operational
 	case DispatchClassMandatory:
-		return &pdc.Mandatory
+		return &cw.Mandatory
 	default:
 		log.Critical("invalid DispatchClass type")
 	}
@@ -158,30 +163,30 @@ func (pdc *ConsumedWeight) Get(class DispatchClass) *Weight {
 // Returns the total weight consumed by all extrinsics in the block.
 //
 // Saturates on overflow.
-func (pdc ConsumedWeight) Total() Weight {
+func (cw ConsumedWeight) Total() Weight {
 	sum := WeightZero()
 	for _, class := range []DispatchClass{NewDispatchClassNormal(), NewDispatchClassOperational(), NewDispatchClassMandatory()} {
-		sum = sum.SaturatingAdd(*pdc.Get(class))
+		sum = sum.SaturatingAdd(*cw.Get(class))
 	}
 	return sum
 }
 
 // Increase the weight of the given class. Saturates at the numeric bounds.
-func (pdc *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
-	weightForClass := pdc.Get(class)
+func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
+	weightForClass := cw.Get(class)
 	weightForClass.RefTime = weightForClass.RefTime.SaturatingAdd(weight.RefTime)
 	weightForClass.ProofSize = weightForClass.ProofSize.SaturatingAdd(weight.ProofSize)
 }
 
 // Increase the weight of the given class. Saturates at the numeric bounds.
-func (pdc *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
-	weightForClass := pdc.Get(class)
+func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
+	weightForClass := cw.Get(class)
 	weightForClass.SaturatingAccrue(weight)
 }
 
 // / Try to increase the weight of the given class. Saturates at the numeric bounds.
-func (pdc *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok sc.Empty, err error) {
-	weightForClass := pdc.Get(class)
+func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok sc.Empty, err error) {
+	weightForClass := cw.Get(class)
 	refTime, err := weightForClass.RefTime.CheckedAdd(weight.RefTime)
 	if err != nil {
 		return ok, err
@@ -198,7 +203,7 @@ func (pdc *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok
 }
 
 // Reduce the weight of the given class. Saturates at the numeric bounds.
-func (pdc *ConsumedWeight) Reduce(weight Weight, class DispatchClass) {
-	weightForClass := pdc.Get(class)
+func (cw *ConsumedWeight) Reduce(weight Weight, class DispatchClass) {
+	weightForClass := cw.Get(class)
 	weightForClass.SaturatingReduce(weight)
 }

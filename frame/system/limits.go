@@ -2,51 +2,12 @@ package system
 
 import (
 	"bytes"
-	"math"
 
 	sc "github.com/LimeChain/goscale"
-
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
-
-// Block resource limits configuration structures.
-//
-// FRAME defines two resources that are limited within a block:
-// - Weight (execution cost/time)
-// - Length (block size)
-//
-// `frame_system` tracks consumption of each of these resources separately for each
-// `DispatchClass`. This module contains configuration object for both resources,
-// which should be passed to `frame_system` configuration when runtime is being set up.
-
-// A ratio of `Normal` dispatch class within block, used as default value for
-// `BlockWeight` and `BlockLength`. The `Default` impls are provided mostly for convenience
-// to use in tests.
-var DefaultNormalRatio = Perbill{Percentage: 75}
-
-type Perbill struct {
-	Percentage sc.U32
-}
-
-func (p Perbill) Encode(buffer *bytes.Buffer) {
-	p.Percentage.Encode(buffer)
-}
-
-func DecodePerbill(buffer *bytes.Buffer) Perbill {
-	p := Perbill{}
-	p.Percentage = sc.DecodeU32(buffer)
-	return p
-}
-
-func (p Perbill) Bytes() []byte {
-	return sc.EncodedBytes(p)
-}
-
-func (p Perbill) Mul(v sc.U32) sc.U32 {
-	return (v / 100) * p.Percentage
-}
 
 type BlockLength struct {
 	//  Maximal total length in bytes for each extrinsic class.
@@ -57,15 +18,20 @@ type BlockLength struct {
 }
 
 func DefaultBlockLength() BlockLength {
-	return MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, DefaultNormalRatio)
+	return MaxWithNormalRatio(
+		constants.FiveMbPerBlockPerExtrinsic,
+		constants.NormalDispatchRatio,
+	)
+
+	// return MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.DefaultNormalRatio)
 }
 
 // Create new `BlockLength` with `max` for `Operational` & `Mandatory`
 // and `normal * max` for `Normal`.
-func MaxWithNormalRatio(max sc.U32, normal Perbill) BlockLength {
+func MaxWithNormalRatio(max sc.U32, normal types.Perbill) BlockLength {
 	return BlockLength{
 		Max: types.PerDispatchClass[sc.U32]{
-			Normal:      normal.Mul(max),
+			Normal:      normal.Mul(max).(sc.U32),
 			Operational: max,
 			Mandatory:   max,
 		},
@@ -124,20 +90,17 @@ func (cl WeightsPerClass) Bytes() []byte {
 type BlockWeights struct {
 	// Base weight of block execution.
 	BaseBlock types.Weight
-
 	// Maximal total weight consumed by all kinds of extrinsics (without `reserved` space).
 	MaxBlock types.Weight
-
 	// Weight limits for extrinsics of given dispatch class.
 	PerClass types.PerDispatchClass[WeightsPerClass]
 }
 
 func DefaultBlockWeights() BlockWeights {
-	WithSensibleDefaults(
-		types.WeightFromParts(constants.WeightRefTimePerSecond, math.MaxUint64),
-		DefaultNormalRatio,
+	return WithSensibleDefaults(
+		constants.MaximumBlockWeight,
+		constants.NormalDispatchRatio,
 	)
-	return BlockWeights{}
 }
 
 // Get per-class weight settings.
@@ -161,22 +124,52 @@ func (bw BlockWeights) Get(class types.DispatchClass) *WeightsPerClass {
 // Assumptions:
 //   - Average block initialization is assumed to be `10%`.
 //   - `Operational` transactions have reserved allowance (`1.0 - normal_ratio`)
-func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio Perbill) BlockWeights {
+func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio types.Perbill) BlockWeights {
+	return NewBlockWeightsBuilder().
+		BaseBlock(constants.BlockExecutionWeight).
+		ForClass(types.DispatchClassAll(), func(weights *WeightsPerClass) {
+			weights.BaseExtrinsic = constants.ExtrinsicBaseWeight
+		}).
+		ForClass([]types.DispatchClass{types.NewDispatchClassNormal()}, func(weights *WeightsPerClass) {
+			weights.MaxTotal = sc.NewOption[types.Weight](constants.NormalDispatchRatio.Mul(constants.MaximumBlockWeight))
+		}).
+		ForClass([]types.DispatchClass{types.NewDispatchClassOperational()}, func(weights *WeightsPerClass) {
+			weights.MaxTotal = sc.NewOption[types.Weight](constants.MaximumBlockWeight)
+			// Operational transactions have some extra reserved space, so that they
+			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
+			weights.Reserved =
+				sc.NewOption[types.Weight]((constants.MaximumBlockWeight.Sub(constants.NormalDispatchRatio.Mul(constants.MaximumBlockWeight).(types.Weight))))
+		}).
+		AvgBlockInitialization(constants.AverageOnInitializeRatio).
+		Build()
+	// TODO: builder.Expect("Sensible defaults are tested to be valid")
+}
+
+// An opinionated builder for `Weights` object.
+type BlockWeightsBuilder struct {
+	Weights  BlockWeights
+	InitCost sc.Option[types.Perbill]
+}
+
+// Start constructing new `BlockWeights` object.
+//
+// By default all kinds except of `Mandatory` extrinsics are disallowed.
+func NewBlockWeightsBuilder() *BlockWeightsBuilder {
 	// Start constructing new `BlockWeights` object.
 	//
 	// By default all kinds except of `Mandatory` extrinsics are disallowed.
 	WeightsForNormalAndOperational := WeightsPerClass{
-		BaseExtrinsic: constants.BlockExecutionWeight,
-		MaxExtrinsic:  sc.NewOption[types.Weight](nil),
-		MaxTotal:      sc.NewOption[types.Weight](nil),
-		Reserved:      sc.NewOption[types.Weight](nil),
-	}
-
-	WeightsForMandatory := WeightsPerClass{
-		BaseExtrinsic: constants.BlockExecutionWeight,
+		BaseExtrinsic: constants.ExtrinsicBaseWeight,
 		MaxExtrinsic:  sc.NewOption[types.Weight](nil),
 		MaxTotal:      sc.NewOption[types.Weight](types.WeightZero()),
 		Reserved:      sc.NewOption[types.Weight](types.WeightZero()),
+	}
+
+	WeightsForMandatory := WeightsPerClass{
+		BaseExtrinsic: constants.ExtrinsicBaseWeight,
+		MaxExtrinsic:  sc.NewOption[types.Weight](nil),
+		MaxTotal:      sc.NewOption[types.Weight](nil),
+		Reserved:      sc.NewOption[types.Weight](nil),
 	}
 
 	weightsPerClass := types.PerDispatchClass[WeightsPerClass]{
@@ -185,71 +178,81 @@ func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio Perbill)
 		Operational: WeightsForNormalAndOperational,
 	}
 
-	builder := BlockWeightsBuilder{
+	return &BlockWeightsBuilder{
 		Weights: BlockWeights{
 			BaseBlock: constants.BlockExecutionWeight,
 			MaxBlock:  types.WeightZero(),
 			PerClass:  weightsPerClass,
 		},
-		InitCost: sc.NewOption[Perbill](nil),
+		InitCost: sc.NewOption[types.Perbill](nil),
 	}
+}
 
-	normalWeight := expectedBlockWeight // TODO: normalRatio *
+// Set base block weight.
+func (b *BlockWeightsBuilder) BaseBlock(baseBlock types.Weight) *BlockWeightsBuilder {
+	b.Weights.BaseBlock = baseBlock
+	return b
+}
 
-	// Set parameters for particular class.
-	//
-	// Note: `None` values of `max_extrinsic` will be overwritten in `build` in case
-	// `avg_block_initialization` rate is set to a non-zero value.
-	builder.Weights.PerClass.Normal.MaxTotal = sc.NewOption[types.Weight](normalWeight)
-	builder.Weights.PerClass.Operational.MaxTotal = sc.NewOption[types.Weight](expectedBlockWeight)
-	builder.Weights.PerClass.Operational.Reserved = sc.NewOption[types.Weight](expectedBlockWeight.Sub(normalWeight))
+// Set parameters for particular class.
+//
+// Note: `None` values of `max_extrinsic` will be overwritten in `build` in case
+// `avg_block_initialization` rate is set to a non-zero value.
+func (b *BlockWeightsBuilder) ForClass(classes []types.DispatchClass, action func(_ *WeightsPerClass)) *BlockWeightsBuilder {
+	for _, cl := range classes {
+		action(b.Weights.PerClass.Get(cl))
+	}
+	return b
+}
 
-	// Average block initialization weight cost.
-	//
-	// This value is used to derive maximal allowed extrinsic weight for each
-	// class, based on the allowance.
-	//
-	// This is to make sure that extrinsics don't stay forever in the pool,
-	// because they could seamingly fit the block (since they are below `max_block`),
-	// but the cost of calling `on_initialize` always prevents them from being included.
-	builder.InitCost = sc.NewOption[Perbill](Perbill{10})
-
-	// .build()
-
-	return BlockWeights{}
+// Average block initial ization weight cost.
+//
+// This value is used to derive maximal allowed extrinsic weight for each
+// class, based on the allowance.
+//
+// This is to make sure that extrinsics don't stay forever in the pool,
+// because they could seamingly fit the block (since they are below `max_block`),
+// but the cost of calling `on_initialize` always prevents them from being included.
+func (b *BlockWeightsBuilder) AvgBlockInitialization(initCost types.Perbill) *BlockWeightsBuilder {
+	b.InitCost = sc.NewOption[types.Perbill](initCost)
+	return b
 }
 
 // Construct the `BlockWeights` object.
-// func (bwb BlockWeightsBuilder) Build()  (ok BlockWeights, err error) {
-// 	// compute max extrinsic size
-// 	let Self { mut weights, init_cost } = self;
+func (b *BlockWeightsBuilder) Build() BlockWeights {
+	// compute max extrinsic size
+	weights, initCost := b.Weights, b.InitCost
 
-// 	// compute max block size.
-// 	for class in DispatchClass::all() {
-// 		weights.max_block = match weights.per_class.get(*class).max_total {
-// 			Some(max) => max.max(weights.max_block),
-// 			_ => weights.max_block,
-// 		};
-// 	}
-// 	// compute max size of single extrinsic
-// 	if let Some(init_weight) = init_cost.map(|rate| rate * weights.max_block) {
-// 		for class in DispatchClass::all() {
-// 			let per_class = weights.per_class.get_mut(*class);
-// 			if per_class.max_extrinsic.is_none() && init_cost.is_some() {
-// 				per_class.max_extrinsic = per_class
-// 					.max_total
-// 					.map(|x| x.saturating_sub(init_weight))
-// 					.map(|x| x.saturating_sub(per_class.base_extrinsic));
-// 			}
-// 		}
-// 	}
+	// compute max block size.
+	for _, class := range types.DispatchClassAll() {
+		if (*weights.PerClass.Get(class)).MaxTotal.HasValue {
+			max := (*weights.PerClass.Get(class)).MaxTotal.Value
+			weights.MaxBlock = max.Max(weights.MaxBlock)
+		}
+	}
 
-// 	// Validate the result
-// 	weights.validate()
-// }
+	// compute max size of single extrinsic
+	var initWeight sc.Option[types.Weight]
+	if initCost.HasValue {
+		initWeight = sc.NewOption[types.Weight](initCost.Value.Mul(weights.MaxBlock))
+	} else {
+		initWeight = sc.NewOption[types.Weight](nil)
+	}
 
-// An opinionated builder for `Weights` object.
-type BlockWeightsBuilder struct {
-	Weights  BlockWeights
-	InitCost sc.Option[Perbill]
+	if initWeight.HasValue {
+		for _, class := range types.DispatchClassAll() {
+			perClass := *(weights.PerClass.Get(class))
+			if !perClass.MaxExtrinsic.HasValue && initCost.HasValue {
+				if perClass.MaxTotal.HasValue {
+					perClass.MaxExtrinsic = sc.NewOption[types.Weight](perClass.MaxTotal.Value.SaturatingSub(initWeight.Value).SaturatingSub(perClass.BaseExtrinsic))
+				} else {
+					perClass.MaxExtrinsic = sc.NewOption[types.Weight](nil)
+				}
+			}
+		}
+	}
+
+	// Validate the result
+	// TODO: weights.Validate()
+	return weights
 }
