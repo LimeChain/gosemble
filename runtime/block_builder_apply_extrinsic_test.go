@@ -229,6 +229,64 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	)
 }
 
+func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	runtimeVersion := rt.Version()
+	metadata := runtimeMetadata(t)
+
+	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
+	digest := gossamertypes.NewDigest()
+
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
+	// Append long args
+	args := make([]byte, constants.FiveMbPerBlockPerExtrinsic)
+
+	call, err := ctypes.NewCall(metadata, "System.remark", args)
+	assert.NoError(t, err)
+
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(0),
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+	// Sign the transaction using Alice's default account
+	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+
+	extrinsicIndex := sc.U32(0)
+	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
+	assert.Equal(t, []byte(nil), extrinsicIndexValue)
+
+	assert.NoError(t, err)
+
+	assert.Equal(t,
+		primitives.NewApplyExtrinsicResult(
+			primitives.NewTransactionValidityError(
+				primitives.NewInvalidTransactionExhaustsResources()),
+		).Bytes(),
+		res,
+	)
+}
+
 func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 	t.Skip()
 }

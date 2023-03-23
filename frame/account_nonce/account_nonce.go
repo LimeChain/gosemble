@@ -10,9 +10,7 @@ import (
 
 func AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
-
-	buffer := &bytes.Buffer{}
-	buffer.Write(b)
+	buffer := bytes.NewBuffer(b)
 
 	publicKey := types.DecodePublicKey(buffer)
 	nonce := system.StorageGetAccount(publicKey).Nonce

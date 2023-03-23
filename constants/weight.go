@@ -9,7 +9,7 @@ import (
 
 // TODO: needs to be benchmarked
 
-const FiveMbPerBlockPerExtrinsic sc.U32 = 1024 // TODO: 5 * 1024 * 1024
+const FiveMbPerBlockPerExtrinsic sc.U32 = 5 * 1024 * 1024
 const WeightRefTimePerSecond sc.U64 = 1_000_000_000_000
 const WeightRefTimePerNanos sc.U64 = 1_000
 
