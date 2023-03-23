@@ -130,6 +130,14 @@ func (lhs Weight) Min(rhs Weight) Weight {
 	}
 }
 
+// Get the aggressive max of `self` and `other` weight.
+func (lhs Weight) Max(rhs Weight) Weight {
+	return Weight{
+		RefTime:   lhs.RefTime.Max(rhs.RefTime),
+		ProofSize: lhs.ProofSize.Max(rhs.ProofSize),
+	}
+}
+
 // Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (lhs Weight) AllGt(rhs Weight) sc.Bool {

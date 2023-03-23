@@ -45,6 +45,7 @@ var (
 	keyTimestampHash, _        = common.Twox128Hash(constants.KeyTimestamp)
 	keyTimestampNowHash, _     = common.Twox128Hash(constants.KeyNow)
 	keyTimestampDidUpdate, _   = common.Twox128Hash(constants.KeyDidUpdate)
+	keyBlockWeight, _          = common.Twox128Hash(constants.KeyBlockWeight)
 )
 
 var (
