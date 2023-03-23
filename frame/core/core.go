@@ -46,8 +46,8 @@ SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, 
 */
 func InitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	buffer := &bytes.Buffer{}
-	buffer.Write(data)
+	buffer := bytes.NewBuffer(data)
+
 	header := primitives.DecodeHeader(buffer)
 	executive.InitializeBlock(header)
 }
@@ -62,10 +62,8 @@ SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, pas
 */
 func ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	buffer := &bytes.Buffer{}
-	buffer.Write(data)
+	buffer := bytes.NewBuffer(data)
 
 	block := types.DecodeBlock(buffer)
-
 	executive.ExecuteBlock(block)
 }

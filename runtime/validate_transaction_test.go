@@ -9,6 +9,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -213,7 +214,7 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Append long args
-	args := make([]byte, 1024) // TODO: passing > 1 MB breaks
+	args := make([]byte, constants.FiveMbPerBlockPerExtrinsic)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", args)
 	assert.NoError(t, err)

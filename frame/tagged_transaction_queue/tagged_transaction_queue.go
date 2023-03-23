@@ -22,13 +22,11 @@ https://spec.polkadot.network/#sect-rte-validate-transaction
 */
 func ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
-	buffer := &bytes.Buffer{}
-	buffer.Write(data)
+	buffer := bytes.NewBuffer(data)
 
 	txSource := primitives.DecodeTransactionSource(buffer)
 	tx := types.DecodeUncheckedExtrinsic(buffer)
 	blockHash := primitives.DecodeBlake2bHash(buffer)
-	buffer.Reset()
 
 	ok, err := executive.ValidateTransaction(txSource, tx, blockHash)
 

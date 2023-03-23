@@ -35,8 +35,9 @@ SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM mem
 	returns a pointer-size to the SCALE-encoded ([]byte) data.
 */
 func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
-	buffer := &bytes.Buffer{}
-	buffer.Write(utils.ToWasmMemorySlice(dataPtr, dataLen))
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
 	uxt := types.DecodeUncheckedExtrinsic(buffer)
 
 	ok, err := executive.ApplyExtrinsic(uxt)
@@ -89,9 +90,7 @@ SCALE encoded arguments (data types.InherentsData) allocated in the Wasm VM memo
 */
 func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
-
-	buffer := &bytes.Buffer{}
-	buffer.Write(b)
+	buffer := bytes.NewBuffer(b)
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
@@ -115,9 +114,7 @@ SCALE encoded arguments (block types.Block, data types.InherentsData) allocated 
 */
 func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
-
-	buffer := &bytes.Buffer{}
-	buffer.Write(b)
+	buffer := bytes.NewBuffer(b)
 
 	block := types.DecodeBlock(buffer)
 
