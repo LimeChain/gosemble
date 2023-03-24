@@ -338,32 +338,74 @@ func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	metadata := runtimeMetadata(t)
 
-	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
-	assert.NoError(t, err)
-
-	extrinsic := ctypes.NewExtrinsic(call)
-
 	txSource := primitives.NewTransactionSourceExternal()
 	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
 
-	buffer := &bytes.Buffer{}
-	txSource.Encode(buffer)
-
-	encoder := cscale.NewEncoder(buffer)
-	err = extrinsic.Encode(*encoder)
+	alice, err := ctypes.NewMultiAddressFromAccountID(signature.TestKeyringPairAlice.PublicKey)
 	assert.NoError(t, err)
 
-	blockHash.Encode(buffer)
+	amount := ctypes.NewUCompactFromUInt(constants.Dollar)
 
-	res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+	var tests = []struct {
+		callName string
+		args     []any
+	}{
+		{
+			callName: "System.remark",
+			args:     []any{[]byte{}},
+		},
+		{
+			callName: "Balances.transfer",
+			args:     []any{alice, amount},
+		},
+		{
+			callName: "Balances.set_balance",
+			args:     []any{alice, amount, amount},
+		},
+		{
+			callName: "Balances.force_transfer",
+			args:     []any{alice, alice, amount},
+		},
+		{
+			callName: "Balances.transfer_keep_alive",
+			args:     []any{alice, amount},
+		},
+		{
+			callName: "Balances.transfer_all",
+			args:     []any{alice, ctypes.NewBool(false)},
+		},
+		{
+			callName: "Balances.force_unreserve",
+			args:     []any{alice, ctypes.NewU128(*big.NewInt(amount.Int64()))},
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t,
-		primitives.NewTransactionValidityResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewUnknownTransactionNoUnsignedValidator(),
-			),
-		).Bytes(),
-		res,
-	)
+	for _, test := range tests {
+		t.Run(test.callName, func(t *testing.T) {
+			call, err := ctypes.NewCall(metadata, test.callName, test.args...)
+
+			extrinsic := ctypes.NewExtrinsic(call)
+
+			buffer := &bytes.Buffer{}
+			txSource.Encode(buffer)
+
+			encoder := cscale.NewEncoder(buffer)
+			err = extrinsic.Encode(*encoder)
+			assert.NoError(t, err)
+
+			blockHash.Encode(buffer)
+
+			res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+
+			assert.NoError(t, err)
+			assert.Equal(t,
+				primitives.NewTransactionValidityResult(
+					primitives.NewTransactionValidityError(
+						primitives.NewUnknownTransactionNoUnsignedValidator(),
+					),
+				).Bytes(),
+				res,
+			)
+		})
+	}
 }
