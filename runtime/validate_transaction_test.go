@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math/big"
 	"testing"
+	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -408,4 +409,44 @@ func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
 			)
 		})
 	}
+}
+
+func Test_ValidateTransaction_MandatoryValidation_Timestamp(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+
+	idata := gossamertypes.NewInherentData()
+	time := time.Now().UnixMilli()
+
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+
+	txSource := primitives.NewTransactionSourceExternal()
+	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
+
+	buffer := &bytes.Buffer{}
+	txSource.Encode(buffer)
+
+	_, err = buffer.Write(inherentExt[1:])
+	assert.NoError(t, err)
+
+	blockHash.Encode(buffer)
+
+	res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		primitives.NewTransactionValidityResult(
+			primitives.NewTransactionValidityError(
+				primitives.NewInvalidTransactionMandatoryValidation(),
+			),
+		).Bytes(),
+		res,
+	)
 }
