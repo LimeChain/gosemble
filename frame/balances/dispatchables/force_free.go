@@ -37,7 +37,7 @@ func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
 func (_ FnForceFree) Decode(buffer *bytes.Buffer) sc.VaryingData {
 	return sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
-		sc.DecodeCompact(buffer),
+		sc.DecodeU128(buffer),
 	)
 }
 
@@ -58,7 +58,7 @@ func (_ FnForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	amount := args[1].(sc.Compact)
+	amount := args[1].(sc.U128)
 
 	err := forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
 	if err != nil {
