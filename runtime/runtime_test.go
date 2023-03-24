@@ -87,14 +87,15 @@ func runtimeMetadata(t *testing.T) *ctypes.Metadata {
 }
 
 func newTestCall(moduleIndex sc.U8, functionIndex sc.U8, args sc.VaryingData) types.Call {
-	return types.Call{
-		CallIndex: primitives.CallIndex{
+
+	return types.NewCall(
+		primitives.CallIndex{
 			ModuleIndex:   moduleIndex,
 			FunctionIndex: functionIndex,
 		},
-		Function: types.Modules[moduleIndex].Functions()[functionIndex],
-		Args:     args,
-	}
+		args,
+		types.Modules[moduleIndex].Functions()[functionIndex],
+	)
 }
 
 func setBlockNumber(t *testing.T, storage *trie.Trie, blockNumber sc.U64) {

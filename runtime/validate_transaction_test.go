@@ -333,3 +333,37 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 	assert.Equal(t, sc.Bool(true), transactionValidityResult.IsValidTransaction())
 	assert.Equal(t, sc.U64(15), transactionValidityResult.AsValidTransaction().Longevity)
 }
+
+func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t)
+
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
+	assert.NoError(t, err)
+
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	txSource := primitives.NewTransactionSourceExternal()
+	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
+
+	buffer := &bytes.Buffer{}
+	txSource.Encode(buffer)
+
+	encoder := cscale.NewEncoder(buffer)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	blockHash.Encode(buffer)
+
+	res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+
+	assert.NoError(t, err)
+	assert.Equal(t,
+		primitives.NewTransactionValidityResult(
+			primitives.NewTransactionValidityError(
+				primitives.NewUnknownTransactionNoUnsignedValidator(),
+			),
+		).Bytes(),
+		res,
+	)
+}

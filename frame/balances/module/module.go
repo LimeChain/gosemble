@@ -5,6 +5,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/support"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type BalancesModule struct {
@@ -27,4 +28,12 @@ func NewBalancesModule() BalancesModule {
 
 func (bm BalancesModule) Functions() map[sc.U8]support.FunctionMetadata {
 	return bm.functions
+}
+
+func (bm BalancesModule) PreDispatch(_ support.Call) (sc.Empty, primitives.TransactionValidityError) {
+	return sc.Empty{}, nil
+}
+
+func (bm BalancesModule) ValidateUnsigned(_ primitives.TransactionSource, _ support.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }

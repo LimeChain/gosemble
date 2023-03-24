@@ -15,8 +15,8 @@ var remarkCall = Call{
 		ModuleIndex:   0,
 		FunctionIndex: 0,
 	},
+	function: system.FnRemark{},
 	Args:     sc.NewVaryingData(sc.Sequence[sc.U8]{}),
-	Function: system.FnRemark{},
 }
 
 func Test_EncodeUncheckedExtrinsic_Unsigned(t *testing.T) {
