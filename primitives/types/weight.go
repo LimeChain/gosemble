@@ -31,22 +31,25 @@ func (dbw RuntimeDbWeight) ReadsWrites(r, w sc.U64) Weight {
 
 type Weight struct {
 	// The weight of computational time used based on some reference hardware.
-	RefTime sc.U64 // TODO: codec compact
+	RefTime sc.U64
 
 	// The weight of storage space used by proof of validity.
-	ProofSize sc.U64 // TODO: codec compact
+	ProofSize sc.U64
 }
 
 func (w Weight) Encode(buffer *bytes.Buffer) {
-	w.RefTime.Encode(buffer)
-	w.ProofSize.Encode(buffer)
+	sc.ToCompact(w.RefTime).Encode(buffer)
+	sc.ToCompact(w.ProofSize).Encode(buffer)
 }
 
 func DecodeWeight(buffer *bytes.Buffer) Weight {
-	w := Weight{}
-	w.RefTime = sc.DecodeU64(buffer)
-	w.ProofSize = sc.DecodeU64(buffer)
-	return w
+	refTime := sc.DecodeCompact(buffer).ToBigInt()
+	proofSize := sc.DecodeCompact(buffer).ToBigInt()
+
+	return Weight{
+		RefTime:   sc.U64(refTime.Uint64()),
+		ProofSize: sc.U64(proofSize.Uint64()),
+	}
 }
 
 func (w Weight) Bytes() []byte {
