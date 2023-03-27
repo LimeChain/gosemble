@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math/big"
 	"testing"
+	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -332,4 +333,120 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 	assert.Equal(t, sc.Bool(true), transactionValidityResult.IsValidTransaction())
 	assert.Equal(t, sc.U64(15), transactionValidityResult.AsValidTransaction().Longevity)
+}
+
+func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t)
+
+	txSource := primitives.NewTransactionSourceExternal()
+	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
+
+	alice, err := ctypes.NewMultiAddressFromAccountID(signature.TestKeyringPairAlice.PublicKey)
+	assert.NoError(t, err)
+
+	amount := ctypes.NewUCompactFromUInt(constants.Dollar)
+
+	var tests = []struct {
+		callName string
+		args     []any
+	}{
+		{
+			callName: "System.remark",
+			args:     []any{[]byte{}},
+		},
+		{
+			callName: "Balances.transfer",
+			args:     []any{alice, amount},
+		},
+		{
+			callName: "Balances.set_balance",
+			args:     []any{alice, amount, amount},
+		},
+		{
+			callName: "Balances.force_transfer",
+			args:     []any{alice, alice, amount},
+		},
+		{
+			callName: "Balances.transfer_keep_alive",
+			args:     []any{alice, amount},
+		},
+		{
+			callName: "Balances.transfer_all",
+			args:     []any{alice, ctypes.NewBool(false)},
+		},
+		{
+			callName: "Balances.force_unreserve",
+			args:     []any{alice, ctypes.NewU128(*big.NewInt(amount.Int64()))},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.callName, func(t *testing.T) {
+			call, err := ctypes.NewCall(metadata, test.callName, test.args...)
+
+			extrinsic := ctypes.NewExtrinsic(call)
+
+			buffer := &bytes.Buffer{}
+			txSource.Encode(buffer)
+
+			encoder := cscale.NewEncoder(buffer)
+			err = extrinsic.Encode(*encoder)
+			assert.NoError(t, err)
+
+			blockHash.Encode(buffer)
+
+			res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+
+			assert.NoError(t, err)
+			assert.Equal(t,
+				primitives.NewTransactionValidityResult(
+					primitives.NewTransactionValidityError(
+						primitives.NewUnknownTransactionNoUnsignedValidator(),
+					),
+				).Bytes(),
+				res,
+			)
+		})
+	}
+}
+
+func Test_ValidateTransaction_MandatoryValidation_Timestamp(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+
+	idata := gossamertypes.NewInherentData()
+	time := time.Now().UnixMilli()
+
+	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
+	assert.NoError(t, err)
+
+	ienc, err := idata.Encode()
+	assert.NoError(t, err)
+	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
+	assert.NoError(t, err)
+
+	txSource := primitives.NewTransactionSourceExternal()
+	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
+
+	buffer := &bytes.Buffer{}
+	txSource.Encode(buffer)
+
+	_, err = buffer.Write(inherentExt[1:])
+	assert.NoError(t, err)
+
+	blockHash.Encode(buffer)
+
+	res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		primitives.NewTransactionValidityResult(
+			primitives.NewTransactionValidityError(
+				primitives.NewInvalidTransactionMandatoryValidation(),
+			),
+		).Bytes(),
+		res,
+	)
 }

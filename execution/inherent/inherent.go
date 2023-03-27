@@ -16,7 +16,7 @@ func EnsureInherentsAreFirst(block types.Block) int {
 		} else {
 			call := extrinsic.Function
 			// Iterate through all calls and check if the given call is inherent
-			if call.Function.IsInherent() {
+			if call.Function().IsInherent() {
 				isInherent = true
 			}
 		}

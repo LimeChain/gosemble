@@ -12,8 +12,16 @@ import (
 
 type Call struct {
 	CallIndex types.CallIndex
+	function  support.FunctionMetadata
 	Args      sc.VaryingData
-	Function  support.FunctionMetadata
+}
+
+func NewCall(index types.CallIndex, args sc.VaryingData, function support.FunctionMetadata) Call {
+	return Call{
+		CallIndex: index,
+		Args:      args,
+		function:  function,
+	}
 }
 
 func (c Call) Encode(buffer *bytes.Buffer) {
@@ -35,7 +43,7 @@ func DecodeCall(buffer *bytes.Buffer) Call {
 		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", c.CallIndex.FunctionIndex, c.CallIndex.ModuleIndex))
 	}
 
-	c.Function = function
+	c.function = function
 	c.Args = function.Decode(buffer)
 
 	return c
@@ -43,4 +51,8 @@ func DecodeCall(buffer *bytes.Buffer) Call {
 
 func (c Call) Bytes() []byte {
 	return sc.EncodedBytes(c)
+}
+
+func (c Call) Function() support.FunctionMetadata {
+	return c.function
 }
