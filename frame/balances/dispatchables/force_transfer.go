@@ -7,15 +7,58 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnForceTransfer struct{}
-
-func (_ FnForceTransfer) Index() sc.U8 {
-	return balances.FunctionForceTransferIndex
+type ForceTransferCall struct {
+	primitives.Callable
 }
 
-func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
+func NewForceTransferCall(args sc.VaryingData) ForceTransferCall {
+	call := ForceTransferCall{
+		Callable: primitives.Callable{
+			ModuleId:   balances.ModuleIndex,
+			FunctionId: balances.FunctionForceTransferIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c ForceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(
+		types.DecodeMultiAddress(buffer),
+		types.DecodeMultiAddress(buffer),
+		sc.DecodeCompact(buffer),
+	)
+	return c
+}
+
+func (c ForceTransferCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c ForceTransferCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c ForceTransferCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c ForceTransferCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c ForceTransferCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (_ ForceTransferCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `135`
 	//  Estimated: `6196`
@@ -29,31 +72,23 @@ func (_ FnForceTransfer) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceTransfer) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeCompact(buffer),
-	)
-}
-
-func (_ FnForceTransfer) IsInherent() bool {
+func (_ ForceTransferCall) IsInherent() bool {
 	return false
 }
 
-func (_ FnForceTransfer) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ ForceTransferCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ ForceTransferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ ForceTransferCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[2].(sc.Compact))
 
 	err := forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)

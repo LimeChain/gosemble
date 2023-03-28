@@ -16,7 +16,7 @@ import (
 // TODO: make it generic
 // generic::SignedPayload<RuntimeCall, SignedExtra>;
 type SignedPayload struct {
-	Call  sc.Encodable // TODO: switch to inteface that is more recognizable than sc.Encodable
+	Call  Call
 	Extra SignedExtra
 	AdditionalSigned
 }

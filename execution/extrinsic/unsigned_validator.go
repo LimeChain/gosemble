@@ -20,22 +20,22 @@ type UnsignedValidatorForChecked struct{}
 // ensure that the transaction is valid.
 //
 // Changes made to storage *WILL* be persisted if the call returns `Ok`.
-func (v UnsignedValidatorForChecked) PreDispatch(call *types.Call) (sc.Empty, primitives.TransactionValidityError) {
-	module, ok := types.Modules[call.CallIndex.ModuleIndex]
+func (v UnsignedValidatorForChecked) PreDispatch(call *primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+	module, ok := types.Modules[(*call).ModuleIndex()]
 	if !ok {
 		return sc.Empty{}, nil
 	}
 
-	return module.PreDispatch(call)
+	return module.PreDispatch(*call)
 }
 
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
 // Inherent call is not validated as unsigned
-func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *types.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	module, ok := types.Modules[call.CallIndex.ModuleIndex]
+func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+	module, ok := types.Modules[(*call).ModuleIndex()]
 	if !ok {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	}
 
-	return module.ValidateUnsigned(_source, call)
+	return module.ValidateUnsigned(_source, *call)
 }

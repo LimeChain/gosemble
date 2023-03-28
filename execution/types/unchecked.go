@@ -5,7 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 const (
@@ -25,11 +25,11 @@ type UncheckedExtrinsic struct {
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
-	Signature sc.Option[types.ExtrinsicSignature]
-	Function  Call
+	Signature sc.Option[primitives.ExtrinsicSignature]
+	Function  primitives.Call
 }
 
-func NewUncheckedExtrinsic(function Call, signedData sc.Option[types.ExtrinsicSignature]) UncheckedExtrinsic {
+func NewUncheckedExtrinsic(function primitives.Call, signedData sc.Option[primitives.ExtrinsicSignature]) UncheckedExtrinsic {
 	if signedData.HasValue {
 		address, signature, extra := signedData.Value.Signer, signedData.Value.Signature, signedData.Value.Extra
 		return NewSignedUncheckedExtrinsic(function, address, signature, extra)
@@ -39,11 +39,11 @@ func NewUncheckedExtrinsic(function Call, signedData sc.Option[types.ExtrinsicSi
 }
 
 // New instance of a signed extrinsic aka "transaction".
-func NewSignedUncheckedExtrinsic(function Call, address types.MultiAddress, signature types.MultiSignature, extra types.SignedExtra) UncheckedExtrinsic {
+func NewSignedUncheckedExtrinsic(function primitives.Call, address primitives.MultiAddress, signature primitives.MultiSignature, extra primitives.SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version: sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned),
-		Signature: sc.NewOption[types.ExtrinsicSignature](
-			types.ExtrinsicSignature{
+		Signature: sc.NewOption[primitives.ExtrinsicSignature](
+			primitives.ExtrinsicSignature{
 				Signer:    address,
 				Signature: signature,
 				Extra:     extra,
@@ -54,10 +54,10 @@ func NewSignedUncheckedExtrinsic(function Call, address types.MultiAddress, sign
 }
 
 // New instance of an unsigned extrinsic aka "inherent".
-func NewUnsignedUncheckedExtrinsic(function Call) UncheckedExtrinsic {
+func NewUnsignedUncheckedExtrinsic(function primitives.Call) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version:   sc.U8(ExtrinsicFormatVersion),
-		Signature: sc.NewOption[types.ExtrinsicSignature](nil),
+		Signature: sc.NewOption[primitives.ExtrinsicSignature](nil),
 		Function:  function,
 	}
 }
@@ -101,9 +101,9 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 		log.Critical("invalid Extrinsic version")
 	}
 
-	var extSignature sc.Option[types.ExtrinsicSignature]
+	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	if isSigned {
-		extSignature = sc.NewOption[types.ExtrinsicSignature](types.DecodeExtrinsicSignature(buffer))
+		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(buffer))
 	}
 
 	function := DecodeCall(buffer)

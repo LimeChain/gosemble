@@ -65,7 +65,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
 	}
 
-	resWithInfo := xt.Function.Function().Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args)
+	resWithInfo := xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
 
 	var postInfo primitives.PostDispatchInfo
 	if resWithInfo.HasError {

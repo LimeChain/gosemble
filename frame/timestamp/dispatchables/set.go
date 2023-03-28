@@ -10,48 +10,84 @@ import (
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnSet struct{}
+type SetCall struct {
+	primitives.Callable
+}
+
+func NewSetCall(args sc.VaryingData) SetCall {
+	call := SetCall{
+		Callable: primitives.Callable{
+			ModuleId:   timestamp.ModuleIndex,
+			FunctionId: timestamp.FunctionSetIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c SetCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(sc.DecodeCompact(buffer))
+	return c
+}
+
+func (c SetCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c SetCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c SetCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c SetCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c SetCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
 
 // Storage: Timestamp Now (r:1 w:1)
 // Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 // Storage: Babe CurrentSlot (r:1 w:0)
 // Proof: Babe CurrentSlot (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-func (_ FnSet) BaseWeight(b ...any) types.Weight {
+func (_ SetCall) BaseWeight(b ...any) primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `312`
 	//  Estimated: `1006`
 	// Minimum execution time: 9_106 nanoseconds.
 	r := constants.DbWeight.Reads(2)
 	w := constants.DbWeight.Writes(1)
-	return types.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
+	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ FnSet) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
-		sc.DecodeCompact(buffer),
-	)
-}
-
-func (_ FnSet) IsInherent() bool {
+func (_ SetCall) IsInherent() bool {
 	return true
 }
 
-func (_ FnSet) WeightInfo(baseWeight types.Weight) types.Weight {
-	return types.WeightFromParts(baseWeight.RefTime, 0)
+func (_ SetCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnSet) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassMandatory()
+func (_ SetCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	return primitives.NewDispatchClassMandatory()
 }
 
-func (_ FnSet) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+func (_ SetCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	return primitives.NewPaysYes()
 }
 
-func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	compactTs := args[0].(sc.Compact)
 	return set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
@@ -71,12 +107,12 @@ func (fn FnSet) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func set(origin types.RuntimeOrigin, now sc.U64) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	if !origin.IsNoneOrigin() {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: types.NewDispatchErrorBadOrigin(),
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: primitives.NewDispatchErrorBadOrigin(),
 			},
 		}
 	}
@@ -107,8 +143,8 @@ func set(origin types.RuntimeOrigin, now sc.U64) types.DispatchResultWithPostInf
 	// timestamp module should not depend on the aura module
 	aura.OnTimestampSet(now)
 
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+		Ok:       primitives.PostDispatchInfo{},
 	}
 }

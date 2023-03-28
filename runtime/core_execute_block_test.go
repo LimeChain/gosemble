@@ -13,8 +13,8 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
+	timestamp "github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -95,7 +95,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
+	call := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -183,7 +183,8 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
+	call := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
+
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)

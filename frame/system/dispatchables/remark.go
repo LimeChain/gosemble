@@ -1,18 +1,56 @@
-package system
+package dispatchables
 
 import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnRemark struct{}
+type RemarkCall struct {
+	primitives.Callable
+}
 
-func (_ FnRemark) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
-		sc.DecodeSequence[sc.U8](buffer),
-	)
+func NewRemarkCall(args sc.VaryingData) RemarkCall {
+	call := RemarkCall{
+		Callable: primitives.Callable{
+			ModuleId:   system.ModuleIndex,
+			FunctionId: system.FunctionRemarkIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c RemarkCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
+	return c
+}
+
+func (c RemarkCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c RemarkCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c RemarkCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c RemarkCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c RemarkCall) Args() sc.VaryingData {
+	return c.Callable.Args()
 }
 
 // Make some on-chain remark.
@@ -20,7 +58,7 @@ func (_ FnRemark) Decode(buffer *bytes.Buffer) sc.VaryingData {
 // ## Complexity
 // - `O(1)`
 // The range of component `b` is `[0, 3932160]`.
-func (_ FnRemark) BaseWeight(args ...any) types.Weight {
+func (_ RemarkCall) BaseWeight(args ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `0`
@@ -31,23 +69,23 @@ func (_ FnRemark) BaseWeight(args ...any) types.Weight {
 	return types.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
-func (_ FnRemark) IsInherent() bool {
+func (_ RemarkCall) IsInherent() bool {
 	return false
 }
 
-func (_ FnRemark) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ RemarkCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnRemark) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ RemarkCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnRemark) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ RemarkCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ FnRemark) Dispatch(origin types.RuntimeOrigin, _ sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ RemarkCall) Dispatch(origin types.RuntimeOrigin, _ sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	return remark(origin)
 }
 

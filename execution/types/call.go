@@ -6,53 +6,24 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/support"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Call struct {
-	CallIndex types.CallIndex
-	function  support.FunctionMetadata
-	Args      sc.VaryingData
-}
+func DecodeCall(buffer *bytes.Buffer) primitives.Call {
+	moduleIndex := sc.DecodeU8(buffer)
+	functionIndex := sc.DecodeU8(buffer)
 
-func NewCall(index types.CallIndex, args sc.VaryingData, function support.FunctionMetadata) Call {
-	return Call{
-		CallIndex: index,
-		Args:      args,
-		function:  function,
-	}
-}
-
-func (c Call) Encode(buffer *bytes.Buffer) {
-	c.CallIndex.Encode(buffer)
-	c.Args.Encode(buffer)
-}
-
-func DecodeCall(buffer *bytes.Buffer) Call {
-	c := Call{}
-	c.CallIndex = types.DecodeCallIndex(buffer)
-
-	module, ok := Modules[c.CallIndex.ModuleIndex]
+	module, ok := Modules[moduleIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("module with index [%d] not found", c.CallIndex.ModuleIndex))
+		log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
 	}
 
-	function, ok := module.Functions()[c.CallIndex.FunctionIndex]
+	function, ok := module.Functions()[functionIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", c.CallIndex.FunctionIndex, c.CallIndex.ModuleIndex))
+		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
 	}
 
-	c.function = function
-	c.Args = function.Decode(buffer)
+	function = function.DecodeArgs(buffer)
 
-	return c
-}
-
-func (c Call) Bytes() []byte {
-	return sc.EncodedBytes(c)
-}
-
-func (c Call) Function() support.FunctionMetadata {
-	return c.function
+	return function
 }

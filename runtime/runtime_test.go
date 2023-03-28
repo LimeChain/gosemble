@@ -11,9 +11,7 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
@@ -84,18 +82,6 @@ func runtimeMetadata(t *testing.T) *ctypes.Metadata {
 	assert.NoError(t, err)
 
 	return metadata
-}
-
-func newTestCall(moduleIndex sc.U8, functionIndex sc.U8, args sc.VaryingData) types.Call {
-
-	return types.NewCall(
-		primitives.CallIndex{
-			ModuleIndex:   moduleIndex,
-			FunctionIndex: functionIndex,
-		},
-		args,
-		types.Modules[moduleIndex].Functions()[functionIndex],
-	)
 }
 
 func setBlockNumber(t *testing.T, storage *trie.Trie, blockNumber sc.U64) {

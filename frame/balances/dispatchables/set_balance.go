@@ -10,15 +10,58 @@ import (
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnSetBalance struct{}
-
-func (_ FnSetBalance) Index() sc.U8 {
-	return balances.FunctionSetBalanceIndex
+type SetBalanceCall struct {
+	primitives.Callable
 }
 
-func (_ FnSetBalance) BaseWeight(b ...any) types.Weight {
+func NewSetBalanceCall(args sc.VaryingData) SetBalanceCall {
+	call := SetBalanceCall{
+		Callable: primitives.Callable{
+			ModuleId:   balances.ModuleIndex,
+			FunctionId: balances.FunctionSetBalanceIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c SetBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(
+		types.DecodeMultiAddress(buffer),
+		sc.DecodeCompact(buffer),
+		sc.DecodeCompact(buffer),
+	)
+	return c
+}
+
+func (c SetBalanceCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c SetBalanceCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c SetBalanceCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c SetBalanceCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c SetBalanceCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (_ SetBalanceCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -32,31 +75,23 @@ func (_ FnSetBalance) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnSetBalance) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeCompact(buffer),
-		sc.DecodeCompact(buffer),
-	)
-}
-
-func (_ FnSetBalance) IsInherent() bool {
+func (_ SetBalanceCall) IsInherent() bool {
 	return false
 }
 
-func (_ FnSetBalance) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ SetBalanceCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnSetBalance) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ SetBalanceCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ SetBalanceCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	newFree := args[1].(sc.Compact)
 	newReserved := args[2].(sc.Compact)
 
