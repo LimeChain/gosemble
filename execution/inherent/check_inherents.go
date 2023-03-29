@@ -20,12 +20,12 @@ func CheckExtrinsics(data primitives.InherentData, block types.Block) primitives
 		isInherent := false
 		call := extrinsic.Function
 
-		switch call.CallIndex.ModuleIndex {
+		switch call.ModuleIndex() {
 		case tsc.ModuleIndex:
-			switch call.CallIndex.FunctionIndex {
+			switch call.FunctionIndex() {
 			case tsc.FunctionSetIndex:
 				isInherent = true
-				err := timestamp.CheckInherent(call.Args, data)
+				err := timestamp.CheckInherent(call.Args(), data)
 				if err != nil {
 					err := result.PutError(tsc.InherentIdentifier, err.(primitives.IsFatalError))
 					if err != nil {

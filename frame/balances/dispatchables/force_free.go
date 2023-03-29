@@ -12,15 +12,57 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnForceFree struct{}
-
-func (_ FnForceFree) Index() sc.U8 {
-	return balances.FunctionForceFreeIndex
+type ForceFreeCall struct {
+	primitives.Callable
 }
 
-func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
+func NewForceFreeCall(args sc.VaryingData) ForceFreeCall {
+	call := ForceFreeCall{
+		Callable: primitives.Callable{
+			ModuleId:   balances.ModuleIndex,
+			FunctionId: balances.FunctionForceFreeIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c ForceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(
+		types.DecodeMultiAddress(buffer),
+		sc.DecodeU128(buffer),
+	)
+	return c
+}
+
+func (c ForceFreeCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c ForceFreeCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c ForceFreeCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c ForceFreeCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c ForceFreeCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (_ ForceFreeCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -34,30 +76,23 @@ func (_ FnForceFree) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnForceFree) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeU128(buffer),
-	)
-}
-
-func (_ FnForceFree) IsInherent() bool {
+func (_ ForceFreeCall) IsInherent() bool {
 	return false
 }
 
-func (_ FnForceFree) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ ForceFreeCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnForceFree) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ ForceFreeCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnForceFree) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ ForceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
 	err := forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())

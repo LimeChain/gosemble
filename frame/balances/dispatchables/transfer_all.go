@@ -9,26 +9,61 @@ import (
 	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type FnTransferAll struct{}
-
-func (_ FnTransferAll) Index() sc.U8 {
-	return balances.FunctionTransferAllIndex
+type TransferAllCall struct {
+	primitives.Callable
 }
 
-func (_ FnTransferAll) Decode(buffer *bytes.Buffer) sc.VaryingData {
-	return sc.NewVaryingData(
+func NewTransferAllCall(args sc.VaryingData) TransferAllCall {
+	call := TransferAllCall{
+		Callable: primitives.Callable{
+			ModuleId:   balances.ModuleIndex,
+			FunctionId: balances.FunctionTransferAllIndex,
+		},
+	}
+
+	if len(args) != 0 {
+		call.Arguments = args
+	}
+
+	return call
+}
+
+func (c TransferAllCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeBool(buffer),
 	)
+	return c
 }
 
-func (_ FnTransferAll) IsInherent() bool {
+func (c TransferAllCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c TransferAllCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c TransferAllCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c TransferAllCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c TransferAllCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (_ TransferAllCall) IsInherent() bool {
 	return false
 }
 
-func (_ FnTransferAll) BaseWeight(b ...any) types.Weight {
+func (_ TransferAllCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -42,19 +77,19 @@ func (_ FnTransferAll) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ FnTransferAll) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ TransferAllCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ FnTransferAll) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ TransferAllCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ FnTransferAll) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ TransferAllCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn FnTransferAll) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (fn TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{

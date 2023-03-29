@@ -2,7 +2,6 @@ package system
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -57,7 +56,7 @@ func (e Extra) AdditionalSigned() (ok primitives.AdditionalSigned, err primitive
 }
 
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
-func (e Extra) Validate(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (e Extra) Validate(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	valid := primitives.DefaultValidTransaction()
 
 	ok, err = CheckNonZeroAddress(*who).Validate(who, call, info, length)
@@ -93,7 +92,7 @@ func (e Extra) Validate(who *primitives.Address32, call *types.Call, info *primi
 	return valid, err
 }
 
-func (e Extra) ValidateUnsigned(call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (e Extra) ValidateUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	valid := primitives.DefaultValidTransaction()
 
 	ok, err = CheckWeight{}.ValidateUnsigned(call, info, length)
@@ -108,7 +107,7 @@ func (e Extra) ValidateUnsigned(call *types.Call, info *primitives.DispatchInfo,
 // Do any pre-flight stuff for a signed transaction.
 //
 // Make sure to perform the same checks as in [`Validate`].
-func (e Extra) PreDispatch(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (e Extra) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = CheckNonZeroAddress(*who).PreDispatch(who, call, info, length)
 	if err != nil {
 		return ok, err
@@ -138,7 +137,7 @@ func (e Extra) PreDispatch(who *primitives.Address32, call *types.Call, info *pr
 	return ok, err
 }
 
-func (e Extra) PreDispatchUnsigned(call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (e Extra) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = CheckWeight{}.PreDispatchUnsigned(call, info, length)
 	return ok, err
 }

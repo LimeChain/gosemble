@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 // Definition of something that the external world might want to say; its
@@ -18,8 +18,8 @@ type CheckedExtrinsic struct {
 
 	// Who this purports to be from and the number of extrinsics have come before
 	// from the same signer, if anyone (note this is not a signature).
-	Signed   sc.Option[types.AccountIdExtra]
-	Function Call
+	Signed   sc.Option[primitives.AccountIdExtra]
+	Function primitives.Call
 }
 
 func (xt CheckedExtrinsic) Encode(buffer *bytes.Buffer) {

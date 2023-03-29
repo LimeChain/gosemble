@@ -2,7 +2,6 @@ package system
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -15,20 +14,20 @@ func (_ CheckWeight) AdditionalSigned() (ok sc.Empty, err primitives.Transaction
 	return ok, err
 }
 
-func (_ CheckWeight) Validate(_who *primitives.Address32, _call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (_ CheckWeight) Validate(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	return DoValidate(info, length)
 }
 
-func (_ CheckWeight) ValidateUnsigned(_call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (_ CheckWeight) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	return DoValidate(info, length)
 }
 
-func (_ CheckWeight) PreDispatch(_who *primitives.Address32, _call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (_ CheckWeight) PreDispatch(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = DoPreDispatch(info, length)
 	return ok, err
 }
 
-func (_ CheckWeight) PreDispatchUnsigned(_call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (_ CheckWeight) PreDispatchUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = DoPreDispatch(info, length)
 	return ok, err
 }

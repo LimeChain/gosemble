@@ -5,8 +5,9 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/timestamp"
+	timestampConstants "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
+	timestamp "github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
@@ -14,7 +15,7 @@ import (
 )
 
 func CreateInherent(inherent primitives.InherentData) []byte {
-	inherentData := inherent.Data[timestamp.InherentIdentifier]
+	inherentData := inherent.Data[timestampConstants.InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")
@@ -29,21 +30,17 @@ func CreateInherent(inherent primitives.InherentData) []byte {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	nowHash := hashing.Twox128(constants.KeyNow)
 
-	nextTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64) + timestamp.MinimumPeriod
+	nextTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64) + timestampConstants.MinimumPeriod
 
 	if ts > nextTimestamp {
 		nextTimestamp = ts
 	}
 
+	function := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
+
 	extrinsic := types.UncheckedExtrinsic{
-		Version: types.ExtrinsicFormatVersion,
-		Function: types.Call{
-			CallIndex: primitives.CallIndex{
-				ModuleIndex:   timestamp.ModuleIndex,
-				FunctionIndex: timestamp.FunctionSetIndex,
-			},
-			Args: sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))),
-		},
+		Version:  types.ExtrinsicFormatVersion,
+		Function: function,
 	}
 
 	return extrinsic.Bytes()
@@ -53,7 +50,7 @@ func CheckInherent(args sc.VaryingData, inherent primitives.InherentData) error 
 	compactTs := args[0].(sc.Compact)
 	t := sc.U64(compactTs.ToBigInt().Uint64())
 
-	inherentData := inherent.Data[timestamp.InherentIdentifier]
+	inherentData := inherent.Data[timestampConstants.InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")
@@ -69,8 +66,8 @@ func CheckInherent(args sc.VaryingData, inherent primitives.InherentData) error 
 	nowHash := hashing.Twox128(constants.KeyNow)
 	systemNow := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
 
-	minimum := systemNow + timestamp.MinimumPeriod
-	if t > ts+timestamp.MaxTimestampDriftMillis {
+	minimum := systemNow + timestampConstants.MinimumPeriod
+	if t > ts+timestampConstants.MaxTimestampDriftMillis {
 		return primitives.NewTimestampErrorTooFarInFuture()
 	} else if t < minimum {
 		return primitives.NewTimestampErrorTooEarly()

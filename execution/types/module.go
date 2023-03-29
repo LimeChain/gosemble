@@ -10,10 +10,10 @@ import (
 	bm "github.com/LimeChain/gosemble/frame/balances/module"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
 	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
-	"github.com/LimeChain/gosemble/primitives/support"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-var Modules = map[sc.U8]support.ModuleMetadata{
+var Modules = map[sc.U8]types.Module{
 	system.ModuleIndex:    sm.NewSystemModule(),
 	aura.ModuleIndex:      am.NewAuraModule(),
 	timestamp.ModuleIndex: tsm.NewTimestampModule(),

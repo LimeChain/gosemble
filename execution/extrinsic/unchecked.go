@@ -33,7 +33,7 @@ func (uxt Unchecked) Check(lookup primitives.AccountIdLookup) (ok types.CheckedE
 
 		ok = types.CheckedExtrinsic{
 			Signed:   sc.NewOption[primitives.AccountIdExtra](primitives.AccountIdExtra{Address32: signedAddress, SignedExtra: extra}),
-			Function: function.(types.Call),
+			Function: function,
 		}
 	case false:
 		ok = types.CheckedExtrinsic{

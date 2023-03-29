@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -17,7 +16,7 @@ func (a CheckNonZeroAddress) AdditionalSigned() (ok sc.Empty, err primitives.Tra
 	return ok, err
 }
 
-func (who CheckNonZeroAddress) Validate(_who *primitives.Address32, _call *types.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (who CheckNonZeroAddress) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
@@ -32,7 +31,7 @@ func (who CheckNonZeroAddress) Validate(_who *primitives.Address32, _call *types
 	return ok, err
 }
 
-func (a CheckNonZeroAddress) PreDispatch(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (a CheckNonZeroAddress) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	_, err = a.Validate(who, call, info, length)
 	return ok, err
 }

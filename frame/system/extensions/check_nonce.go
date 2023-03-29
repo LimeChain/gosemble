@@ -4,7 +4,6 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -16,7 +15,7 @@ func (n CheckNonce) AdditionalSigned() (ok sc.Empty, err primitives.TransactionV
 	return ok, err
 }
 
-func (n CheckNonce) Validate(who *primitives.Address32, _call *types.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (n CheckNonce) Validate(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	// TODO: check if we can use just who
 	account := system.StorageGetAccount((*who).FixedSequence)
 
@@ -49,7 +48,7 @@ func (n CheckNonce) Validate(who *primitives.Address32, _call *types.Call, _info
 	return ok, err
 }
 
-func (n CheckNonce) PreDispatch(who *primitives.Address32, call *types.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
+func (n CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
 	account := system.StorageGetAccount(who.FixedSequence)
 
 	if sc.U32(n) != account.Nonce {

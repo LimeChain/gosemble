@@ -6,7 +6,7 @@ import (
 )
 
 func GetDispatchInfo(xt types.CheckedExtrinsic) primitives.DispatchInfo {
-	function := xt.Function.Function()
+	function := xt.Function
 	baseWeight := function.BaseWeight(xt.Function.Args)
 
 	return primitives.DispatchInfo{
