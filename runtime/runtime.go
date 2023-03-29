@@ -81,3 +81,13 @@ func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.QueryFeeDetails(dataPtr, dataLen)
 }
+
+//go:export TransactionPaymentCallApi_query_call_info
+func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
+	return transaction_payment.QueryCallInfo(dataPtr, dataLan)
+}
+
+//go:export TransactionPaymentCallApi_query_call_fee_details
+func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
+	return transaction_payment.QueryCallFeeDetails(dataPtr, dataLen)
+}
