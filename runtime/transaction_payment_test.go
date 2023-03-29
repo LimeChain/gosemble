@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_TxPayments_QueryInfo_Signed_Success(t *testing.T) {
+func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	runtimeVersion := rt.Version()
@@ -64,7 +64,7 @@ func Test_TxPayments_QueryInfo_Signed_Success(t *testing.T) {
 	assert.Equal(t, expectedRdi, rdi)
 }
 
-func Test_TxPayments_QueryInfo_Unsigned_Success(t *testing.T) {
+func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	metadata := runtimeMetadata(t)
@@ -98,7 +98,7 @@ func Test_TxPayments_QueryInfo_Unsigned_Success(t *testing.T) {
 	assert.Equal(t, expectedRdi, rdi)
 }
 
-func Test_TxPayments_QueryFeeDetails_Signed_Success(t *testing.T) {
+func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	runtimeVersion := rt.Version()
@@ -150,7 +150,7 @@ func Test_TxPayments_QueryFeeDetails_Signed_Success(t *testing.T) {
 	assert.Equal(t, expectedFd, fd)
 }
 
-func Test_TxPayments_QueryFeeDetails_Unsigned_Success(t *testing.T) {
+func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	metadata := runtimeMetadata(t)
