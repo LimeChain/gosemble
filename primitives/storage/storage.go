@@ -61,6 +61,19 @@ func GetDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer)
 	return decodeFunc(buffer)
 }
 
+func GetDecodeOnEmpty[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T, onEmpty T) T {
+	option := Get(key)
+
+	if !option.HasValue {
+		return onEmpty
+	}
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(option.Value))
+
+	return decodeFunc(buffer)
+}
+
 func NextKey(key int64) int64 {
 	panic("not implemented")
 }
