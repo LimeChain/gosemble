@@ -36,6 +36,10 @@ func GetDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer)
 	panic("not implemented")
 }
 
+func GetDecodeOnEmpty[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T, onEmpty T) T {
+	panic("not implemented")
+}
+
 func NextKey(key int64) int64 {
 	panic("not implemented")
 }

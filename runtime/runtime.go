@@ -9,6 +9,7 @@ import (
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
+	"github.com/LimeChain/gosemble/frame/transaction_payment"
 )
 
 // TODO:
@@ -69,4 +70,14 @@ func AuraApiAuthorities(dataPtr int32, dataLen int32) int64 {
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 	return account_nonce.AccountNonce(dataPtr, dataLen)
+}
+
+//go:export TransactionPaymentApi_query_info
+func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
+	return transaction_payment.QueryInfo(dataPtr, dataLen)
+}
+
+//go:export TransactionPaymentApi_query_fee_details
+func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
+	return transaction_payment.QueryFeeDetails(dataPtr, dataLen)
 }

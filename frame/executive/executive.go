@@ -80,7 +80,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, p
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
 	// Decode parameters and dispatch
-	dispatchInfo := extrinsic.GetDispatchInfo(xt)
+	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
 	log.Trace("get_dispatch_info: weight ref time " + dispatchInfo.Weight.RefTime.String())
 
 	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
@@ -127,7 +127,7 @@ func ValidateTransaction(source primitives.TransactionSource, uxt types.Unchecke
 	}
 
 	log.Trace("dispatch_info")
-	dispatchInfo := extrinsic.GetDispatchInfo(xt)
+	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
 
 	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
 		return ok, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
