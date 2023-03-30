@@ -61,6 +61,38 @@ func QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
 
+func QueryCallInfo(dataPtr int32, dataLen int32) int64 {
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	call := types.DecodeCall(buffer)
+	length := sc.DecodeU32(buffer)
+
+	dispatchInfo := primitives.GetDispatchInfo(call)
+	partialFee := computeFee(length, dispatchInfo, DefaultTip)
+
+	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
+		Weight:     dispatchInfo.Weight,
+		Class:      dispatchInfo.Class,
+		PartialFee: partialFee,
+	}
+
+	return utils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
+}
+
+func QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	call := types.DecodeCall(buffer)
+	length := sc.DecodeU32(buffer)
+
+	dispatchInfo := primitives.GetDispatchInfo(call)
+	feeDetails := computeFeeDetails(length, dispatchInfo, DefaultTip)
+
+	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
+}
+
 func computeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
 	return computeFeeDetails(len, info, tip).FinalFee()
 }

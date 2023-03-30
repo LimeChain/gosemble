@@ -181,3 +181,74 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 
 	assert.Equal(t, expectedFd, fd)
 }
+
+func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t)
+
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
+	assert.NoError(t, err)
+
+	buffer := &bytes.Buffer{}
+	encoder := cscale.NewEncoder(buffer)
+	err = call.CallIndex.Encode(*encoder)
+	assert.NoError(t, err)
+
+	err = call.Args.Encode(*encoder)
+	assert.NoError(t, err)
+
+	sc.U32(buffer.Len()).Encode(buffer)
+
+	bytesRuntimeDispatchInfo, err := rt.Exec("TransactionPaymentCallApi_query_call_info", buffer.Bytes())
+	assert.NoError(t, err)
+
+	buffer.Reset()
+	buffer.Write(bytesRuntimeDispatchInfo)
+
+	rdi := primitives.DecodeRuntimeDispatchInfo(buffer)
+
+	expectedRdi := primitives.RuntimeDispatchInfo{
+		Weight:     primitives.WeightFromParts(2_091_000, 0),
+		Class:      primitives.NewDispatchClassNormal(),
+		PartialFee: sc.NewU128FromUint64(115_627_000),
+	}
+
+	assert.Equal(t, expectedRdi, rdi)
+}
+
+func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t)
+
+	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
+	assert.NoError(t, err)
+
+	buffer := &bytes.Buffer{}
+	encoder := cscale.NewEncoder(buffer)
+	err = call.CallIndex.Encode(*encoder)
+	assert.NoError(t, err)
+
+	err = call.Args.Encode(*encoder)
+	assert.NoError(t, err)
+
+	sc.U32(buffer.Len()).Encode(buffer)
+
+	bytesFeeDetails, err := rt.Exec("TransactionPaymentCallApi_query_call_fee_details", buffer.Bytes())
+	assert.NoError(t, err)
+
+	buffer.Reset()
+	buffer.Write(bytesFeeDetails)
+
+	fd := primitives.DecodeFeeDetails(buffer)
+
+	expectedFd := primitives.FeeDetails{
+		InclusionFee: sc.NewOption[primitives.InclusionFee](
+			primitives.NewInclusionFee(
+				sc.NewU128FromUint64(110_536_000),
+				sc.NewU128FromUint64(3_000_000),
+				sc.NewU128FromUint64(2_091_000),
+			)),
+	}
+
+	assert.Equal(t, expectedFd, fd)
+}
