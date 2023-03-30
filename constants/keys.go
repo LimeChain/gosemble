@@ -27,4 +27,5 @@ var (
 	KeyTimestamp          = []byte("Timestamp")
 	KeyTotalIssuance      = []byte("TotalIssuance")
 	KeyTransactionPayment = []byte("TransactionPayment")
+	TransactionLevelKey   = []byte(":transaction_level:")
 )

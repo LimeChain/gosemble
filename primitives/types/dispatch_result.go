@@ -54,3 +54,28 @@ type DispatchResultWithPostInfo[T sc.Encodable] struct {
 	Ok       T
 	Err      DispatchErrorWithPostInfo[T]
 }
+
+func (r DispatchResultWithPostInfo[T]) Encode(buffer *bytes.Buffer) {
+	r.HasError.Encode(buffer)
+
+	if r.HasError {
+		r.Err.Encode(buffer)
+	} else {
+		r.Ok.Encode(buffer)
+	}
+}
+
+func DecodeDispatchResultWithPostInfo[T sc.Encodable](buffer *bytes.Buffer) DispatchResultWithPostInfo[T] {
+	hasError := sc.DecodeBool(buffer)
+
+	if hasError {
+		// TODO: finish this
+		return DispatchResultWithPostInfo[T]{}
+	} else {
+		return DispatchResultWithPostInfo[T]{}
+	}
+}
+
+func (r DispatchResultWithPostInfo[T]) Bytes() []byte {
+	return sc.EncodedBytes(r)
+}

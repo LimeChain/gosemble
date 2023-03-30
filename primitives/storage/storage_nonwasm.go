@@ -63,3 +63,15 @@ func TakeBytes(key []byte) []byte {
 func TakeDecode[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
 	panic("not implemented")
 }
+
+func StartTransaction() {
+	panic("not implemented")
+}
+
+func RollbackTransaction() {
+	panic("not implemented")
+}
+
+func CommitTransaction() {
+	panic("not implemented")
+}

@@ -78,6 +78,44 @@ func NextKey(key int64) int64 {
 	panic("not implemented")
 }
 
+// Start a new nested transaction.
+//
+// This allows to either commit or roll back all changes that are made after this call.
+// For every transaction there must be a matching call to either `rollback_transaction`
+// or `commit_transaction`. This is also effective for all values manipulated using the
+// `DefaultChildStorage` API.
+//
+// # Warning
+//
+// This is a low level API that is potentially dangerous as it can easily result
+// in unbalanced transactions. For example, FRAME users should use high level storage
+// abstractions.
+func StartTransaction() {
+	env.ExtStorageStartTransactionVersion1()
+}
+
+// Rollback the last transaction started by `start_transaction`.
+//
+// Any changes made during that transaction are discarded.
+//
+// # Panics
+//
+// Will panic if there is no open transaction.
+func RollbackTransaction() {
+	env.ExtStorageRollbackTransactionVersion1() // TODO: .expect("No open transaction that can be rolled back.");
+}
+
+// Commit the last transaction started by `start_transaction`.
+//
+// Any changes made during that transaction are committed.
+//
+// # Panics
+//
+// Will panic if there is no open transaction.
+func CommitTransaction() {
+	env.ExtStorageCommitTransactionVersion() // TODO: .expect("No open transaction that can be committed.");
+}
+
 func Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
 	value := read(key, valueOut, offset)
 

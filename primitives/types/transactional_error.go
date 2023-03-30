@@ -9,7 +9,9 @@ import (
 )
 
 const (
+	// Too many transactional layers have been spawned.
 	TransactionalErrorLimitReached sc.U8 = iota
+	// A transactional layer was expected, but does not exist.
 	TransactionalErrorNoLayer
 )
 
