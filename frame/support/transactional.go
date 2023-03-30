@@ -10,13 +10,11 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-// The type that is being used to store the current number of active layers.
-type Layer = sc.U32
-
 // The maximum number of nested layers.
 const TransactionalLimit Layer = 255
 
-type StorageLayerGuard struct{} // TODO: maybe not needed
+// The type that is being used to store the current number of active layers.
+type Layer = sc.U32
 
 // Returns the current number of nested transactional layers.
 func GetTransactionLevel() Layer {
@@ -36,15 +34,14 @@ func KillTransactionLevel() {
 // Increments the transaction level. Returns an error if levels go past the limit.
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
-func IncTransactionLevel() (ok StorageLayerGuard, err error) {
+func IncTransactionLevel() (ok sc.Empty, err error) {
 	existingLevels := GetTransactionLevel()
 	if existingLevels >= TransactionalLimit {
-		return ok, errors.New("transactional limit reached")
+		return ok, errors.New("transactional error limit reached")
 	}
 	// Cannot overflow because of check above.
 	SetTransactionLevel(existingLevels + 1)
-	ok = StorageLayerGuard{}
-	return ok, err
+	return sc.Empty{}, err
 }
 
 func DecTransactionLevel() {
@@ -69,15 +66,14 @@ func DecTransactionLevel() {
 // error.
 //
 // Commits happen to the parent transaction.
-func WithTransaction[T sc.Encodable, E types.TransactionalError](fn func() types.TransactionOutcome) (ok T, err E) {
+func WithTransaction[T sc.Encodable, E types.DispatchError](fn func() types.TransactionOutcome) (ok T, err E) {
 	// This needs to happen before `start_transaction` below.
 	// Otherwise we may rollback the increase, then decrease as the guard goes out of scope
 	// and then end in some bad state.
 	_, e := IncTransactionLevel()
 	if e != nil {
-		return ok, E(types.NewTransactionalErrorLimitReached())
+		return ok, E(types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached()))
 	}
-	DecTransactionLevel()
 
 	storage.StartTransaction()
 
@@ -86,11 +82,13 @@ func WithTransaction[T sc.Encodable, E types.TransactionalError](fn func() types
 	switch res[0] {
 	case types.TransactionOutcomeCommit:
 		storage.CommitTransaction()
-		log.Info("commit transaction")
+		DecTransactionLevel()
+		log.Info("transaction Commit")
 		return res[1].(T), err
 	case types.TransactionOutcomeRollback:
 		storage.RollbackTransaction()
-		log.Info("rollback transaction")
+		DecTransactionLevel()
+		log.Info("transaction Rollback ")
 		return ok, res[1].(E)
 	default:
 		log.Critical("invalid transaction outcome")
@@ -103,13 +101,16 @@ func WithTransaction[T sc.Encodable, E types.TransactionalError](fn func() types
 // This is the same as `with_transaction`, but assuming that any function returning an `Err` should
 // rollback, and any function returning `Ok` should commit. This provides a cleaner API to the
 // developer who wants this behavior.
-func WithStorageLayer[T sc.Encodable, E types.TransactionalError](fn func() (T, types.TransactionalError)) (T, types.TransactionalError) {
-	return WithTransaction[T](func() types.TransactionOutcome {
-		ok, err := fn()
-		if err != nil {
-			return types.NewTransactionOutcomeRollback(err)
-		} else {
-			return types.NewTransactionOutcomeCommit(ok)
-		}
-	})
+func WithStorageLayer[T sc.Encodable, E types.DispatchError](fn func() (T, types.DispatchError)) (T, E) {
+	return WithTransaction[T, E](
+		func() types.TransactionOutcome {
+			ok, err := fn()
+
+			if err != nil {
+				return types.NewTransactionOutcomeRollback(err)
+			} else {
+				return types.NewTransactionOutcomeCommit(ok)
+			}
+		},
+	)
 }

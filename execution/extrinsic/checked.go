@@ -5,6 +5,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/support"
 	system "github.com/LimeChain/gosemble/frame/system/extensions"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -66,14 +67,18 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
 	}
 
-	resWithInfo, _ := support.WithStorageLayer(
-		func() (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionalError) {
-			resWithInfo := xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
+	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
+
+	support.WithStorageLayer(
+		func() (ok primitives.PostDispatchInfo, err primitives.DispatchError) {
+			resWithInfo = xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
 
 			if resWithInfo.HasError {
-				return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, primitives.TransactionalError{resWithInfo.Err}
+				log.Info("dispatch Error")
+				return ok, resWithInfo.Err.Error
 			} else {
-				return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{Ok: resWithInfo.Ok}, nil
+				log.Info("dispatch Ok")
+				return primitives.PostDispatchInfo{}, err
 			}
 		},
 	)

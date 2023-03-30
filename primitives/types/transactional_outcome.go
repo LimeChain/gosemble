@@ -1,6 +1,8 @@
 package types
 
-import sc "github.com/LimeChain/goscale"
+import (
+	sc "github.com/LimeChain/goscale"
+)
 
 const (
 	// Commit the transaction.
@@ -13,9 +15,9 @@ const (
 type TransactionOutcome = sc.VaryingData
 
 func NewTransactionOutcomeCommit(res sc.Encodable) TransactionOutcome {
-	return TransactionOutcome{TransactionOutcomeCommit, res}
+	return sc.NewVaryingData(TransactionOutcomeCommit, res)
 }
 
 func NewTransactionOutcomeRollback(res sc.Encodable) TransactionOutcome {
-	return TransactionOutcome{TransactionOutcomeRollback, res}
+	return sc.NewVaryingData(TransactionOutcomeRollback, res)
 }
