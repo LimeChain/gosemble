@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	sc "github.com/LimeChain/goscale"
+
+	"github.com/LimeChain/gosemble/config"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -13,7 +15,7 @@ func DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	moduleIndex := sc.DecodeU8(buffer)
 	functionIndex := sc.DecodeU8(buffer)
 
-	module, ok := Modules[moduleIndex]
+	module, ok := config.Modules[moduleIndex]
 	if !ok {
 		log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
 	}

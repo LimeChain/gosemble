@@ -5,7 +5,6 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/support"
 	system "github.com/LimeChain/gosemble/frame/system/extensions"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -74,10 +73,8 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 			resWithInfo = xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
 
 			if resWithInfo.HasError {
-				log.Info("dispatch Error")
 				return ok, resWithInfo.Err.Error
 			} else {
-				log.Info("dispatch Ok")
 				return primitives.PostDispatchInfo{}, err
 			}
 		},

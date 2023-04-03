@@ -2,7 +2,7 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/config"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -21,7 +21,7 @@ type UnsignedValidatorForChecked struct{}
 //
 // Changes made to storage *WILL* be persisted if the call returns `Ok`.
 func (v UnsignedValidatorForChecked) PreDispatch(call *primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
-	module, ok := types.Modules[(*call).ModuleIndex()]
+	module, ok := config.Modules[(*call).ModuleIndex()]
 	if !ok {
 		return sc.Empty{}, nil
 	}
@@ -32,7 +32,7 @@ func (v UnsignedValidatorForChecked) PreDispatch(call *primitives.Call) (sc.Empt
 // Information on a transaction's validity and, if valid, on how it relates to other transactions.
 // Inherent call is not validated as unsigned
 func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	module, ok := types.Modules[(*call).ModuleIndex()]
+	module, ok := config.Modules[(*call).ModuleIndex()]
 	if !ok {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	}

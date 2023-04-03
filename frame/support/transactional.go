@@ -83,12 +83,10 @@ func WithTransaction[T sc.Encodable, E types.DispatchError](fn func() types.Tran
 	case types.TransactionOutcomeCommit:
 		storage.CommitTransaction()
 		DecTransactionLevel()
-		log.Info("transaction Commit")
 		return res[1].(T), err
 	case types.TransactionOutcomeRollback:
 		storage.RollbackTransaction()
 		DecTransactionLevel()
-		log.Info("transaction Rollback ")
 		return ok, res[1].(E)
 	default:
 		log.Critical("invalid transaction outcome")

@@ -29,8 +29,6 @@ func Test_BlockExecution(t *testing.T) {
 	expectedStorageDigest := gossamertypes.NewDigest()
 	digest := gossamertypes.NewDigest()
 
-	// storage := trie.NewEmptyTrie()
-	// wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
 	rt, storage := newTestRuntime(t)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
