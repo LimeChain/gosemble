@@ -55,21 +55,21 @@ func Test_CoreInitializeBlock(t *testing.T) {
 		SpecVersion: sc.ToCompact(constants.SpecVersion),
 		SpecName:    constants.SpecName,
 	}
-	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
+	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
-	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(constants.KeyExtrinsicIndex))
 
 	expectedExecutionPhase := types.NewExtrinsicPhaseApply(sc.U32(0))
-	assert.Equal(t, expectedExecutionPhase.Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
 	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
-	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
 	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
 	assert.NoError(t, err)
-	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, encExpectedDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
 	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
@@ -78,7 +78,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 
 	blockHashKey = append(blockHashKey, numHash...)
 	blockHashKey = append(blockHashKey, encPrevBlock...)
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(blockHashKey))
 
 	allConsumedWeight := types.ConsumedWeight{
 		Operational: types.Weight{RefTime: 0, ProofSize: 0},
@@ -86,5 +86,5 @@ func Test_CoreInitializeBlock(t *testing.T) {
 		// initial weight 0 + upgrade weight 200 + on initialize aura weight + base ext weight + extra weight
 		Mandatory: types.Weight{RefTime: 437772200, ProofSize: 0},
 	}
-	assert.Equal(t, allConsumedWeight.Bytes(), storage.Get(append(keySystemHash, keyBlockWeight...)))
+	assert.Equal(t, allConsumedWeight.Bytes(), (*storage).Get(append(keySystemHash, keyBlockWeight...)))
 }

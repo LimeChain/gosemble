@@ -7,8 +7,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -31,8 +29,7 @@ func Test_BlockExecution(t *testing.T) {
 	expectedStorageDigest := gossamertypes.NewDigest()
 	digest := gossamertypes.NewDigest()
 
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
+	rt, storage := newTestRuntime(t)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
@@ -64,22 +61,22 @@ func Test_BlockExecution(t *testing.T) {
 		SpecVersion: sc.ToCompact(constants.SpecVersion),
 		SpecName:    constants.SpecName,
 	}
-	assert.Equal(t, lrui.Bytes(), storage.Get(append(keySystemHash, keyLastRuntime...)))
+	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
-	assert.Equal(t, encExtrinsicIndex0, storage.Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(constants.KeyExtrinsicIndex))
 
 	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
-	assert.Equal(t, expectedExecutionPhase.Bytes(), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
 	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
-	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
 	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
 	assert.NoError(t, err)
 
-	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, encExpectedDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
 	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
@@ -88,7 +85,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	blockHashKey = append(blockHashKey, numHash...)
 	blockHashKey = append(blockHashKey, encPrevBlock...)
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(blockHashKey))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(blockHashKey))
 
 	idata := gossamertypes.NewInherentData()
 	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
@@ -135,19 +132,19 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.Equal(t, header, resultHeader)
 
-	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
-	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExtrinsicCountHash...)))
 
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
-	assert.Equal(t, encExpectedDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
-	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, encExpectedDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
-	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
+	assert.Equal(t, slot.Bytes(), (*storage).Get(append(keyAuraHash, keyCurrentSlotHash...)))
 }
 
 func Test_ExecuteBlock(t *testing.T) {
@@ -228,17 +225,17 @@ func Test_ExecuteBlock(t *testing.T) {
 	_, err = rt.Exec("Core_execute_block", encodedBlock)
 	assert.NoError(t, err)
 
-	assert.Equal(t, []byte(nil), storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
-	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, []byte(nil), storage.Get(constants.KeyExtrinsicIndex))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExecutionPhaseHash...)))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
-	assert.Equal(t, []byte(nil), storage.Get(append(keySystemHash, keyExtrinsicCountHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExtrinsicCountHash...)))
 
-	assert.Equal(t, parentHash.ToBytes(), storage.Get(append(keySystemHash, keyParentHash...)))
-	assert.Equal(t, expectedStorageDigest, storage.Get(append(keySystemHash, keyDigestHash...)))
-	assert.Equal(t, encBlockNumber, storage.Get(append(keySystemHash, keyNumberHash...)))
+	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
+	assert.Equal(t, expectedStorageDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
+	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
-	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
+	assert.Equal(t, slot.Bytes(), (*storage).Get(append(keyAuraHash, keyCurrentSlotHash...)))
 }

@@ -76,7 +76,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	keyStorageAccountBob := append(keySystemHash, keyAccountHash...)
 	keyStorageAccountBob = append(keyStorageAccountBob, bobHash...)
 	keyStorageAccountBob = append(keyStorageAccountBob, bob.AsID[:]...)
-	bytesStorageBob := storage.Get(keyStorageAccountBob)
+	bytesStorageBob := (*storage).Get(keyStorageAccountBob)
 
 	expectedBobAccountInfo := gossamertypes.AccountInfo{
 		Nonce:       0,
@@ -111,7 +111,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 		},
 	}
 
-	bytesAliceStorage := storage.Get(keyStorageAccountAlice)
+	bytesAliceStorage := (*storage).Get(keyStorageAccountAlice)
 	err = scale.Unmarshal(bytesAliceStorage, &aliceAccountInfo)
 	assert.NoError(t, err)
 

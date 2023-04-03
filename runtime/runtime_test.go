@@ -6,6 +6,7 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	"github.com/ChainSafe/gossamer/lib/runtime"
 	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
@@ -60,10 +61,10 @@ var (
 	}
 )
 
-func newTestRuntime(t *testing.T) (*wasmer.Instance, *trie.Trie) {
-	storage := trie.NewEmptyTrie()
-	rt := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, storage)
-	return rt, storage
+func newTestRuntime(t *testing.T) (*wasmer.Instance, *runtime.Storage) {
+	runtime := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
+	storage := &runtime.GetContext().Storage
+	return runtime, storage
 }
 
 // TODO: Remove once metadata() is implemented
@@ -84,17 +85,17 @@ func runtimeMetadata(t *testing.T) *ctypes.Metadata {
 	return metadata
 }
 
-func setBlockNumber(t *testing.T, storage *trie.Trie, blockNumber sc.U64) {
+func setBlockNumber(t *testing.T, storage *runtime.Storage, blockNumber sc.U64) {
 	blockNumberBytes, err := scale.Marshal(uint64(blockNumber))
 	assert.NoError(t, err)
 
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
-	err = storage.Put(append(systemHash, numberHash...), blockNumberBytes)
+	err = (*storage).Put(append(systemHash, numberHash...), blockNumberBytes)
 	assert.NoError(t, err)
 }
 
-func setStorageAccountInfo(t *testing.T, storage *trie.Trie, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {
+func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {
 	accountInfo := gossamertypes.AccountInfo{
 		Nonce:       nonce,
 		Consumers:   0,
@@ -116,7 +117,7 @@ func setStorageAccountInfo(t *testing.T, storage *trie.Trie, account []byte, fre
 	bytesStorage, err := scale.Marshal(accountInfo)
 	assert.NoError(t, err)
 
-	err = storage.Put(keyStorageAccount, bytesStorage)
+	err = (*storage).Put(keyStorageAccount, bytesStorage)
 	assert.NoError(t, err)
 
 	return keyStorageAccount, accountInfo

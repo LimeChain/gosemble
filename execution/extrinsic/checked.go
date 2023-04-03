@@ -3,6 +3,7 @@ package extrinsic
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/frame/support"
 	system "github.com/LimeChain/gosemble/frame/system/extensions"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -65,7 +66,19 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
 	}
 
-	resWithInfo := xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
+	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
+
+	support.WithStorageLayer(
+		func() (primitives.PostDispatchInfo, primitives.DispatchError) {
+			resWithInfo = xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
+
+			if resWithInfo.HasError {
+				return primitives.PostDispatchInfo{}, resWithInfo.Err.Error
+			}
+
+			return resWithInfo.Ok, nil
+		},
+	)
 
 	var postInfo primitives.PostDispatchInfo
 	if resWithInfo.HasError {

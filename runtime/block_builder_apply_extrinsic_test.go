@@ -67,10 +67,10 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 		applyResult,
 	)
 
-	assert.Equal(t, []byte{1}, storage.Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
-	assert.Equal(t, sc.U64(time).Bytes(), storage.Get(append(keyTimestampHash, keyTimestampNowHash...)))
+	assert.Equal(t, []byte{1}, (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, sc.U64(time).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, slot.Bytes(), storage.Get(append(keyAuraHash, keyCurrentSlotHash...)))
+	assert.Equal(t, slot.Bytes(), (*storage).Get(append(keyAuraHash, keyCurrentSlotHash...)))
 }
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {

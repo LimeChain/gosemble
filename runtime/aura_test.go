@@ -42,7 +42,7 @@ func Test_Aura_Authorities(t *testing.T) {
 
 	rt, storage := newTestRuntime(t)
 
-	err = storage.Put(append(keyAuraHash, keyAuthoritiesHash...), bytesAuthorities)
+	err = (*storage).Put(append(keyAuraHash, keyAuthoritiesHash...), bytesAuthorities)
 	assert.NoError(t, err)
 
 	result, err := rt.Exec("AuraApi_authorities", []byte{})
