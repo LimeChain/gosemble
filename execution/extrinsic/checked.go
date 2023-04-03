@@ -69,14 +69,14 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
 
 	support.WithStorageLayer(
-		func() (ok primitives.PostDispatchInfo, err primitives.DispatchError) {
+		func() (primitives.PostDispatchInfo, primitives.DispatchError) {
 			resWithInfo = xt.Function.Dispatch(primitives.RawOriginFrom(maybeWho), xt.Function.Args())
 
 			if resWithInfo.HasError {
-				return ok, resWithInfo.Err.Error
-			} else {
-				return primitives.PostDispatchInfo{}, err
+				return primitives.PostDispatchInfo{}, resWithInfo.Err.Error
 			}
+
+			return resWithInfo.Ok, nil
 		},
 	)
 
