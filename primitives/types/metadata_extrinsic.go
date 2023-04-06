@@ -59,5 +59,5 @@ func DecodeMetadataSignedExtension(buffer *bytes.Buffer) MetadataSignedExtension
 }
 
 func (mse MetadataSignedExtension) Bytes() []byte {
-	return sc.EncodedBytes(sem)
+	return sc.EncodedBytes(mse)
 }
