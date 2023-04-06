@@ -44,10 +44,10 @@ func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned s
 	}
 }
 
-func (sem MetadataSignedExtension) Encode(buffer *bytes.Buffer) {
-	sem.Identifier.Encode(buffer)
-	sem.Type.Encode(buffer)
-	sem.AdditionalSigned.Encode(buffer)
+func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) {
+	mse.Identifier.Encode(buffer)
+	mse.Type.Encode(buffer)
+	mse.AdditionalSigned.Encode(buffer)
 }
 
 func DecodeMetadataSignedExtension(buffer *bytes.Buffer) MetadataSignedExtension {
@@ -58,6 +58,6 @@ func DecodeMetadataSignedExtension(buffer *bytes.Buffer) MetadataSignedExtension
 	}
 }
 
-func (sem MetadataSignedExtension) Bytes() []byte {
+func (mse MetadataSignedExtension) Bytes() []byte {
 	return sc.EncodedBytes(sem)
 }
