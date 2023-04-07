@@ -22,7 +22,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
 
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	bob, err := ctypes.NewMultiAddressFromHexAccountID(
 		"0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22")
@@ -122,7 +122,7 @@ func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
 
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	bob, err := ctypes.NewMultiAddressFromHexAccountID(
 		"0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22")

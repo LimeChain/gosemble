@@ -76,7 +76,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	// Set Account Info
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
@@ -147,7 +147,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -175,7 +175,7 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -232,7 +232,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -294,7 +294,7 @@ func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	// Set Balance & Nonce
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
@@ -352,7 +352,7 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 func Test_ApplyExtrinsic_InvalidLengthPrefix(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)

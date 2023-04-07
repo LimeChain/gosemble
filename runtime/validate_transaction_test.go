@@ -21,7 +21,7 @@ import (
 func Test_ValidateTransaction_Success(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	// Set Account Info balance otherwise tx payment check will fail.
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
@@ -83,7 +83,7 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
@@ -136,7 +136,7 @@ func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
 
@@ -200,7 +200,7 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 0)
 
@@ -267,7 +267,7 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 func Test_ValidateTransaction_Era(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	// Set Account info due to check tx payment
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
@@ -337,7 +337,7 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	txSource := primitives.NewTransactionSourceExternal()
 	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
