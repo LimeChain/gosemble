@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/aura"
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
+	"github.com/LimeChain/gosemble/frame/metadata"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 )
@@ -90,4 +91,9 @@ func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.QueryCallFeeDetails(dataPtr, dataLen)
+}
+
+//go:export Metadata_metadata
+func Metadata(_, _ int32) int64 {
+	return metadata.Metadata()
 }

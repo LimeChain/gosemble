@@ -31,3 +31,16 @@ func (tm TestableModule) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Tr
 func (tm TestableModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
+
+func (tm TestableModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	// TODO: types
+	return sc.Sequence[primitives.MetadataType]{}, primitives.MetadataModule{
+		Name:      "Testable",
+		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
+		Call:      sc.NewOption[sc.Compact](nil),
+		Event:     sc.NewOption[sc.Compact](nil),
+		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
+		Error:     sc.NewOption[sc.Compact](nil),
+		Index:     testable.ModuleIndex,
+	}
+}
