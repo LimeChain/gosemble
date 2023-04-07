@@ -3,9 +3,8 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/log"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type MetadataModule struct {
@@ -73,6 +72,16 @@ type MetadataModuleStorageEntry struct {
 	Docs       sc.Sequence[sc.Str]
 }
 
+func NewMetadataModuleStorageEntry(name string, modifier MetadataModuleStorageEntryModifier, definition MetadataModuleStorageEntryDefinition, docs string) MetadataModuleStorageEntry {
+	return MetadataModuleStorageEntry{
+		Name:       sc.Str(name),
+		Modifier:   modifier,
+		Definition: definition,
+		Fallback:   sc.Sequence[sc.U8]{},
+		Docs:       sc.Sequence[sc.Str]{sc.Str(docs)},
+	}
+}
+
 func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) {
 	mmse.Name.Encode(buffer)
 	mmse.Modifier.Encode(buffer)
@@ -128,7 +137,7 @@ func NewMetadataModuleStorageEntryDefinitionPlain(key sc.Compact) MetadataModule
 	return sc.NewVaryingData(MetadataModuleStorageEntryDefinitionPlain, key)
 }
 
-func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[sc.U8], key, value sc.Compact) MetadataModuleStorageEntryDefinition {
+func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[MetadataModuleStorageHashFunc], key, value sc.Compact) MetadataModuleStorageEntryDefinition {
 	return sc.NewVaryingData(MetadataModuleStorageEntryDefinitionMap, storageHashFuncs, key, value)
 }
 
@@ -152,6 +161,15 @@ type MetadataModuleConstant struct {
 	Type  sc.Compact
 	Value sc.Sequence[sc.U8]
 	Docs  sc.Sequence[sc.Str]
+}
+
+func NewMetadataModuleConstant(name string, id sc.Compact, value sc.Sequence[sc.U8], docs string) MetadataModuleConstant {
+	return MetadataModuleConstant{
+		Name:  sc.Str(name),
+		Type:  id,
+		Value: value,
+		Docs:  sc.Sequence[sc.Str]{sc.Str(docs)},
+	}
 }
 
 func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) {
