@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Metadata_Encoding_Success(t *testing.T) {
-	runtime := wasmer.NewTestInstanceWithTrie(t, POLKADOT_RUNTIME, trie.NewEmptyTrie())
+	runtime, _ := newTestRuntime(t)
+	gossamerMetadata := runtimeMetadata(t, runtime)
+
 	bMetadata, err := runtime.Metadata()
 	assert.NoError(t, err)
 
@@ -30,4 +31,10 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 
 	// Assert encoding of previously decoded
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
+
+	// Encode gossamer Metadata
+	bGossamerMetadata, err := codec.Encode(gossamerMetadata)
+	assert.NoError(t, err)
+
+	assert.Equal(t, metadata.Bytes(), bGossamerMetadata)
 }

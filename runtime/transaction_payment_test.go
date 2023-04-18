@@ -19,7 +19,7 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -67,7 +67,7 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -102,7 +102,7 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	runtimeVersion := rt.Version()
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -152,8 +152,7 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 
 func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -184,7 +183,7 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 
 func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
@@ -218,7 +217,7 @@ func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 
 func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)

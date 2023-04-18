@@ -65,11 +65,8 @@ func newTestRuntime(t *testing.T) (*wasmer.Instance, *runtime.Storage) {
 	return runtime, storage
 }
 
-// TODO: Remove once metadata() is implemented
-func runtimeMetadata(t *testing.T) *ctypes.Metadata {
-	storage := trie.NewEmptyTrie()
-	polkadotRuntime := wasmer.NewTestInstanceWithTrie(t, POLKADOT_RUNTIME, storage) // Used only for call encodings
-	bMetadata, err := polkadotRuntime.Metadata()
+func runtimeMetadata(t *testing.T, instance *wasmer.Instance) *ctypes.Metadata {
+	bMetadata, err := instance.Metadata()
 	assert.NoError(t, err)
 
 	var decoded []byte

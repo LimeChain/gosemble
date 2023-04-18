@@ -36,11 +36,11 @@ type MetadataSignedExtension struct {
 	AdditionalSigned sc.Compact
 }
 
-func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned sc.Compact) MetadataSignedExtension {
+func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned int) MetadataSignedExtension {
 	return MetadataSignedExtension{
 		Identifier:       identifier,
-		Type:             typeIndex,
-		AdditionalSigned: additionalSigned,
+		Type:             sc.ToCompact(typeIndex),
+		AdditionalSigned: sc.ToCompact(additionalSigned),
 	}
 }
 

@@ -18,7 +18,7 @@ func Test_Balances_ForceTransfer_BadOrigin(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
 
-	metadata := runtimeMetadata(t)
+	metadata := runtimeMetadata(t, rt)
 
 	alice, err := ctypes.NewMultiAddressFromAccountID(signature.TestKeyringPairAlice.PublicKey)
 

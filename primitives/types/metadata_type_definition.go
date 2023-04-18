@@ -3,9 +3,8 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/log"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -33,8 +32,8 @@ func NewMetadataTypeDefinitionSequence(compact sc.Compact) MetadataTypeDefinitio
 	return sc.NewVaryingData(MetadataTypeDefinitionSequence, compact)
 }
 
-func NewMetadataTypeDefinitionFixedSequence(length sc.U32, compact sc.Compact) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionFixedSequence, length, compact)
+func NewMetadataTypeDefinitionFixedSequence(length sc.U32, typeId sc.Compact) MetadataTypeDefinition {
+	return sc.NewVaryingData(MetadataTypeDefinitionFixedSequence, length, typeId)
 }
 
 func NewMetadataTypeDefinitionTuple(compacts sc.Sequence[sc.Compact]) MetadataTypeDefinition {
@@ -88,10 +87,10 @@ type MetadataTypeDefinitionField struct {
 	Docs     sc.Sequence[sc.Str]
 }
 
-func NewMetadataTypeDefinitionField(id sc.Compact) MetadataTypeDefinitionField {
+func NewMetadataTypeDefinitionField(id int) MetadataTypeDefinitionField {
 	return MetadataTypeDefinitionField{
 		Name:     sc.NewOption[sc.Str](nil),
-		Type:     id,
+		Type:     sc.ToCompact(id),
 		TypeName: sc.NewOption[sc.Str](nil),
 		Docs:     sc.Sequence[sc.Str]{},
 	}
@@ -122,6 +121,15 @@ type MetadataDefinitionVariant struct {
 	Fields sc.Sequence[MetadataTypeDefinitionField]
 	Index  sc.U8
 	Docs   sc.Sequence[sc.Str]
+}
+
+func NewMetadataDefinitionVariant(name string, fields sc.Sequence[MetadataTypeDefinitionField], index sc.U8, docs string) MetadataDefinitionVariant {
+	return MetadataDefinitionVariant{
+		Name:   sc.Str(name),
+		Fields: fields,
+		Index:  index,
+		Docs:   sc.Sequence[sc.Str]{sc.Str(docs)},
+	}
 }
 
 func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) {
