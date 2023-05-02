@@ -24,13 +24,17 @@ func CoreVersion(dataPtr int32, dataLen int32) int64 {
 }
 
 //go:export Core_initialize_block
-func CoreInitializeBlock(dataPtr int32, dataLen int32) {
+func CoreInitializeBlock(dataPtr int32, dataLen int32) int64 {
 	core.InitializeBlock(dataPtr, dataLen)
+
+	return 0
 }
 
 //go:export Core_execute_block
-func CoreExecuteBlock(dataPtr int32, dataLen int32) {
+func CoreExecuteBlock(dataPtr int32, dataLen int32) int64 {
 	core.ExecuteBlock(dataPtr, dataLen)
+
+	return 0
 }
 
 //go:export BlockBuilder_apply_extrinsic
@@ -44,7 +48,7 @@ func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
 }
 
 //go:export BlockBuilder_inherent_extrinsics
-func BlockBuilderInherentExtrinisics(dataPtr int32, dataLen int32) int64 {
+func BlockBuilderInherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	return blockbuilder.InherentExtrinisics(dataPtr, dataLen)
 }
 
