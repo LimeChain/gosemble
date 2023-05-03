@@ -46,14 +46,8 @@ func Test_SessionKeys_Decode_Session_Keys(t *testing.T) {
 	grandpaKey := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ef")
 
 	sessionKeys := sc.Sequence[types.SessionKey]{
-		{
-			Key:    sc.BytesToSequenceU8(auraKey),
-			TypeId: sc.BytesToFixedSequenceU8(aura.KeyTypeId[:]),
-		},
-		{
-			Key:    sc.BytesToSequenceU8(grandpaKey),
-			TypeId: sc.BytesToFixedSequenceU8(grandpa.KeyTypeId[:]),
-		},
+		types.NewSessionKey(auraKey, aura.KeyTypeId),
+		types.NewSessionKey(grandpaKey, grandpa.KeyTypeId),
 	}
 	expectedResult := sc.NewOption[sc.Sequence[types.SessionKey]](sessionKeys)
 
