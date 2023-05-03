@@ -19,6 +19,7 @@ var (
 	KeyExtrinsicCount     = []byte("ExtrinsicCount")
 	KeyExtrinsicData      = []byte("ExtrinsicData")
 	KeyExtrinsicIndex     = []byte(":extrinsic_index")
+	KeyGrandpaAuthorities = []byte(":grandpa_authorities")
 	KeyLastRuntimeUpgrade = []byte("LastRuntimeUpgrade")
 	KeyNextFeeMultiplier  = []byte("NextFeeMultiplier")
 	KeyNow                = []byte("Now")

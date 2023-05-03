@@ -101,3 +101,8 @@ func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) 
 func Metadata(_, _ int32) int64 {
 	return metadata.Metadata()
 }
+
+//go:export GrandpaApi_grandpa_authorities
+func GrandpaApiAuthorities(_, _ int32) int64 {
+	return grandpa.Authorities()
+}
