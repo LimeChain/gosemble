@@ -39,7 +39,7 @@ func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
 	assert.Equal(t, rt.Keystore().Gran.PublicKeys()[0].Encode(), grandpaKey.Bytes())
 }
 
-func Test_SessionKeys_Decode_SessionKeys(t *testing.T) {
+func Test_SessionKeys_Decode_Session_Keys(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
 	auraKey := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee")
