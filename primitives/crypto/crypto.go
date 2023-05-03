@@ -7,10 +7,20 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+func ExtCryptoEd25519GenerateVersion1(keyTypeId []byte, seed []byte) []byte {
+	r := env.ExtCryptoEd25519GenerateVersion1(utils.Offset32(keyTypeId), utils.BytesToOffsetAndSize(seed))
+	return utils.ToWasmMemorySlice(r, 32)
+}
+
 func ExtCryptoEd25519VerifyVersion1(signature []byte, message []byte, pubKey []byte) bool {
 	return env.ExtCryptoEd25519VerifyVersion1(
 		argsSigMsgPubKeyAsWasmMemory(signature, message, pubKey),
 	) == 1
+}
+
+func ExtCryptoSr25519GenerateVersion1(keyTypeId []byte, seed []byte) []byte {
+	r := env.ExtCryptoSr25519GenerateVersion1(utils.Offset32(keyTypeId), utils.BytesToOffsetAndSize(seed))
+	return utils.ToWasmMemorySlice(r, 32)
 }
 
 func ExtCryptoSr25519VerifyVersion2(signature []byte, message []byte, pubKey []byte) bool {
