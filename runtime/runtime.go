@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/aura"
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
+	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/frame/metadata"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
