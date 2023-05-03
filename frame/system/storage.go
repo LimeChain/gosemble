@@ -98,7 +98,7 @@ func StorageGetBlockHash(blockNumber sc.U32) types.Blake2bHash {
 	return storage.GetDecode(key, types.DecodeBlake2bHash)
 }
 
-func StorageSetBlockHash(blockNumber sc.U32, parentHash types.Blake2bHash) {
+func StorageSetBlockHash(blockNumber sc.U32, hash types.Blake2bHash) {
 	// Module prefix
 	systemHash := hashing.Twox128(constants.KeySystem)
 	// Storage prefix
@@ -110,7 +110,7 @@ func StorageSetBlockHash(blockNumber sc.U32, parentHash types.Blake2bHash) {
 	key = append(key, blockNumHash...)
 	key = append(key, blockNumber.Bytes()...)
 
-	storage.Set(key, parentHash.Bytes())
+	storage.Set(key, hash.Bytes())
 }
 
 // Map of block numbers to block hashes.
