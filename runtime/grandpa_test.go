@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -26,19 +25,15 @@ func Test_Grandpa_Authorities(t *testing.T) {
 	pubKey2 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ef")
 	weight := sc.U64(1)
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(pubKey1)
-	buffer.Write(pubKey2)
-
 	storageAuthorityList := types.VersionedAuthorityList{
 		Version: grandpa.AuthorityVersion,
 		AuthorityList: sc.Sequence[types.Authority]{
 			{
-				Id:     types.DecodePublicKey(buffer),
+				Id:     sc.BytesToFixedSequenceU8(pubKey1),
 				Weight: weight,
 			},
 			{
-				Id:     types.DecodePublicKey(buffer),
+				Id:     sc.BytesToFixedSequenceU8(pubKey2),
 				Weight: weight,
 			},
 		},
