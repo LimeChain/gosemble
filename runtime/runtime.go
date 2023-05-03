@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/core"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/frame/metadata"
+	"github.com/LimeChain/gosemble/frame/session_keys"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 )
@@ -101,6 +102,16 @@ func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) 
 //go:export Metadata_metadata
 func Metadata(_, _ int32) int64 {
 	return metadata.Metadata()
+}
+
+//go:export SessionKeys_generate_session_keys
+func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
+	return session_keys.GenerateSessionKeys(dataPtr, dataLen)
+}
+
+//go:export SessionKeys_decode_session_keys
+func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
+	return session_keys.DecodeSessionKeys(dataPtr, dataLen)
 }
 
 //go:export GrandpaApi_grandpa_authorities
