@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"testing"
+	"time"
+
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
@@ -10,8 +13,6 @@ import (
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func Test_Offchain_Worker(t *testing.T) {
