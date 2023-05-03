@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/core"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/frame/metadata"
+	"github.com/LimeChain/gosemble/frame/offchain_worker"
 	"github.com/LimeChain/gosemble/frame/session_keys"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
@@ -117,4 +118,11 @@ func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
 	return grandpa.Authorities()
+}
+
+//go:export OffchainWorkerApi_offchain_worker
+func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
+	offchain_worker.OffchainWorker(dataPtr, dataLen)
+
+	return 0
 }
