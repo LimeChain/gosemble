@@ -4,6 +4,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	cs "github.com/LimeChain/gosemble/constants/system"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/system/dispatchables"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -112,11 +113,18 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 				// TODO: ExecutionPhase
 			},
 		}),
-		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
-		Event:     sc.NewOption[sc.Compact](nil),                    // TODO:
-		Constants: sc.Sequence[primitives.MetadataModuleConstant]{}, // TODO:
-		Error:     sc.NewOption[sc.Compact](nil),                    // TODO:
-		Index:     cs.ModuleIndex,
+		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		Event: sc.NewOption[sc.Compact](nil), // TODO:
+		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
+			primitives.NewMetadataModuleConstant(
+				"BlockWeights",
+				sc.ToCompact(metadata.TypesBlockWeights),
+				sc.BytesToSequenceU8(system.DefaultBlockWeights().Bytes()),
+				"Block & extrinsics weights: base values and limits.",
+			),
+		}, // TODO:
+		Error: sc.NewOption[sc.Compact](nil), // TODO:
+		Index: cs.ModuleIndex,
 	}
 
 	return sm.metadataTypes(), metadataModule

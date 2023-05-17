@@ -19,9 +19,9 @@ import (
 
 var Modules = map[sc.U8]types.Module{
 	system.ModuleIndex:    sm.NewSystemModule(),
-	aura.ModuleIndex:      am.NewAuraModule(),
 	timestamp.ModuleIndex: tsm.NewTimestampModule(),
-	balances.ModuleIndex:  bm.NewBalancesModule(),
+	aura.ModuleIndex:      am.NewAuraModule(),
 	grandpa.ModuleIndex:   gm.NewGrandpaModule(),
+	balances.ModuleIndex:  bm.NewBalancesModule(),
 	testable.ModuleIndex:  tm.NewTestingModule(),
 }

@@ -3,7 +3,7 @@ package balances
 import sc "github.com/LimeChain/goscale"
 
 const (
-	ModuleIndex                    = sc.U8(5)
+	ModuleIndex                    = sc.U8(4)
 	FunctionTransferIndex          = 0
 	FunctionSetBalanceIndex        = 1
 	FunctionForceTransferIndex     = 2

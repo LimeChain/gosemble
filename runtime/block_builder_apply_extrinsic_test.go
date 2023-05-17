@@ -84,10 +84,9 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -177,10 +176,9 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t, rt)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -234,10 +232,9 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t, rt)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -299,10 +296,9 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	// Set Balance & Nonce
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 

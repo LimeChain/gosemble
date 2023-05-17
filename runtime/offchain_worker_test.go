@@ -18,7 +18,6 @@ import (
 func Test_Offchain_Worker(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 
-	storageRoot := common.MustHexToHash("0xe29f1ac8959e322d562293c74fdff8312e24aee94f74e100730e6b63aa33c96e")
 	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	digest := gossamertypes.NewDigest()
@@ -40,7 +39,7 @@ func Test_Offchain_Worker(t *testing.T) {
 	}
 	assert.NoError(t, digest.Add(preRuntimeDigest))
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)

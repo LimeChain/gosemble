@@ -1,5 +1,5 @@
 package grandpa
 
 const (
-	ModuleIndex = 11
+	ModuleIndex = 3
 )

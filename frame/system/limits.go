@@ -96,6 +96,16 @@ type BlockWeights struct {
 	PerClass types.PerDispatchClass[WeightsPerClass]
 }
 
+func (bw BlockWeights) Encode(buffer *bytes.Buffer) {
+	bw.BaseBlock.Encode(buffer)
+	bw.MaxBlock.Encode(buffer)
+	bw.PerClass.Encode(buffer)
+}
+
+func (bw BlockWeights) Bytes() []byte {
+	return sc.EncodedBytes(bw)
+}
+
 func DefaultBlockWeights() BlockWeights {
 	return WithSensibleDefaults(
 		constants.MaximumBlockWeight,

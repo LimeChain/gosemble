@@ -40,13 +40,20 @@ func (bm BalancesModule) ValidateUnsigned(_ primitives.TransactionSource, _ prim
 
 func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return bm.metadataTypes(), primitives.MetadataModule{
-		Name:      "Balances",
-		Storage:   sc.Option[primitives.MetadataModuleStorage]{}, // TODO:
-		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
-		Event:     sc.NewOption[sc.Compact](nil),                    // TODO:
-		Constants: sc.Sequence[primitives.MetadataModuleConstant]{}, // TODO:
-		Error:     sc.NewOption[sc.Compact](nil),                    // TODO:
-		Index:     balances.ModuleIndex,
+		Name:    "Balances",
+		Storage: sc.Option[primitives.MetadataModuleStorage]{}, // TODO:
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
+		Event:   sc.NewOption[sc.Compact](nil), // TODO:
+		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
+			primitives.NewMetadataModuleConstant(
+				"ExistentialDeposit",
+				sc.ToCompact(metadata.PrimitiveTypesU128),
+				sc.BytesToSequenceU8(sc.NewU128FromBigInt(balances.ExistentialDeposit).Bytes()),
+				"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
+			),
+		}, // TODO:
+		Error: sc.NewOption[sc.Compact](nil), // TODO:
+		Index: balances.ModuleIndex,
 	}
 }
 

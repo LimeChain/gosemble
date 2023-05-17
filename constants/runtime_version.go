@@ -26,54 +26,52 @@ var RuntimeVersion = types.RuntimeVersion{
 	AuthoringVersion: sc.U32(AuthoringVersion),
 	SpecVersion:      sc.U32(SpecVersion),
 	ImplVersion:      sc.U32(ImplVersion),
+	// Api Names are Blake2bHash8("ApiName")
+	// Example: common.MustBlake2b8([]byte("Core") -> [223 106 203 104 153 7 96 155]
 	Apis: sc.Sequence[types.ApiItem]{
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 223, 106, 203, 104, 153, 7, 96, 155),
-			Version: sc.U32(3),
-		},
-		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 55, 227, 151, 252, 124, 145, 245, 228),
-			Version: sc.U32(1),
-		},
-		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 64, 254, 58, 212, 1, 248, 149, 154),
+			Name:    sc.NewFixedSequence[sc.U8](8, 223, 106, 203, 104, 153, 7, 96, 155), // Core
 			Version: sc.U32(4),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 210, 188, 152, 151, 238, 208, 143, 21),
+			Name:    sc.NewFixedSequence[sc.U8](8, 55, 227, 151, 252, 124, 145, 245, 228), // Metadata
+			Version: sc.U32(1),
+		},
+		{
+			Name:    sc.NewFixedSequence[sc.U8](8, 64, 254, 58, 212, 1, 248, 149, 154), // BlockBuilder
+			Version: sc.U32(6),
+		},
+		{
+			Name:    sc.NewFixedSequence[sc.U8](8, 210, 188, 152, 151, 238, 208, 143, 21), // TaggedTransactionQueue
+			Version: sc.U32(3),
+		},
+		{
+			Name:    sc.NewFixedSequence[sc.U8](8, 247, 139, 39, 139, 229, 63, 69, 76), // OffchainWorkerApi
 			Version: sc.U32(2),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 247, 139, 39, 139, 229, 63, 69, 76),
-			Version: sc.U32(2),
-		},
-		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 237, 153, 197, 172, 178, 94, 237, 245),
-			Version: sc.U32(2),
-		},
-		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 203, 202, 37, 227, 159, 20, 35, 135),
-			Version: sc.U32(2),
-		},
-		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 104, 122, 212, 74, 211, 127, 3, 194),
+			Name:    sc.NewFixedSequence[sc.U8](8, 221, 113, 141, 92, 197, 50, 98, 212), // AuraApi
 			Version: sc.U32(1),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 188, 157, 137, 144, 79, 91, 146, 63),
+			Name:    sc.NewFixedSequence[sc.U8](8, 171, 60, 5, 114, 41, 31, 235, 139), // SessionKeys
 			Version: sc.U32(1),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 104, 182, 107, 161, 34, 201, 63, 167),
+			Name:    sc.NewFixedSequence[sc.U8](8, 237, 153, 197, 172, 178, 94, 237, 245), // GrandpaApi
+			Version: sc.U32(3),
+		},
+		{
+			Name:    sc.NewFixedSequence[sc.U8](8, 188, 157, 137, 144, 79, 91, 146, 63), // AccountNonceApi
 			Version: sc.U32(1),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 55, 200, 187, 19, 80, 169, 162, 168),
-			Version: sc.U32(1),
+			Name:    sc.NewFixedSequence[sc.U8](8, 55, 200, 187, 19, 80, 169, 162, 168), // TransactionPaymentApi
+			Version: sc.U32(3),
 		},
 		{
-			Name:    sc.NewFixedSequence[sc.U8](8, 171, 60, 5, 114, 41, 31, 235, 139),
-			Version: sc.U32(1),
+			Name:    sc.NewFixedSequence[sc.U8](8, 243, 255, 20, 213, 171, 82, 112, 89), // TransactionPaymentCallApi
+			Version: sc.U32(3),
 		},
 	},
 	TransactionVersion: sc.U32(TransactionVersion),

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -29,10 +28,9 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -85,10 +83,9 @@ func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 	runtimeVersion := rt.Version()
 	metadata := runtimeMetadata(t, rt)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -140,10 +137,9 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -204,10 +200,9 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 0)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -275,10 +270,9 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
-	storageRoot := common.MustHexToHash("0x733cbee365f04eb93cd369eeaaf47bb94c1c98603944ba43c39b33070ae90880") // Depends on timestamp
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
