@@ -19,7 +19,7 @@ const (
 )
 
 func NewEventExtrinsicSuccess(dispatchInfo types.DispatchInfo) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventCodeUpdated, dispatchInfo)
+	return types.NewEvent(system.ModuleIndex, EventExtrinsicSuccess, dispatchInfo)
 }
 
 func NewEventExtrinsicFailed(dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {

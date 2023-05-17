@@ -38,7 +38,11 @@ const (
 	TypesAccountInfo
 
 	TypesWeight
+	TypesOptionWeight
 	TypesPerDispatchClassWeight
+	TypesPerDispatchClassWeightsPerClass
+	TypesWeightPerClass
+	TypesBlockWeights
 
 	TypesDigestItem
 	TypesSliceDigestItem
