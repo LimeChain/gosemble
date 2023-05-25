@@ -30,6 +30,13 @@ build:
 		echo "Compiled with conservative GC..."; \
 	fi
 
+start-network:
+	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
+	cd substrate/bin/node-template; \
+	cargo build --release; \
+	cd ../..; \
+	./target/release/node-template --dev --execution Wasm
+
 test: test_unit test_integration
 
 # TODO: ignore the integration tests
