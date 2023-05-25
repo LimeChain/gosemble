@@ -37,7 +37,7 @@ start-network:
 	cd ../..; \
 	./target/release/node-template --dev --execution Wasm
 
-test: test_unit test_integration
+test: test_integration test_unit
 
 # TODO: ignore the integration tests
 test_unit:
