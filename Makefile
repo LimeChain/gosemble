@@ -7,27 +7,22 @@ TAG = 0.25.0
 BRANCH_CONSERVATIVE_GC = new-polkawasm-target-release-$(TAG)
 BRANCH_EXTALLOC_GC = new-polkawasm-target-extallocleak-gc-release-$(TAG)
 
-# Build with the standard system installed TinyGo.
-sys_tinygo_build:
-	@tinygo build -target=./target.json -o=$(BUILD_PATH) runtime/runtime.go
-
-# Build with our forked TinyGo.
 .PHONY: build
 build:
-	@if [[ "$(GC)" == "extallocleak" ]]; then \
-		cd tinygo; \
-		git checkout $(BRANCH_EXTALLOC_GC); \
-		cd ..; \
-		docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
-		docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
-		echo "compiled with extallocleak GC"; \
-	else \
+	@if [[ "$(GC)" == "conservative" ]]; then \
 		cd tinygo; \
 		git checkout $(BRANCH_CONSERVATIVE_GC); \
 		cd ..; \
 		docker build --tag $(IMAGE):$(TAG) -f tinygo/Dockerfile.polkawasm tinygo; \
 		docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG) /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
 		echo "compiled with conservative GC"; \
+	else \
+		cd tinygo; \
+		git checkout $(BRANCH_EXTALLOC_GC); \
+		cd ..; \
+		docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
+		docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
+		echo "compiled with extallocleak GC"; \
 	fi
 
 start-network:

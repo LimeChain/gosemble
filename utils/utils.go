@@ -38,32 +38,6 @@ func BytesToOffsetAndSize(data []byte) int64 {
 	return OffsetAndSizeToInt64(int32(offset), int32(size))
 }
 
-func StringToOffsetAndSize(str string) int64 {
-	data := []byte(str)
-	offset := SliceToOffset(data)
-	size := len(data)
-	return OffsetAndSizeToInt64(int32(offset), int32(size))
-}
-
-// func OffsetAndSizeToString(ptr int32, size int32) string {
-// 	// We use SliceHeader, not StringHeader as it allows us to fix the capacity to what was allocated.
-// 	// Tinygo requires these as uintptrs even if they are int fields.
-// 	// https://github.com/tinygo-org/tinygo/issues/1284
-// 	return *(*string)(unsafe.Pointer(&reflect.SliceHeader{
-// 		Data: uintptr(ptr),
-// 		Len:  uintptr(size),
-// 		Cap:  uintptr(size),
-// 	}))
-// }
-
 func ToWasmMemorySlice(offset int32, size int32) []byte {
 	return unsafe.Slice((*byte)(unsafe.Pointer(uintptr(offset))), uintptr(size))
-}
-
-func WriteToMemory(offset int32, size int32, data [256]byte) {
-	memory := ToWasmMemorySlice(offset, size)
-
-	for i := int32(0); i < size; i++ {
-		memory[i] = byte(data[i])
-	}
 }
