@@ -30,11 +30,18 @@ build:
 		echo "compiled with conservative GC"; \
 	fi
 
+start-network:
+	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
+	cd substrate/bin/node-template; \
+	cargo build --release; \
+	cd ../..; \
+	./target/release/node-template --dev --execution Wasm
+
 test: test_unit test_integration
 
 # TODO: ignore the integration tests
 test_unit:
-	@go test --tags="nonwasmenv" -v ./...
+	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
 test_integration:
-	@go test --tags="nonwasmenv" -v ./runtime/...
+	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1200s

@@ -7,3 +7,6 @@
 [submodule "goscale"]
 	path = goscale
 	url = git@github.com:LimeChain/goscale.git
+[submodule "substrate"]
+	path = substrate
+	url = git@github.com:LimeChain/substrate.git
