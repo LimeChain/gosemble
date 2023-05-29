@@ -30,7 +30,7 @@ start-network:
 	cd substrate/bin/node-template; \
 	cargo build --release; \
 	cd ../..; \
-	./target/release/node-template --dev --execution Wasm
+	WASMTIME_BACKTRACE_DETAILS=1 ./target/release/node-template --dev --execution Wasm
 
 test: test_unit test_integration
 

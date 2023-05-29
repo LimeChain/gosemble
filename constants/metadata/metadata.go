@@ -111,7 +111,7 @@ const (
 	CheckMortality
 	CheckNonce
 	CheckWeight
-	CheckTransactionPayment
+	ChargeTransactionPayment
 
 	Runtime
 )

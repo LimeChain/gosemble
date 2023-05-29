@@ -2,9 +2,11 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
@@ -75,6 +77,7 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	if firstByte == 0 {
 		return NewImmortalEra()
 	} else {
+		fmt.Println("alo")
 		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
 		quantizeFactor := (period >> 12).Max(1)
@@ -113,4 +116,28 @@ func (e Era) Death(current sc.U64) sc.U64 {
 	} else {
 		return e.Birth(current) + e.EraPeriod
 	}
+}
+
+func EraTypeDefinition() sc.Sequence[MetadataDefinitionVariant] {
+	result := sc.Sequence[MetadataDefinitionVariant]{
+		NewMetadataDefinitionVariant(
+			"Immortal",
+			sc.Sequence[MetadataTypeDefinitionField]{},
+			0,
+			"Era.Immortal"),
+	}
+
+	// this is necessary since the size of the encoded Mortal variant is `u16`, conditional on
+	// the value of the first byte being > 0.
+	for i := 1; i <= 255; i++ {
+		result = append(result, NewMetadataDefinitionVariant(
+			fmt.Sprintf("Mortal%d", i),
+			sc.Sequence[MetadataTypeDefinitionField]{
+				NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+			},
+			sc.U8(i),
+			fmt.Sprintf("Era.Mortal%d", i)))
+	}
+
+	return result
 }

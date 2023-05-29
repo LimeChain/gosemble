@@ -40,10 +40,11 @@ func buildMetadata() primitives.Metadata {
 			primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple),
 			primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32),
 			primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32),
-			primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesFixedSequence32U8),
-			primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesFixedSequence32U8),
+			primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256),
+			primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256),
 			primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple),
 			primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple),
+			primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple),
 		},
 	}
 
@@ -870,23 +871,16 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
 		primitives.NewMetadataType(metadata.CheckMortality, "CheckMortality", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era")})),
-		primitives.NewMetadataType(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(sc.Sequence[primitives.MetadataDefinitionVariant]{
-			primitives.NewMetadataDefinitionVariant(
-				"Immortal",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				0,
-				"Era.Immortal"),
-			primitives.NewMetadataDefinitionVariant(
-				"Mortal",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
-				},
-				1,
-				"Era.Mortal"),
-		})),
+		primitives.NewMetadataType(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
 		primitives.NewMetadataType(metadata.CheckNonce, "CheckNonce", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
 		primitives.NewMetadataType(metadata.CheckWeight, "CheckWeight", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
+		primitives.NewMetadataTypeWithParam(metadata.ChargeTransactionPayment, "ChargeTransactionPayment", sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
+			}),
+			primitives.NewMetadataEmptyTypeParameter("T"),
+		),
 		primitives.NewMetadataType(metadata.SignedExtra, "SignedExtra", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionTuple(
 			sc.Sequence[sc.Compact]{
 				sc.ToCompact(metadata.CheckNonZeroSender),
@@ -896,6 +890,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				sc.ToCompact(metadata.CheckMortality),
 				sc.ToCompact(metadata.CheckNonce),
 				sc.ToCompact(metadata.CheckWeight),
+				sc.ToCompact(metadata.ChargeTransactionPayment),
 			})),
 		primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
 			sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
