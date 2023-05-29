@@ -86,6 +86,8 @@ const (
 
 	TypesDigestItem
 	TypesSliceDigestItem
+	TypesDigest
+	TypesEra
 
 	SignatureEd25519
 	SignatureSr25519
@@ -96,6 +98,7 @@ const (
 
 	SystemCalls
 	TimestampCalls
+	GrandpaCalls
 	BalancesCalls
 
 	UncheckedExtrinsic

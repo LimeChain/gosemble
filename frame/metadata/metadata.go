@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/grandpa"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/constants/system"
+	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -59,52 +60,56 @@ func buildMetadata() primitives.Metadata {
 // primitiveTypes returns all primitive types
 func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.PrimitiveTypesBool, "bool", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveBoolean)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesChar, "char", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveChar)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesString, "string", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveString)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU8, "U8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU8)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU16, "U16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU16)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU32, "U32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU32)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU64, "U64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU64)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU128, "U128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU256, "U256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU256)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI8, "I8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI8)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI16, "I16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI16)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI32, "I32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI32)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI64, "I64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI64)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI128, "I128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI256, "I256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI256)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesBool, "bool", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveBoolean)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesChar, "char", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveChar)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesString, "string", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveString)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU8, "U8", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU8)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU16, "U16", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU16)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU32, "U32", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU32)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU64, "U64", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU64)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU128, "U128", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU128)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesU256, "U256", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU256)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI8, "I8", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI8)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI16, "I16", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI16)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI32, "I32", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI32)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI64, "I64", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI64)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI128, "I128", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI128)),
+		primitives.NewMetadataType(metadata.PrimitiveTypesI256, "I256", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI256)),
 	}
 }
 
 func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.TypesFixedSequence4U8, "[4]byte", primitives.NewMetadataTypeDefinitionFixedSequence(4, sc.ToCompact(metadata.PrimitiveTypesU8))),
-		primitives.NewMetadataType(metadata.TypesFixedSequence20U8, "[20]byte", primitives.NewMetadataTypeDefinitionFixedSequence(20, sc.ToCompact(metadata.PrimitiveTypesU8))),
-		primitives.NewMetadataType(metadata.TypesFixedSequence32U8, "[32]byte", primitives.NewMetadataTypeDefinitionFixedSequence(32, sc.ToCompact(metadata.PrimitiveTypesU8))),
-		primitives.NewMetadataType(metadata.TypesFixedSequence64U8, "[64]byte", primitives.NewMetadataTypeDefinitionFixedSequence(64, sc.ToCompact(metadata.PrimitiveTypesU8))),
-		primitives.NewMetadataType(metadata.TypesFixedSequence65U8, "[65]byte", primitives.NewMetadataTypeDefinitionFixedSequence(65, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence4U8, "[4]byte", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionFixedSequence(4, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence20U8, "[20]byte", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionFixedSequence(20, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence32U8, "[32]byte", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionFixedSequence(32, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence64U8, "[64]byte", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionFixedSequence(64, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence65U8, "[65]byte", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionFixedSequence(65, sc.ToCompact(metadata.PrimitiveTypesU8))),
 
-		primitives.NewMetadataType(metadata.TypesCompactU32, "CompactU32", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		primitives.NewMetadataType(metadata.TypesCompactU64, "CompactU64", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))),
-		primitives.NewMetadataType(metadata.TypesCompactU128, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
+		primitives.NewMetadataType(metadata.TypesCompactU32, "CompactU32", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
+		primitives.NewMetadataType(metadata.TypesCompactU64, "CompactU64", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))),
+		primitives.NewMetadataType(metadata.TypesCompactU128, "CompactU128", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
 
-		primitives.NewMetadataType(metadata.TypesH256, "primitives H256",
+		primitives.NewMetadataType(metadata.TypesH256, "primitives H256", sc.Sequence[sc.Str]{"primitive_types", "H256"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8)})),
-		primitives.NewMetadataType(metadata.TypesVecBlockNumEventIndex, "Vec<BlockNumber, EventIndex>",
+		primitives.NewMetadataType(metadata.TypesVecBlockNumEventIndex, "Vec<BlockNumber, EventIndex>", sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleU32U32))),
-		primitives.NewMetadataType(metadata.TypesTupleU32U32, "(U32, U32)",
+		primitives.NewMetadataType(metadata.TypesTupleU32U32, "(U32, U32)", sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.PrimitiveTypesU32), sc.ToCompact(metadata.PrimitiveTypesU32)})),
-		primitives.NewMetadataType(metadata.TypesSystemEventStorage, "Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
+		primitives.NewMetadataType(metadata.TypesSystemEventStorage, "Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>", sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
-		primitives.NewMetadataType(metadata.TypesEventRecord, "frame_system EventRecord",
+		primitives.NewMetadataTypeWithParams(metadata.TypesEventRecord, "frame_system EventRecord", sc.Sequence[sc.Str]{"frame_system", "EventRecord"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesPhase),        // phase
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesRuntimeEvent), // event
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesVecTopics),    // topics
-			})),
-		primitives.NewMetadataType(metadata.TypesPhase, "frame_system Phase", primitives.NewMetadataTypeDefinitionVariant(
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPhase, "phase", "Phase"),       // phase
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesRuntimeEvent, "event", "E"),    // event
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesVecTopics, "topics", "Vec<T>"), // topics
+			}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.TypesRuntimeEvent, "E"),
+				primitives.NewMetadataTypeParameter(metadata.TypesH256, "T"),
+			}),
+		primitives.NewMetadataType(metadata.TypesPhase, "frame_system Phase", sc.Sequence[sc.Str]{"frame_system", "Phase"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"ApplyExtrinsic",
@@ -124,12 +129,12 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					2,
 					"Phase.Init"),
 			})),
-		primitives.NewMetadataType(metadata.TypesRuntimeEvent, "node_template_runtime RuntimeEvent", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesRuntimeEvent, "node_template_runtime RuntimeEvent", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"System",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemEvent),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSystemEvent, "frame_system::Event<Runtime>"),
 					},
 					system.ModuleIndex,
 					"Events.System"),
@@ -141,32 +146,32 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Balances",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesEvent),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesBalancesEvent, "pallet_balances::Event<Runtime>"),
 					},
 					balances.ModuleIndex,
 					"Events.Balances"),
 				primitives.NewMetadataDefinitionVariant(
 					"TransactionPayment",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionPaymentEvents),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment::Event<Runtime>"),
 					},
 					transaction_payment.ModuleIndex,
 					"Events.TransactionPayment"),
 			})),
-		primitives.NewMetadataType(metadata.TypesSystemEvent, "frame_system pallet Event", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesSystemEvent, "frame_system pallet Event", sc.Sequence[sc.Str]{"frame_system", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"ExtrinsicSuccess",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchInfo),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesDispatchInfo, "dispatch_info", "DispatchInfo"),
 					},
 					0,
 					"Event.ExtrinsicSuccess"),
 				primitives.NewMetadataDefinitionVariant(
 					"ExtrinsicFailed",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchError),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchInfo),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesDispatchError, "dispatch_error", "DispatchError"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesDispatchInfo, "dispatch_info", "DispatchInfo"),
 					},
 					1,
 					"Events.ExtrinsicFailed"),
@@ -178,35 +183,35 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"NewAccount",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
 					},
 					3,
 					"Events.NewAccount"),
 				primitives.NewMetadataDefinitionVariant(
 					"KilledAccount",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
 					},
 					4,
 					"Events.KilledAccount"),
 				primitives.NewMetadataDefinitionVariant(
 					"Remarked",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesH256),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "sender", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesH256, "hash", "T::Hash"),
 					},
 					5,
 					"Events.Remarked"),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesDispatchInfo, "DispatchInfo", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesDispatchInfo, "DispatchInfo", sc.Sequence[sc.Str]{"frame_support", "dispatch", "DispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchClass),
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesPays),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "weight", "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesDispatchClass, "class", "DispatchClass"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPays, "pays_fee", "Pays"),
 			},
 		)),
-		primitives.NewMetadataType(metadata.TypesDispatchClass, "DispatchClass", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesDispatchClass, "DispatchClass", sc.Sequence[sc.Str]{"frame_support", "dispatch", "DispatchClass"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Normal",
@@ -224,7 +229,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					2,
 					"DispatchClass.Mandatory"),
 			})),
-		primitives.NewMetadataType(metadata.TypesPays, "Pays", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesPays, "Pays", sc.Sequence[sc.Str]{"frame_support", "dispatch", "Pays"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Yes",
@@ -238,7 +243,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					"Pays.No"),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesDispatchError, "DispatchError", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesDispatchError, "DispatchError", sc.Sequence[sc.Str]{"sp_runtime", "DispatchError"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Other",
@@ -258,7 +263,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Module",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesModuleError),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesModuleError, "ModuleError"),
 					},
 					3,
 					"DispatchError.Module"),
@@ -280,21 +285,21 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Token",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesTokenError),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTokenError, "TokenError"),
 					},
 					7,
 					"DispatchError.Token"),
 				primitives.NewMetadataDefinitionVariant(
 					"Arithmetic",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesArithmeticError),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesArithmeticError, "ArithmeticError"),
 					},
 					8,
 					"DispatchError.Arithmetic"),
 				primitives.NewMetadataDefinitionVariant(
 					"TransactionalError",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionalError),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionalError, "TransactionalError"),
 					},
 					9,
 					"DispatchError.TransactionalError"),
@@ -314,12 +319,12 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					12,
 					"DispatchError.Unavailable"),
 			})),
-		primitives.NewMetadataType(metadata.TypesModuleError, "ModuleError", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesModuleError, "ModuleError", sc.Sequence[sc.Str]{"sp_runtime", "ModuleError"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence4U8),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU8, "index", "u8"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesFixedSequence4U8, "error", "[u8; MAX_MODULE_ERROR_ENCODED_SIZE]"),
 			})),
-		primitives.NewMetadataType(metadata.TypesTokenError, "TokenError", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesTokenError, "TokenError", sc.Sequence[sc.Str]{"sp_runtime", "TokenError"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"NoFunds",
@@ -357,7 +362,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					6,
 					"TokenError.Unsupported"),
 			})),
-		primitives.NewMetadataType(metadata.TypesArithmeticError, "ArithmeticError", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesArithmeticError, "ArithmeticError", sc.Sequence[sc.Str]{"sp_arithmetic", "ArithmeticError"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Underflow",
@@ -375,7 +380,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					2,
 					"ArithmeticError.DivisionByZero"),
 			})),
-		primitives.NewMetadataType(metadata.TypesTransactionalError, "TransactionalError", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesTransactionalError, "TransactionalError", sc.Sequence[sc.Str]{"sp_runtime", "TransactionalError"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"LimitReached",
@@ -389,96 +394,96 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					"TransactionalError.NoLayer"),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesBalancesEvent, "pallet_balances pallet Event", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesBalancesEvent, "pallet_balances pallet Event", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Endowed",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "free_balance", "T::Balance"),
 					},
 					0,
 					"Event.Endowed"),
 				primitives.NewMetadataDefinitionVariant(
 					"DustLost",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					1,
 					"Events.DustLost"),
 				primitives.NewMetadataDefinitionVariant(
 					"Transfer",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "from", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "to", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					2,
 					"Events.Transfer"),
 				primitives.NewMetadataDefinitionVariant(
 					"BalanceSet",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "free", "T::Balance"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "reserved", "T::Balance"),
 					},
 					3,
 					"Events.BalanceSet"),
 				primitives.NewMetadataDefinitionVariant(
 					"Reserved",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					4,
 					"Events.Reserved"),
 				primitives.NewMetadataDefinitionVariant(
 					"Unreserved",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					5,
 					"Events.Unreserved"),
 				primitives.NewMetadataDefinitionVariant(
 					"ReserveRepatriated",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesBalanceStatus),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "from", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "to", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesBalanceStatus, "destination_status", "Status"),
 					},
 					6,
 					"Events.ReserveRepatriated"),
 				primitives.NewMetadataDefinitionVariant(
 					"Deposit",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					7,
 					"Event.Deposit"),
 				primitives.NewMetadataDefinitionVariant(
 					"Withdraw",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					8,
 					"Event.Withdraw"),
 				primitives.NewMetadataDefinitionVariant(
 					"Slashed",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					9,
 					"Event.Slashed"),
 			},
 		)),
 
-		primitives.NewMetadataType(metadata.TypesBalanceStatus, "BalanceStatus", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesBalanceStatus, "BalanceStatus", sc.Sequence[sc.Str]{"frame_support", "traits", "tokens", "misc", "BalanceStatus"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Free",
@@ -492,15 +497,15 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					"BalanceStatus.Reserved"),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesVecTopics, "Vec<Topics>", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesH256))),
+		primitives.NewMetadataType(metadata.TypesVecTopics, "Vec<Topics>", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesH256))),
 
-		primitives.NewMetadataType(metadata.TypesLastRuntimeUpgradeInfo, "LastRuntimeUpgradeInfo", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesLastRuntimeUpgradeInfo, "LastRuntimeUpgradeInfo", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU32),
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesSystemErrors, "frame_system pallet Error", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesSystemErrors, "frame_system pallet Error", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"InvalidSpecName",
@@ -536,26 +541,27 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataType(metadata.TypesBlockLength,
 			"frame_system limits BlockLength",
+			sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesPerDispatchClassU32), // max
 			})),
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassU32, "PerDispatchClass[U32]", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassU32, "PerDispatchClass[U32]", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Normal
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Operational
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Mandatory
 			},
 		),
-			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32),
+			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T"),
 		),
 
-		primitives.NewMetadataType(metadata.TypesDbWeight, "sp_weights RuntimeDbWeight", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesDbWeight, "sp_weights RuntimeDbWeight", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // read
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // write
 			})),
 
-		primitives.NewMetadataType(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString), // spec_name
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString), // impl_name
@@ -567,52 +573,55 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),     // state_version
 			})),
 
-		primitives.NewMetadataTypeWithParam(metadata.TypesRuntimeApis, "ApisVec = sp_std::borrow::Cow<'static, [(ApiId, u32)]>;", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataTypeWithParam(metadata.TypesRuntimeApis, "ApisVec = sp_std::borrow::Cow<'static, [(ApiId, u32)]>;", sc.Sequence[sc.Str]{"Cow"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesRuntimeVecApis),
 			},
 		),
-			primitives.NewMetadataTypeParameter(metadata.TypesRuntimeVecApis),
+			primitives.NewMetadataTypeParameter(metadata.TypesRuntimeVecApis, "T"),
 		),
 
 		primitives.NewMetadataType(
 			metadata.TypesRuntimeVecApis,
 			"[(ApiId, u32)]",
+			sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleApiIdU32))),
 
 		primitives.NewMetadataType(
 			metadata.TypesTupleApiIdU32,
 			"(ApiId, u32)",
+			sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionTuple(
 				sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesApiId), sc.ToCompact(metadata.PrimitiveTypesU32)})),
 
 		primitives.NewMetadataType(
 			metadata.TypesApiId,
 			"ApiId",
+			sc.Sequence[sc.Str]{},
 			primitives.NewMetadataTypeDefinitionFixedSequence(8, sc.ToCompact(metadata.PrimitiveTypesU8))),
 
 		primitives.NewMetadataTypeWithParams(
-			metadata.TypesAuraStorageAuthorites, "BoundedVec<T::AuthorityId, T::MaxAuthorities>", primitives.NewMetadataTypeDefinitionComposite(
+			metadata.TypesAuraStorageAuthorites, "BoundedVec<T::AuthorityId, T::MaxAuthorities>", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequencePubKeys),
 				}), sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.TypesAuthorityId),
+				primitives.NewMetadataTypeParameter(metadata.TypesAuthorityId, "T"),
 				primitives.NewMetadataEmptyTypeParameter("S"),
 			}),
-		primitives.NewMetadataType(metadata.TypesAuthorityId, "sp_consensus_aura sr25519 app_sr25519 Public", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesAuthorityId, "sp_consensus_aura sr25519 app_sr25519 Public", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesSr25519PubKey)})),
 
-		primitives.NewMetadataType(metadata.TypesSr25519PubKey, "sp_core sr25519 Public", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesSr25519PubKey, "sp_core sr25519 Public", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8)})),
 
-		primitives.NewMetadataType(metadata.TypesSequencePubKeys, "sequence pub keys", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesAuthorityId))),
+		primitives.NewMetadataType(metadata.TypesSequencePubKeys, "sequence pub keys", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesAuthorityId))),
 
-		primitives.NewMetadataType(metadata.TypesAuraSlot, "sp_consensus_slots Slot", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesAuraSlot, "sp_consensus_slots Slot", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
 			})),
 
-		primitives.NewMetadataTypeWithParams(metadata.TypesBalancesErrors, "pallet_balances pallet Error", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParams(metadata.TypesBalancesErrors, "pallet_balances pallet Error", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"VestingBalance",
@@ -660,12 +669,12 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 
-		primitives.NewMetadataType(metadata.TypesFixedU128, "FixedU128", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesFixedU128, "FixedU128", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
 			})),
 
-		primitives.NewMetadataType(metadata.TypesTransactionPaymentReleases, "Releases", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"V1Ancient",
@@ -679,7 +688,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					"One that bumps the usage to FixedU128 from FixedI128."),
 			})),
 
-		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment pallet Event", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment pallet Event", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"TransactionFeePaid",
@@ -692,34 +701,34 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					"Event.TransactionFeePaid"),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
 
-		primitives.NewMetadataType(metadata.TypesAddress32, "Address32", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8)},
+		primitives.NewMetadataType(metadata.TypesAddress32, "Address32", sc.Sequence[sc.Str]{"sp_core", "crypto", "AccountId32"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence32U8, "[u8; 32]")},
 		)),
 
-		primitives.NewMetadataType(metadata.TypesAccountData, "AccountData", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesAccountData, "AccountData", sc.Sequence[sc.Str]{"pallet_balances", "AccountData"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128), // Free
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128), // Reserved
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128), // MiscFrozen
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128), // FeeFrozen
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "free", "Balance"),        // Free
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "reserved", "Balance"),    // Reserved
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "misc_frozen", "Balance"), // MiscFrozen
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "fee_frozen", "Balance"),  // FeeFrozen
 			},
 		)),
-		primitives.NewMetadataType(metadata.TypesAccountInfo, "AccountInfo", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesAccountInfo, "AccountInfo", sc.Sequence[sc.Str]{"frame_system", "AccountInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Nonce
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Consumers
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Providers
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32), // Sufficients
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesAccountData),  // Data
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "nonce", "Index"),          // Nonce
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "consumers", "RefCount"),   // Consumers
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "providers", "RefCount"),   // Providers
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "sufficients", "RefCount"), // Sufficients
+				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAccountData, "data", "AccountData"),      // Data
 			},
 		)),
-		primitives.NewMetadataType(metadata.TypesWeight, "Weight", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesWeight, "Weight", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU64), // RefTime
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU64), // ProofSize
 			},
 		)),
-		primitives.NewMetadataType(metadata.TypesOptionWeight, "Option<Weight>", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesOptionWeight, "Option<Weight>", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"None",
@@ -734,100 +743,151 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					1,
 					"Option<Weight>(value)"),
 			})),
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeight, "PerDispatchClass[Weight]", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeight, "PerDispatchClass[Weight]", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight), // Normal
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight), // Operational
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight), // Mandatory
 			},
 		),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeight),
+			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
 		),
-		primitives.NewMetadataType(metadata.TypesWeightPerClass, "WeightPerClass", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesWeightPerClass, "WeightPerClass", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),       // BaseExtrinsic
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesOptionWeight), // MaxExtrinsic
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesOptionWeight), // MaxTotal
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesOptionWeight), // Reserved
 			})),
-		primitives.NewMetadataType(metadata.TypesPerDispatchClassWeightsPerClass, "PerDispatchClass[WeightPerClass]", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesPerDispatchClassWeightsPerClass, "PerDispatchClass[WeightPerClass]", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeightPerClass), // Normal
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeightPerClass), // Operational
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeightPerClass), // Mandatory
 			})),
-		primitives.NewMetadataType(metadata.TypesBlockWeights, "BlockWeights", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.TypesBlockWeights, "BlockWeights", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),                          // BaseBlock
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),                          // MaxBlock
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesPerDispatchClassWeightsPerClass), // PerClass
 			})),
-		primitives.NewMetadataType(metadata.TypesSequenceU8, "Sequence[U8]", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU8))),
-		primitives.NewMetadataType(metadata.TypesDigestItem, "DigestItem", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence4U8), // Engine
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),       // Payload
+		primitives.NewMetadataType(metadata.TypesSequenceU8, "Sequence[U8]", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesDigestItem, "DigestItem", sc.Sequence[sc.Str]{"sp_runtime", "generic", "digest", "DigestItem"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"PreRuntime",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
+					},
+					6,
+					"DigestItem.PreRuntime"),
+				primitives.NewMetadataDefinitionVariant(
+					"Consensus",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
+					},
+					4,
+					"DigestItem.Consensus"),
+				primitives.NewMetadataDefinitionVariant(
+					"Seal",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
+					},
+					5,
+					"DigestItem.Seal"),
+				primitives.NewMetadataDefinitionVariant(
+					"Other",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
+					},
+					0,
+					"DigestItem.Seal"),
+				primitives.NewMetadataDefinitionVariant(
+					"RuntimeEnvironmentUpdated",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					8,
+					"DigestItem.RuntimeEnvironmentUpdated"),
 			},
 		)),
-		primitives.NewMetadataType(metadata.TypesSliceDigestItem, "[]DigestItem", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesDigestItem))),
-		primitives.NewMetadataTypeWithParams(metadata.TypesMultiAddress, "MultiAddress", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.TypesDigest, "sp_runtime generic digest Digest", sc.Sequence[sc.Str]{"sp_runtime", "generic", "digest", "Digest"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSliceDigestItem, "logs", "Vec<DigestItem>"),
+				})),
+		primitives.NewMetadataType(metadata.TypesSliceDigestItem, "Vec<DigestItem>", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesDigestItem))),
+		primitives.NewMetadataTypeWithParams(metadata.TypesMultiAddress, "MultiAddress", sc.Sequence[sc.Str]{"sp_runtime", "multiaddress", "MultiAddress"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Id",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesAddress32, "AccountId"),
 					},
 					primitives.MultiAddressId,
 					"MultiAddress.Id"),
 				primitives.NewMetadataDefinitionVariant( // TODO: Check if this has sto be an empty tuple
 					"Index",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU32),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU32, "AccountIndex"),
 					},
 					primitives.MultiAddressIndex,
 					"MultiAddress.Index"),
 				primitives.NewMetadataDefinitionVariant(
 					"Raw",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 					},
 					primitives.MultiAddressRaw,
 					"MultiAddress.Raw"),
 				primitives.NewMetadataDefinitionVariant(
 					"Address32",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesAddress32),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence32U8, "[u8; 32]"),
 					},
 					primitives.MultiAddress32,
 					"MultiAddress.Address32"),
 				primitives.NewMetadataDefinitionVariant(
 					"Address20",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence20U8),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence20U8, "[u8; 20]"),
 					},
 					primitives.MultiAddress20,
 					"MultiAddress.Address20"),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.TypesAddress32),
-				primitives.NewMetadataTypeParameter(metadata.TypesEmptyTuple),
+				primitives.NewMetadataTypeParameter(metadata.TypesAddress32, "AccountId"),
+				primitives.NewMetadataTypeParameter(metadata.TypesEmptyTuple, "AccountIndex"),
 			}),
-		primitives.NewMetadataType(metadata.CheckNonZeroSender, "CheckNonZeroSender", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.CheckNonZeroSender, "CheckNonZeroSender", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataType(metadata.CheckSpecVersion, "CheckSpecVersion", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.CheckSpecVersion, "CheckSpecVersion", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataType(metadata.CheckTxVersion, "CheckTxVersion", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.CheckTxVersion, "CheckTxVersion", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataType(metadata.CheckGenesis, "CheckGenesis", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.CheckGenesis, "CheckGenesis", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataType(metadata.CheckMortality, "CheckMortality", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				// TODO: Add Era
-			})),
-		primitives.NewMetadataType(metadata.CheckNonce, "CheckNonce", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		primitives.NewMetadataType(metadata.CheckWeight, "CheckWeight", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.CheckMortality, "CheckMortality", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era")})),
+		primitives.NewMetadataType(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"Immortal",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				0,
+				"Era.Immortal"),
+			primitives.NewMetadataDefinitionVariant(
+				"Mortal",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+				},
+				1,
+				"Era.Mortal"),
+		})),
+		primitives.NewMetadataType(metadata.CheckNonce, "CheckNonce", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
+		primitives.NewMetadataType(metadata.CheckWeight, "CheckWeight", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataType(metadata.SignedExtra, "SignedExtra", primitives.NewMetadataTypeDefinitionTuple(
+		primitives.NewMetadataType(metadata.SignedExtra, "SignedExtra", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionTuple(
 			sc.Sequence[sc.Compact]{
 				sc.ToCompact(metadata.CheckNonZeroSender),
 				sc.ToCompact(metadata.CheckSpecVersion),
@@ -838,54 +898,87 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				sc.ToCompact(metadata.CheckWeight),
 			})),
 		primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
+			sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
 				}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress),
-				primitives.NewMetadataTypeParameter(metadata.Call),
-				primitives.NewMetadataTypeParameter(metadata.MultiSignature),
-				primitives.NewMetadataTypeParameter(metadata.SignedExtra),
+				primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
+				primitives.NewMetadataTypeParameter(metadata.Call, "Call"),
+				primitives.NewMetadataTypeParameter(metadata.MultiSignature, "Signature"),
+				primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
 			},
 		),
-		primitives.NewMetadataType(metadata.SignatureEd25519, "SignatureEd25519", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence64U8)},
+
+		primitives.NewMetadataType(metadata.Call, "RuntimeCall", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
+			primitives.NewMetadataTypeDefinitionVariant(sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"System",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
+					},
+					system.ModuleIndex,
+					"Call.System"),
+				primitives.NewMetadataDefinitionVariant(
+					"Timestamp",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
+					},
+					timestamp.ModuleIndex,
+					"Call.Timestamp"),
+				primitives.NewMetadataDefinitionVariant(
+					"Grandpa",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Grandpa, Runtime>"),
+					},
+					grandpa.ModuleIndex,
+					"Call.Grandpa"),
+				primitives.NewMetadataDefinitionVariant(
+					"Balances",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.BalancesCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
+					},
+					balances.ModuleIndex,
+					"Call.Balances"),
+			})),
+		primitives.NewMetadataType(metadata.SignatureEd25519, "SignatureEd25519", sc.Sequence[sc.Str]{"sp_core", "ed25519", "Signature"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence64U8, "[u8; 64]")},
 		)),
-		primitives.NewMetadataType(metadata.SignatureSr25519, "SignatureSr25519", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence64U8)},
+		primitives.NewMetadataType(metadata.SignatureSr25519, "SignatureSr25519", sc.Sequence[sc.Str]{"sp_core", "sr25519", "Signature"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence64U8, "[u8; 64]")},
 		)),
-		primitives.NewMetadataType(metadata.SignatureEcdsa, "SignatureEcdsa", primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence65U8)},
+		primitives.NewMetadataType(metadata.SignatureEcdsa, "SignatureEcdsa", sc.Sequence[sc.Str]{"sp_core", "ecdsa", "Signature"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence65U8, "[u8; 65]")},
 		)),
-		primitives.NewMetadataType(metadata.MultiSignature, "MultiSignature", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(metadata.MultiSignature, "MultiSignature", sc.Sequence[sc.Str]{"sp_runtime", "MultiSignature"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"Ed25519",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.SignatureEd25519),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureEd25519, "ed25519::Signature"),
 					},
 					primitives.MultiSignatureEd25519,
 					"MultiSignature.Ed25519"),
 				primitives.NewMetadataDefinitionVariant(
 					"Sr25519",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.SignatureSr25519),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureSr25519, "sr25519::Signature"),
 					},
 					primitives.MultiSignatureSr25519,
 					"MultiSignature.Sr25519"),
 				primitives.NewMetadataDefinitionVariant(
 					"Ecdsa",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.SignatureEcdsa),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureEcdsa, "ecdsa::Signature"),
 					},
 					primitives.MultiSignatureEcdsa,
 					"MultiSignature.Ecdsa"),
 			})),
-		primitives.NewMetadataType(metadata.TypesEmptyTuple, "EmptyTuple", primitives.NewMetadataTypeDefinitionTuple(
+		primitives.NewMetadataType(metadata.TypesEmptyTuple, "EmptyTuple", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionTuple(
 			sc.Sequence[sc.Compact]{},
 		)),
-		primitives.NewMetadataType(metadata.Runtime, "Runtime", primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataType(metadata.Runtime, "Runtime", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
 	}
 }

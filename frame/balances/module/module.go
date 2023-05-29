@@ -94,55 +94,55 @@ func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primi
 
 func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParams(metadata.BalancesCalls, "Balances calls", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParams(metadata.BalancesCalls, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"transfer",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
 					balances.FunctionTransferIndex,
 					"Transfer some liquid free balance to another account."),
 				primitives.NewMetadataDefinitionVariant(
 					"set_balance",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "who", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_free", "T::Balance"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_reserved", "T::Balance"),
 					},
 					balances.FunctionSetBalanceIndex,
 					"Set the balances of a given account."),
 				primitives.NewMetadataDefinitionVariant(
 					"force_transfer",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "source", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
 					balances.FunctionForceTransferIndex,
 					"Exactly as `transfer`, except the origin must be root and the source account may be specified."),
 				primitives.NewMetadataDefinitionVariant(
 					"transfer_keep_alive",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
 					balances.FunctionTransferKeepAliveIndex,
 					"Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."),
 				primitives.NewMetadataDefinitionVariant(
 					"transfer_all",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesBool),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "keep_alive", "bool"),
 					},
 					balances.FunctionTransferAllIndex,
 					"Transfer the entire transferable balance from the caller account."),
 				primitives.NewMetadataDefinitionVariant(
 					"force_unreserve",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU128),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "who", "AccountIdLookupOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
 					balances.FunctionForceFreeIndex,
 					"Unreserve some balance from a user by force."),

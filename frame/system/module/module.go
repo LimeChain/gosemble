@@ -100,7 +100,7 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 					"Digest",
 					primitives.MetadataModuleStorageEntryModifierDefault,
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.TypesSliceDigestItem)),
+						sc.ToCompact(metadata.TypesDigest)),
 					"Digest of the current block, also part of the block header."),
 				primitives.NewMetadataModuleStorageEntry(
 					"Events",
@@ -175,7 +175,7 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 
 func (sm SystemModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParam(metadata.SystemCalls, "System calls", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.SystemCalls, "System calls", sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"remark",
