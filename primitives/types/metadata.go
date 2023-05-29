@@ -147,6 +147,13 @@ func NewMetadataTypeParameter(id int) MetadataTypeParameter {
 	}
 }
 
+func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
+	return MetadataTypeParameter{
+		Type: sc.NewOption[sc.Compact](nil),
+		Text: sc.Str(text),
+	}
+}
+
 func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) {
 	mtp.Text.Encode(buffer)
 	mtp.Type.Encode(buffer)

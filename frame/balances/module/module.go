@@ -40,10 +40,33 @@ func (bm BalancesModule) ValidateUnsigned(_ primitives.TransactionSource, _ prim
 
 func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return bm.metadataTypes(), primitives.MetadataModule{
-		Name:    "Balances",
-		Storage: sc.Option[primitives.MetadataModuleStorage]{}, // TODO:
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
-		Event:   sc.NewOption[sc.Compact](nil), // TODO:
+		Name: "Balances",
+		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+			Prefix: "Balances",
+			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+				primitives.NewMetadataModuleStorageEntry(
+					"TotalIssuance",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
+					"The total units issued in the system."),
+				primitives.NewMetadataModuleStorageEntry(
+					"InactiveIssuance",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
+					"The total units of outstanding deactivated balance in the system."),
+				primitives.NewMetadataModuleStorageEntry(
+					"Account",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+						sc.ToCompact(metadata.TypesAddress32),
+						sc.ToCompact(metadata.TypesAccountData)),
+					"The Balances pallet example of storing the balance of an account."),
+				// TODO: Locks, Reserves, currently not used
+			},
+		}),
+		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"ExistentialDeposit",
@@ -51,15 +74,27 @@ func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primi
 				sc.BytesToSequenceU8(sc.NewU128FromBigInt(balances.ExistentialDeposit).Bytes()),
 				"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
 			),
+			primitives.NewMetadataModuleConstant(
+				"MaxLocks",
+				sc.ToCompact(metadata.PrimitiveTypesU32),
+				sc.BytesToSequenceU8(sc.U32(balances.MaxLocks).Bytes()),
+				"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
+			),
+			primitives.NewMetadataModuleConstant(
+				"MaxReserves",
+				sc.ToCompact(metadata.PrimitiveTypesU32),
+				sc.BytesToSequenceU8(sc.U32(balances.MaxReserves).Bytes()),
+				"The maximum number of named reserves that can exist on an account.",
+			),
 		}, // TODO:
-		Error: sc.NewOption[sc.Compact](nil), // TODO:
+		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		Index: balances.ModuleIndex,
 	}
 }
 
 func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.BalancesCalls, "Balances calls", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParams(metadata.BalancesCalls, "Balances calls", primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"transfer",
@@ -111,6 +146,10 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					},
 					balances.FunctionForceFreeIndex,
 					"Unreserve some balance from a user by force."),
-			})),
+			}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataEmptyTypeParameter("T"),
+				primitives.NewMetadataEmptyTypeParameter("I"),
+			}),
 	}
 }

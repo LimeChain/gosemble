@@ -23,11 +23,51 @@ const (
 	TypesFixedSequence64U8
 	TypesFixedSequence65U8
 
+	TypesFixedU128
+
 	TypesSequenceU8
 
 	TypesCompactU32
 	TypesCompactU64
 	TypesCompactU128
+
+	TypesH256
+	TypesVecBlockNumEventIndex
+	TypesTupleU32U32
+	TypesSystemEvent
+	TypesSystemEventStorage
+	TypesEventRecord
+	TypesPhase
+	TypesRuntimeEvent
+	TypesDispatchInfo
+	TypesDispatchClass
+	TypesPays
+	TypesDispatchError
+	TypesModuleError
+	TypesTokenError
+	TypesArithmeticError
+	TypesTransactionalError
+	TypesBalancesEvent
+	TypesBalanceStatus
+	TypesVecTopics
+	TypesLastRuntimeUpgradeInfo
+	TypesSystemErrors
+	TypesBlockLength
+	TypesPerDispatchClassU32
+	TypesDbWeight
+	TypesRuntimeVersion
+	TypesRuntimeApis
+	TypesRuntimeVecApis
+	TypesTupleApiIdU32
+	TypesApiId
+	TypesAuraStorageAuthorites
+	TypesSequencePubKeys
+	TypesAuthorityId
+	TypesSr25519PubKey
+	TypesAuraSlot
+	TypesBalancesErrors
+	TypesTransactionPaymentReleases
+	TypesTransactionPaymentEvents
 
 	TypesEmptyTuple
 

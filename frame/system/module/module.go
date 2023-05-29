@@ -2,6 +2,7 @@ package module
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	cs "github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -101,20 +102,38 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
 						sc.ToCompact(metadata.TypesSliceDigestItem)),
 					"Digest of the current block, also part of the block header."),
-				// TODO: Events
-				// TODO: EventTopics
+				primitives.NewMetadataModuleStorageEntry(
+					"Events",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesSystemEventStorage)),
+					"Events deposited for the current block.   NOTE: The item is unbound and should therefore never be read on chain."),
+				primitives.NewMetadataModuleStorageEntry(
+					"EventTopics",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+						sc.ToCompact(metadata.TypesH256),
+						sc.ToCompact(metadata.TypesVecBlockNumEventIndex)), "Mapping between a topic (represented by T::Hash) and a vector of indexes  of events in the `<Events<T>>` list."),
 				primitives.NewMetadataModuleStorageEntry(
 					"EventCount",
 					primitives.MetadataModuleStorageEntryModifierDefault,
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
 						sc.ToCompact(metadata.PrimitiveTypesU32)),
 					"The number of events in the `Events<T>` list."),
-				// TODO: LastRuntimeUpgrade
-				// TODO: ExecutionPhase
+				primitives.NewMetadataModuleStorageEntry(
+					"LastRuntimeUpgrade",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesLastRuntimeUpgradeInfo)),
+					"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
+				primitives.NewMetadataModuleStorageEntry(
+					"ExecutionPhase",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesPhase)),
+					"The execution phase of the block."),
 			},
 		}),
 		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
-		Event: sc.NewOption[sc.Compact](nil), // TODO:
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"BlockWeights",
@@ -122,8 +141,32 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 				sc.BytesToSequenceU8(system.DefaultBlockWeights().Bytes()),
 				"Block & extrinsics weights: base values and limits.",
 			),
-		}, // TODO:
-		Error: sc.NewOption[sc.Compact](nil), // TODO:
+			primitives.NewMetadataModuleConstant(
+				"BlockLength",
+				sc.ToCompact(metadata.TypesBlockLength),
+				sc.BytesToSequenceU8(system.DefaultBlockLength().Bytes()),
+				"The maximum length of a block (in bytes).",
+			),
+			primitives.NewMetadataModuleConstant(
+				"BlockHashCount",
+				sc.ToCompact(metadata.PrimitiveTypesU32),
+				sc.BytesToSequenceU8(constants.BlockHashCount.Bytes()),
+				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
+			),
+			primitives.NewMetadataModuleConstant(
+				"DbWeight",
+				sc.ToCompact(metadata.TypesDbWeight),
+				sc.BytesToSequenceU8(constants.DbWeight.Bytes()),
+				"The weight of runtime database operations the runtime can invoke.",
+			),
+			primitives.NewMetadataModuleConstant(
+				"Version",
+				sc.ToCompact(metadata.TypesRuntimeVersion),
+				sc.BytesToSequenceU8(constants.RuntimeVersion.Bytes()),
+				"Get the chain's current version.",
+			),
+		},
+		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
 		Index: cs.ModuleIndex,
 	}
 
@@ -132,7 +175,7 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 
 func (sm SystemModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.SystemCalls, "System calls", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.SystemCalls, "System calls", primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"remark",
@@ -141,6 +184,7 @@ func (sm SystemModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					},
 					cs.FunctionRemarkIndex,
 					"Make some on-chain remark."),
-			})),
+			}),
+			primitives.NewMetadataEmptyTypeParameter("T")),
 	}
 }

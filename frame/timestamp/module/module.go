@@ -69,15 +69,15 @@ func (tm TimestampModule) Metadata() (sc.Sequence[primitives.MetadataType], prim
 
 func (tm TimestampModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.TimestampCalls, "Timestamp calls", primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.TimestampCalls, "Timestamp calls", primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"set",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU64),
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU64), // now
 					},
 					timestamp.FunctionSetIndex,
 					"Set the current time."),
-			})),
+			}), primitives.NewMetadataEmptyTypeParameter("T")),
 	}
 }
