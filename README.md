@@ -1,6 +1,9 @@
 # Gosemble
 
-Go implementation of Polkadot/Substrate compatible runtimes. For more details, check the [Official Documentation](https://limechain.tech/gosemble) 
+> **Warning**
+> The Gosemble is in pre-production
+
+Go implementation of Polkadot/Substrate compatible runtimes. For more details, check the [Official Documentation](https://limechain.github.io/gosemble/) 
 
 ### Quick Start
 

@@ -4,13 +4,13 @@ title: Runtime Architecture
 permalink: /concepts/runtime-architecture
 ---
 
-The proposed solution is based on an alternative Go compiler that aims at supporting Wasm runtimes compatible with [Polkadot spec](https://spec.polkadot.network/id-polkadot-protocol) / [Substrate](https://docs.substrate.io/main-docs/).
-It is based on a modified version of TinyGo, that incorporates runtime with GC and external memory allocator targeting Wasm MVP conforming to the decisions behind Polkadot's architecture.
-
+At the time of writing, the official Go compiler does not support Wasm compatible with the Polkadot/Substrate requirements.
+The proposed solution is based on an alternative Go compiler that aims at supporting Wasm runtimes compatible with [Polkadot spec](https://spec.polkadot.network/id-polkadot-protocol) / [Substrate](https://docs.substrate.io/main-docs/) that incorporates GC with external memory allocator targeting Wasm MVP.
 
 <div >
   <img alt="Host-Runtime Interaction Scheme"  src="../../assets/images/host-runtime-interaction.svg" width="500" />
 </div>
+
 
 #### WebAssembly specification
 
@@ -47,7 +47,7 @@ Runtime API is always SCALE encoded, Host API calls on the other hand try to avo
 
 #### GC with external memory allocator
 
-Since Go is a language that uses GC, such with external memory allocator is implemented in our Tinygo fork to meet the requirements of the Polkadot specification.
+According to the Polkadot specification, the Wasm module does not include a memory allocator. It imports memory from the Host and relies on Host imported functions for all heap allocations. Since Go/TinyGo uses GC and manages its memory by itself, contrary to specification, a GC with external memory allocator is implemented in our Tinygo fork to meet the requirements of the Polkadot specification.
 
 The design in which allocation functions are on the Host side is dictated by the fact that some Host functions might
 return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.
@@ -62,10 +62,9 @@ the Wasm: [[1]](https://github.com/paritytech/substrate/issues/11883). Notably, 
 structures inside the linear memory and some other structures outside.
 
 
+#### Stack
 
-#### Stack placement
-
-The stack placement differs from the one compiled from Substrate/Rust. The stack is placed before the data section.
+Since WebAssembly has no stack introspection to scan the roots, it requires to use mirrored shadow stack in the linear memory, pushed/popped along with the machine stack, thus making it less efficient. Also the stack placement differs from the one compiled from Substrate/Rust and it is placed before the data section.
 
 
 #### Exported globals
@@ -81,10 +80,9 @@ downsides. Working with exported memory is almost certainly still supported and 
 beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import
 under the symbol name `memory`.
 
+
 #### No concurrency
 
-Parallelism is achieved through Parachains 
+In Polkadot, parallelism is achieved through Parachains.
 
-#### Developer experience
 
-Implementing Wasm functionality makes you go pretty low-level and use some "unsafe" language constructs.
