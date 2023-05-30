@@ -82,7 +82,17 @@ type MetadataType struct {
 	Docs       sc.Sequence[sc.Str]
 }
 
-func NewMetadataType(id int, docs string, path sc.Sequence[sc.Str], definition MetadataTypeDefinition) MetadataType {
+func NewMetadataType(id int, docs string, definition MetadataTypeDefinition) MetadataType {
+	return MetadataType{
+		Id:         sc.ToCompact(id),
+		Path:       sc.Sequence[sc.Str]{},
+		Params:     sc.Sequence[MetadataTypeParameter]{},
+		Definition: definition,
+		Docs:       sc.Sequence[sc.Str]{sc.Str(docs)},
+	}
+}
+
+func NewMetadataTypeWithPath(id int, docs string, path sc.Sequence[sc.Str], definition MetadataTypeDefinition) MetadataType {
 	return MetadataType{
 		Id:         sc.ToCompact(id),
 		Path:       path,

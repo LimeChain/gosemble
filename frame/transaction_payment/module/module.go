@@ -27,7 +27,7 @@ func (tpm TransactionPaymentModule) ValidateUnsigned(_ primitives.TransactionSou
 }
 
 func (tpm TransactionPaymentModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return sc.Sequence[primitives.MetadataType]{}, primitives.MetadataModule{
+	return tpm.metadataTypes(), primitives.MetadataModule{
 		Name: "TransactionPayment",
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 			Prefix: "TransactionPayment",
@@ -56,5 +56,43 @@ func (tpm TransactionPaymentModule) Metadata() (sc.Sequence[primitives.MetadataT
 		},
 		Error: sc.NewOption[sc.Compact](nil),
 		Index: transaction_payment.ModuleIndex,
+	}
+}
+
+func (tpm TransactionPaymentModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	return sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"V1Ancient",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					"Original version of the pallet."),
+				primitives.NewMetadataDefinitionVariant(
+					"V2",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					1,
+					"One that bumps the usage to FixedU128 from FixedI128."),
+			})),
+
+		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment pallet Event", sc.Sequence[sc.Str]{"pallet_transaction_payment", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"TransactionFeePaid",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "actual_fee", "BalanceOf<T>"),
+						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "tip", "BalanceOf<T>"),
+					},
+					0,
+					"Event.TransactionFeePaid"),
+			}), primitives.NewMetadataEmptyTypeParameter("T")),
+
+		primitives.NewMetadataTypeWithParam(metadata.ChargeTransactionPayment, "ChargeTransactionPayment", sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
+			}),
+			primitives.NewMetadataEmptyTypeParameter("T"),
+		),
 	}
 }

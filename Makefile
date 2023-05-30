@@ -39,4 +39,4 @@ test_unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
 test_integration:
-	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1200s
+	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1500s

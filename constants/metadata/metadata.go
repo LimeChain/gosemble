@@ -94,7 +94,7 @@ const (
 	SignatureEcdsa
 	MultiSignature
 
-	Call
+	RuntimeCall
 
 	SystemCalls
 	TimestampCalls

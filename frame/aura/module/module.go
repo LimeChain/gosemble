@@ -27,7 +27,7 @@ func (am AuraModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitiv
 }
 
 func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return sc.Sequence[primitives.MetadataType]{}, primitives.MetadataModule{
+	return am.metadataTypes(), primitives.MetadataModule{
 		Name: "Aura",
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 			Prefix: "Aura",
@@ -49,5 +49,45 @@ func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitive
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     aura.ModuleIndex,
+	}
+}
+
+func (am AuraModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	return sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataTypeWithParams(
+			metadata.TypesAuraStorageAuthorites,
+			"BoundedVec<T::AuthorityId, T::MaxAuthorities>",
+			sc.Sequence[sc.Str]{"bounded_collection", "bounded_vec", "BoundedVec"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequencePubKeys),
+				}), sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.TypesAuthorityId, "T"),
+				primitives.NewMetadataEmptyTypeParameter("S"),
+			}),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesAuthorityId,
+			"sp_consensus_aura sr25519 app_sr25519 Public",
+			sc.Sequence[sc.Str]{"sp_consensus_aura", "sr25519", "app_sr25519", "Public"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesSr25519PubKey)})),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesSr25519PubKey,
+			"sp_core sr25519 Public",
+			sc.Sequence[sc.Str]{"sp_core", "sr25519", "Public"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8)})),
+
+		primitives.NewMetadataType(metadata.TypesSequencePubKeys,
+			"[]PublicKey",
+			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesAuthorityId))),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesAuraSlot,
+			"sp_consensus_slots Slot",
+			sc.Sequence[sc.Str]{"sp_consensus_slots", "Slot"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
+				})),
 	}
 }
