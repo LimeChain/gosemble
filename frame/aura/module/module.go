@@ -35,7 +35,7 @@ func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitive
 				primitives.NewMetadataModuleStorageEntry(
 					"Authorities",
 					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraStorageAuthorites)),
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraStorageAuthorities)),
 					"The current authority set."),
 				primitives.NewMetadataModuleStorageEntry(
 					"CurrentSlot",
@@ -55,7 +55,7 @@ func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitive
 func (am AuraModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(
-			metadata.TypesAuraStorageAuthorites,
+			metadata.TypesAuraStorageAuthorities,
 			"BoundedVec<T::AuthorityId, T::MaxAuthorities>",
 			sc.Sequence[sc.Str]{"bounded_collection", "bounded_vec", "BoundedVec"},
 			primitives.NewMetadataTypeDefinitionComposite(

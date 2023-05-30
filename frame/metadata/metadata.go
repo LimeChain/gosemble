@@ -159,39 +159,39 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T"),
 		),
 
-		primitives.NewMetadataTypeWithPath(metadata.SignatureEd25519, "SignatureEd25519", sc.Sequence[sc.Str]{"sp_core", "ed25519", "Signature"},
+		primitives.NewMetadataTypeWithPath(metadata.TypesSignatureEd25519, "SignatureEd25519", sc.Sequence[sc.Str]{"sp_core", "ed25519", "Signature"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence64U8, "[u8; 64]")},
 			)),
-		primitives.NewMetadataTypeWithPath(metadata.SignatureSr25519, "SignatureSr25519", sc.Sequence[sc.Str]{"sp_core", "sr25519", "Signature"},
+		primitives.NewMetadataTypeWithPath(metadata.TypesSignatureSr25519, "SignatureSr25519", sc.Sequence[sc.Str]{"sp_core", "sr25519", "Signature"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence64U8, "[u8; 64]")},
 			)),
-		primitives.NewMetadataTypeWithPath(metadata.SignatureEcdsa, "SignatureEcdsa", sc.Sequence[sc.Str]{"sp_core", "ecdsa", "Signature"},
+		primitives.NewMetadataTypeWithPath(metadata.TypesSignatureEcdsa, "SignatureEcdsa", sc.Sequence[sc.Str]{"sp_core", "ecdsa", "Signature"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence65U8, "[u8; 65]")},
 			)),
-		primitives.NewMetadataTypeWithPath(metadata.MultiSignature, "MultiSignature", sc.Sequence[sc.Str]{"sp_runtime", "MultiSignature"},
+		primitives.NewMetadataTypeWithPath(metadata.TypesMultiSignature, "MultiSignature", sc.Sequence[sc.Str]{"sp_runtime", "MultiSignature"},
 			primitives.NewMetadataTypeDefinitionVariant(
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
 					primitives.NewMetadataDefinitionVariant(
 						"Ed25519",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureEd25519, "ed25519::Signature"),
+							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSignatureEd25519, "ed25519::Signature"),
 						},
 						primitives.MultiSignatureEd25519,
 						"MultiSignature.Ed25519"),
 					primitives.NewMetadataDefinitionVariant(
 						"Sr25519",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureSr25519, "sr25519::Signature"),
+							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSignatureSr25519, "sr25519::Signature"),
 						},
 						primitives.MultiSignatureSr25519,
 						"MultiSignature.Sr25519"),
 					primitives.NewMetadataDefinitionVariant(
 						"Ecdsa",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SignatureEcdsa, "ecdsa::Signature"),
+							primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSignatureEcdsa, "ecdsa::Signature"),
 						},
 						primitives.MultiSignatureEcdsa,
 						"MultiSignature.Ecdsa"),
@@ -539,7 +539,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"TransactionPayment",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment::Event<Runtime>"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvent, "pallet_transaction_payment::Event<Runtime>"),
 					},
 					transaction_payment.ModuleIndex,
 					"Events.TransactionPayment"),
@@ -578,7 +578,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
 				primitives.NewMetadataTypeParameter(metadata.RuntimeCall, "Call"),
-				primitives.NewMetadataTypeParameter(metadata.MultiSignature, "Signature"),
+				primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
 				primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
 			},
 		),

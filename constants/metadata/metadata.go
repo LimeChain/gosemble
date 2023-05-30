@@ -23,30 +23,31 @@ const (
 	TypesFixedSequence64U8
 	TypesFixedSequence65U8
 
-	TypesFixedU128
-
 	TypesSequenceU8
+	TypesFixedU128
 
 	TypesCompactU32
 	TypesCompactU64
 	TypesCompactU128
 
 	TypesH256
+
 	TypesVecBlockNumEventIndex
-	TypesTupleU32U32
 	TypesSystemEvent
 	TypesSystemEventStorage
 	TypesEventRecord
+
 	TypesPhase
-	TypesRuntimeEvent
 	TypesDispatchInfo
 	TypesDispatchClass
 	TypesPays
+
 	TypesDispatchError
 	TypesModuleError
 	TypesTokenError
 	TypesArithmeticError
 	TypesTransactionalError
+
 	TypesBalancesEvent
 	TypesBalanceStatus
 	TypesVecTopics
@@ -55,21 +56,25 @@ const (
 	TypesBlockLength
 	TypesPerDispatchClassU32
 	TypesDbWeight
-	TypesRuntimeVersion
+
 	TypesRuntimeApis
 	TypesRuntimeVecApis
-	TypesTupleApiIdU32
 	TypesApiId
-	TypesAuraStorageAuthorites
+
+	TypesAuraStorageAuthorities
 	TypesSequencePubKeys
 	TypesAuthorityId
 	TypesSr25519PubKey
 	TypesAuraSlot
+
 	TypesBalancesErrors
+
 	TypesTransactionPaymentReleases
-	TypesTransactionPaymentEvents
+	TypesTransactionPaymentEvent
 
 	TypesEmptyTuple
+	TypesTupleU32U32
+	TypesTupleApiIdU32
 
 	TypesAddress32
 	TypesMultiAddress
@@ -89,11 +94,13 @@ const (
 	TypesDigest
 	TypesEra
 
-	SignatureEd25519
-	SignatureSr25519
-	SignatureEcdsa
-	MultiSignature
+	TypesSignatureEd25519
+	TypesSignatureSr25519
+	TypesSignatureEcdsa
+	TypesMultiSignature
 
+	TypesRuntimeEvent
+	TypesRuntimeVersion
 	RuntimeCall
 
 	SystemCalls

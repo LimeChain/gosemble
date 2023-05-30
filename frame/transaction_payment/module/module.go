@@ -45,7 +45,7 @@ func (tpm TransactionPaymentModule) Metadata() (sc.Sequence[primitives.MetadataT
 			},
 		}),
 		Call:  sc.NewOption[sc.Compact](nil),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvents)),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
@@ -75,7 +75,7 @@ func (tpm TransactionPaymentModule) metadataTypes() sc.Sequence[primitives.Metad
 					"One that bumps the usage to FixedU128 from FixedI128."),
 			})),
 
-		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentEvents, "pallet_transaction_payment pallet Event", sc.Sequence[sc.Str]{"pallet_transaction_payment", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentEvent, "pallet_transaction_payment pallet Event", sc.Sequence[sc.Str]{"pallet_transaction_payment", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"TransactionFeePaid",

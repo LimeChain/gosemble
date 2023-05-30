@@ -77,7 +77,6 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	if firstByte == 0 {
 		return NewImmortalEra()
 	} else {
-		fmt.Println("alo")
 		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
 		quantizeFactor := (period >> 12).Max(1)
