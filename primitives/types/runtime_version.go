@@ -75,3 +75,7 @@ func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {
 
 	return rv
 }
+
+func (rv RuntimeVersion) Bytes() []byte {
+	return sc.EncodedBytes(rv)
+}

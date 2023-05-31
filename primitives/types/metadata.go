@@ -92,10 +92,20 @@ func NewMetadataType(id int, docs string, definition MetadataTypeDefinition) Met
 	}
 }
 
-func NewMetadataTypeWithParam(id int, docs string, definition MetadataTypeDefinition, param MetadataTypeParameter) MetadataType {
+func NewMetadataTypeWithPath(id int, docs string, path sc.Sequence[sc.Str], definition MetadataTypeDefinition) MetadataType {
+	return MetadataType{
+		Id:         sc.ToCompact(id),
+		Path:       path,
+		Params:     sc.Sequence[MetadataTypeParameter]{},
+		Definition: definition,
+		Docs:       sc.Sequence[sc.Str]{sc.Str(docs)},
+	}
+}
+
+func NewMetadataTypeWithParam(id int, docs string, path sc.Sequence[sc.Str], definition MetadataTypeDefinition, param MetadataTypeParameter) MetadataType {
 	return MetadataType{
 		Id:   sc.ToCompact(id),
-		Path: sc.Sequence[sc.Str]{},
+		Path: path,
 		Params: sc.Sequence[MetadataTypeParameter]{
 			param,
 		},
@@ -104,10 +114,10 @@ func NewMetadataTypeWithParam(id int, docs string, definition MetadataTypeDefini
 	}
 }
 
-func NewMetadataTypeWithParams(id int, docs string, definition MetadataTypeDefinition, params sc.Sequence[MetadataTypeParameter]) MetadataType {
+func NewMetadataTypeWithParams(id int, docs string, path sc.Sequence[sc.Str], definition MetadataTypeDefinition, params sc.Sequence[MetadataTypeParameter]) MetadataType {
 	return MetadataType{
 		Id:         sc.ToCompact(id),
-		Path:       sc.Sequence[sc.Str]{},
+		Path:       path,
 		Params:     params,
 		Definition: definition,
 		Docs:       sc.Sequence[sc.Str]{sc.Str(docs)},
@@ -141,9 +151,17 @@ type MetadataTypeParameter struct {
 	Type sc.Option[sc.Compact]
 }
 
-func NewMetadataTypeParameter(id int) MetadataTypeParameter {
+func NewMetadataTypeParameter(id int, text string) MetadataTypeParameter {
 	return MetadataTypeParameter{
+		Text: sc.Str(text),
 		Type: sc.NewOption[sc.Compact](sc.ToCompact(id)),
+	}
+}
+
+func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
+	return MetadataTypeParameter{
+		Type: sc.NewOption[sc.Compact](nil),
+		Text: sc.Str(text),
 	}
 }
 

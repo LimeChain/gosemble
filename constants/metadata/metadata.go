@@ -24,12 +24,57 @@ const (
 	TypesFixedSequence65U8
 
 	TypesSequenceU8
+	TypesFixedU128
 
 	TypesCompactU32
 	TypesCompactU64
 	TypesCompactU128
 
+	TypesH256
+
+	TypesVecBlockNumEventIndex
+	TypesSystemEvent
+	TypesSystemEventStorage
+	TypesEventRecord
+
+	TypesPhase
+	TypesDispatchInfo
+	TypesDispatchClass
+	TypesPays
+
+	TypesDispatchError
+	TypesModuleError
+	TypesTokenError
+	TypesArithmeticError
+	TypesTransactionalError
+
+	TypesBalancesEvent
+	TypesBalanceStatus
+	TypesVecTopics
+	TypesLastRuntimeUpgradeInfo
+	TypesSystemErrors
+	TypesBlockLength
+	TypesPerDispatchClassU32
+	TypesDbWeight
+
+	TypesRuntimeApis
+	TypesRuntimeVecApis
+	TypesApiId
+
+	TypesAuraStorageAuthorities
+	TypesSequencePubKeys
+	TypesAuthorityId
+	TypesSr25519PubKey
+	TypesAuraSlot
+
+	TypesBalancesErrors
+
+	TypesTransactionPaymentReleases
+	TypesTransactionPaymentEvent
+
 	TypesEmptyTuple
+	TypesTupleU32U32
+	TypesTupleApiIdU32
 
 	TypesAddress32
 	TypesMultiAddress
@@ -46,16 +91,21 @@ const (
 
 	TypesDigestItem
 	TypesSliceDigestItem
+	TypesDigest
+	TypesEra
 
-	SignatureEd25519
-	SignatureSr25519
-	SignatureEcdsa
-	MultiSignature
+	TypesSignatureEd25519
+	TypesSignatureSr25519
+	TypesSignatureEcdsa
+	TypesMultiSignature
 
-	Call
+	TypesRuntimeEvent
+	TypesRuntimeVersion
+	RuntimeCall
 
 	SystemCalls
 	TimestampCalls
+	GrandpaCalls
 	BalancesCalls
 
 	UncheckedExtrinsic
@@ -68,7 +118,7 @@ const (
 	CheckMortality
 	CheckNonce
 	CheckWeight
-	CheckTransactionPayment
+	ChargeTransactionPayment
 
 	Runtime
 )

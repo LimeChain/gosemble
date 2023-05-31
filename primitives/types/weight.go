@@ -15,6 +15,15 @@ type RuntimeDbWeight struct {
 	Write sc.U64
 }
 
+func (dbw RuntimeDbWeight) Encode(buffer *bytes.Buffer) {
+	dbw.Read.Encode(buffer)
+	dbw.Write.Encode(buffer)
+}
+
+func (dbw RuntimeDbWeight) Bytes() []byte {
+	return sc.EncodedBytes(dbw)
+}
+
 func (dbw RuntimeDbWeight) Reads(r sc.U64) Weight {
 	return WeightFromParts(dbw.Read.SaturatingMul(r), 0)
 }

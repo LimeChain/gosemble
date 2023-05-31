@@ -3,6 +3,7 @@ package module
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/grandpa"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -26,8 +27,7 @@ func (gm GrandpaModule) ValidateUnsigned(_ primitives.TransactionSource, _ primi
 }
 
 func (gm GrandpaModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	// TODO: types
-	return sc.Sequence[primitives.MetadataType]{}, primitives.MetadataModule{
+	return gm.metadataTypes(), primitives.MetadataModule{
 		Name:      "Grandpa",
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -35,5 +35,17 @@ func (gm GrandpaModule) Metadata() (sc.Sequence[primitives.MetadataType], primit
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     grandpa.ModuleIndex,
+	}
+}
+
+func (gm GrandpaModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	return sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
+			// TODO: types
+			sc.Sequence[primitives.MetadataDefinitionVariant]{}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataEmptyTypeParameter("T"),
+				primitives.NewMetadataEmptyTypeParameter("I"),
+			}),
 	}
 }

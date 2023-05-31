@@ -17,6 +17,14 @@ type BlockLength struct {
 	Max types.PerDispatchClass[sc.U32]
 }
 
+func (bl BlockLength) Encode(buffer *bytes.Buffer) {
+	bl.Max.Encode(buffer)
+}
+
+func (bl BlockLength) Bytes() []byte {
+	return sc.EncodedBytes(bl)
+}
+
 func DefaultBlockLength() BlockLength {
 	return MaxWithNormalRatio(
 		constants.FiveMbPerBlockPerExtrinsic,

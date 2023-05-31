@@ -96,6 +96,24 @@ func NewMetadataTypeDefinitionField(id int) MetadataTypeDefinitionField {
 	}
 }
 
+func NewMetadataTypeDefinitionFieldWithNames(id int, name sc.Str, idName sc.Str) MetadataTypeDefinitionField {
+	return MetadataTypeDefinitionField{
+		Name:     sc.NewOption[sc.Str](name),
+		Type:     sc.ToCompact(id),
+		TypeName: sc.NewOption[sc.Str](idName),
+		Docs:     sc.Sequence[sc.Str]{},
+	}
+}
+
+func NewMetadataTypeDefinitionFieldWithName(id int, idName sc.Str) MetadataTypeDefinitionField {
+	return MetadataTypeDefinitionField{
+		Name:     sc.NewOption[sc.Str](nil),
+		Type:     sc.ToCompact(id),
+		TypeName: sc.NewOption[sc.Str](idName),
+		Docs:     sc.Sequence[sc.Str]{},
+	}
+}
+
 func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) {
 	mtdf.Name.Encode(buffer)
 	mtdf.Type.Encode(buffer)

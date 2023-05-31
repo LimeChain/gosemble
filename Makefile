@@ -30,7 +30,7 @@ start-network:
 	cd substrate/bin/node-template; \
 	cargo build --release; \
 	cd ../..; \
-	./target/release/node-template --dev --execution Wasm
+	WASMTIME_BACKTRACE_DETAILS=1 ./target/release/node-template --dev --execution Wasm
 
 test: test_unit test_integration
 
@@ -39,4 +39,4 @@ test_unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
 test_integration:
-	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1200s
+	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1500s
