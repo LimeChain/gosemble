@@ -20,7 +20,6 @@ func (uxt Unchecked) Check(lookup primitives.AccountIdLookup) (ok types.CheckedE
 
 		rawPayload, err := NewSignedPayload(uxt.Function, extra)
 		if err != nil {
-			err = primitives.NewTransactionValidityError(err)
 			return ok, err
 		}
 
