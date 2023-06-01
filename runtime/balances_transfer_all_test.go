@@ -20,7 +20,8 @@ import (
 
 func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 
@@ -120,7 +121,8 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 
 func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 

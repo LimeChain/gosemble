@@ -75,7 +75,9 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 
 func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	// Set Account Info
@@ -173,7 +175,9 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	digest := gossamertypes.NewDigest()
@@ -229,7 +233,9 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 
 func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	digest := gossamertypes.NewDigest()
@@ -290,7 +296,9 @@ func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
 
 func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	// Set Balance & Nonce
@@ -347,7 +355,9 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 
 func Test_ApplyExtrinsic_InvalidLengthPrefix(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})

@@ -18,7 +18,9 @@ import (
 func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
@@ -101,7 +103,9 @@ func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
