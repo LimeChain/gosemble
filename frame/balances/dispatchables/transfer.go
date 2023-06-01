@@ -141,7 +141,7 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
 						Index:   balances.ModuleIndex,
-						Error:   sc.U32(errors.ErrorLiquidityRestrictions),
+						Error:   sc.U32(errors.ErrorInsufficientBalance),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
 				}

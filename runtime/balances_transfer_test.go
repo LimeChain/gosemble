@@ -121,6 +121,66 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 	assert.Equal(t, expectedAliceAccountInfo, aliceAccountInfo)
 }
 
+func Test_Balances_Transfer_Invalid_InsufficientBalance(t *testing.T) {
+	rt, storage := newTestRuntime(t)
+	runtimeVersion := rt.Version()
+
+	metadata := runtimeMetadata(t, rt)
+
+	bob, err := ctypes.NewMultiAddressFromHexAccountID(
+		"0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22")
+	assert.NoError(t, err)
+
+	transferAmount := big.NewInt(0).SetUint64(constants.Dollar)
+
+	call, err := ctypes.NewCall(metadata, "Balances.transfer", bob, ctypes.NewUCompact(transferAmount))
+	assert.NoError(t, err)
+
+	// Create the extrinsic
+	ext := ctypes.NewExtrinsic(call)
+	o := ctypes.SignatureOptions{
+		BlockHash:          ctypes.Hash(parentHash),
+		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
+		GenesisHash:        ctypes.Hash(parentHash),
+		Nonce:              ctypes.NewUCompactFromUInt(0),
+		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
+		Tip:                ctypes.NewUCompactFromUInt(0),
+		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
+	}
+
+	// Set Account Info
+	balance := big.NewInt(0).Sub(transferAmount, big.NewInt(1))
+	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
+
+	// Sign the transaction using Alice's default account
+	err = ext.Sign(signature.TestKeyringPairAlice, o)
+	assert.NoError(t, err)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = ext.Encode(*encoder)
+	assert.NoError(t, err)
+
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, gossamertypes.NewDigest())
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+
+	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+	expectedResult :=
+		primitives.NewApplyExtrinsicResult(
+			primitives.NewDispatchOutcome(
+				primitives.NewDispatchErrorModule(
+					primitives.CustomModuleError{
+						Index: balances.ModuleIndex,
+						Error: sc.U32(errors.ErrorInsufficientBalance),
+					})))
+
+	assert.Equal(t, expectedResult.Bytes(), res)
+}
+
 func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion := rt.Version()
