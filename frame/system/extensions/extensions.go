@@ -40,11 +40,11 @@ func (e Extra) AdditionalSigned() (ok primitives.AdditionalSigned, err primitive
 	}
 	ok.TransactionVersion = transactionVersion
 
-	genesishash, err := CheckGenesis{}.AdditionalSigned()
+	genesisHash, err := CheckGenesis{}.AdditionalSigned()
 	if err != nil {
 		return ok, err
 	}
-	ok.GenesisHash = genesishash
+	ok.GenesisHash = genesisHash
 
 	blockHash, err := CheckMortality(e.Era).AdditionalSigned()
 	if err != nil {
