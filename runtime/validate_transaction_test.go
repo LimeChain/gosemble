@@ -19,7 +19,9 @@ import (
 
 func Test_ValidateTransaction_Success(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	// Set Account Info balance otherwise tx payment check will fail.
@@ -80,7 +82,9 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 
 func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	digest := gossamertypes.NewDigest()
@@ -132,7 +136,9 @@ func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 
 func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 3)
@@ -195,7 +201,9 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 
 func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, big.NewInt(5), 0)
@@ -261,7 +269,9 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 
 func Test_ValidateTransaction_Era(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
+
 	metadata := runtimeMetadata(t, rt)
 
 	// Set Account info due to check tx payment

@@ -18,7 +18,8 @@ import (
 
 func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 

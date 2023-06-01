@@ -21,7 +21,8 @@ import (
 
 func Test_Balances_Transfer_Success(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 
@@ -123,7 +124,8 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 
 func Test_Balances_Transfer_Invalid_InsufficientBalance(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 
@@ -183,7 +185,8 @@ func Test_Balances_Transfer_Invalid_InsufficientBalance(t *testing.T) {
 
 func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 	rt, storage := newTestRuntime(t)
-	runtimeVersion := rt.Version()
+	runtimeVersion, err := rt.Version()
+	assert.NoError(t, err)
 
 	metadata := runtimeMetadata(t, rt)
 
