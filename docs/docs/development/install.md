@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Install
-permalink: /install/install
+permalink: /development/install
 ---
 
 **Prerequisites**
@@ -9,6 +9,7 @@ permalink: /install/install
 * [Git](https://git-scm.com/downloads)
 * [Go 1.19+](https://golang.org/doc/install)
 * [Docker](https://docs.docker.com/install/)
+* [Rust](https://docs.substrate.io/install/)
 
 Clone the [Gosemble](https://github.com/LimeChain/gosemble.git) repository.
 

@@ -2,6 +2,12 @@
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
+# Install
+
+```bash
+pip install mkdocs mkdocs-material
+```
+
 ## Commands
 
 * `mkdocs new [dir-name]` - Create a new project.

@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Package Library
-permalink: /concepts/package-library
+title: File structure
+permalink: /development/file-structure
 ---
 
 * `build` - the output directory for the compiled Wasm file.
@@ -13,7 +13,7 @@ permalink: /concepts/package-library
 * `primitives` - runtime primitives.
 * `runtime` - runtime entry point and tests.
 * `utils` - utility functions.
-* `tinygo` - submodule for the Tinygo compiler, used for WASM compilation.
+* `tinygo` - submodule for the TinyGo compiler, used for WASM compilation.
 * `goscale` - submodule for the SCALE codec.
 * `gossamer` - submodule for the Gossamer host, used during development and for running tests.
 * `substrate` - submodule for the Substrate host, used for running a network.
