@@ -12,20 +12,20 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/concepts/runtime-architecture/">
+        <link rel="canonical" href="https://limechain.tech/development/build/">
       
       
-        <link rel="prev" href="../toolchain/">
+        <link rel="prev" href="../install/">
       
       
-        <link rel="next" href="../package-library/">
+        <link rel="next" href="../inspect/">
       
       <link rel="icon" href="../../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
-        <title>Runtime Architecture - Gosemble Docs</title>
+        <title>Build - Gosemble Docs</title>
       
     
     
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#webassembly-specification" class="md-skip">
+        <a href="#extalloc-gc" class="md-skip">
           Skip to content
         </a>
       
@@ -117,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Runtime Architecture
+              Build
             
           </span>
         </div>
@@ -237,54 +237,6 @@
         
   
   
-
-
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../install/install/" class="md-tabs__link">
-        Install
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-
-
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../build/build/" class="md-tabs__link">
-        Build
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-
-
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="../../test/unit-test/" class="md-tabs__link">
-        Test
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
     
   
 
@@ -293,8 +245,8 @@
   
   
     <li class="md-tabs__item">
-      <a href="../toolchain/" class="md-tabs__link md-tabs__link--active">
-        Concepts
+      <a href="../install/" class="md-tabs__link md-tabs__link--active">
+        Development
       </a>
     </li>
   
@@ -311,6 +263,22 @@
     <li class="md-tabs__item">
       <a href="../../tutorials/start-a-network/" class="md-tabs__link">
         Tutorials
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../test/unit-test/" class="md-tabs__link">
+        Test
       </a>
     </li>
   
@@ -404,12 +372,20 @@
             
           
         
+          
+        
+          
+        
       
       
         
         
         <div class="md-nav__link md-nav__link--index ">
           <a href="../..">Overview</a>
+          
+            <label for="__nav_1">
+              <span class="md-nav__icon md-icon"></span>
+            </label>
           
         </div>
       
@@ -420,6 +396,34 @@
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../overview/runtime-architecture/" class="md-nav__link">
+        Runtime Architecture
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../overview/toolchain/" class="md-nav__link">
+        Toolchain
+      </a>
+    </li>
+  
+
             
           
         </ul>
@@ -434,30 +438,38 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
+        
+          
+        
+          
+        
+          
         
           
         
       
       
         <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-          Install
+          Development
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
-          Install
+          Development
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -467,8 +479,94 @@
   
   
     <li class="md-nav__item">
-      <a href="../../install/install/" class="md-nav__link">
+      <a href="../install/" class="md-nav__link">
         Install
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Build
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Build
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extalloc-gc" class="md-nav__link">
+    Extalloc GC
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conservative-gc" class="md-nav__link">
+    Conservative GC
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inspect/" class="md-nav__link">
+        Inspect
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-structure/" class="md-nav__link">
+        File structure
       </a>
     </li>
   
@@ -505,14 +603,14 @@
       
       
         <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-          Build
+          Tutorials
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
-          Build
+          Tutorials
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -522,8 +620,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../build/build/" class="md-nav__link">
-        Build
+      <a href="../../tutorials/start-a-network/" class="md-nav__link">
+        Start a Network
       </a>
     </li>
   
@@ -536,8 +634,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../build/inspect/" class="md-nav__link">
-        Inspect
+      <a href="../../tutorials/transfer-funds/" class="md-nav__link">
+        Transfer funds
       </a>
     </li>
   
@@ -625,270 +723,28 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
       
       
-        
-          
-        
-          
         
           
         
       
       
         <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-          Concepts
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_5">
-          <span class="md-nav__icon md-icon"></span>
-          Concepts
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../toolchain/" class="md-nav__link">
-        Toolchain
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-    
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Runtime Architecture
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Runtime Architecture
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#webassembly-specification" class="md-nav__link">
-    WebAssembly specification
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scale-codec" class="md-nav__link">
-    SCALE codec
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#runtime-calls" class="md-nav__link">
-    Runtime calls
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#gc-with-external-memory-allocator" class="md-nav__link">
-    GC with external memory allocator
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stack" class="md-nav__link">
-    Stack
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exported-globals" class="md-nav__link">
-    Exported globals
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#imported-vs-exported-memory" class="md-nav__link">
-    Imported vs exported memory
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#no-concurrency" class="md-nav__link">
-    No concurrency
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../package-library/" class="md-nav__link">
-        Package Library
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-      
-      
-        
-          
-        
-          
-        
-      
-      
-        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-          Tutorials
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_6">
-          <span class="md-nav__icon md-icon"></span>
-          Tutorials
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/start-a-network/" class="md-nav__link">
-        Start a Network
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/connect-to-polkadot-js/" class="md-nav__link">
-        Connect to Polkadot.js
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-      
-      
-        
-          
-        
-      
-      
-        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
           Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_7">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           Reference
         </label>
@@ -932,62 +788,21 @@
   
 
 
-  <h1>Runtime Architecture</h1>
+  <h1>Build</h1>
 
-<p>At the time of writing, the official Go compiler does not support Wasm compatible with the Polkadot/Substrate requirements.
-The proposed solution is based on an alternative Go compiler that aims at supporting Wasm runtimes compatible with <a href="https://spec.polkadot.network/id-polkadot-protocol">Polkadot spec</a> / <a href="https://docs.substrate.io/main-docs/">Substrate</a> that incorporates GC with external memory allocator targeting Wasm MVP.</p>
-<div >
-  <img alt="Host-Runtime Interaction Scheme"  src="../../assets/images/host-runtime-interaction.svg" width="500" />
-</div>
+<p>By utilizing our <a href="../../overview/toolchain">Toolchain</a>, there are currently two options to choose from for the GC
+implementation. Modify the <code>GC</code> environment variable to switch between them.</p>
+<h3 id="extalloc-gc">Extalloc GC<a class="headerlink" href="#extalloc-gc" title="Permanent link">&para;</a></h3>
+<p>It works with the host's external allocator as per specification.</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build
+</code></pre></div>
 
-<h4 id="webassembly-specification">WebAssembly specification<a class="headerlink" href="#webassembly-specification" title="Permanent link">&para;</a></h4>
-<p>It targets <a href="https://github.com/WebAssembly/design/blob/main/MVP.md">WebAssembly MVP</a> without any
-extensions enabled, that offers limited set of features compared to WebAssembly 1.0. Adding on top of that,
-Polkadot/Substrate specifications for the Runtime module define very domain-specific API that consist of:</p>
-<ul>
-<li>imported Host provided functions for dealing with memory, storage, crypto, logging, etc.</li>
-<li>imported Host provided memory.</li>
-<li>exported linker specific globals (<code>__heap_base</code>, <code>__data_end</code>).</li>
-<li>exported <code>__indirect_function_table</code> (WIP and not enabled currently).</li>
-<li>exported business logic API functions (<code>Core_version</code>, <code>Core_execute_block</code>, <code>Core_initialize_block</code>, etc).</li>
-</ul>
-<p>Polkadot is a non-browser environment, but it is not an OS. It doesn't seek to provide access to an operating-system API
-like files, networking, or any other major part of the things provided by WASI (WebAssembly System Interface).</p>
-<h4 id="scale-codec">SCALE codec<a class="headerlink" href="#scale-codec" title="Permanent link">&para;</a></h4>
-<p>Runtime data, coming in the form of byte code, needs to be as light as possible. The SCALE codec provides the capability
-of efficiently encoding and decoding it. Since it is built for little-endian systems, it is compatible with Wasm
-environments.
-The runtime works with custom-defined SCALE types compatible with Tinygo. At the boundary where it interacts with the host (memory, storage), those are converted to ordinary Go types. </p>
-<h4 id="runtime-calls">Runtime calls<a class="headerlink" href="#runtime-calls" title="Permanent link">&para;</a></h4>
-<p>Each function call into the Runtime is done with newly allocated memory (via the shared allocator), either for sharing
-input data or results. Arguments are SCALE encoded into a byte array and copied into this section of the Wasm shared
-memory. Allocations do not persist between calls. It is important to note that the Runtime uses the same Host provided
-allocator for all heap allocations, so the Host is in charge of the Wasm heap memory management. Data passing to the
-Runtime API is always SCALE encoded, Host API calls on the other hand try to avoid all encoding.</p>
-<h4 id="gc-with-external-memory-allocator">GC with external memory allocator<a class="headerlink" href="#gc-with-external-memory-allocator" title="Permanent link">&para;</a></h4>
-<p>According to the Polkadot specification, the Wasm module does not include a memory allocator. It imports memory from the Host and relies on Host imported functions for all heap allocations. Since Go/TinyGo uses GC and manages its memory by itself, contrary to specification, a GC with external memory allocator is implemented in our Tinygo fork to meet the requirements of the Polkadot specification.</p>
-<p>The design in which allocation functions are on the Host side is dictated by the fact that some Host functions might
-return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.</p>
-<p>For example, let's examine the Host function that returns a given storage value. The storage value's size is not known
-upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first
-call the Host function without a buffer, which will return the value's size, and then do the second call passing a
-buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions
-cannot be implemented in such model at all. To solve this problem, it was chosen to place the allocator on the Host
-side. However, this is not the only possible solution, as there is an ongoing discussion about moving the allocator into
-the Wasm: <a href="https://github.com/paritytech/substrate/issues/11883">[1]</a>. Notably, the allocator maintains some of its data
-structures inside the linear memory and some other structures outside.</p>
-<h4 id="stack">Stack<a class="headerlink" href="#stack" title="Permanent link">&para;</a></h4>
-<p>Since WebAssembly has no stack introspection to scan the roots, it requires to use mirrored shadow stack in the linear memory, pushed/popped along with the machine stack, thus making it less efficient. Also the stack placement differs from the one compiled from Substrate/Rust and it is placed before the data section.</p>
-<h4 id="exported-globals">Exported globals<a class="headerlink" href="#exported-globals" title="Permanent link">&para;</a></h4>
-<p>It is expected from the Runtime to export <code>__heap_base</code> global indicating the beginning of the heap. It is used by the
-Host allocator to prevent memory allocations below that address and avoid clashes with the stack and data sections.</p>
-<h4 id="imported-vs-exported-memory">Imported vs exported memory<a class="headerlink" href="#imported-vs-exported-memory" title="Permanent link">&para;</a></h4>
-<p>Imported memory works a little better than exported memory since it avoids some edge cases, although it also has some
-downsides. Working with exported memory is almost certainly still supported and in fact, this is how it worked in the
-beginning. However, the current spec describes that memory should be made available to the Polkadot Runtime for import
-under the symbol name <code>memory</code>.</p>
-<h4 id="no-concurrency">No concurrency<a class="headerlink" href="#no-concurrency" title="Permanent link">&para;</a></h4>
-<p>In Polkadot, parallelism is achieved through Parachains.</p>
+<h3 id="conservative-gc">Conservative GC<a class="headerlink" href="#conservative-gc" title="Permanent link">&para;</a></h3>
+<p>It is used only for <strong>development</strong> and <strong>testing</strong> and works by using a different heap base offset from the allocator's
+one (as a workaround), so the GC can use a separate heap region for its allocations and not interfere with the
+allocator's region.</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">GC</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span><span class="w"> </span>make<span class="w"> </span>build
+</code></pre></div>
 
 
 
@@ -1014,7 +829,7 @@ under the symbol name <code>memory</code>.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../toolchain/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Toolchain" rel="prev">
+          <a href="../install/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Install" rel="prev">
             <div class="md-footer__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
             </div>
@@ -1023,20 +838,20 @@ under the symbol name <code>memory</code>.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Toolchain
+                Install
               </div>
             </div>
           </a>
         
         
           
-          <a href="../package-library/" class="md-footer__link md-footer__link--next" aria-label="Next: Package Library" rel="next">
+          <a href="../inspect/" class="md-footer__link md-footer__link--next" aria-label="Next: Inspect" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Package Library
+                Inspect
               </div>
             </div>
             <div class="md-footer__button md-icon">
