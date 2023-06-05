@@ -46,7 +46,6 @@ Imports:
   Globals:
 Exports:
   Functions:
-    "_start": [] -> []
     "Core_version": [I32, I32] -> [I64]
     "Core_initialize_block": [I32, I32] -> [I64]
     "Core_execute_block": [I32, I32] -> [I64]
