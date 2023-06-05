@@ -46,7 +46,7 @@ func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 }
 
 //go:export BlockBuilder_finalize_block
-func BlockBuilderFinalizeBlock(dataPtr int32, dataLen int32) int64 {
+func BlockBuilderFinalizeBlock(_, _ int32) int64 {
 	return blockbuilder.FinalizeBlock()
 }
 
@@ -66,12 +66,12 @@ func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int
 }
 
 //go:export AuraApi_slot_duration
-func AuraApiSlotDuration(dataPtr int32, dataLen int32) int64 {
+func AuraApiSlotDuration(_, _ int32) int64 {
 	return aura.SlotDuration()
 }
 
 //go:export AuraApi_authorities
-func AuraApiAuthorities(dataPtr int32, dataLen int32) int64 {
+func AuraApiAuthorities(_, _ int32) int64 {
 	return aura.Authorities()
 }
 

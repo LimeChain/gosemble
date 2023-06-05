@@ -47,7 +47,7 @@ theme:
       primary: pink
       accent: indigo
       toggle:
-        icon: material/weather-sunny 
+        icon: material/weather-sunny
         name: Switch to dark mode
     # Palette toggle for dark mode
     - scheme: slate
@@ -63,7 +63,7 @@ theme:
   icon:
     logo: logo
     repo: fontawesome/brands/github
-  
+
 extra_css:
   - stylesheets/extra.css
 
@@ -81,7 +81,7 @@ extra_css:
 # Customization
 extra:
   annotate:
-    json: [.s2]
+    json: [ .s2 ]
   # analytics:
   #   provider: google
   #   property: !ENV GOOGLE_ANALYTICS_KEY
@@ -142,21 +142,19 @@ markdown_extensions:
 # Page tree
 nav:
   - Overview:
-    - Gosemble Overview: ./index.md
-  - Install: 
-    - Install: ./install/install.md
-  - Build: 
-    - Build: ./build/build.md
-    - Inspect: ./build/inspect.md
-  - Test: 
-    - Unit Test: ./test/unit-test.md
-    - Debug: ./test/debug.md
-  - Concepts:
-    - Toolchain: ./concepts/toolchain.md
-    - Runtime Architecture: ./concepts/runtime-architecture.md
-    - Package Library: ./concepts/package-library.md
+      - Overview: ./index.md
+      - Runtime Architecture: ./overview/runtime-architecture.md
+      - Toolchain: ./overview/toolchain.md
+  - Development:
+      - Install: ./development/install.md
+      - Build: ./development/build.md
+      - Inspect: ./development/inspect.md
+      - File structure: ./development/file-structure.md
   - Tutorials:
-    - Start a Network: ./tutorials/start-a-network.md
-    - Connect to Polkadot.js: ./tutorials/connect-to-polkadot-js.md
+      - Start a Network: ./tutorials/start-a-network.md
+      - Transfer funds: ./tutorials/transfer-funds.md
+  - Test:
+      - Unit Test: ./test/unit-test.md
+      - Debug: ./test/debug.md
   - Reference:
-    - Resources: ./reference/resources.md
+      - Resources: ./reference/resources.md
