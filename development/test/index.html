@@ -12,20 +12,20 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/test/unit-test/">
+        <link rel="canonical" href="https://limechain.tech/development/test/">
       
       
-        <link rel="prev" href="../../tutorials/transfer-funds/">
+        <link rel="prev" href="../file-structure/">
       
       
-        <link rel="next" href="../debug/">
+        <link rel="next" href="../../tutorials/start-a-network/">
       
       <link rel="icon" href="../../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
-        <title>Unit Test - Gosemble Docs</title>
+        <title>Testing - Gosemble Docs</title>
       
     
     
@@ -78,6 +78,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#debug" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -112,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Unit Test
+              Testing
             
           </span>
         </div>
@@ -232,13 +237,15 @@
         
   
   
+    
+  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="../../development/install/" class="md-tabs__link">
+      <a href="../install/" class="md-tabs__link md-tabs__link--active">
         Development
       </a>
     </li>
@@ -256,24 +263,6 @@
     <li class="md-tabs__item">
       <a href="../../tutorials/start-a-network/" class="md-tabs__link">
         Tutorials
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-    
-  
-
-
-  
-  
-  
-    <li class="md-tabs__item">
-      <a href="./" class="md-tabs__link md-tabs__link--active">
-        Test
       </a>
     </li>
   
@@ -449,16 +438,20 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
+        
+          
         
           
         
@@ -475,7 +468,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Development
@@ -488,7 +481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/install/" class="md-nav__link">
+      <a href="../install/" class="md-nav__link">
         Install
       </a>
     </li>
@@ -502,7 +495,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/build/" class="md-nav__link">
+      <a href="../build/" class="md-nav__link">
         Build
       </a>
     </li>
@@ -516,7 +509,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/inspect/" class="md-nav__link">
+      <a href="../inspect/" class="md-nav__link">
         Inspect
       </a>
     </li>
@@ -530,9 +523,60 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/file-structure/" class="md-nav__link">
+      <a href="../file-structure/" class="md-nav__link">
         File structure
       </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Testing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Testing
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#debug" class="md-nav__link">
+    Debug
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -619,85 +663,6 @@
 
   
   
-    
-  
-  
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
-      
-      
-        
-          
-        
-          
-        
-      
-      
-        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
-          Test
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_4">
-          <span class="md-nav__icon md-icon"></span>
-          Test
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-    
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Unit Test
-      </a>
-      
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../debug/" class="md-nav__link">
-        Debug
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
   
     
     <li class="md-nav__item md-nav__item--nested">
@@ -705,7 +670,7 @@
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
       
       
         
@@ -713,13 +678,13 @@
         
       
       
-        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
           Reference
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_5">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Reference
         </label>
@@ -763,16 +728,25 @@
   
 
 
-  <h1>Unit Test</h1>
+  <h1>Testing</h1>
 
-<p>After the Runtime is built, execute the tests with the help of <a href="https://github.com/LimeChain/gossamer">Gossamer</a>, which
-is used to import necessary Polkadot Host functionality and interact with the Runtime.</p>
+<p>Currently, the project contains unit and integration tests. Integration tests use <a href="https://github.com/LimeChain/gossamer">Gossamer</a>, which
+imports all the necessary Host functions and interacts with the Runtime.</p>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span><span class="nb">test</span>
 </code></pre></div>
 
 <p>or</p>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>test_unit
 make<span class="w"> </span>test_integration
+</code></pre></div>
+
+<h3 id="debug">Debug<a class="headerlink" href="#debug" title="Permanent link">&para;</a></h3>
+<p>To aid the debugging process, there is a set of imported functions that can be called within the Runtime to log messages.</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">Critical</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="c1">// logs and aborts the execution</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Warn</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Info</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Debug</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Trace</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -800,7 +774,7 @@ make<span class="w"> </span>test_integration
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../tutorials/transfer-funds/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transfer funds" rel="prev">
+          <a href="../file-structure/" class="md-footer__link md-footer__link--prev" aria-label="Previous: File structure" rel="prev">
             <div class="md-footer__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
             </div>
@@ -809,20 +783,20 @@ make<span class="w"> </span>test_integration
                 Previous
               </span>
               <div class="md-ellipsis">
-                Transfer funds
+                File structure
               </div>
             </div>
           </a>
         
         
           
-          <a href="../debug/" class="md-footer__link md-footer__link--next" aria-label="Next: Debug" rel="next">
+          <a href="../../tutorials/start-a-network/" class="md-footer__link md-footer__link--next" aria-label="Next: Start a Network" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Debug
+                Start a Network
               </div>
             </div>
             <div class="md-footer__button md-icon">
