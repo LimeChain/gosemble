@@ -151,11 +151,9 @@ nav:
       - Build: ./development/build.md
       - Inspect: ./development/inspect.md
       - File structure: ./development/file-structure.md
+      - Testing: ./development/test.md
   - Tutorials:
       - Start a Network: ./tutorials/start-a-network.md
       - Transfer funds: ./tutorials/transfer-funds.md
-  - Test:
-      - Unit Test: ./test/unit-test.md
-      - Debug: ./test/debug.md
   - Reference:
       - Resources: ./reference/resources.md
