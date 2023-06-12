@@ -80,6 +80,4 @@ under the symbol name `memory`.
 
 #### No concurrency
 
-In Polkadot, parallelism is achieved through Parachains.
-
-
+In Polkadot, concurrency is achieved through Parachains.
