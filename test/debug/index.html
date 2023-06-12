@@ -371,6 +371,8 @@
         
           
         
+          
+        
       
       
         
@@ -415,6 +417,20 @@
     <li class="md-nav__item">
       <a href="../../overview/toolchain/" class="md-nav__link">
         Toolchain
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../overview/modules/" class="md-nav__link">
+        Modules
       </a>
     </li>
   
@@ -749,7 +765,13 @@
 
   <h1>Debug</h1>
 
-<p>(TODO) showcase the logging capabilities of the runtime, and how to use them to debug the runtime execution.</p>
+<p>To aid the debugging process, there is a set of imported functions that can be called within the Runtime to log any message via the Host.</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">Critical</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="c1">// logs and aborts the execution</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Warn</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Info</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Debug</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">Trace</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+</code></pre></div>
 
 
 
