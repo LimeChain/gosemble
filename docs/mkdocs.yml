@@ -145,6 +145,7 @@ nav:
       - Overview: ./index.md
       - Runtime Architecture: ./overview/runtime-architecture.md
       - Toolchain: ./overview/toolchain.md
+      - Modules: ./overview/modules.md
   - Development:
       - Install: ./development/install.md
       - Build: ./development/build.md
