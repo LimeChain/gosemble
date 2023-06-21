@@ -28,27 +28,20 @@ cd gosemble
 git submodule update --init --recursive
 ```
 
-#### Build a Runtime
+#### Build
 
-Using our [fork of TinyGo](https://github.com/LimeChain/tinygo), there are currently two options to choose from for the
-GC implementation. Modify the `GC` environment variable to switch between them.
-
-##### Extalloc GC
-
-It works with the host's external allocator as per specification.
+To build a runtime, execute: 
 
 ```bash
 make build
 ```
 
-##### Conservative GC
+#### Start a local network
 
-It is used only for **development** and **testing** and works by using a different heap base offset from the allocator's
-one (as a workaround), so the GC can use a separate heap region for its allocations and not interfere with the
-allocator's region.
+After the runtime is built, start a local network using Substrate host:
 
 ```bash
-GC="conservative" make build
+make start-network
 ```
 
 #### Run Tests
@@ -59,12 +52,4 @@ is used to import necessary Polkadot Host functionality and interact with the Ru
 ```bash
 make test_unit
 make test_integration
-```
-
-#### Start a local network
-
-Once you build the runtime wasm blob, you can start a local network using Substrate as a host.
-
-```bash
-make start-network
 ```
