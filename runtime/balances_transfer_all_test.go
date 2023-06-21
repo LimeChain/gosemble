@@ -47,7 +47,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	// Set Account Info
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, e)
-	estimatedFee := big.NewInt(410657000)
+	estimatedFee := big.NewInt(270_657_140)
 
 	keyStorageAccountAlice, aliceAccountInfo := setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 

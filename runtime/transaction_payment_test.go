@@ -60,7 +60,7 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	expectedRdi := primitives.RuntimeDispatchInfo{
 		Weight:     primitives.WeightFromParts(2_091_000, 0),
 		Class:      primitives.NewDispatchClassNormal(),
-		PartialFee: sc.NewU128FromUint64(219_627_000),
+		PartialFee: sc.NewU128FromUint64(112_627_107),
 	}
 
 	assert.Equal(t, expectedRdi, rdi)
@@ -146,7 +146,7 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 		InclusionFee: sc.NewOption[primitives.InclusionFee](
 			primitives.NewInclusionFee(
 				sc.NewU128FromUint64(110_536_000),
-				sc.NewU128FromUint64(107_000_000),
+				sc.NewU128FromUint64(107),
 				sc.NewU128FromUint64(2_091_000),
 			)),
 	}
@@ -213,7 +213,7 @@ func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 	expectedRdi := primitives.RuntimeDispatchInfo{
 		Weight:     primitives.WeightFromParts(2_091_000, 0),
 		Class:      primitives.NewDispatchClassNormal(),
-		PartialFee: sc.NewU128FromUint64(115_627_000),
+		PartialFee: sc.NewU128FromUint64(112_627_003),
 	}
 
 	assert.Equal(t, expectedRdi, rdi)
@@ -248,7 +248,7 @@ func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
 		InclusionFee: sc.NewOption[primitives.InclusionFee](
 			primitives.NewInclusionFee(
 				sc.NewU128FromUint64(110_536_000),
-				sc.NewU128FromUint64(3_000_000),
+				sc.NewU128FromUint64(3),
 				sc.NewU128FromUint64(2_091_000),
 			)),
 	}
