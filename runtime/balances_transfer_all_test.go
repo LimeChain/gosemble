@@ -47,7 +47,6 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	// Set Account Info
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, e)
-	fee := big.NewInt(1)
 	estimatedFee := big.NewInt(410657000)
 
 	keyStorageAccountAlice, aliceAccountInfo := setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
@@ -107,7 +106,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0).Sub(estimatedFee, fee)),
+			Free:       scale.MustNewUint128(estimatedFee),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

@@ -28,7 +28,6 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	transferAmount := big.NewInt(0).SetUint64(constants.Dollar)
-	fee := big.NewInt(1)
 
 	call, err := ctypes.NewCall(metadata, "Balances.transfer_keep_alive", bob, ctypes.NewUCompact(transferAmount))
 	assert.NoError(t, err)
@@ -107,7 +106,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, big.NewInt(0).Add(transferAmount, fee))),
+			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, transferAmount)),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

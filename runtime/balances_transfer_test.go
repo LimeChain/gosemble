@@ -50,7 +50,6 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 	// Set Account Info
 	balance, e := big.NewInt(0).SetString("500000000000000", 10)
 	assert.True(t, e)
-	fee := big.NewInt(1)
 
 	keyStorageAccountAlice, aliceAccountInfo := setStorageAccountInfo(t, storage, signature.TestKeyringPairAlice.PublicKey, balance, 0)
 
@@ -109,7 +108,7 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, big.NewInt(0).Add(transferAmount, fee))),
+			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, transferAmount)),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

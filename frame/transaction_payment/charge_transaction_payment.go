@@ -42,7 +42,7 @@ func (ctp ChargeTransactionPayment) PreDispatch(who *primitives.Address32, call 
 func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) (primitives.Pre, primitives.TransactionValidityError) {
 	if pre.HasValue {
 		preValue := pre.Value
-		actualFee := computeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, sc.NewU128FromUint64(1))
+		actualFee := computeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, preValue.Tip)
 		err := correctAndDepositFee(&preValue.Who, actualFee, preValue.Tip, preValue.Imbalance)
 		if err != nil {
 			return primitives.Pre{}, err
