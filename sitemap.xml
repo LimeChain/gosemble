@@ -2,62 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://limechain.tech/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/development/build/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/development/file-structure/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/development/inspect/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/development/install/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/development/test/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/overview/modules/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/overview/runtime-architecture/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/overview/toolchain/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/reference/resources/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/tutorials/start-a-network/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://limechain.tech/tutorials/transfer-funds/</loc>
-         <lastmod>2023-06-12</lastmod>
+         <lastmod>2023-06-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
