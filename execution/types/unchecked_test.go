@@ -68,7 +68,7 @@ func Test_EncodeUncheckedExtrinsic_Signed(t *testing.T) {
 	extra := types.SignedExtra{
 		Era:   types.NewImmortalEra(),
 		Nonce: 0,
-		Fee:   0,
+		Fee:   sc.NewU128FromUint64(0),
 	}
 
 	var testExamples = []struct {
@@ -102,7 +102,7 @@ func Test_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 	extra := types.SignedExtra{
 		Era:   types.NewImmortalEra(),
 		Nonce: 0,
-		Fee:   0,
+		Fee:   sc.NewU128FromUint64(0),
 	}
 
 	var testExamples = []struct {

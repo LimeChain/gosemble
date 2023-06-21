@@ -24,7 +24,7 @@ func (e CheckMortality) AdditionalSigned() (ok primitives.H256, err primitives.T
 type CheckMortality primitives.Era
 
 func (e CheckMortality) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
-	currentU64 := sc.U64(system.StorageGetBlockNumber()) // TDOO: per module implementation
+	currentU64 := sc.U64(system.StorageGetBlockNumber()) // TODO: per module implementation
 
 	validTill := primitives.Era(e).Death(currentU64)
 

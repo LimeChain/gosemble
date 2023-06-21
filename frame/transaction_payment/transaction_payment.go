@@ -101,6 +101,14 @@ func computeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.
 	return computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
+func computeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+	return computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
+}
+
+func computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+	return computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
+}
+
 func computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := weightToFee(weight)
