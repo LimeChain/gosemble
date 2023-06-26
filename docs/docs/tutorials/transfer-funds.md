@@ -70,9 +70,11 @@ After you have [started the local network](./start-a-network.md), let's make a t
 
     ![Transaction receipt](../assets/images/tutorials/polkadot-js-transfer-inspect.png)
 
-    There are 3 events related to the transfer:
+    There are 5 events related to the transfer:
 
-    * First, the network has to create Charlie's account, because his balance was 0 before the transfer.
-    * Second, the actual transfer from Alice to Charlie.
-    * Last but not least, an event that showcases the transfer 
+    * First, the deposit event, which locks the fee to be paid.
+    * Second, the network has to create Charlie's account, because his balance was 0 before the transfer.
+    * Third, the actual transfer from Alice to Charlie.
+    * Fourth, the actual fee paid for the transaction.
+    * Last but not least, an event that showcases the transfer.
     [transaction](https://wiki.polkadot.network/docs/learn-extrinsics) has been successful.
