@@ -54,7 +54,7 @@ func (pdi PostDispatchInfo) Pays(info *DispatchInfo) Pays {
 	// This is because the pre dispatch information must contain the
 	// worst case for weight and fees paid.
 
-	if info.PaysFee[0] == PaysYes || pdi.PaysFee == PaysNo {
+	if info.PaysFee[0] == PaysNo || pdi.PaysFee == PaysNo {
 		return NewPaysNo()
 	} else {
 		// Otherwise they pay.

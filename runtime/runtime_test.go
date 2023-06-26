@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"math/big"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
@@ -117,4 +119,19 @@ func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byt
 	assert.NoError(t, err)
 
 	return keyStorageAccount, accountInfo
+}
+
+func getQueryInfo(t *testing.T, runtime *wasmer.Instance, extrinsic []byte) primitives.RuntimeDispatchInfo {
+	buffer := &bytes.Buffer{}
+
+	buffer.Write(extrinsic)
+	sc.U32(buffer.Len()).Encode(buffer)
+
+	bytesRuntimeDispatchInfo, err := runtime.Exec("TransactionPaymentApi_query_info", buffer.Bytes())
+	assert.NoError(t, err)
+
+	buffer.Reset()
+	buffer.Write(bytesRuntimeDispatchInfo)
+
+	return primitives.DecodeRuntimeDispatchInfo(buffer)
 }
