@@ -50,7 +50,7 @@ func (tpm TransactionPaymentModule) Metadata() (sc.Sequence[primitives.MetadataT
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
 				sc.ToCompact(metadata.PrimitiveTypesU8),
-				sc.BytesToSequenceU8(sc.U8(5).Bytes()),
+				sc.BytesToSequenceU8(transaction_payment.OperationalFeeMultiplier.Bytes()),
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},

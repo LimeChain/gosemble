@@ -78,7 +78,6 @@ var DbWeight types.RuntimeDbWeight = types.RuntimeDbWeight{
 	Write: 100_000 * WeightRefTimePerNanos,
 }
 
-var TransactionByteFee = sc.NewU128FromUint64(10 * MilliCents)
-
 var WeightToFee types.WeightToFee = types.IdentityFee{}
-var LengthToFee types.WeightToFee = types.NewConstantMultiplier(TransactionByteFee)
+var LengthToFee types.WeightToFee = types.IdentityFee{}
+var FeeMultiplierUpdate types.WeightToFee = types.NewConstantMultiplier(sc.NewU128FromUint64(1))

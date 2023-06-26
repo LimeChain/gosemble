@@ -69,6 +69,8 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
+	queryInfo := getQueryInfo(t, rt, extEnc.Bytes())
+
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 	assert.Equal(t,
@@ -102,13 +104,17 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 
 	assert.Equal(t, expectedBobAccountInfo, bobAccountInfo)
 
+	expectedAliceFreeBalance := big.NewInt(0).Sub(
+		balance,
+		big.NewInt(0).
+			Add(transferAmount, queryInfo.PartialFee.ToBigInt()))
 	expectedAliceAccountInfo := gossamertypes.AccountInfo{
 		Nonce:       1,
 		Consumers:   0,
 		Producers:   0,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, transferAmount)),
+			Free:       scale.MustNewUint128(expectedAliceFreeBalance),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),

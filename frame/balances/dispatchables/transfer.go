@@ -227,8 +227,10 @@ func tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool b
 
 	r := result.Value.(sc.VaryingData)
 
-	dustCleaner := r[1].(DustCleanerValue)
-	dustCleaner.Drop()
+	// TODO: Convert this to an Option and uncomment it.
+	// Check Substrate implementation for reference.
+	//dustCleaner := r[1].(DustCleanerValue)
+	//dustCleaner.Drop()
 
 	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Encodable)}
 }

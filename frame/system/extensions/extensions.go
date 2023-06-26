@@ -2,6 +2,7 @@ package system
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -87,7 +88,11 @@ func (e Extra) Validate(who *primitives.Address32, call *primitives.Call, info *
 	}
 	valid = valid.CombineWith(ok)
 
-	// TODO: ChargeAssetTxPayment<Runtime>
+	ok, err = transaction_payment.ChargeTransactionPayment(e.Fee).Validate(who, call, info, length)
+	if err != nil {
+		return ok, err
+	}
+	valid = valid.CombineWith(ok)
 
 	return valid, err
 }
@@ -132,9 +137,12 @@ func (e Extra) PreDispatch(who *primitives.Address32, call *primitives.Call, inf
 		return ok, err
 	}
 
-	// TODO: ChargeAssetTxPayment<Runtime>
+	pre, err := transaction_payment.ChargeTransactionPayment(e.Fee).PreDispatch(who, call, info, length)
+	if err != nil {
+		return ok, err
+	}
 
-	return ok, err
+	return pre, nil
 }
 
 func (e Extra) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
@@ -142,7 +150,13 @@ func (e Extra) PreDispatchUnsigned(call *primitives.Call, info *primitives.Dispa
 	return ok, err
 }
 
-func (e Extra) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) (ok primitives.Pre, err primitives.TransactionValidityError) {
-	_, err = CheckWeight{}.PostDispatch(pre, info, postInfo, length, result)
-	return ok, err
+func (e Extra) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) (primitives.Pre, primitives.TransactionValidityError) {
+	_, err := CheckWeight{}.PostDispatch(pre, info, postInfo, length, result)
+
+	_, err = transaction_payment.ChargeTransactionPayment(e.Fee).PostDispatch(pre, info, postInfo, length, result)
+	if err != nil {
+		return primitives.Pre{}, err
+	}
+
+	return primitives.Pre{}, err
 }

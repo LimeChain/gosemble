@@ -101,13 +101,22 @@ func computeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.
 	return computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
+func computeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+	return computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
+}
+
+func computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+	return computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
+}
+
 func computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := weightToFee(weight)
 		multiplier := storageNextFeeMultiplier()
 
+		fixedU128Div := big.NewInt(1_000_000_000_000_000_000)
 		bnAdjustedWeightFee := new(big.Int).Mul(multiplier.ToBigInt(), unadjustedWeightFee.ToBigInt())
-		adjustedWeightFee := sc.NewU128FromBigInt(bnAdjustedWeightFee)
+		adjustedWeightFee := sc.NewU128FromBigInt(new(big.Int).Div(bnAdjustedWeightFee, fixedU128Div)) // TODO: Create FixedU128 type
 
 		lenFee := lengthToFee(len)
 		baseFee := weightToFee(system.DefaultBlockWeights().Get(class).BaseExtrinsic)
@@ -137,6 +146,10 @@ func weightToFee(weight primitives.Weight) primitives.Balance {
 }
 
 func storageNextFeeMultiplier() sc.U128 {
+	// Storage value is FixedU128, which is different from U128.
+	// It implements a decimal fixed point number, which is `1 / VALUE`
+	// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
+	// FixedU64, VALUE is 1_000_000_000.
 	txPaymentHash := hashing.Twox128(constants.KeyTransactionPayment)
 	nextFeeMultiplierHash := hashing.Twox128(constants.KeyNextFeeMultiplier)
 	key := append(txPaymentHash, nextFeeMultiplierHash...)

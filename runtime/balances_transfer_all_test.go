@@ -66,6 +66,8 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
+	queryInfo := getQueryInfo(t, rt, extEnc.Bytes())
+
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 	assert.Equal(t,
@@ -85,7 +87,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(balance),
+			Free:       scale.MustNewUint128(big.NewInt(0).Sub(balance, queryInfo.PartialFee.ToBigInt())),
 			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
