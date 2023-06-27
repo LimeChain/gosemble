@@ -111,6 +111,10 @@ func (_ SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData
 	}
 }
 
+// setBalance sets the balance of a given account.
+// Changes free and reserve balance of `who`,
+// including the total issuance.
+// Can only be called by ROOT.
 func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()

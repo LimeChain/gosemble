@@ -12,6 +12,8 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
+// If `value` is 0, it does nothing.
 func DepositIntoExisting(who types.Address32, value sc.U128) (types.Balance, types.DispatchError) {
 	if value.ToBigInt().Cmp(constants.Zero) == 0 {
 		return sc.NewU128FromUint64(uint64(0)), nil

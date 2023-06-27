@@ -106,7 +106,7 @@ func ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, p
 	return primitives.NewDispatchOutcome(nil), nil
 }
 
-// Check a given signed transaction for validity. This doesn't execute any
+// ValidateTransaction checks a given signed transaction for validity. This doesn't execute any
 // side-effects; it merely checks whether the transaction would panic if it were included or
 // not.
 //

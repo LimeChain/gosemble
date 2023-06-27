@@ -1,6 +1,3 @@
-/*
-Core - Version 3.
-*/
 package core
 
 import (
@@ -19,31 +16,21 @@ type Core interface {
 	InitializeBlock(dataPtr int32, dataLen int32)
 }
 
-/*
-https://spec.polkadot.network/#defn-rt-core-version
-
-SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded (version types.VersionData) data.
-*/
-func Version(dataPtr int32, dataLen int32) int64 {
+// Version returns a pointer-size SCALE-encoded Runtime version.
+// [Specification](https://spec.polkadot.network/#defn-rt-core-version)
+func Version() int64 {
 	buffer := &bytes.Buffer{}
 	constants.RuntimeVersion.Encode(buffer)
-	// TODO: retain the pointer to the scaleEncVersion
-	// utils.Retain(scaleEncVersion)
+
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
-/*
-https://spec.polkadot.network/#sect-rte-core-initialize-block
-
-SCALE encoded arguments (header *types.Header) allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-*/
+// InitializeBlock starts the execution of a particular block.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded header of the block.
+// [Specification](https://spec.polkadot.network/#sect-rte-core-initialize-block)
 func InitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
@@ -52,14 +39,12 @@ func InitializeBlock(dataPtr int32, dataLen int32) {
 	executive.InitializeBlock(header)
 }
 
-/*
-https://spec.polkadot.network/#sect-rte-core-execute-block
-
-SCALE encoded arguments (block types.Block) allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-*/
+// ExecuteBlock executes the provided block.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded block.
+// [Specification](https://spec.polkadot.network/#sect-rte-core-execute-block)
 func ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)

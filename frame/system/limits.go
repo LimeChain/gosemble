@@ -34,7 +34,7 @@ func DefaultBlockLength() BlockLength {
 	// return MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.DefaultNormalRatio)
 }
 
-// Create new `BlockLength` with `max` for `Operational` & `Mandatory`
+// MaxWithNormalRatio Create new `BlockLength` with `max` for `Operational` & `Mandatory`
 // and `normal * max` for `Normal`.
 func MaxWithNormalRatio(max sc.U32, normal types.Perbill) BlockLength {
 	return BlockLength{
@@ -46,7 +46,7 @@ func MaxWithNormalRatio(max sc.U32, normal types.Perbill) BlockLength {
 	}
 }
 
-// / `DispatchClass`-specific weight configuration.
+// WeightsPerClass `DispatchClass`-specific weight configuration.
 type WeightsPerClass struct {
 	// Base weight of single extrinsic of given class.
 	BaseExtrinsic types.Weight
@@ -136,7 +136,7 @@ func (bw BlockWeights) Get(class types.DispatchClass) *WeightsPerClass {
 	panic("unreachable")
 }
 
-// Create a sensible default weights system given only expected maximal block weight and the
+// WithSensibleDefaults Create a sensible default weights system given only expected maximal block weight and the
 // ratio that `Normal` extrinsics should occupy.
 //
 // Assumptions:
@@ -212,7 +212,7 @@ func (b *BlockWeightsBuilder) BaseBlock(baseBlock types.Weight) *BlockWeightsBui
 	return b
 }
 
-// Set parameters for particular class.
+// ForClass Set parameters for particular class.
 //
 // Note: `None` values of `max_extrinsic` will be overwritten in `build` in case
 // `avg_block_initialization` rate is set to a non-zero value.
@@ -223,7 +223,7 @@ func (b *BlockWeightsBuilder) ForClass(classes []types.DispatchClass, action fun
 	return b
 }
 
-// Average block initial ization weight cost.
+// AvgBlockInitialization Average block initial ization weight cost.
 //
 // This value is used to derive maximal allowed extrinsic weight for each
 // class, based on the allowance.

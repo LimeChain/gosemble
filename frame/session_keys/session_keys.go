@@ -2,6 +2,7 @@ package session_keys
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/grandpa"
@@ -10,6 +11,14 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+// GenerateSessionKeys generates a set of session keys with an optional seed.
+// The keys should be stored within the keystore exposed by the Host Api.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded optional seed.
+// Returns a pointer-size of the SCALE-encoded set of keys.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_generate_session_keys)
 func GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -24,6 +33,13 @@ func GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(res.Bytes())
 }
 
+// DecodeSessionKeys decodes the given session keys.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded keys.
+// Returns a pointer-size of the SCALE-encoded set of raw keys and their respective key type.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_decode_session_keys)
 func DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)

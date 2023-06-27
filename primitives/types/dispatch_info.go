@@ -6,7 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// A bundle of static information collected from the `#[pallet::weight]` attributes.
+// DispatchInfo A bundle of static information collected from the `#[pallet::weight]` attributes.
 type DispatchInfo struct {
 	// Weight of this transaction.
 	Weight Weight
@@ -36,7 +36,7 @@ func (di DispatchInfo) Bytes() []byte {
 	return sc.EncodedBytes(di)
 }
 
-// Extract the actual weight from a dispatch result if any or fall back to the default weight.
+// ExtractActualWeight Extract the actual weight from a dispatch result if any or fall back to the default weight.
 func ExtractActualWeight(result *DispatchResultWithPostInfo[PostDispatchInfo], info *DispatchInfo) Weight {
 	var pdi PostDispatchInfo
 	if result.HasError {
@@ -48,7 +48,7 @@ func ExtractActualWeight(result *DispatchResultWithPostInfo[PostDispatchInfo], i
 	return pdi.CalcActualWeight(info)
 }
 
-// Extract the actual pays_fee from a dispatch result if any or fall back to the default weight.
+// ExtractActualPaysFee Extract the actual pays_fee from a dispatch result if any or fall back to the default weight.
 func ExtractActualPaysFee(result *DispatchResultWithPostInfo[PostDispatchInfo], info *DispatchInfo) Pays {
 	var pdi PostDispatchInfo
 	if result.HasError {

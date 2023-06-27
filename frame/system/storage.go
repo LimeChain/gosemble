@@ -8,7 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-// The current block number being processed. Set by `execute_block`.
+// StorageGetBlockNumber returns the current block number being processed. Set by `execute_block`.
 func StorageGetBlockNumber() types.BlockNumber {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	numberHash := hashing.Twox128(constants.KeyNumber)
@@ -21,7 +21,7 @@ func StorageSetBlockNumber(number types.BlockNumber) {
 	storage.Set(append(systemHash, numberHash...), number.Bytes())
 }
 
-// Total length (in bytes) for all extrinsics put together, for the current block.
+// StorageGetAllExtrinsicsLen returns the total length (in bytes) for all extrinsics put together, for the current block.
 func StorageGetAllExtrinsicsLen() sc.U32 {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
@@ -197,7 +197,7 @@ func StorageClearBlockWeight() {
 	storage.Clear(append(systemHash, blockWeightHash...))
 }
 
-// Gets the index of extrinsic that is currently executing.
+// StorageGetExtrinsicIndex returns the index of extrinsic that is currently executing.
 func StorageGetExtrinsicIndex(clear sc.Bool) sc.U32 {
 	if clear {
 		return storage.TakeDecode(constants.KeyExtrinsicIndex, sc.DecodeU32)

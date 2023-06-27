@@ -35,7 +35,7 @@ var NormalDispatchRatio types.Perbill = types.Perbill{Percentage: 75}
 // `BlockWeight` and `BlockLength`. The `Default` impls are provided mostly for convenience
 // to use in tests.
 
-// Time to execute a NO-OP extrinsic, for example `System::remark`.
+// ExtrinsicBaseWeight is the time to execute a NO-OP extrinsic, for example `System::remark`.
 // Calculated by multiplying the *Average* with `1.0` and adding `0`.
 //
 // Stats nanoseconds:
@@ -69,10 +69,10 @@ var ExtrinsicBaseWeight types.Weight = types.WeightFromParts(WeightRefTimePerNan
 //	75th: 414_170
 var BlockExecutionWeight types.Weight = types.WeightFromParts(WeightRefTimePerNanos.SaturatingMul(412_772), 0)
 
-// We allow for 2 seconds of compute with a 6 second average block time, with maximum proof size.
+// MaximumBlockWeight is the maximum weight 2 seconds of compute with a 6 second average block time, with maximum proof size.
 var MaximumBlockWeight types.Weight = types.WeightFromParts(WeightRefTimePerSecond.SaturatingMul(2), math.MaxUint64)
 
-// this will be the weight used throughout the runtime.
+// DbWeight for RocksDB, used throughout the runtime.
 var DbWeight types.RuntimeDbWeight = types.RuntimeDbWeight{
 	Read:  25_000 * WeightRefTimePerNanos,
 	Write: 100_000 * WeightRefTimePerNanos,

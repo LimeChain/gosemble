@@ -2,6 +2,7 @@ package grandpa
 
 import (
 	"fmt"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/grandpa"
@@ -11,6 +12,9 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+// Authorities returns the current set of authorities, including their respective weights.
+// Returns a pointer-size of the SCALE-encoded set of authorities with their weights.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-grandpa-auth)
 func Authorities() int64 {
 	versionedAuthorityList := storage.GetDecode(constants.KeyGrandpaAuthorities, types.DecodeVersionedAuthorityList)
 

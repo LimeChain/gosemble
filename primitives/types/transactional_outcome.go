@@ -11,7 +11,7 @@ const (
 	TransactionOutcomeRollback
 )
 
-// Describes on what should happen with a storage transaction.
+// TransactionOutcome Describes on what should happen with a storage transaction.
 type TransactionOutcome = sc.VaryingData
 
 func NewTransactionOutcomeCommit(res sc.Encodable) TransactionOutcome {

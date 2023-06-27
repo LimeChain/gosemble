@@ -22,8 +22,8 @@ import (
 func main() {}
 
 //go:export Core_version
-func CoreVersion(dataPtr int32, dataLen int32) int64 {
-	return core.Version(dataPtr, dataLen)
+func CoreVersion(_ int32, _ int32) int64 {
+	return core.Version()
 }
 
 //go:export Core_initialize_block
@@ -52,7 +52,7 @@ func BlockBuilderFinalizeBlock(_, _ int32) int64 {
 
 //go:export BlockBuilder_inherent_extrinsics
 func BlockBuilderInherentExtrinsics(dataPtr int32, dataLen int32) int64 {
-	return blockbuilder.InherentExtrinisics(dataPtr, dataLen)
+	return blockbuilder.InherentExtrinsics(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_check_inherents

@@ -13,7 +13,7 @@ type Validatable interface {
 	Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError)
 }
 
-// Provide validation for unsigned extrinsics.
+// UnsignedValidator provides validation for unsigned extrinsics.
 //
 // This trait provides two functions [`pre_dispatch`](Self::pre_dispatch) and
 // [`validate_unsigned`](Self::validate_unsigned). The [`pre_dispatch`](Self::pre_dispatch)
@@ -21,10 +21,7 @@ type Validatable interface {
 // [`validate_unsigned`](Self::validate_unsigned) function is mainly being used in the context of
 // the transaction pool to check the validity of the call wrapped by an unsigned extrinsic.
 type UnsignedValidator interface {
-	// The call to validate
-	// type Call
-
-	// Validate the call right before dispatch.
+	// PreDispatch validates the call right before dispatch.
 	//
 	// This method should be used to prevent transactions already in the pool
 	// (i.e. passing [`validate_unsigned`](Self::validate_unsigned)) from being included in blocks
@@ -38,7 +35,7 @@ type UnsignedValidator interface {
 	// Changes made to storage *WILL* be persisted if the call returns `Ok`.
 	PreDispatch(call *primitives.Call) (ok sc.Empty, err primitives.TransactionValidityError)
 
-	// Return the validity of the call
+	// ValidateUnsigned returns the validity of the call
 	//
 	// This method has no side-effects. It merely checks whether the call would be rejected
 	// by the runtime in an unsigned extrinsic.

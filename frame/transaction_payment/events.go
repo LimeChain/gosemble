@@ -9,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// TransactionPayment module events.
 const (
 	EventTransactionFeePaid sc.U8 = iota
 )

@@ -6,8 +6,8 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// implements SignedExtension
-// Extra data, E, is a tuple containing additional meta data about the extrinsic and the system it is meant to be executed in.
+// SignedExtra implements SignedExtension
+// Extra data, E, is a tuple containing additional metadata about the extrinsic and the system it is meant to be executed in.
 type SignedExtra struct {
 	Era Era
 

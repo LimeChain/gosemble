@@ -10,28 +10,28 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-// The maximum number of nested layers.
+// TransactionalLimit returns the maximum number of nested layers.
 const TransactionalLimit Layer = 255
 
-// The type that is being used to store the current number of active layers.
+// Layer is the type that is being used to store the current number of active layers.
 type Layer = sc.U32
 
-// Returns the current number of nested transactional layers.
+// GetTransactionLevel returns the current number of nested transactional layers.
 func GetTransactionLevel() Layer {
 	return storage.GetDecode(constants.TransactionLevelKey, sc.DecodeU32)
 }
 
-// Set the current number of nested transactional layers.
+// SetTransactionLevel Set the current number of nested transactional layers.
 func SetTransactionLevel(level Layer) {
 	storage.Set(constants.TransactionLevelKey, level.Bytes())
 }
 
-// Kill the transactional layers storage.
+// KillTransactionLevel kill the transactional layers storage.
 func KillTransactionLevel() {
 	storage.Clear(constants.TransactionLevelKey)
 }
 
-// Increments the transaction level. Returns an error if levels go past the limit.
+// IncTransactionLevel increments the transaction level. Returns an error if levels go past the limit.
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
 func IncTransactionLevel() (ok sc.Empty, err error) {
@@ -57,7 +57,7 @@ func DecTransactionLevel() {
 	}
 }
 
-// Execute the supplied function in a new storage transaction.
+// WithTransaction executes the supplied function in a new storage transaction.
 //
 // All changes to storage performed by the supplied function are discarded if the returned
 // outcome is `TransactionOutcome::Rollback`.
@@ -94,7 +94,7 @@ func WithTransaction[T sc.Encodable, E types.DispatchError](fn func() types.Tran
 	}
 }
 
-// Execute the supplied function, adding a new storage layer.
+// WithStorageLayer executes the supplied function, adding a new storage layer.
 //
 // This is the same as `with_transaction`, but assuming that any function returning an `Err` should
 // rollback, and any function returning `Ok` should commit. This provides a cleaner API to the

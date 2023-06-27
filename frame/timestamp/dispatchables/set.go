@@ -57,11 +57,12 @@ func (c SetCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-// Storage: Timestamp Now (r:1 w:1)
-// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-// Storage: Babe CurrentSlot (r:1 w:0)
-// Proof: Babe CurrentSlot (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 func (_ SetCall) BaseWeight(b ...any) primitives.Weight {
+	// Storage: Timestamp Now (r:1 w:1)
+	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
+	// Storage: Babe CurrentSlot (r:1 w:0)
+	// Proof: Babe CurrentSlot (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
+	// TODO: Consensus algorithm affects weight values.
 	// Proof Size summary in bytes:
 	//  Measured:  `312`
 	//  Estimated: `1006`
@@ -92,7 +93,7 @@ func (_ SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 	return set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
 
-// Set the current time.
+// set sets the current time.
 //
 // This call should be invoked exactly once per block. It will panic at the finalization
 // phase, if this call hasn't been invoked by that time.

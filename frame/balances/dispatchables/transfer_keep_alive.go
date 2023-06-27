@@ -106,6 +106,7 @@ func (_ TransferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.Vary
 	}
 }
 
+// transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
 func transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()

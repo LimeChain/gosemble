@@ -7,7 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-// Information on a transaction's validity and, if valid, on how it relates to other transactions.
+// TransactionValidityResult Information on a transaction's validity and, if valid, on how it relates to other transactions.
 type TransactionValidityResult sc.VaryingData
 
 func NewTransactionValidityResult(value sc.Encodable) TransactionValidityResult {

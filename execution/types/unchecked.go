@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	// Current version of the [`UncheckedExtrinsic`] encoded format.
+	// ExtrinsicFormatVersion is the current version of the [`UncheckedExtrinsic`] encoded format.
 	//
 	// This version needs to be bumped if the encoded representation changes.
 	// It ensures that if the representation is changed and the format is not known,
@@ -38,7 +38,7 @@ func NewUncheckedExtrinsic(function primitives.Call, signedData sc.Option[primit
 	}
 }
 
-// New instance of a signed extrinsic aka "transaction".
+// NewSignedUncheckedExtrinsic returns a new instance of a signed extrinsic.
 func NewSignedUncheckedExtrinsic(function primitives.Call, address primitives.MultiAddress, signature primitives.MultiSignature, extra primitives.SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version: sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned),
@@ -53,7 +53,7 @@ func NewSignedUncheckedExtrinsic(function primitives.Call, address primitives.Mu
 	}
 }
 
-// New instance of an unsigned extrinsic aka "inherent".
+// NewUnsignedUncheckedExtrinsic returns a new instance of an unsigned extrinsic.
 func NewUnsignedUncheckedExtrinsic(function primitives.Call) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
 		Version:   sc.U8(ExtrinsicFormatVersion),
@@ -106,6 +106,7 @@ func DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(buffer))
 	}
 
+	// Decodes the dispatch call, including its arguments.
 	function := DecodeCall(buffer)
 
 	afterLength := buffer.Len()

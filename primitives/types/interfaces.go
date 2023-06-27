@@ -1,5 +1,6 @@
 package types
 
+// TODO:
 //// Means by which a transaction may be extended. This type embodies both the data and the logic
 //// that should be additionally associated with the transaction. It should be plain old data.
 //type SignedExtension interface {

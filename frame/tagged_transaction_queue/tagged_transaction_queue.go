@@ -13,13 +13,13 @@ type TaggedTransactionQueue interface {
 	ValidateTransaction(dataPtr int32, dataLen int32) int64
 }
 
-/*
-https://spec.polkadot.network/#sect-rte-validate-transaction
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded ([]byte) data.
-*/
+// ValidateTransaction validates an extrinsic at a given block.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded tx source, extrinsic and block hash.
+// Returns a pointer-size of the SCALE-encoded result whether the extrinsic is valid.
+// [Specification](https://spec.polkadot.network/#sect-rte-validate-transaction)
 func ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)

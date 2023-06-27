@@ -19,6 +19,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// Modules contains all the modules used by the runtime.
 var Modules = map[sc.U8]types.Module{
 	system.ModuleIndex:              sm.NewSystemModule(),
 	timestamp.ModuleIndex:           tsm.NewTimestampModule(),

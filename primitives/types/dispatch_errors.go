@@ -122,7 +122,7 @@ func DecodeDispatchError(buffer *bytes.Buffer) DispatchError {
 	panic("unreachable")
 }
 
-// A custom error in a module.
+// CustomModuleError A custom error in a module.
 type CustomModuleError struct {
 	Index   sc.U8             // Module index matching the metadata module index.
 	Error   sc.U32            // Module specific error value.
@@ -147,7 +147,7 @@ func (e CustomModuleError) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
 
-// Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
+// DispatchErrorWithPostInfo Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
 // the `Dispatchable` that is only known post dispatch.
 type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 	// Additional information about the `Dispatchable` which is only known post dispatch.

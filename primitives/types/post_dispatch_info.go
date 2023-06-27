@@ -6,7 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// Weight information that is only available post dispatch.
+// PostDispatchInfo Weight information that is only available post dispatch.
 // NOTE: This can only be used to reduce the weight or fee, not increase it.
 type PostDispatchInfo struct {
 	// Actual weight consumed by a call or `None` which stands for the worst case static weight.
@@ -32,12 +32,12 @@ func (pdi PostDispatchInfo) Bytes() []byte {
 	return sc.EncodedBytes(pdi)
 }
 
-// Calculate how much (if any) weight was not used by the `Dispatchable`.
+// CalcUnspent Calculate how much (if any) weight was not used by the `Dispatchable`.
 func (pdi PostDispatchInfo) CalcUnspent(info *DispatchInfo) Weight {
 	return info.Weight.Sub(pdi.CalcActualWeight(info))
 }
 
-// Calculate how much weight was actually spent by the `Dispatchable`.
+// CalcActualWeight Calculate how much weight was actually spent by the `Dispatchable`.
 func (pdi PostDispatchInfo) CalcActualWeight(info *DispatchInfo) Weight {
 	if pdi.ActualWeight.HasValue {
 		actualWeight := pdi.ActualWeight.Value
@@ -47,7 +47,7 @@ func (pdi PostDispatchInfo) CalcActualWeight(info *DispatchInfo) Weight {
 	}
 }
 
-// Determine if user should actually pay fees at the end of the dispatch.
+// Pays Determine if user should actually pay fees at the end of the dispatch.
 func (pdi PostDispatchInfo) Pays(info *DispatchInfo) Pays {
 	// If they originally were not paying fees, or the post dispatch info
 	// says they should not pay fees, then they don't pay fees.

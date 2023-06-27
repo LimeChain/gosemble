@@ -78,7 +78,7 @@ func NextKey(key int64) int64 {
 	panic("not implemented")
 }
 
-// Start a new nested transaction.
+// StartTransaction Start a new nested transaction.
 //
 // This allows to either commit or roll back all changes that are made after this call.
 // For every transaction there must be a matching call to either `rollback_transaction`
@@ -94,7 +94,7 @@ func StartTransaction() {
 	env.ExtStorageStartTransactionVersion1()
 }
 
-// Rollback the last transaction started by `start_transaction`.
+// RollbackTransaction Rollback the last transaction started by `start_transaction`.
 //
 // Any changes made during that transaction are discarded.
 //
@@ -105,7 +105,7 @@ func RollbackTransaction() {
 	env.ExtStorageRollbackTransactionVersion1() // TODO: .expect("No open transaction that can be rolled back.");
 }
 
-// Commit the last transaction started by `start_transaction`.
+// CommitTransaction Commit the last transaction started by `start_transaction`.
 //
 // Any changes made during that transaction are committed.
 //

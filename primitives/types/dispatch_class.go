@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	// A normal dispatch.
+	// DispatchClassNormal A normal dispatch.
 	DispatchClassNormal sc.U8 = iota
 
-	// An operational dispatch.
+	// DispatchClassOperational An operational dispatch.
 	DispatchClassOperational
 
-	// A mandatory dispatch. These kinds of dispatch are always included regardless of their
+	// DispatchClassMandatory A mandatory dispatch. These kinds of dispatch are always included regardless of their
 	// weight, therefore it is critical that they are separately validated to ensure that a
 	// malicious validator cannot craft a valid but impossibly heavy block. Usually this just
 	// means ensuring that the extrinsic can only be included once and that it is always very
@@ -171,20 +171,20 @@ func (cw ConsumedWeight) Total() Weight {
 	return sum
 }
 
-// Increase the weight of the given class. Saturates at the numeric bounds.
+// SaturatingAdd Increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
 	weightForClass := cw.Get(class)
 	weightForClass.RefTime = weightForClass.RefTime.SaturatingAdd(weight.RefTime)
 	weightForClass.ProofSize = weightForClass.ProofSize.SaturatingAdd(weight.ProofSize)
 }
 
-// Increase the weight of the given class. Saturates at the numeric bounds.
+// Accrue Increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
 	weightForClass := cw.Get(class)
 	weightForClass.SaturatingAccrue(weight)
 }
 
-// / Try to increase the weight of the given class. Saturates at the numeric bounds.
+// CheckedAccrue Try to increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok sc.Empty, err error) {
 	weightForClass := cw.Get(class)
 	refTime, err := weightForClass.RefTime.CheckedAdd(weight.RefTime)

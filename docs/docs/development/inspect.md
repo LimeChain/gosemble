@@ -13,7 +13,7 @@ wasmer inspect build/runtime.wasm
 
 ```
 Type: wasm
-Size: 2.0 MB
+Size: 2.1 MB
 Imports:
   Functions:
     "env"."ext_allocator_malloc_version_1": [I32] -> [I32]
@@ -68,10 +68,10 @@ Exports:
     "OffchainWorkerApi_offchain_worker": [I32, I32] -> [I64]
   Memories:
   Tables:
-    "__indirect_function_table": FuncRef (60..60)
+    "__indirect_function_table": FuncRef (62..62)
   Globals:
-    "__heap_base": I32 (constant)
     "__data_end": I32 (constant)
+    "__heap_base": I32 (constant)
 ```
 
 To inspect the WASM in more detail, and view the actual memory segments, you can

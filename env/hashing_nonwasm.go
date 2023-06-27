@@ -3,7 +3,7 @@
 package env
 
 /*
-	Hashing: Interface that provides functions for hashing with diﬀerent algorithms.
+	Hashing: Interface that provides functions for hashing with different algorithms.
 */
 
 func ExtHashingBlake2128Version1(data int64) int32 {

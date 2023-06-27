@@ -8,7 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-// This type specifies the outcome of dispatching a call to a module.
+// DispatchOutcome This type specifies the outcome of dispatching a call to a module.
 //
 // In case of failure an error specific to the module is returned.
 //

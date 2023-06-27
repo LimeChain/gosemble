@@ -7,7 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/hashing"
 )
 
-// A payload that has been signed for an unchecked extrinsics.
+// SignedPayload A payload that has been signed for an unchecked extrinsics.
 //
 // Note that the payload that we sign to produce unchecked extrinsic signature
 // is going to be different than the `SignaturePayload` - so the thing the extrinsic

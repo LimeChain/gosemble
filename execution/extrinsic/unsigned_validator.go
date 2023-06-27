@@ -8,18 +8,8 @@ import (
 
 type UnsignedValidatorForChecked struct{}
 
-// Validate the call right before dispatch.
-//
-// This method should be used to prevent transactions already in the pool
-// (i.e. passing [`validate_unsigned`](Self::validate_unsigned)) from being included in blocks
-// in case they became invalid since being added to the pool.
-//
-// By default it's a good idea to call [`validate_unsigned`](Self::validate_unsigned) from
-// within this function again to make sure we never include an invalid transaction. Otherwise
-// the implementation of the call or this method will need to provide proper validation to
-// ensure that the transaction is valid.
-//
-// Changes made to storage *WILL* be persisted if the call returns `Ok`.
+// PreDispatch validates the dispatch call before execution.
+// Inherent call is accepted for being dispatched
 func (v UnsignedValidatorForChecked) PreDispatch(call *primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	module, ok := config.Modules[(*call).ModuleIndex()]
 	if !ok {
@@ -29,7 +19,7 @@ func (v UnsignedValidatorForChecked) PreDispatch(call *primitives.Call) (sc.Empt
 	return module.PreDispatch(*call)
 }
 
-// Information on a transaction's validity and, if valid, on how it relates to other transactions.
+// ValidateUnsigned returns the validity of the dispatch call.
 // Inherent call is not validated as unsigned
 func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call *primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	module, ok := config.Modules[(*call).ModuleIndex()]
