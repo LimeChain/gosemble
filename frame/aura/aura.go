@@ -18,6 +18,8 @@ import (
 
 type Slot = sc.U64
 
+// Authorities returns current set of AuRa (Authority Round) authorities.
+// Returns a pointer-size of the SCALE-encoded set of authorities.
 func Authorities() int64 {
 	auraHash := hashing.Twox128(constants.KeyAura)
 	authoritiesHash := hashing.Twox128(constants.KeyAuthorities)
@@ -31,6 +33,8 @@ func Authorities() int64 {
 	return utils.BytesToOffsetAndSize(sc.SequenceU8ToBytes(authorities.Value))
 }
 
+// SlotDuration returns the slot duration for AuRa.
+// Returns a pointer-size of the SCALE-encoded slot duration
 func SlotDuration() int64 {
 	slotDuration := sc.U64(slotDuration())
 	return utils.BytesToOffsetAndSize(slotDuration.Bytes())

@@ -107,6 +107,8 @@ func (_ ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 	}
 }
 
+// forceTransfer transfers liquid free balance from `source` to `dest`.
+// Can only be called by ROOT.
 func forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()

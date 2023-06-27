@@ -3,7 +3,7 @@
 package env
 
 /*
-Trie: Interface that provides trie related functionality
+	Trie: Interface that provides trie related functionality
 */
 
 //go:wasm-module env

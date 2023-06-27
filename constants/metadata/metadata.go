@@ -1,5 +1,6 @@
 package metadata
 
+// Metadata types and their corresponding type id.
 const (
 	PrimitiveTypesBool = iota
 	PrimitiveTypesChar

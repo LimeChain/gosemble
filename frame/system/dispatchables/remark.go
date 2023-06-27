@@ -89,6 +89,7 @@ func (_ RemarkCall) Dispatch(origin types.RuntimeOrigin, _ sc.VaryingData) types
 	return remark(origin)
 }
 
+// remark makes some on-chain remark.
 func remark(origin types.RuntimeOrigin) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	_, err := ensureSignedOrRoot(origin)
 	if err != nil {

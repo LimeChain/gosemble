@@ -111,7 +111,7 @@ func NoteExtrinsic(encodedExt []byte) {
 	storage.Set(append(keySystemExtrinsicDataHashIndex, extrinsicIndex.Bytes()...), sc.BytesToSequenceU8(encodedExt).Bytes())
 }
 
-// To be called immediately after an extrinsic has been applied.
+// NoteAppliedExtrinsic - To be called immediately after an extrinsic has been applied.
 //
 // Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
 // The emitted event contains the post-dispatch corrected weight including
@@ -288,7 +288,7 @@ func CanDecProviders(who types.Address32) bool {
 	return acc.Consumers == 0 || acc.Providers > 1
 }
 
-// Inform the system pallet of some additional weight that should be accounted for, in the
+// RegisterExtraWeightUnchecked - Inform the system pallet of some additional weight that should be accounted for, in the
 // current block.
 //
 // NOTE: use with extra care; this function is made public only be used for certain pallets

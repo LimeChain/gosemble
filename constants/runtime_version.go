@@ -20,6 +20,7 @@ const StorageVersion = 0
 
 const BlockHashCount = sc.U32(2400)
 
+// RuntimeVersion contains the version identifiers of the Runtime.
 var RuntimeVersion = types.RuntimeVersion{
 	SpecName:         sc.Str(SpecName),
 	ImplName:         sc.Str(ImplName),

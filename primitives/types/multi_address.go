@@ -7,7 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-// It's an account ID (pubkey).
+// AccountId It's an account ID (pubkey).
 type AccountId struct {
 	Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
 }
@@ -16,10 +16,10 @@ func DecodeAccountId(buffer *bytes.Buffer) AccountId {
 	return AccountId{DecodeAddress32(buffer)} // TODO: length 32 or 33 depending on algorithm
 }
 
-// It's an account index.
+// AccountIndex It's an account index.
 type AccountIndex = sc.U32
 
-// It's some arbitrary raw bytes.
+// AccountRaw It's some arbitrary raw bytes.
 type AccountRaw struct {
 	sc.Sequence[sc.U8]
 }
@@ -32,7 +32,7 @@ func DecodeAccountRaw(buffer *bytes.Buffer) AccountRaw {
 	return AccountRaw{sc.DecodeSequence[sc.U8](buffer)}
 }
 
-// It's a 32 byte representation.
+// Address32 It's a 32 byte representation.
 type Address32 struct {
 	sc.FixedSequence[sc.U8] // size 32
 }
@@ -48,7 +48,7 @@ func DecodeAddress32(buffer *bytes.Buffer) Address32 {
 	return Address32{sc.DecodeFixedSequence[sc.U8](32, buffer)}
 }
 
-// Its a 20 byte representation.
+// Address20 It's a 20 byte representation.
 type Address20 struct {
 	sc.FixedSequence[sc.U8] // size 20
 }

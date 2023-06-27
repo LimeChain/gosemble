@@ -13,7 +13,7 @@ const (
 	TransactionValidityErrorUnknownTransaction
 )
 
-// Errors that can occur while checking the validity of a transaction.
+// TransactionValidityError Errors that can occur while checking the validity of a transaction.
 type TransactionValidityError sc.VaryingData
 
 func NewTransactionValidityError(value sc.Encodable) TransactionValidityError {

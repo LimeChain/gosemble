@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	// Applying an extrinsic.
+	// PhaseApplyExtrinsic Applying an extrinsic.
 	PhaseApplyExtrinsic sc.U8 = iota
 
-	// Finalizing the block.
+	// PhaseFinalization Finalizing the block.
 	PhaseFinalization
 
-	// Initializing the block.
+	// PhaseInitialization Initializing the block.
 	PhaseInitialization
 )
 

@@ -6,7 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// The weight of database operations that the runtime can invoke.
+// RuntimeDbWeight The weight of database operations that the runtime can invoke.
 //
 // NOTE: This is currently only measured in computational time, and will probably
 // be updated all together once proof size is accounted for.
@@ -65,26 +65,26 @@ func (w Weight) Bytes() []byte {
 	return sc.EncodedBytes(w)
 }
 
-func (lhs Weight) Add(rhs Weight) Weight {
+func (w Weight) Add(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime + rhs.RefTime,
-		ProofSize: lhs.ProofSize + rhs.ProofSize,
+		RefTime:   w.RefTime + rhs.RefTime,
+		ProofSize: w.ProofSize + rhs.ProofSize,
 	}
 }
 
-func (lhs Weight) SaturatingAdd(rhs Weight) Weight {
+func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime.SaturatingAdd(rhs.RefTime),
-		ProofSize: lhs.ProofSize.SaturatingAdd(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime),
+		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize),
 	}
 }
 
 // Saturating [`Weight`] subtraction. Computes `self - rhs`, saturating at the numeric bounds
 // of all fields instead of overflowing.
-func (lhs Weight) SaturatingSub(rhs Weight) Weight {
+func (w Weight) SaturatingSub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime.SaturatingSub(rhs.RefTime),
-		ProofSize: lhs.ProofSize.SaturatingSub(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime),
+		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize),
 	}
 }
 
@@ -99,13 +99,13 @@ func (w *Weight) SaturatingReduce(amount Weight) {
 }
 
 // Checked [`Weight`] addition. Computes `self + rhs`, returning `None` if overflow occurred.
-func (lhs Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
-	refTime, err := lhs.RefTime.CheckedAdd(rhs.RefTime)
+func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
+	refTime, err := w.RefTime.CheckedAdd(rhs.RefTime)
 	if err != nil {
 		return sc.NewOption[Weight](nil)
 	}
 
-	proofSize, err := lhs.ProofSize.CheckedAdd(rhs.ProofSize)
+	proofSize, err := w.ProofSize.CheckedAdd(rhs.ProofSize)
 	if err != nil {
 		return sc.NewOption[Weight](nil)
 	}
@@ -113,10 +113,10 @@ func (lhs Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
 	return sc.NewOption[Weight](Weight{refTime, proofSize})
 }
 
-func (lhs Weight) Sub(rhs Weight) Weight {
+func (w Weight) Sub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime - rhs.RefTime,
-		ProofSize: lhs.ProofSize - rhs.ProofSize,
+		RefTime:   w.RefTime - rhs.RefTime,
+		ProofSize: w.ProofSize - rhs.ProofSize,
 	}
 }
 
@@ -134,30 +134,30 @@ func (w Weight) SaturatingMul(b sc.U64) Weight {
 	}
 }
 
-// Get the conservative min of `self` and `other` weight.
-func (lhs Weight) Min(rhs Weight) Weight {
+// Min Get the conservative min of `self` and `other` weight.
+func (w Weight) Min(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime.Min(rhs.RefTime),
-		ProofSize: lhs.ProofSize.Min(rhs.ProofSize),
+		RefTime:   w.RefTime.Min(rhs.RefTime),
+		ProofSize: w.ProofSize.Min(rhs.ProofSize),
 	}
 }
 
-// Get the aggressive max of `self` and `other` weight.
-func (lhs Weight) Max(rhs Weight) Weight {
+// Max Get the aggressive max of `self` and `other` weight.
+func (w Weight) Max(rhs Weight) Weight {
 	return Weight{
-		RefTime:   lhs.RefTime.Max(rhs.RefTime),
-		ProofSize: lhs.ProofSize.Max(rhs.ProofSize),
+		RefTime:   w.RefTime.Max(rhs.RefTime),
+		ProofSize: w.ProofSize.Max(rhs.ProofSize),
 	}
 }
 
-// Returns true if all of `self`'s constituent weights is strictly greater than that of the
+// AllGt Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
-func (lhs Weight) AllGt(rhs Weight) sc.Bool {
-	return lhs.RefTime > rhs.RefTime && lhs.ProofSize > rhs.ProofSize
+func (w Weight) AllGt(rhs Weight) sc.Bool {
+	return w.RefTime > rhs.RefTime && w.ProofSize > rhs.ProofSize
 }
 
-// / Returns true if any of `self`'s constituent weights is strictly greater than that of the
-// / `other`'s, otherwise returns false.
+// AnyGt Returns true if any of `self`'s constituent weights is strictly greater than that of the
+// `other`'s, otherwise returns false.
 func (w Weight) AnyGt(otherW Weight) sc.Bool {
 	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
 }

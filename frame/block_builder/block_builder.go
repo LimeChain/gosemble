@@ -1,6 +1,3 @@
-/*
-BlockBuilder - Version 4.
-*/
 package blockbuilder
 
 import (
@@ -25,15 +22,13 @@ type BlockBuilder interface {
 	RandomSeed(dataPtr int32, dataLen int32) int64
 }
 
-/*
-https://spec.polkadot.network/#sect-rte-apply-extrinsic
-
-SCALE encoded arguments (extrinsic types.Extrinsic) allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded ([]byte) data.
-*/
+// ApplyExtrinsic applies an extrinsic to a particular block.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded unchecked extrinsic.
+// Returns a pointer-size of the SCALE-encoded result, which specifies if this extrinsic is included in this block or not.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic)
 func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -54,18 +49,9 @@ func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
-/*
-https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block
-
-SCALE encoded arguments () allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded (types.Header) data.
-*/
-
-// FinalizeBlock finalizes block - it is up the caller to ensure that all header fields are valid
-// except state-root.
+// FinalizeBlock finalizes the state changes for the current block.
+// Returns a pointer-size of the SCALE-encoded header for this block.
+// [Specification](https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block)
 func FinalizeBlock() int64 {
 	system.NoteFinishedExtrinsics()
 
@@ -79,16 +65,14 @@ func FinalizeBlock() int64 {
 	return utils.BytesToOffsetAndSize(encodedHeader)
 }
 
-/*
-https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics
-
-SCALE encoded arguments (data types.InherentsData) allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded ([]types.Extrinsic) data.
-*/
-func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
+// InherentExtrinsics generates inherent extrinsics. Inherent data varies depending on chain configuration.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded inherent data.
+// Returns a pointer-size of the SCALE-encoded timestamp extrinsic.
+// [Specification](https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics)
+func InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -103,15 +87,13 @@ func InherentExtrinisics(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(result)
 }
 
-/*
-https://spec.polkadot.network/#id-blockbuilder_check_inherents
-
-SCALE encoded arguments (block types.Block, data types.InherentsData) allocated in the Wasm VM memory, passed as:
-
-	dataPtr - i32 pointer to the memory location.
-	dataLen - i32 length (in bytes) of the encoded arguments.
-	returns a pointer-size to the SCALE-encoded ([]byte) data.
-*/
+// CheckInherents checks the inherents are valid.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded inherent data.
+// Returns a pointer-size of the SCALE-encoded result, specifying if all inherents are valid.
+// [Specification](https://spec.polkadot.network/#id-blockbuilder_check_inherents)
 func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)

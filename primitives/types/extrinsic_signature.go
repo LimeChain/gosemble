@@ -6,7 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// The signature is a varying data type indicating the used signature type,
+// ExtrinsicSignature The signature is a varying data type indicating the used signature type,
 // followed by the signature created by the extrinsic author (the sender).
 type ExtrinsicSignature struct {
 	// is the 32-byte address of the sender of the extrinsic

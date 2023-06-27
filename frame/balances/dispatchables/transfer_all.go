@@ -89,7 +89,7 @@ func (_ TransferAllCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (fn TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (_ TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
@@ -106,6 +106,12 @@ func (fn TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDa
 	}
 }
 
+// transferAll transfers the entire transferable balance from `origin` to `dest`.
+// By transferable it means that any locked or reserved amounts will not be transferred.
+// `keepAlive`: A boolean to determine if the `transfer_all` operation should send all
+// the funds the account has, causing the sender account to be killed (false), or
+// transfer everything except at least the existential deposit, which will guarantee to
+// keep the sender account alive (true).
 func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()

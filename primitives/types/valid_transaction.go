@@ -12,7 +12,7 @@ type TransactionLongevity = sc.U64
 
 type TransactionTag = sc.Sequence[sc.U8]
 
-// Contains information concerning a valid transaction.
+// ValidTransaction Contains information concerning a valid transaction.
 type ValidTransaction struct {
 	// Priority of the transaction.
 	//

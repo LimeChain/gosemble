@@ -17,6 +17,13 @@ import (
 var DefaultMultiplierValue = sc.NewU128FromUint64(1)
 var DefaultTip = sc.NewU128FromUint64(0)
 
+// QueryInfo queries the data of an extrinsic.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded extrinsic and its length.
+// Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-info)
 func QueryInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -40,6 +47,13 @@ func QueryInfo(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
 }
 
+// QueryFeeDetails queries the detailed fee of an extrinsic.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded extrinsic and its length.
+// Returns a pointer-size of the SCALE-encoded detailed fee.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-fee-details)
 func QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -61,6 +75,13 @@ func QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
 
+// QueryCallInfo queries the data of a dispatch call.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded dispatch call and its length.
+// Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
 func QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -80,6 +101,13 @@ func QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
 }
 
+// QueryCallFeeDetails queries the detailed fee of a dispatch call.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded dispatch call and its length.
+// Returns a pointer-size of the SCALE-encoded detailed fee.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
 func QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)

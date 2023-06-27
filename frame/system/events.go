@@ -9,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// System module events.
 const (
 	EventExtrinsicSuccess sc.U8 = iota
 	EventExtrinsicFailed

@@ -5,18 +5,17 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// Create new `SignedPayload`.
-//
-// This function may fail if `additional_signed` of `Extra` is not available.
-func NewSignedPayload(call primitives.Call, extra primitives.SignedExtra) (ok primitives.SignedPayload, err primitives.TransactionValidityError) {
+// NewSignedPayload creates a new `SignedPayload`.
+// It may fail if `additional_signed` of `Extra` is not available.
+func NewSignedPayload(call primitives.Call, extra primitives.SignedExtra) (primitives.SignedPayload, primitives.TransactionValidityError) {
 	additionalSigned, err := system.Extra(extra).AdditionalSigned()
 	if err != nil {
-		return ok, err
+		return primitives.SignedPayload{}, err
 	}
 
 	return primitives.SignedPayload{
 		Call:             call,
 		Extra:            extra,
 		AdditionalSigned: additionalSigned,
-	}, err
+	}, nil
 }

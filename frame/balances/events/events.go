@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// Balances module events.
 const (
 	EventEndowed sc.U8 = iota
 	EventDustLost

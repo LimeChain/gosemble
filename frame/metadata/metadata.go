@@ -14,6 +14,9 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+// Metadata returns the metadata of the runtime.
+// Returns a pointer-size of the SCALE-encoded metadata of the runtime.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
 func Metadata() int64 {
 	metadata := buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())

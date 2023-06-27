@@ -111,7 +111,8 @@ func (_ ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 	}
 }
 
-// ForceFree
+// forceFree frees some balance from a user by force.
+// Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
 func forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {

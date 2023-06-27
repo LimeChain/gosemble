@@ -12,6 +12,8 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
+// Does not do anything if value is 0.
 func Withdraw(who types.Address32, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
 	if value.ToBigInt().Cmp(constants.Zero) == 0 {
 		return sc.NewU128FromUint64(uint64(0)), nil

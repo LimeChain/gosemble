@@ -7,7 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-// The result of applying of an extrinsic.
+// ApplyExtrinsicResult The result of applying of an extrinsic.
 //
 // This type is typically used in the context of `BlockBuilder` to signal that the extrinsic
 // in question cannot be included.

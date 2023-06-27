@@ -7,7 +7,7 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// Definition of something that the external world might want to say; its
+// CheckedExtrinsic is the definition of something that the external world might want to say; its
 // existence implies that it has been checked and is good, particularly with
 // regards to the signature.
 //
@@ -22,12 +22,12 @@ type CheckedExtrinsic struct {
 	Function primitives.Call
 }
 
-func (xt CheckedExtrinsic) Encode(buffer *bytes.Buffer) {
-	xt.Version.Encode(buffer)
-	xt.Signed.Encode(buffer)
-	xt.Function.Encode(buffer)
+func (cxt CheckedExtrinsic) Encode(buffer *bytes.Buffer) {
+	cxt.Version.Encode(buffer)
+	cxt.Signed.Encode(buffer)
+	cxt.Function.Encode(buffer)
 }
 
-func (ex CheckedExtrinsic) Bytes() []byte {
-	return sc.EncodedBytes(ex)
+func (cxt CheckedExtrinsic) Bytes() []byte {
+	return sc.EncodedBytes(cxt)
 }

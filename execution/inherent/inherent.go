@@ -4,6 +4,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 )
 
+// EnsureInherentsAreFirst checks if the inherents are before non-inherents.
 func EnsureInherentsAreFirst(block types.Block) int {
 	signedExtrinsicFound := false
 

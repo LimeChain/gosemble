@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	// Transactor will pay related fees.
+	// PaysYes Transactor will pay related fees.
 	PaysYes sc.U8 = iota
 
-	// Transactor will NOT pay related fees.
+	// PaysNo Transactor will NOT pay related fees.
 	PaysNo
 )
 

@@ -111,6 +111,9 @@ func (_ TransferCall) IsInherent() bool {
 	return false
 }
 
+// transfer transfers liquid free balance from `source` to `dest`.
+// Increases the free balance of `dest` and decreases the free balance of `origin` transactor.
+// Must be signed by the transactor.
 func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
@@ -126,6 +129,8 @@ func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) ty
 	return trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
 }
 
+// trans transfers `value` free balance from `from` to `to`.
+// Does not do anything if value is 0 or `from` and `to` are the same.
 func trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
 	bnInt := value.ToBigInt()
 	if bnInt.Cmp(constants.Zero) == 0 || reflect.DeepEqual(from, to) {
@@ -197,6 +202,7 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 	return nil
 }
 
+// ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
 func ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reasons, newBalance *big.Int) types.DispatchError {
 	if amount.Cmp(constants.Zero) == 0 {
 		return nil
@@ -215,10 +221,14 @@ func ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reaso
 	return nil
 }
 
+// mutateAccount mutates an account based on argument `f`. Does not change total issuance.
+// Does not do anything if `f` returns an error.
 func mutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	return tryMutateAccount(who, f)
 }
 
+// tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
+// Does not do anything if `f` returns an error.
 func tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := tryMutateAccountWithDust(who, f)
 	if result.HasError {
@@ -305,6 +315,7 @@ func postMutation(
 	return sc.NewOption[types.AccountData](new), sc.NewOption[NegativeImbalance](nil)
 }
 
+// totalBalance returns the total storage balance of an account id.
 func totalBalance(who types.Address32) *big.Int {
 	return system.StorageGetAccount(who.FixedSequence).Data.Total()
 }

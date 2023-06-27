@@ -20,7 +20,7 @@ func (e CheckMortality) AdditionalSigned() (ok primitives.H256, err primitives.T
 	return ok, err
 }
 
-// to be able to provide a custom implementation of the Validate function
+// TODO: to be able to provide a custom implementation of the Validate function
 type CheckMortality primitives.Era
 
 func (e CheckMortality) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
