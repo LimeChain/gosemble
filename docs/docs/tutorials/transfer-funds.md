@@ -76,5 +76,5 @@ After you have [started the local network](./start-a-network.md), let's make a t
     * Second, the network has to create Charlie's account, because his balance was 0 before the transfer.
     * Third, the actual transfer from Alice to Charlie.
     * Fourth, the actual fee paid for the transaction.
-    * Last but not least, an event that showcases the transfer.
+    * Last but not least, an event that showcases the transfer
     [transaction](https://wiki.polkadot.network/docs/learn-extrinsics) has been successful.
