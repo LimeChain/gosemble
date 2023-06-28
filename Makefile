@@ -38,5 +38,6 @@ test: test_unit test_integration
 test_unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
+# GOARCH=amd64 is required to run the integration tests in gossamer
 test_integration:
-	@go test --tags="nonwasmenv" -v ./runtime/... -timeout 1500s
+	@GOARCH=amd64 go test --tags="nonwasmenv" -v ./runtime/... -timeout 2000s
