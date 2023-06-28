@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 
 # Project information
-site_name: ""
+site_name: Gosemble Docs
 site_url: https://limechain.tech
 site_author: LimeChain
 site_description: The Official Documentation for Gosemble | A Go Implementation of the Polkadot Runtime
