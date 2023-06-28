@@ -9,3 +9,7 @@
 .md-tabs {
   background: #28133e;
 }
+
+.md-header__title {
+  visibility: hidden;
+}
