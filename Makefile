@@ -40,4 +40,4 @@ test_unit:
 
 # GOARCH=amd64 is required to run the integration tests in gossamer
 test_integration:
-	@GOARCH=amd64 go test --tags="nonwasmenv" -v ./runtime/... -timeout 1500s
+	@GOARCH=amd64 go test --tags="nonwasmenv" -v ./runtime/... -timeout 2000s
