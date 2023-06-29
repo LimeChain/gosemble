@@ -72,7 +72,7 @@ After you have [started the local network](./start-a-network.md), let's make a t
 
     There are 5 events related to the transfer:
 
-    * First, the deposit event, which locks the fee to be paid.
+    * First, the withdrawal event, which takes the transaction fee.
     * Second, the network has to create Charlie's account, because his balance was 0 before the transfer.
     * Third, the actual transfer from Alice to Charlie.
     * Fourth, the actual fee paid for the transaction.
