@@ -38,17 +38,23 @@ Make sure these environment variables are set correctly:
   go env GOARCH # => arm64
 ```
 
-Use the Go toolchain to build TinyGo and do not use `make`, since the `Makefile` is intended to be used with a self-built LLVM.
+Use the Go toolchain to build TinyGo. Do not use `make`, since the `Makefile` is intended to be used with a self-built LLVM.
 
 ```sh
   cd tinygo
   go install
 ```
 
-The resulting binary will be in `$GOPATH/bin/`, verify it by running:
+Make sure to include the path to the TinyGo binary in your `PATH` environment variable: 
 
 ```sh
-  $GOPATH/bin/tinygo version
+export PATH="$GOPATH/bin:$PATH"
+```
+
+Restart the shell and verify it's working:
+
+```sh
+  tinygo version
 ```
 
 Install `binaryen` which is required for the wasm tests:
