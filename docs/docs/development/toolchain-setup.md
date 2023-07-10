@@ -11,12 +11,13 @@ There is a docker image available, which can be used to build the compiler and r
 Run the following script to build and spin up a container:
 
 ```sh
+  cd tinygo
   ./polkawasm.sh
 ```
 
 ## Linux
 
-Similar to the Dockerfile (TODO)
+Similar to the Dockerfile.
 
 ## Osx
 ### M1 Apple Silicon
