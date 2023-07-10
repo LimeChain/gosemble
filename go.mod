@@ -1,6 +1,6 @@
 module github.com/LimeChain/gosemble
 
-go 1.20
+go 1.19
 
 require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323

@@ -25,6 +25,12 @@ build:
 		echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
 	fi
 
+build-local:
+	@cd tinygo; \
+		go install;
+	@tinygo version
+	@tinygo build -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+
 start-network:
 	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
 	cd substrate/bin/node-template; \
