@@ -25,7 +25,7 @@ Similar to the Dockerfile.
 #### Build TinyGo by using a system-wide LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.25.0, requires LLVM 14.
+For example, TinyGo 0.25.0, requires LLVM 14. Keep in mind that even though there are some warning messages, they do not prevent builds from succeeding. Also, those warnings disappear with newer versions of LLVM and TinyGo.
 
 ```sh
 brew install llvm@14
@@ -68,20 +68,20 @@ Run the tests:
 
 ```sh
 # standard library packages that pass tests on darwin, linux, wasi, and windows, but take over a minute in wasi
-$GOPATH/bin/tinygo test -target wasi compress/bzip2 crypto/dsa index/suffixarray
+tinygo test -target wasi compress/bzip2 crypto/dsa index/suffixarray
 
 # standard library packages that pass tests quickly on darwin, linux, wasi, and windows
-$GOPATH/bin/tinygo test -target wasi compress/lzw compress/zlib container/heap container/list container/ring crypto/des crypto/md5 crypto/rc4 crypto/sha1 crypto/sha256 crypto/sha512 debug/macho embed/internal/embedtest encoding encoding/ascii85 encoding/base32 encoding/base64 encoding/csv encoding/hex go/scanner hash hash/adler32 hash/crc64 hash/fnv html internal/itoa internal/profile math math/cmplx net/http/internal/ascii net/mail os path reflect sync testing testing/iotest text/scanner unicode unicode/utf16 unicode/utf8
+tinygo test -target wasi compress/lzw compress/zlib container/heap container/list container/ring crypto/des crypto/md5 crypto/rc4 crypto/sha1 crypto/sha256 crypto/sha512 debug/macho embed/internal/embedtest encoding encoding/ascii85 encoding/base32 encoding/base64 encoding/csv encoding/hex go/scanner hash hash/adler32 hash/crc64 hash/fnv html internal/itoa internal/profile math math/cmplx net/http/internal/ascii net/mail os path reflect sync testing testing/iotest text/scanner unicode unicode/utf16 unicode/utf8
 
 # standard library packages that pass tests on individual platforms
-$GOPATH/bin/tinygo test -target wasi archive/zip bytes compress/flate crypto/hmac debug/dwarf debug/plan9obj image io/ioutil mime/quotedprintable net strconv testing/fstest text/tabwriter text/template/parse
+tinygo test -target wasi archive/zip bytes compress/flate crypto/hmac debug/dwarf debug/plan9obj image io/ioutil mime/quotedprintable net strconv testing/fstest text/tabwriter text/template/parse
 
 # wasi
-$GOPATH/bin/tinygo test -target wasi ./tests/runtime_wasi
+tinygo test -target wasi ./tests/runtime_wasi
 
 # wasm
-$GOPATH/bin/tinygo build -size short -o wasm.wasm -target=wasm examples/wasm/export
-$GOPATH/bin/tinygo build -size short -o wasm.wasm -target=wasm examples/wasm/main
+tinygo build -size short -o wasm.wasm -target=wasm examples/wasm/export
+tinygo build -size short -o wasm.wasm -target=wasm examples/wasm/main
 
 # wasm
 go test -count=1 ./tests/wasm
