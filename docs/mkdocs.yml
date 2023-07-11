@@ -152,6 +152,7 @@ nav:
       - Inspect: ./development/inspect.md
       - File structure: ./development/file-structure.md
       - Testing: ./development/test.md
+      - Toolchain setup: ./development/toolchain-setup.md
   - Tutorials:
       - Start a Network: ./tutorials/start-a-network.md
       - Transfer funds: ./tutorials/transfer-funds.md
