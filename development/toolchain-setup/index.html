@@ -12,18 +12,20 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/reference/resources/">
+        <link rel="canonical" href="https://limechain.tech/development/toolchain-setup/">
       
       
-        <link rel="prev" href="../../tutorials/transfer-funds/">
+        <link rel="prev" href="../test/">
       
+      
+        <link rel="next" href="../../tutorials/start-a-network/">
       
       <link rel="icon" href="../../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
-        <title>Resources - Gosemble Docs</title>
+        <title>Toolchain setup - Gosemble Docs</title>
       
     
     
@@ -77,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#polkadot" class="md-skip">
+        <a href="#docker" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Resources
+              Toolchain setup
             
           </span>
         </div>
@@ -229,13 +231,15 @@
         
   
   
+    
+  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="../../development/install/" class="md-tabs__link">
+      <a href="../install/" class="md-tabs__link md-tabs__link--active">
         Development
       </a>
     </li>
@@ -261,15 +265,13 @@
         
   
   
-    
-  
 
 
   
   
   
     <li class="md-tabs__item">
-      <a href="./" class="md-tabs__link md-tabs__link--active">
+      <a href="../../reference/resources/" class="md-tabs__link">
         Reference
       </a>
     </li>
@@ -424,14 +426,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
         
@@ -454,7 +458,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Development
@@ -467,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/install/" class="md-nav__link">
+      <a href="../install/" class="md-nav__link">
         Install
       </a>
     </li>
@@ -481,7 +485,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/build/" class="md-nav__link">
+      <a href="../build/" class="md-nav__link">
         Build
       </a>
     </li>
@@ -495,7 +499,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/inspect/" class="md-nav__link">
+      <a href="../inspect/" class="md-nav__link">
         Inspect
       </a>
     </li>
@@ -509,7 +513,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/file-structure/" class="md-nav__link">
+      <a href="../file-structure/" class="md-nav__link">
         File structure
       </a>
     </li>
@@ -523,7 +527,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/test/" class="md-nav__link">
+      <a href="../test/" class="md-nav__link">
         Testing
       </a>
     </li>
@@ -535,11 +539,95 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../development/toolchain-setup/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Toolchain setup
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Toolchain setup
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    Docker
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#macos" class="md-nav__link">
+    MacOS
+  </a>
+  
+    <nav class="md-nav" aria-label="MacOS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#apple-silicon" class="md-nav__link">
+    Apple Silicon
+  </a>
+  
+    <nav class="md-nav" aria-label="Apple Silicon">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-tinygo-by-using-a-system-wide-llvm" class="md-nav__link">
+    Build TinyGo by using a system-wide LLVM
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-tinygo-by-using-llvm-build-from-source" class="md-nav__link">
+    Build TinyGo by using LLVM build from source
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -626,16 +714,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
       
       
         
@@ -648,7 +734,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Reference
@@ -659,76 +745,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Resources
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../reference/resources/" class="md-nav__link">
         Resources
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#polkadot" class="md-nav__link">
-    Polkadot
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#substrate" class="md-nav__link">
-    Substrate
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#w3f" class="md-nav__link">
-    W3F
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#webassembly" class="md-nav__link">
-    WebAssembly
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#go-tinygo" class="md-nav__link">
-    Go / TinyGo
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -758,31 +779,99 @@
   
 
 
-  <h1>Resources</h1>
+  <h1>Toolchain setup</h1>
 
-<h3 id="polkadot">Polkadot<a class="headerlink" href="#polkadot" title="Permanent link">&para;</a></h3>
-<ul>
-<li><a href="https://polkadot.network/">General</a></li>
-<li><a href="https://wiki.polkadot.network/">Wiki</a></li>
-<li><a href="https://spec.polkadot.network/">Specification</a></li>
-</ul>
-<h3 id="substrate">Substrate<a class="headerlink" href="#substrate" title="Permanent link">&para;</a></h3>
-<ul>
-<li><a href="https://docs.substrate.io/">Docs</a></li>
-</ul>
-<h3 id="w3f">W3F<a class="headerlink" href="#w3f" title="Permanent link">&para;</a></h3>
-<ul>
-<li><a href="https://web3.foundation/research/">Research</a></li>
-</ul>
-<h3 id="webassembly">WebAssembly<a class="headerlink" href="#webassembly" title="Permanent link">&para;</a></h3>
-<ul>
-<li><a href="https://webassembly.org/specs/">Specification</a></li>
-</ul>
-<h3 id="go-tinygo">Go / TinyGo<a class="headerlink" href="#go-tinygo" title="Permanent link">&para;</a></h3>
-<ul>
-<li><a href="https://go.dev/doc/">Go Docs</a></li>
-<li><a href="https://tinygo.org/docs/">TinyGo Docs</a></li>
-</ul>
+<p>Given that we use our own custom version of the TinyGo compiler, to facilitate its development process, which includes making changes, building, and executing tests, it's necessary to carry out extra steps for setting up the development environment, beyond the initial requirements specified in the <a href="/development/install">install</a> page.</p>
+<h2 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h2>
+<p>There is a docker image available, which can be used to build the compiler and run tests inside a container without having to install any dependencies locally.
+Run the following script to build and spin up a container:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tinygo
+./polkawasm.sh
+</code></pre></div>
+
+<h2 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h2>
+<p>Similar to the Dockerfile.</p>
+<h2 id="macos">MacOS<a class="headerlink" href="#macos" title="Permanent link">&para;</a></h2>
+<h3 id="apple-silicon">Apple Silicon<a class="headerlink" href="#apple-silicon" title="Permanent link">&para;</a></h3>
+<h4 id="build-tinygo-by-using-a-system-wide-llvm">Build TinyGo by using a system-wide LLVM<a class="headerlink" href="#build-tinygo-by-using-a-system-wide-llvm" title="Permanent link">&para;</a></h4>
+<p>Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
+For example, TinyGo 0.25.0, requires LLVM 14. Keep in mind that even though there are some warning messages, they do not prevent builds from succeeding. Also, those warnings disappear with newer versions of LLVM and TinyGo.</p>
+<div class="codehilite"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>llvm@14
+</code></pre></div>
+
+<p>Make sure these environment variables are set correctly:</p>
+<div class="codehilite"><pre><span></span><code>go<span class="w"> </span>env<span class="w"> </span>GOROOT<span class="w"> </span><span class="c1"># =&gt; /usr/local/go</span>
+go<span class="w"> </span>env<span class="w"> </span>GOPATH<span class="w"> </span><span class="c1"># =&gt; ~/go</span>
+go<span class="w"> </span>env<span class="w"> </span>GOARCH<span class="w"> </span><span class="c1"># =&gt; arm64</span>
+</code></pre></div>
+
+<p>Use the Go toolchain to build TinyGo. Do not use <code>make</code>, since the <code>Makefile</code> is intended to be used with a self-built LLVM.</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tinygo
+go<span class="w"> </span>install
+</code></pre></div>
+
+<p>Make sure to include the path to the TinyGo binary in your <code>PATH</code> environment variable: </p>
+<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$GOPATH</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
+</code></pre></div>
+
+<p>Restart the shell and verify it's working:</p>
+<div class="codehilite"><pre><span></span><code>tinygo<span class="w"> </span>version
+</code></pre></div>
+
+<p>Install <code>binaryen</code> which is required for the wasm tests:</p>
+<div class="codehilite"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>binaryen
+</code></pre></div>
+
+<p>Run the tests:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># standard library packages that pass tests on darwin, linux, wasi, and windows, but take over a minute in wasi</span>
+tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>compress/bzip2<span class="w"> </span>crypto/dsa<span class="w"> </span>index/suffixarray
+
+<span class="c1"># standard library packages that pass tests quickly on darwin, linux, wasi, and windows</span>
+tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>compress/lzw<span class="w"> </span>compress/zlib<span class="w"> </span>container/heap<span class="w"> </span>container/list<span class="w"> </span>container/ring<span class="w"> </span>crypto/des<span class="w"> </span>crypto/md5<span class="w"> </span>crypto/rc4<span class="w"> </span>crypto/sha1<span class="w"> </span>crypto/sha256<span class="w"> </span>crypto/sha512<span class="w"> </span>debug/macho<span class="w"> </span>embed/internal/embedtest<span class="w"> </span>encoding<span class="w"> </span>encoding/ascii85<span class="w"> </span>encoding/base32<span class="w"> </span>encoding/base64<span class="w"> </span>encoding/csv<span class="w"> </span>encoding/hex<span class="w"> </span>go/scanner<span class="w"> </span><span class="nb">hash</span><span class="w"> </span>hash/adler32<span class="w"> </span>hash/crc64<span class="w"> </span>hash/fnv<span class="w"> </span>html<span class="w"> </span>internal/itoa<span class="w"> </span>internal/profile<span class="w"> </span>math<span class="w"> </span>math/cmplx<span class="w"> </span>net/http/internal/ascii<span class="w"> </span>net/mail<span class="w"> </span>os<span class="w"> </span>path<span class="w"> </span>reflect<span class="w"> </span>sync<span class="w"> </span>testing<span class="w"> </span>testing/iotest<span class="w"> </span>text/scanner<span class="w"> </span>unicode<span class="w"> </span>unicode/utf16<span class="w"> </span>unicode/utf8
+
+<span class="c1"># standard library packages that pass tests on individual platforms</span>
+tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>archive/zip<span class="w"> </span>bytes<span class="w"> </span>compress/flate<span class="w"> </span>crypto/hmac<span class="w"> </span>debug/dwarf<span class="w"> </span>debug/plan9obj<span class="w"> </span>image<span class="w"> </span>io/ioutil<span class="w"> </span>mime/quotedprintable<span class="w"> </span>net<span class="w"> </span>strconv<span class="w"> </span>testing/fstest<span class="w"> </span>text/tabwriter<span class="w"> </span>text/template/parse
+
+<span class="c1"># wasi</span>
+tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>./tests/runtime_wasi
+
+<span class="c1"># wasm</span>
+tinygo<span class="w"> </span>build<span class="w"> </span>-size<span class="w"> </span>short<span class="w"> </span>-o<span class="w"> </span>wasm.wasm<span class="w"> </span>-target<span class="o">=</span>wasm<span class="w"> </span>examples/wasm/export
+tinygo<span class="w"> </span>build<span class="w"> </span>-size<span class="w"> </span>short<span class="w"> </span>-o<span class="w"> </span>wasm.wasm<span class="w"> </span>-target<span class="o">=</span>wasm<span class="w"> </span>examples/wasm/main
+
+<span class="c1"># wasm</span>
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/wasm
+
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/os/smoke
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/runtime
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/text/template/smoke
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/tinygotest
+
+go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>-v<span class="w"> </span>-timeout<span class="o">=</span>20m<span class="w"> </span>-tags<span class="w"> </span><span class="s2">&quot;osusergo&quot;</span><span class="w"> </span>./builder<span class="w"> </span>./cgo<span class="w"> </span>./compileopts<span class="w"> </span>./compiler<span class="w"> </span>./interp<span class="w"> </span>./transform<span class="w"> </span>.
+</code></pre></div>
+
+<h4 id="build-tinygo-by-using-llvm-build-from-source">Build TinyGo by using LLVM build from source<a class="headerlink" href="#build-tinygo-by-using-llvm-build-from-source" title="Permanent link">&para;</a></h4>
+<p>Use <code>make</code> with a self-built LLVM which has the benefit of already set up tests.</p>
+<p>Install the necessary dependencies:</p>
+<div class="codehilite"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>cmake<span class="w"> </span>ninja
+</code></pre></div>
+
+<p>Clone and build LLVM:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>llvm-source
+make<span class="w"> </span>llvm-build
+</code></pre></div>
+
+<p>Build the TinyGo compiler:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>clean
+make<span class="w"> </span>tinygo
+</code></pre></div>
+
+<p>Run the tests:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span><span class="nb">test</span>
+make<span class="w"> </span>smoketest
+make<span class="w"> </span>test-corpus-wasi
+make<span class="w"> </span>wasmtest
+</code></pre></div>
 
 
 
@@ -809,7 +898,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../tutorials/transfer-funds/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Transfer funds" rel="prev">
+          <a href="../test/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Testing" rel="prev">
             <div class="md-footer__button md-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
             </div>
@@ -818,11 +907,26 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Transfer funds
+                Testing
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../../tutorials/start-a-network/" class="md-footer__link md-footer__link--next" aria-label="Next: Start a Network" rel="next">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Start a Network
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
