@@ -20,6 +20,7 @@ func CheckExtrinsics(data primitives.InherentData, block types.Block) primitives
 		isInherent := false
 		call := extrinsic.Function
 
+		// TODO: do not use hard-coded timestamp index, iterate and check if call is
 		switch call.ModuleIndex() {
 		case tsc.ModuleIndex:
 			switch call.FunctionIndex() {

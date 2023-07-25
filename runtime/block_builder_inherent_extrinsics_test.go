@@ -8,7 +8,7 @@ import (
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
-	timestamp "github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
+	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +19,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(time)))
+	call := tsm.NewSetCall(sc.NewVaryingData(sc.ToCompact(time)), nil, nil, nil)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -43,5 +43,5 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	buffer.Write(inherentExt[1:])
 	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
 
-	assert.Equal(t, expectedExtrinsic, extrinsic)
+	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
 }

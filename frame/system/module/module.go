@@ -12,12 +12,13 @@ import (
 
 type SystemModule struct {
 	functions map[sc.U8]primitives.Call
-	// TODO: add more dispatchables
 }
 
 func NewSystemModule() SystemModule {
 	functions := make(map[sc.U8]primitives.Call)
+
 	functions[cs.FunctionRemarkIndex] = dispatchables.NewRemarkCall(nil)
+	// TODO: add more dispatchables
 
 	return SystemModule{
 		functions: functions,

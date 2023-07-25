@@ -10,7 +10,6 @@ import (
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -46,23 +45,6 @@ func OnGenesisSession() {
 
 func OnNewSession() {
 	// TODO: implement once Session module is added
-}
-
-func OnTimestampSet(now sc.U64) {
-	slotDuration := slotDuration()
-	if slotDuration == 0 {
-		log.Critical("Aura slot duration cannot be zero.")
-	}
-
-	timestampSlot := now / sc.U64(slotDuration)
-
-	auraHash := hashing.Twox128(constants.KeyAura)
-	currentSlotHash := hashing.Twox128(constants.KeyCurrentSlot)
-	currentSlot := storage.GetDecode(append(auraHash, currentSlotHash...), sc.DecodeU64)
-
-	if currentSlot != timestampSlot {
-		log.Critical("Timestamp slot must match `CurrentSlot`")
-	}
 }
 
 func currentSlotFromDigests() sc.Option[Slot] {

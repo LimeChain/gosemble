@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -6,23 +6,27 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
-	"github.com/LimeChain/gosemble/frame/aura"
-	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/storage"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type SetCall struct {
+	storage        *storage
+	onTimestampSet hooks.OnTimestampSet[sc.U64]
+	constants      *consts
 	primitives.Callable
 }
 
-func NewSetCall(args sc.VaryingData) SetCall {
+func NewSetCall(args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) SetCall {
 	call := SetCall{
+		storage:   storage,
+		constants: constants,
 		Callable: primitives.Callable{
 			ModuleId:   timestamp.ModuleIndex,
 			FunctionId: timestamp.FunctionSetIndex,
 		},
+		onTimestampSet: onTimestampSet,
 	}
 
 	if len(args) != 0 {
@@ -88,9 +92,9 @@ func (_ SetCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.NewPaysYes()
 }
 
-func (_ SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	compactTs := args[0].(sc.Compact)
-	return set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
+	return c.set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
 
 // set sets the current time.
@@ -108,7 +112,7 @@ func (_ SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c SetCall) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	if !origin.IsNoneOrigin() {
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
@@ -118,31 +122,21 @@ func set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultW
 		}
 	}
 
-	timestampHash := hashing.Twox128(constants.KeyTimestamp)
-	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)
-
-	didUpdate := storage.Exists(append(timestampHash, didUpdateHash...))
-
-	if didUpdate == 1 {
+	didUpdate := c.storage.DidUpdate.Exists()
+	if didUpdate {
 		log.Critical("Timestamp must be updated only once in the block")
 	}
 
-	nowHash := hashing.Twox128(constants.KeyNow)
-	previousTimestamp := storage.GetDecode(append(timestampHash, nowHash...), sc.DecodeU64)
+	previousTimestamp := c.storage.Now.Get()
 
-	if !(previousTimestamp == 0 || now >= previousTimestamp+timestamp.MinimumPeriod) {
+	if !(previousTimestamp == 0 || now >= previousTimestamp+c.constants.MinimumPeriod) {
 		log.Critical("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
 	}
 
-	storage.Set(append(timestampHash, nowHash...), now.Bytes())
-	storage.Set(append(timestampHash, didUpdateHash...), sc.Bool(true).Bytes())
+	c.storage.Now.Put(now)
+	c.storage.DidUpdate.Put(true)
 
-	// TODO: Every consensus that uses the timestamp must implement
-	// <T::OnTimestampSet as OnTimestampSet<_>>::on_timestamp_set(now)
-
-	// TODO:
-	// timestamp module should not depend on the aura module
-	aura.OnTimestampSet(now)
+	c.onTimestampSet.OnTimestampSet(now)
 
 	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,

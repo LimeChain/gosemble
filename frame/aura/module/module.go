@@ -2,32 +2,58 @@ package module
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type AuraModule struct {
+type Module struct {
+	Index     sc.U8
+	Config    *Config
+	Storage   *storage
+	Constants *consts
 }
 
-func NewAuraModule() AuraModule {
-	return AuraModule{}
+func NewModule(index sc.U8, config *Config) Module {
+	storage := newStorage()
+	constants := newConstants(config.MinimumPeriod)
+
+	return Module{
+		Index:     index,
+		Config:    config,
+		Storage:   storage,
+		Constants: constants,
+	}
 }
 
-func (am AuraModule) Functions() map[sc.U8]primitives.Call {
+func (m Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (am AuraModule) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (am AuraModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return am.metadataTypes(), primitives.MetadataModule{
+func (m Module) OnTimestampSet(now sc.U64) {
+	slotDuration := m.slotDuration()
+	if slotDuration == 0 {
+		log.Critical("Aura slot duration cannot be zero.")
+	}
+
+	timestampSlot := now / slotDuration
+
+	currentSlot := m.Storage.CurrentSlot.Get()
+	if currentSlot != timestampSlot {
+		log.Critical("Timestamp slot must match `CurrentSlot`")
+	}
+}
+
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	return m.metadataTypes(), primitives.MetadataModule{
 		Name: "Aura",
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 			Prefix: "Aura",
@@ -48,11 +74,11 @@ func (am AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitive
 		Event:     sc.NewOption[sc.Compact](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     aura.ModuleIndex,
+		Index:     m.Index,
 	}
 }
 
-func (am AuraModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(
 			metadata.TypesAuraStorageAuthorities,
@@ -90,4 +116,8 @@ func (am AuraModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
 				})),
 	}
+}
+
+func (m Module) slotDuration() sc.U64 {
+	return m.Constants.MinimumPeriod.Mul(2)
 }

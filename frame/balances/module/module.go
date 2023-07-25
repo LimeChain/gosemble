@@ -11,10 +11,14 @@ import (
 )
 
 type BalancesModule struct {
+	Index     sc.U8
+	Config    *Config
+	Constants *consts
 	functions map[sc.U8]primitives.Call
 }
 
-func NewBalancesModule() BalancesModule {
+func NewBalancesModule(index sc.U8, config *Config) BalancesModule {
+	constants := newConstants(config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 	functions := make(map[sc.U8]primitives.Call)
 	functions[balances.FunctionTransferIndex] = dispatchables.NewTransferCall(nil)
 	functions[balances.FunctionSetBalanceIndex] = dispatchables.NewSetBalanceCall(nil)
@@ -24,6 +28,9 @@ func NewBalancesModule() BalancesModule {
 	functions[balances.FunctionForceFreeIndex] = dispatchables.NewForceFreeCall(nil)
 
 	return BalancesModule{
+		Index:     index,
+		Config:    config,
+		Constants: constants,
 		functions: functions,
 	}
 }
@@ -73,19 +80,19 @@ func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primi
 			primitives.NewMetadataModuleConstant(
 				"ExistentialDeposit",
 				sc.ToCompact(metadata.PrimitiveTypesU128),
-				sc.BytesToSequenceU8(sc.NewU128FromBigInt(balances.ExistentialDeposit).Bytes()),
+				sc.BytesToSequenceU8(sc.NewU128FromBigInt(bm.Constants.ExistentialDeposit).Bytes()),
 				"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
 			),
 			primitives.NewMetadataModuleConstant(
 				"MaxLocks",
 				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(sc.U32(balances.MaxLocks).Bytes()),
+				sc.BytesToSequenceU8(bm.Constants.MaxLocks.Bytes()),
 				"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
 			),
 			primitives.NewMetadataModuleConstant(
 				"MaxReserves",
 				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(sc.U32(balances.MaxReserves).Bytes()),
+				sc.BytesToSequenceU8(bm.Constants.MaxReserves.Bytes()),
 				"The maximum number of named reserves that can exist on an account.",
 			),
 		}, // TODO:
