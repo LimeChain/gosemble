@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -7,9 +7,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/events"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -17,18 +15,16 @@ import (
 
 type ForceFreeCall struct {
 	primitives.Callable
+	storedMap primitives.StoredMap
 }
 
-func NewForceFreeCall(args sc.VaryingData) ForceFreeCall {
+func NewForceFreeCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap) ForceFreeCall {
 	call := ForceFreeCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionForceFreeIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		storedMap: storedMap,
 	}
 
 	return call
@@ -92,10 +88,10 @@ func (_ ForceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
-	err := forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
+	err := c.forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -114,7 +110,7 @@ func (_ ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
+func (c ForceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -125,22 +121,23 @@ func forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) 
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	force(target, amount)
+	c.force(target, amount)
 
 	return nil
 }
 
 // forceFree frees some funds, returning the amount that has not been freed.
-func force(who types.Address32, value *big.Int) *big.Int {
+func (c ForceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
 	if value.Cmp(constants.Zero) == 0 {
 		return big.NewInt(0)
 	}
 
-	if totalBalance(who).Cmp(constants.Zero) == 0 {
+	totalBalance := c.storedMap.Get(who.FixedSequence).Data.Total()
+	if totalBalance.Cmp(constants.Zero) == 0 {
 		return value
 	}
 
-	result := system.Mutate(who, func(accountData *types.AccountInfo) sc.Result[sc.Encodable] {
+	result := c.storedMap.Mutate(who, func(accountData *types.AccountInfo) sc.Result[sc.Encodable] {
 		actual := accountData.Data.Reserved.ToBigInt()
 		if value.Cmp(actual) < 0 {
 			actual = value
@@ -165,7 +162,7 @@ func force(who types.Address32, value *big.Int) *big.Int {
 		return value
 	}
 
-	system.DepositEvent(events.NewEventUnreserved(who.FixedSequence, actual))
+	c.storedMap.DepositEvent(events.NewEventUnreserved(who.FixedSequence, actual))
 
 	return new(big.Int).Sub(value, actual.ToBigInt())
 }

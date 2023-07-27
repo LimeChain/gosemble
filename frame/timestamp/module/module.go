@@ -3,9 +3,12 @@ package module
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	ts "github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+const (
+	FunctionSetIndex = 0
 )
 
 type Module struct {
@@ -20,7 +23,7 @@ func NewModule(index sc.U8, config *Config) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
 	constants := newConstants(config.MinimumPeriod)
-	functions[ts.FunctionSetIndex] = NewSetCall(nil, storage, constants, config.OnTimestampSet)
+	functions[FunctionSetIndex] = NewSetCall(index, FunctionSetIndex, nil, storage, constants, config.OnTimestampSet)
 
 	return Module{
 		Index:     index,
@@ -92,7 +95,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "now", "T::Moment"),
 					},
-					ts.FunctionSetIndex,
+					FunctionSetIndex,
 					"Set the current time."),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
 	}

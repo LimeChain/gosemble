@@ -23,6 +23,8 @@ func main() {}
 
 //go:export Core_version
 func CoreVersion(_ int32, _ int32) int64 {
+	// TODO: Try creating a global object, which is used in here. For example,
+	// access the global object here, so that you can use it. e.g. coreModule.Version()
 	return core.Version()
 }
 

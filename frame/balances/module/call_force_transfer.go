@@ -1,29 +1,26 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type ForceTransferCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewForceTransferCall(args sc.VaryingData) ForceTransferCall {
+func NewForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) ForceTransferCall {
 	call := ForceTransferCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionForceTransferIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(storedMap, constants),
 	}
 
 	return call
@@ -88,10 +85,10 @@ func (_ ForceTransferCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[2].(sc.Compact))
 
-	err := forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
+	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -109,7 +106,7 @@ func (_ ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c ForceTransferCall) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -123,5 +120,5 @@ func forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	return trans(sourceAddress, destinationAddress, value, types.ExistenceRequirementAllowDeath)
+	return c.transfer.trans(sourceAddress, destinationAddress, value, types.ExistenceRequirementAllowDeath)
 }

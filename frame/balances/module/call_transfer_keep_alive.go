@@ -1,29 +1,26 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type TransferKeepAliveCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewTransferKeepAliveCall(args sc.VaryingData) TransferKeepAliveCall {
+func NewTransferKeepAliveCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) TransferKeepAliveCall {
 	call := TransferKeepAliveCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionTransferKeepAliveIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(storedMap, constants),
 	}
 
 	return call
@@ -87,10 +84,10 @@ func (_ TransferKeepAliveCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ TransferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c TransferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
-	err := transferKeepAlive(origin, args[0].(types.MultiAddress), value)
+	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -107,7 +104,7 @@ func (_ TransferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.Vary
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c TransferKeepAliveCall) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -118,5 +115,5 @@ func transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	return trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
+	return c.transfer.trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
 }

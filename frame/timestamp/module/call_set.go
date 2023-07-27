@@ -5,7 +5,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -18,13 +17,13 @@ type SetCall struct {
 	primitives.Callable
 }
 
-func NewSetCall(args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) SetCall {
+func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) SetCall {
 	call := SetCall{
 		storage:   storage,
 		constants: constants,
 		Callable: primitives.Callable{
-			ModuleId:   timestamp.ModuleIndex,
-			FunctionId: timestamp.FunctionSetIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
 		onTimestampSet: onTimestampSet,
 	}

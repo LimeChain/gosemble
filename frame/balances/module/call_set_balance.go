@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -6,27 +6,24 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
+	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/frame/balances/events"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type SetBalanceCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewSetBalanceCall(args sc.VaryingData) SetBalanceCall {
+func NewSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) SetBalanceCall {
 	call := SetBalanceCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionSetBalanceIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(storedMap, constants),
 	}
 
 	return call
@@ -91,11 +88,11 @@ func (_ SetBalanceCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	newFree := args[1].(sc.Compact)
 	newReserved := args[2].(sc.Compact)
 
-	err := setBalance(origin, args[0].(types.MultiAddress), newFree.ToBigInt(), newReserved.ToBigInt())
+	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree.ToBigInt(), newReserved.ToBigInt())
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -115,7 +112,7 @@ func (_ SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
+func (c SetBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -125,7 +122,7 @@ func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	existentialDeposit := balances.ExistentialDeposit
+	existentialDeposit := c.constants.ExistentialDeposit
 	sum := new(big.Int).Add(newFree, newReserved)
 
 	if sum.Cmp(existentialDeposit) < 0 {
@@ -133,7 +130,7 @@ func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int
 		newReserved = big.NewInt(0)
 	}
 
-	result := mutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {
+	result := c.transfer.mutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {
 		oldFree := acc.Free
 		oldReserved := acc.Reserved
 
@@ -152,24 +149,24 @@ func setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int
 	if newFree.Cmp(oldFree.ToBigInt()) > 0 {
 		diff := new(big.Int).Sub(newFree, oldFree.ToBigInt())
 
-		NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		dispatchables.NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	} else if newFree.Cmp(oldFree.ToBigInt()) < 0 {
 		diff := new(big.Int).Sub(oldFree.ToBigInt(), newFree)
 
-		NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		dispatchables.NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	}
 
 	if newReserved.Cmp(oldReserved.ToBigInt()) > 0 {
 		diff := new(big.Int).Sub(newReserved, oldReserved.ToBigInt())
 
-		NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		dispatchables.NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	} else if newReserved.Cmp(oldReserved.ToBigInt()) < 0 {
 		diff := new(big.Int).Sub(oldReserved.ToBigInt(), newReserved)
 
-		NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		dispatchables.NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	}
 
-	system.DepositEvent(
+	c.storedMap.DepositEvent(
 		events.NewEventBalanceSet(
 			who.AsAddress32().FixedSequence,
 			sc.NewU128FromBigInt(newFree),

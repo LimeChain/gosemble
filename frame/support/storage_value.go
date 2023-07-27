@@ -45,6 +45,13 @@ func (sv StorageValue[T]) Put(value T) {
 	storage.Set(append(prefixHash, nameHash...), value.Bytes())
 }
 
+func (sv StorageValue[T]) Append(value T) {
+	prefixHash := hashing.Twox128(sv.prefix)
+	nameHash := hashing.Twox128(sv.name)
+
+	storage.Append(append(prefixHash, nameHash...), value.Bytes())
+}
+
 func (sv StorageValue[T]) Take() []byte {
 	prefixHash := hashing.Twox128(sv.prefix)
 	nameHash := hashing.Twox128(sv.name)

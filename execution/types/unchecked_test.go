@@ -5,12 +5,14 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/system/dispatchables"
+	"github.com/LimeChain/gosemble/frame/system/module"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
-var remarkCall = dispatchables.NewRemarkCall(sc.NewVaryingData(sc.Sequence[sc.U8]{}))
+var remarkCall = dispatchables.NewRemarkCall(system.ModuleIndex, module.FunctionRemarkIndex, sc.NewVaryingData(sc.Sequence[sc.U8]{}))
 
 func Test_EncodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 	var testExamples = []struct {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -13,11 +12,11 @@ type RemarkCall struct {
 	primitives.Callable
 }
 
-func NewRemarkCall(args sc.VaryingData) RemarkCall {
+func NewRemarkCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) RemarkCall {
 	call := RemarkCall{
 		Callable: primitives.Callable{
-			ModuleId:   system.ModuleIndex,
-			FunctionId: system.FunctionRemarkIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
 	}
 

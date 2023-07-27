@@ -15,6 +15,18 @@ func NewEvent(module sc.U8, event sc.U8, values ...sc.Encodable) Event {
 	return sc.NewVaryingData(args...)
 }
 
+func DecodeEvents(buffer *bytes.Buffer) sc.Sequence[EventRecord] {
+	compactSize := sc.DecodeCompact(buffer)
+	size := int(compactSize.ToBigInt().Int64())
+
+	sequence := make(sc.Sequence[EventRecord], size)
+	for i := 0; i < size; i++ {
+		sequence[i] = DecodeEventRecord(buffer)
+	}
+
+	return sequence
+}
+
 type EventRecord struct {
 	Phase  ExtrinsicPhase
 	Event  Event
@@ -29,4 +41,12 @@ func (er EventRecord) Encode(buffer *bytes.Buffer) {
 
 func (er EventRecord) Bytes() []byte {
 	return sc.EncodedBytes(er)
+}
+
+func DecodeEventRecord(buffer *bytes.Buffer) EventRecord {
+	return EventRecord{
+		Phase:  DecodeExtrinsicPhase(buffer),
+		Event:  nil, // TODO:
+		Topics: sc.DecodeSequence[H256](buffer),
+	}
 }

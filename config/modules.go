@@ -44,11 +44,20 @@ var (
 )
 
 func initializeModules() map[sc.U8]types.Module {
-	systemModule := sm.NewSystemModule()
-	auraModule := am.NewModule(AuraIndex, am.NewConfig(timestamp.MinimumPeriod, AuraMaxAuthorites, false))
-	timestampModule := tsm.NewModule(TimestampIndex, tsm.NewConfig(auraModule, timestamp.MinimumPeriod))
+	systemModule := sm.NewSystemModule(SystemIndex,
+		sm.NewConfig(constants.BlockHashCount, constants.RuntimeVersion))
+
+	auraModule := am.NewModule(AuraIndex,
+		am.NewConfig(timestamp.MinimumPeriod, AuraMaxAuthorites, false))
+
+	timestampModule := tsm.NewModule(TimestampIndex,
+		tsm.NewConfig(auraModule, timestamp.MinimumPeriod))
+
 	grandpaModule := gm.NewGrandpaModule()
-	balancesModule := bm.NewBalancesModule(BalancesIndex, bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit))
+
+	balancesModule := bm.NewBalancesModule(BalancesIndex,
+		bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
+
 	tpmModule := tpm.NewTransactionPaymentModule()
 	testableModule := tm.NewTestingModule()
 

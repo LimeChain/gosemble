@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -14,18 +13,16 @@ import (
 
 type TransferAllCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewTransferAllCall(args sc.VaryingData) TransferAllCall {
+func NewTransferAllCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) TransferAllCall {
 	call := TransferAllCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionTransferAllIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(storedMap, constants),
 	}
 
 	return call
@@ -89,8 +86,8 @@ func (_ TransferAllCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
+func (c TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := c.transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -112,13 +109,13 @@ func (_ TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 // the funds the account has, causing the sender account to be killed (false), or
 // transfer everything except at least the existential deposit, which will guarantee to
 // keep the sender account alive (true).
-func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
+func (c TransferAllCall) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
 
 	transactor := origin.AsSigned()
-	reducibleBalance := reducibleBalance(transactor, keepAlive)
+	reducibleBalance := c.reducibleBalance(transactor, keepAlive)
 
 	to, err := types.DefaultAccountIdLookup().Lookup(dest)
 	if err != nil {
@@ -131,5 +128,5 @@ func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool
 		keep = types.ExistenceRequirementAllowDeath
 	}
 
-	return trans(transactor, to, reducibleBalance, keep)
+	return c.transfer.trans(transactor, to, reducibleBalance, keep)
 }
