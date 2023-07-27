@@ -14,9 +14,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+var (
+	InherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
+)
+
 // TODO: Refactor
 func CreateInherent(inherent primitives.InherentData) []byte {
-	inherentData := inherent.Data[timestampConstants.InherentIdentifier]
+	inherentData := inherent.Data[InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")
@@ -53,7 +57,7 @@ func CheckInherent(args sc.VaryingData, inherent primitives.InherentData) error 
 	compactTs := args[0].(sc.Compact)
 	t := sc.U64(compactTs.ToBigInt().Uint64())
 
-	inherentData := inherent.Data[timestampConstants.InherentIdentifier]
+	inherentData := inherent.Data[InherentIdentifier]
 
 	if inherentData == nil {
 		log.Critical("Timestamp inherent must be provided.")

@@ -7,7 +7,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/frame/balances/events"
@@ -26,7 +25,7 @@ func NewTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(storedMap, constants),
+		transfer: newTransfer(moduleId, storedMap, constants),
 	}
 
 	return call
@@ -110,12 +109,14 @@ func (_ TransferCall) IsInherent() bool {
 }
 
 type transfer struct {
+	moduleId  sc.U8
 	storedMap primitives.StoredMap
 	constants *consts
 }
 
-func newTransfer(storedMap primitives.StoredMap, constants *consts) transfer {
+func newTransfer(moduleId sc.U8, storedMap primitives.StoredMap, constants *consts) transfer {
 	return transfer{
+		moduleId:  moduleId,
 		storedMap: storedMap,
 		constants: constants,
 	}
@@ -155,7 +156,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorInsufficientBalance),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -171,7 +172,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorExistentialDeposit),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -193,7 +194,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorKeepAlive),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -222,7 +223,7 @@ func (t transfer) ensureCanWithdraw(who types.Address32, amount *big.Int, reason
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Cmp(newBalance) > 0 {
 		return types.NewDispatchErrorModule(types.CustomModuleError{
-			Index:   balances.ModuleIndex,
+			Index:   t.moduleId,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})

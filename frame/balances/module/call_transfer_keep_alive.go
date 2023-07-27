@@ -20,7 +20,7 @@ func NewTransferKeepAliveCall(moduleId sc.U8, functionId sc.U8, storedMap primit
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(storedMap, constants),
+		transfer: newTransfer(moduleId, storedMap, constants),
 	}
 
 	return call

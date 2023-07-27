@@ -2,20 +2,25 @@ package module
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/testable"
 	"github.com/LimeChain/gosemble/frame/testable/dispatchables"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	FunctionTestIndex = 255
+)
+
 type TestableModule struct {
+	Index     sc.U8
 	functions map[sc.U8]primitives.Call
 }
 
-func NewTestingModule() TestableModule {
+func NewTestingModule(index sc.U8) TestableModule {
 	functions := make(map[sc.U8]primitives.Call)
-	functions[testable.FunctionTestIndex] = dispatchables.NewTestCall(nil)
+	functions[FunctionTestIndex] = dispatchables.NewTestCall(index, FunctionTestIndex, nil)
 
 	return TestableModule{
+		Index:     index,
 		functions: functions,
 	}
 }
@@ -41,6 +46,6 @@ func (tm TestableModule) Metadata() (sc.Sequence[primitives.MetadataType], primi
 		Event:     sc.NewOption[sc.Compact](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     testable.ModuleIndex,
+		Index:     tm.Index,
 	}
 }

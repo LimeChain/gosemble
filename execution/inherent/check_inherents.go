@@ -28,7 +28,7 @@ func CheckExtrinsics(data primitives.InherentData, block types.Block) primitives
 				isInherent = true
 				err := timestamp.CheckInherent(call.Args(), data)
 				if err != nil {
-					err := result.PutError(tsc.InherentIdentifier, err.(primitives.IsFatalError))
+					err := result.PutError(timestamp.InherentIdentifier, err.(primitives.IsFatalError))
 					if err != nil {
 						panic(err)
 					}

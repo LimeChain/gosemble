@@ -59,7 +59,7 @@ func initializeModules() map[sc.U8]types.Module {
 		bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
 
 	tpmModule := tpm.NewTransactionPaymentModule()
-	testableModule := tm.NewTestingModule()
+	testableModule := tm.NewTestingModule(TestableIndex)
 
 	return map[sc.U8]types.Module{
 		SystemIndex:     systemModule,

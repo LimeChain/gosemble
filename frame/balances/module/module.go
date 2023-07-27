@@ -2,7 +2,6 @@ package module
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/frame/balances/events"
@@ -106,7 +105,7 @@ func (bm BalancesModule) Metadata() (sc.Sequence[primitives.MetadataType], primi
 			),
 		}, // TODO:
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
-		Index: balances.ModuleIndex,
+		Index: bm.Index,
 	}
 }
 

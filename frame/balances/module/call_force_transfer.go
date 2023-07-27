@@ -20,7 +20,7 @@ func NewForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(storedMap, constants),
+		transfer: newTransfer(moduleId, storedMap, constants),
 	}
 
 	return call

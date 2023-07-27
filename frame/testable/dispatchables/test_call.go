@@ -5,7 +5,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 
-	"github.com/LimeChain/gosemble/constants/testable"
 	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -16,11 +15,11 @@ type TestCall struct {
 	primitives.Callable
 }
 
-func NewTestCall(args sc.VaryingData) TestCall {
+func NewTestCall(moduleId, functionId sc.U8, args sc.VaryingData) TestCall {
 	call := TestCall{
 		Callable: primitives.Callable{
-			ModuleId:   testable.ModuleIndex,
-			FunctionId: testable.FunctionTestIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
 	}
 

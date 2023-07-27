@@ -7,7 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	cs "github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/system/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -382,7 +381,7 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
-		Index: cs.ModuleIndex,
+		Index: sm.Index,
 	}
 
 	return sm.metadataTypes(), metadataModule
