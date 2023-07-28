@@ -12,13 +12,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type SetBalanceCall struct {
+type setBalanceCall struct {
 	primitives.Callable
 	transfer
 }
 
-func NewSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) SetBalanceCall {
-	call := SetBalanceCall{
+func newSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+	call := setBalanceCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -29,7 +29,7 @@ func NewSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.St
 	return call
 }
 
-func (c SetBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c setBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -38,27 +38,27 @@ func (c SetBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c SetBalanceCall) Encode(buffer *bytes.Buffer) {
+func (c setBalanceCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c SetBalanceCall) Bytes() []byte {
+func (c setBalanceCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c SetBalanceCall) ModuleIndex() sc.U8 {
+func (c setBalanceCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c SetBalanceCall) FunctionIndex() sc.U8 {
+func (c setBalanceCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c SetBalanceCall) Args() sc.VaryingData {
+func (c setBalanceCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ SetBalanceCall) BaseWeight(b ...any) types.Weight {
+func (_ setBalanceCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -72,23 +72,23 @@ func (_ SetBalanceCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ SetBalanceCall) IsInherent() bool {
+func (_ setBalanceCall) IsInherent() bool {
 	return false
 }
 
-func (_ SetBalanceCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ setBalanceCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ SetBalanceCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ setBalanceCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ SetBalanceCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ setBalanceCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c setBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	newFree := args[1].(sc.Compact)
 	newReserved := args[2].(sc.Compact)
 
@@ -112,7 +112,7 @@ func (c SetBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c SetBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
+func (c setBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree *big.Int, newReserved *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

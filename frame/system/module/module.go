@@ -8,13 +8,12 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/frame/system/dispatchables"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 const (
-	FunctionRemarkIndex = 0
+	functionRemarkIndex = 0
 )
 
 type SystemModule struct {
@@ -30,7 +29,7 @@ func NewSystemModule(index sc.U8, config *Config) SystemModule {
 	storage := newStorage()
 	constants := newConstants(config.BlockHashCount, config.Version)
 
-	functions[FunctionRemarkIndex] = dispatchables.NewRemarkCall(index, FunctionRemarkIndex, nil)
+	functions[functionRemarkIndex] = newRemarkCall(index, functionRemarkIndex)
 	// TODO: add more dispatchables
 
 	return SystemModule{
@@ -579,7 +578,7 @@ func (sm SystemModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
 						},
-						FunctionRemarkIndex,
+						functionRemarkIndex,
 						"Make some on-chain remark."),
 				}),
 			primitives.NewMetadataEmptyTypeParameter("T")),

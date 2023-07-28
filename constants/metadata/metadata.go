@@ -108,6 +108,7 @@ const (
 	TimestampCalls
 	GrandpaCalls
 	BalancesCalls
+	TestableCalls
 
 	UncheckedExtrinsic
 	SignedExtra

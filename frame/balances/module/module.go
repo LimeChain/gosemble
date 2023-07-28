@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	FunctionTransferIndex          = 0
-	FunctionSetBalanceIndex        = 1
-	FunctionForceTransferIndex     = 2
-	FunctionTransferKeepAliveIndex = 3
-	FunctionTransferAllIndex       = 4
-	FunctionForceFreeIndex         = 5
+	functionTransferIndex          = 0
+	functionSetBalanceIndex        = 1
+	functionForceTransferIndex     = 2
+	functionTransferKeepAliveIndex = 3
+	functionTransferAllIndex       = 4
+	functionForceFreeIndex         = 5
 )
 
 type BalancesModule struct {
@@ -28,12 +28,12 @@ type BalancesModule struct {
 func NewBalancesModule(index sc.U8, config *Config) BalancesModule {
 	constants := newConstants(config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 	functions := make(map[sc.U8]primitives.Call)
-	functions[FunctionTransferIndex] = NewTransferCall(index, FunctionTransferIndex, config.StoredMap, constants)
-	functions[FunctionSetBalanceIndex] = NewSetBalanceCall(index, FunctionSetBalanceIndex, config.StoredMap, constants)
-	functions[FunctionForceTransferIndex] = NewForceTransferCall(index, FunctionForceTransferIndex, config.StoredMap, constants)
-	functions[FunctionTransferKeepAliveIndex] = NewTransferKeepAliveCall(index, FunctionTransferKeepAliveIndex, config.StoredMap, constants)
-	functions[FunctionTransferAllIndex] = NewTransferAllCall(index, FunctionTransferAllIndex, config.StoredMap, constants)
-	functions[FunctionForceFreeIndex] = NewForceFreeCall(index, FunctionForceFreeIndex, config.StoredMap)
+	functions[functionTransferIndex] = newTransferCall(index, functionTransferIndex, config.StoredMap, constants)
+	functions[functionSetBalanceIndex] = newSetBalanceCall(index, functionSetBalanceIndex, config.StoredMap, constants)
+	functions[functionForceTransferIndex] = newForceTransferCall(index, functionForceTransferIndex, config.StoredMap, constants)
+	functions[functionTransferKeepAliveIndex] = newTransferKeepAliveCall(index, functionTransferKeepAliveIndex, config.StoredMap, constants)
+	functions[functionTransferAllIndex] = newTransferAllCall(index, functionTransferAllIndex, config.StoredMap, constants)
+	functions[functionForceFreeIndex] = newForceFreeCall(index, functionForceFreeIndex, config.StoredMap)
 
 	return BalancesModule{
 		Index:     index,
@@ -274,7 +274,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
-					FunctionTransferIndex,
+					functionTransferIndex,
 					"Transfer some liquid free balance to another account."),
 				primitives.NewMetadataDefinitionVariant(
 					"set_balance",
@@ -283,7 +283,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_free", "T::Balance"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_reserved", "T::Balance"),
 					},
-					FunctionSetBalanceIndex,
+					functionSetBalanceIndex,
 					"Set the balances of a given account."),
 				primitives.NewMetadataDefinitionVariant(
 					"force_transfer",
@@ -292,7 +292,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
-					FunctionForceTransferIndex,
+					functionForceTransferIndex,
 					"Exactly as `transfer`, except the origin must be root and the source account may be specified."),
 				primitives.NewMetadataDefinitionVariant(
 					"transfer_keep_alive",
@@ -300,7 +300,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
 					},
-					FunctionTransferKeepAliveIndex,
+					functionTransferKeepAliveIndex,
 					"Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."),
 				primitives.NewMetadataDefinitionVariant(
 					"transfer_all",
@@ -308,7 +308,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "keep_alive", "bool"),
 					},
-					FunctionTransferAllIndex,
+					functionTransferAllIndex,
 					"Transfer the entire transferable balance from the caller account."),
 				primitives.NewMetadataDefinitionVariant(
 					"force_unreserve",
@@ -316,7 +316,7 @@ func (bm BalancesModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "who", "AccountIdLookupOf<T>"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					FunctionForceFreeIndex,
+					functionForceFreeIndex,
 					"Unreserve some balance from a user by force."),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{

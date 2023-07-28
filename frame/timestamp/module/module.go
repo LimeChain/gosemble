@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	FunctionSetIndex = 0
+	functionSetIndex = 0
 )
 
 type Module struct {
@@ -23,7 +23,7 @@ func NewModule(index sc.U8, config *Config) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
 	constants := newConstants(config.MinimumPeriod)
-	functions[FunctionSetIndex] = NewSetCall(index, FunctionSetIndex, nil, storage, constants, config.OnTimestampSet)
+	functions[functionSetIndex] = NewSetCall(index, functionSetIndex, nil, storage, constants, config.OnTimestampSet)
 
 	return Module{
 		Index:     index,
@@ -95,7 +95,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "now", "T::Moment"),
 					},
-					FunctionSetIndex,
+					functionSetIndex,
 					"Set the current time."),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
 	}

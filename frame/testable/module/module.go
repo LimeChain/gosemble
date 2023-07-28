@@ -2,12 +2,12 @@ package module
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/testable/dispatchables"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 const (
-	FunctionTestIndex = 255
+	functionTestIndex = 255
 )
 
 type TestableModule struct {
@@ -17,7 +17,7 @@ type TestableModule struct {
 
 func NewTestingModule(index sc.U8) TestableModule {
 	functions := make(map[sc.U8]primitives.Call)
-	functions[FunctionTestIndex] = dispatchables.NewTestCall(index, FunctionTestIndex, nil)
+	functions[functionTestIndex] = newTestCall(index, functionTestIndex, nil)
 
 	return TestableModule{
 		Index:     index,
@@ -38,14 +38,32 @@ func (tm TestableModule) ValidateUnsigned(_ primitives.TransactionSource, _ prim
 }
 
 func (tm TestableModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	// TODO: types
-	return sc.Sequence[primitives.MetadataType]{}, primitives.MetadataModule{
+	return tm.metadataTypes(), primitives.MetadataModule{
 		Name:      "Testable",
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
-		Call:      sc.NewOption[sc.Compact](nil),
+		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
 		Event:     sc.NewOption[sc.Compact](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     tm.Index,
+	}
+}
+
+func (tm TestableModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	return sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataTypeWithParam(metadata.TestableCalls,
+			"Testable calls",
+			sc.Sequence[sc.Str]{"frame_system", "testable", "Call"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"test",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionTestIndex,
+						"Make test"),
+				}),
+			primitives.NewMetadataEmptyTypeParameter("T")),
 	}
 }

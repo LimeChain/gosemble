@@ -13,13 +13,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type ForceFreeCall struct {
+type forceFreeCall struct {
 	primitives.Callable
 	storedMap primitives.StoredMap
 }
 
-func NewForceFreeCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap) ForceFreeCall {
-	call := ForceFreeCall{
+func newForceFreeCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap) primitives.Call {
+	call := forceFreeCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -30,7 +30,7 @@ func NewForceFreeCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 	return call
 }
 
-func (c ForceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c forceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeU128(buffer),
@@ -38,27 +38,27 @@ func (c ForceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c ForceFreeCall) Encode(buffer *bytes.Buffer) {
+func (c forceFreeCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c ForceFreeCall) Bytes() []byte {
+func (c forceFreeCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c ForceFreeCall) ModuleIndex() sc.U8 {
+func (c forceFreeCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c ForceFreeCall) FunctionIndex() sc.U8 {
+func (c forceFreeCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c ForceFreeCall) Args() sc.VaryingData {
+func (c forceFreeCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ ForceFreeCall) BaseWeight(b ...any) types.Weight {
+func (_ forceFreeCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -72,23 +72,23 @@ func (_ ForceFreeCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ ForceFreeCall) IsInherent() bool {
+func (_ forceFreeCall) IsInherent() bool {
 	return false
 }
 
-func (_ ForceFreeCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ forceFreeCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ ForceFreeCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ forceFreeCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ ForceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ forceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c forceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
 	err := c.forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
@@ -110,7 +110,7 @@ func (c ForceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c ForceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
+func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -127,7 +127,7 @@ func (c ForceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees some funds, returning the amount that has not been freed.
-func (c ForceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
+func (c forceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
 	if value.Cmp(constants.Zero) == 0 {
 		return big.NewInt(0)
 	}

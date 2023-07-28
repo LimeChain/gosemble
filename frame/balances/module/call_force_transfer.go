@@ -9,13 +9,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type ForceTransferCall struct {
+type forceTransferCall struct {
 	primitives.Callable
 	transfer
 }
 
-func NewForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) ForceTransferCall {
-	call := ForceTransferCall{
+func newForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+	call := forceTransferCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -26,7 +26,7 @@ func NewForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives
 	return call
 }
 
-func (c ForceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c forceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		types.DecodeMultiAddress(buffer),
@@ -35,27 +35,27 @@ func (c ForceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c ForceTransferCall) Encode(buffer *bytes.Buffer) {
+func (c forceTransferCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c ForceTransferCall) Bytes() []byte {
+func (c forceTransferCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c ForceTransferCall) ModuleIndex() sc.U8 {
+func (c forceTransferCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c ForceTransferCall) FunctionIndex() sc.U8 {
+func (c forceTransferCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c ForceTransferCall) Args() sc.VaryingData {
+func (c forceTransferCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ ForceTransferCall) BaseWeight(b ...any) types.Weight {
+func (_ forceTransferCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `135`
 	//  Estimated: `6196`
@@ -69,23 +69,23 @@ func (_ ForceTransferCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ ForceTransferCall) IsInherent() bool {
+func (_ forceTransferCall) IsInherent() bool {
 	return false
 }
 
-func (_ ForceTransferCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ forceTransferCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ ForceTransferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ forceTransferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ ForceTransferCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ forceTransferCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c forceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[2].(sc.Compact))
 
 	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
@@ -106,7 +106,7 @@ func (c ForceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func (c ForceTransferCall) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c forceTransferCall) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

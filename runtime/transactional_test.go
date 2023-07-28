@@ -1,13 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"testing"
 
-	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/config"
-	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/testable/dispatchables"
-	"github.com/LimeChain/gosemble/frame/testable/module"
+	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
+	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -18,11 +16,19 @@ import (
 func Test_Storage_Layer_Rollback_Then_Commit(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 
-	call := dispatchables.NewTestCall(config.TestableIndex, module.FunctionTestIndex, sc.NewVaryingData(sc.Sequence[sc.U8]{}))
+	metadata := runtimeMetadata(t, rt)
 
-	extrinsic := types.NewUnsignedUncheckedExtrinsic(call)
+	call, err := ctypes.NewCall(metadata, "Testable.test", []byte{})
+	assert.NoError(t, err)
 
-	_, err := rt.Exec("BlockBuilder_apply_extrinsic", extrinsic.Bytes())
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	buffer := &bytes.Buffer{}
+	encoder := cscale.NewEncoder(buffer)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("BlockBuilder_apply_extrinsic", buffer.Bytes())
 	assert.NoError(t, err)
 
 	assert.Equal(t, []byte{1}, (*storage).Get([]byte("testvalue")))

@@ -10,15 +10,16 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type SetCall struct {
+type setCall struct {
 	storage        *storage
 	onTimestampSet hooks.OnTimestampSet[sc.U64]
 	constants      *consts
 	primitives.Callable
 }
 
-func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) SetCall {
-	call := SetCall{
+// TODO: switch to private once inherents are modularised
+func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) primitives.Call {
+	call := setCall{
 		storage:   storage,
 		constants: constants,
 		Callable: primitives.Callable{
@@ -35,32 +36,32 @@ func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *
 	return call
 }
 
-func (c SetCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c setCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(sc.DecodeCompact(buffer))
 	return c
 }
 
-func (c SetCall) Encode(buffer *bytes.Buffer) {
+func (c setCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c SetCall) Bytes() []byte {
+func (c setCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c SetCall) ModuleIndex() sc.U8 {
+func (c setCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c SetCall) FunctionIndex() sc.U8 {
+func (c setCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c SetCall) Args() sc.VaryingData {
+func (c setCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ SetCall) BaseWeight(b ...any) primitives.Weight {
+func (_ setCall) BaseWeight(b ...any) primitives.Weight {
 	// Storage: Timestamp Now (r:1 w:1)
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	// Storage: Babe CurrentSlot (r:1 w:0)
@@ -75,23 +76,23 @@ func (_ SetCall) BaseWeight(b ...any) primitives.Weight {
 	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ SetCall) IsInherent() bool {
+func (_ setCall) IsInherent() bool {
 	return true
 }
 
-func (_ SetCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+func (_ setCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ SetCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+func (_ setCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
 	return primitives.NewDispatchClassMandatory()
 }
 
-func (_ SetCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+func (_ setCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.NewPaysYes()
 }
 
-func (c SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c setCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	compactTs := args[0].(sc.Compact)
 	return c.set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
@@ -111,7 +112,7 @@ func (c SetCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func (c SetCall) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c setCall) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	if !origin.IsNoneOrigin() {
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
