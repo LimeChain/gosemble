@@ -1,5 +1,6 @@
 package types
 
+// TODO: Uncomment once UncheckedExtrinsic is modularised
 //var remarkCall = module.NewRemarkCall(system.ModuleIndex, module.FunctionRemarkIndex, sc.NewVaryingData(sc.Sequence[sc.U8]{}))
 //
 //func Test_EncodeUncheckedExtrinsic_Unsigned(t *testing.T) {
