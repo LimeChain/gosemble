@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/storage"
 )
 
+// TODO: Remove once system is modularised and use timestamp_module.OnFinalize
 func OnFinalize() {
 	timestampHash := hashing.Twox128(constants.KeyTimestamp)
 	didUpdateHash := hashing.Twox128(constants.KeyDidUpdate)

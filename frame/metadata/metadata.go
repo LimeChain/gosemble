@@ -605,7 +605,7 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Grandpa",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Grandpa, Runtime>"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.GrandpaCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Grandpa, Runtime>"),
 					},
 					grandpa.ModuleIndex,
 					"Call.Grandpa"),
@@ -616,6 +616,13 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 					},
 					balances.ModuleIndex,
 					"Call.Balances"),
+				primitives.NewMetadataDefinitionVariant(
+					"Testable",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TestableCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
+					},
+					balances.ModuleIndex,
+					"Call.Testable"),
 			})),
 		primitives.NewMetadataType(metadata.Runtime, "Runtime", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),

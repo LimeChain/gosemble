@@ -24,6 +24,7 @@ func NewNegativeImbalance(balance types.Balance) NegativeImbalance {
 func (ni NegativeImbalance) Drop() {
 	key := append(hashing.Twox128(constants.KeyBalances), hashing.Twox128(constants.KeyTotalIssuance)...)
 
+	// TODO: remove storage
 	issuance := storage.GetDecode(key, sc.DecodeU128)
 
 	issuanceBn := issuance.ToBigInt()
@@ -33,6 +34,7 @@ func (ni NegativeImbalance) Drop() {
 		sub = issuanceBn
 	}
 
+	// TODO: remove storage
 	storage.Set(key, sc.NewU128FromBigInt(sub).Bytes())
 }
 
@@ -47,6 +49,7 @@ func NewPositiveImbalance(balance types.Balance) PositiveImbalance {
 func (pi PositiveImbalance) Drop() {
 	key := append(hashing.Twox128(constants.KeyBalances), hashing.Twox128(constants.KeyTotalIssuance)...)
 
+	// TODO: remove storage
 	issuance := storage.GetDecode(key, sc.DecodeU128)
 
 	issuanceBn := issuance.ToBigInt()
@@ -56,6 +59,7 @@ func (pi PositiveImbalance) Drop() {
 		add = issuanceBn
 	}
 
+	// TODO: remove storage
 	storage.Set(key, sc.NewU128FromBigInt(add).Bytes())
 }
 
@@ -74,6 +78,7 @@ func (dcv DustCleanerValue) Bytes() []byte {
 }
 
 func (dcv DustCleanerValue) Drop() {
+	// TODO: remove storage
 	system.DepositEvent(events.NewEventDustLost(dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
 	dcv.NegativeImbalance.Drop()
 }

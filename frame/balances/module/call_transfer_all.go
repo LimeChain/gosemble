@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -6,32 +6,29 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type TransferAllCall struct {
+type transferAllCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewTransferAllCall(args sc.VaryingData) TransferAllCall {
-	call := TransferAllCall{
+func newTransferAllCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+	call := transferAllCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionTransferAllIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(moduleId, storedMap, constants),
 	}
 
 	return call
 }
 
-func (c TransferAllCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c transferAllCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeBool(buffer),
@@ -39,31 +36,31 @@ func (c TransferAllCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c TransferAllCall) Encode(buffer *bytes.Buffer) {
+func (c transferAllCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c TransferAllCall) Bytes() []byte {
+func (c transferAllCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c TransferAllCall) ModuleIndex() sc.U8 {
+func (c transferAllCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c TransferAllCall) FunctionIndex() sc.U8 {
+func (c transferAllCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c TransferAllCall) Args() sc.VaryingData {
+func (c transferAllCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ TransferAllCall) IsInherent() bool {
+func (_ transferAllCall) IsInherent() bool {
 	return false
 }
 
-func (_ TransferAllCall) BaseWeight(b ...any) types.Weight {
+func (_ transferAllCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -77,20 +74,20 @@ func (_ TransferAllCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ TransferAllCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ transferAllCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ TransferAllCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ transferAllCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ TransferAllCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ transferAllCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
+func (c transferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+	err := c.transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -112,13 +109,13 @@ func (_ TransferAllCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 // the funds the account has, causing the sender account to be killed (false), or
 // transfer everything except at least the existential deposit, which will guarantee to
 // keep the sender account alive (true).
-func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
+func (c transferAllCall) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
 
 	transactor := origin.AsSigned()
-	reducibleBalance := reducibleBalance(transactor, keepAlive)
+	reducibleBalance := c.reducibleBalance(transactor, keepAlive)
 
 	to, err := types.DefaultAccountIdLookup().Lookup(dest)
 	if err != nil {
@@ -131,5 +128,5 @@ func transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool
 		keep = types.ExistenceRequirementAllowDeath
 	}
 
-	return trans(transactor, to, reducibleBalance, keep)
+	return c.transfer.trans(transactor, to, reducibleBalance, keep)
 }

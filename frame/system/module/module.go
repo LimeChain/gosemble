@@ -1,25 +1,42 @@
 package module
 
 import (
+	"math"
+	"reflect"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	cs "github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/frame/system/dispatchables"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	functionRemarkIndex = 0
+)
+
 type SystemModule struct {
+	Index     sc.U8
+	Config    *Config
+	Storage   *storage
+	Constants *consts
 	functions map[sc.U8]primitives.Call
-	// TODO: add more dispatchables
 }
 
-func NewSystemModule() SystemModule {
+func NewSystemModule(index sc.U8, config *Config) SystemModule {
 	functions := make(map[sc.U8]primitives.Call)
-	functions[cs.FunctionRemarkIndex] = dispatchables.NewRemarkCall(nil)
+	storage := newStorage()
+	constants := newConstants(config.BlockHashCount, config.Version)
+
+	functions[functionRemarkIndex] = newRemarkCall(index, functionRemarkIndex)
+	// TODO: add more dispatchables
 
 	return SystemModule{
+		Index:     index,
+		Config:    config,
+		Storage:   storage,
+		Constants: constants,
 		functions: functions,
 	}
 }
@@ -34,6 +51,202 @@ func (sm SystemModule) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Tran
 
 func (sm SystemModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+}
+
+func (sm SystemModule) Get(key primitives.PublicKey) primitives.AccountInfo {
+	return sm.Storage.Account.Get(key)
+}
+
+func (sm SystemModule) CanDecProviders(who primitives.Address32) bool {
+	acc := sm.Get(who.FixedSequence)
+
+	return acc.Consumers == 0 || acc.Providers > 1
+}
+
+// DepositEvent deposits an event into block's event record.
+func (sm SystemModule) DepositEvent(event primitives.Event) {
+	sm.depositEventIndexed([]primitives.H256{}, event)
+}
+
+func (sm SystemModule) Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	accountInfo := sm.Get(who.FixedSequence)
+
+	result := f(&accountInfo)
+	if !result.HasError {
+		sm.Storage.Account.Put(who.FixedSequence, accountInfo)
+	}
+
+	return result
+}
+
+func (sm SystemModule) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	account := sm.Get(who.FixedSequence)
+	wasProviding := false
+	if !reflect.DeepEqual(account.Data, primitives.AccountData{}) {
+		wasProviding = true
+	}
+
+	someData := &primitives.AccountData{}
+	if wasProviding {
+		someData = &account.Data
+	}
+
+	result := f(someData)
+	if result.HasError {
+		return result
+	}
+
+	isProviding := !reflect.DeepEqual(someData, primitives.AccountData{})
+
+	if !wasProviding && isProviding {
+		sm.incProviders(who)
+	} else if wasProviding && !isProviding {
+		status, err := sm.decProviders(who)
+		if err != nil {
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    err,
+			}
+		}
+		if status == primitives.DecRefStatusExists {
+			return result
+		}
+	} else if !wasProviding && !isProviding {
+		return result
+	}
+
+	sm.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
+		if someData != nil {
+			a.Data = *someData
+		} else {
+			a.Data = primitives.AccountData{}
+		}
+
+		return sc.Result[sc.Encodable]{}
+	})
+
+	return result
+}
+
+func (sm SystemModule) incProviders(who primitives.Address32) primitives.IncRefStatus {
+	result := sm.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
+		if a.Providers == 0 && a.Sufficients == 0 {
+			a.Providers = 1
+			sm.onCreatedAccount(who)
+
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    primitives.IncRefStatusCreated,
+			}
+		} else {
+			// saturating_add
+			newProviders := a.Providers + 1
+			if newProviders < a.Providers {
+				newProviders = math.MaxUint32
+			}
+
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    primitives.IncRefStatusExisted,
+			}
+		}
+	})
+
+	return result.Value.(primitives.IncRefStatus)
+}
+
+func (sm SystemModule) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
+	result := sm.AccountTryMutateExists(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+		if account.Providers == 0 {
+			log.Warn("Logic error: Unexpected underflow in reducing provider")
+
+			account.Providers = 1
+		}
+
+		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    primitives.DecRefStatusReaped,
+			}
+		}
+
+		if account.Providers == 1 && account.Consumers > 0 {
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    primitives.NewDispatchErrorConsumerRemaining(),
+			}
+		}
+
+		account.Providers -= 1
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.DecRefStatusExists,
+		}
+	})
+
+	if result.HasError {
+		return sc.U8(0), result.Value.(primitives.DispatchError)
+	}
+
+	return result.Value.(primitives.DecRefStatus), nil
+}
+
+// depositEventIndexed Deposits an event into this block's event record adding this event
+// to the corresponding topic indexes.
+//
+// This will update storage entries that correspond to the specified topics.
+// It is expected that light-clients could subscribe to this topics.
+//
+// NOTE: Events not registered at the genesis block and quietly omitted.
+func (sm SystemModule) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
+	blockNumber := sm.Storage.BlockNumber.Get()
+	if blockNumber == 0 {
+		return
+	}
+
+	eventRecord := primitives.EventRecord{
+		Phase:  sm.Storage.ExecutionPhase.Get(),
+		Event:  event,
+		Topics: topics,
+	}
+
+	oldEventCount := sm.Storage.EventCount.Get()
+	newEventCount := oldEventCount + 1 // checked_add
+	if newEventCount < oldEventCount {
+		return
+	}
+
+	sm.Storage.EventCount.Put(newEventCount)
+
+	sm.Storage.Events.Append(eventRecord)
+
+	topicValue := sc.NewVaryingData(blockNumber, oldEventCount)
+	for _, topic := range topics {
+		sm.Storage.EventTopics.Append(topic, topicValue)
+	}
+}
+
+func (sm SystemModule) onCreatedAccount(who primitives.Address32) {
+	// hook on creating new account, currently not used in Substrate
+	//T::OnNewAccount::on_new_account(&who);
+	sm.DepositEvent(system.NewEventNewAccount(who.FixedSequence))
+}
+
+func (sm SystemModule) onKilledAccount(who primitives.Address32) {
+	sm.DepositEvent(system.NewEventKilledAccount(who.FixedSequence))
+}
+
+// TODO: Check difference with TryMutateExists
+func (sm SystemModule) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	account := sm.Get(who.FixedSequence)
+
+	result := f(&account)
+
+	if !result.HasError {
+		sm.Storage.Account.Put(who.FixedSequence, account)
+	}
+
+	return result
 }
 
 func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -150,7 +363,7 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 			primitives.NewMetadataModuleConstant(
 				"BlockHashCount",
 				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(constants.BlockHashCount.Bytes()),
+				sc.BytesToSequenceU8(sm.Constants.BlockHashCount.Bytes()),
 				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
 			),
 			primitives.NewMetadataModuleConstant(
@@ -162,12 +375,12 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 			primitives.NewMetadataModuleConstant(
 				"Version",
 				sc.ToCompact(metadata.TypesRuntimeVersion),
-				sc.BytesToSequenceU8(constants.RuntimeVersion.Bytes()),
+				sc.BytesToSequenceU8(sm.Constants.Version.Bytes()),
 				"Get the chain's current version.",
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
-		Index: cs.ModuleIndex,
+		Index: sm.Index,
 	}
 
 	return sm.metadataTypes(), metadataModule
@@ -365,7 +578,7 @@ func (sm SystemModule) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
 						},
-						cs.FunctionRemarkIndex,
+						functionRemarkIndex,
 						"Make some on-chain remark."),
 				}),
 			primitives.NewMetadataEmptyTypeParameter("T")),

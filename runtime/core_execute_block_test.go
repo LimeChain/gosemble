@@ -11,8 +11,9 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
+	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
-	timestamp "github.com/LimeChain/gosemble/frame/timestamp/dispatchables"
+	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -92,7 +93,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
+	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())), nil, nil, nil)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -113,7 +114,7 @@ func Test_BlockExecution(t *testing.T) {
 	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
 	buffer.Reset()
 
-	assert.Equal(t, expectedExtrinsic, extrinsic)
+	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
 
 	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
 	assert.NoError(t, err)
@@ -180,7 +181,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := timestamp.NewSetCall(sc.NewVaryingData(sc.ToCompact(time.UnixMilli())))
+	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())), nil, nil, nil)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -197,7 +198,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	buffer.Write(inherentExt[1:])
 	extrinsic := types.DecodeUncheckedExtrinsic(buffer)
 
-	assert.Equal(t, expectedExtrinsic, extrinsic)
+	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
 
 	var exts [][]byte
 	err = scale.Unmarshal(inherentExt, &exts)

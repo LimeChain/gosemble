@@ -1,4 +1,4 @@
-package dispatchables
+package module
 
 import (
 	"bytes"
@@ -7,34 +7,31 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
+	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/frame/balances/events"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type TransferCall struct {
+type transferCall struct {
 	primitives.Callable
+	transfer
 }
 
-func NewTransferCall(args sc.VaryingData) TransferCall {
-	call := TransferCall{
+func newTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+	call := transferCall{
 		Callable: primitives.Callable{
-			ModuleId:   balances.ModuleIndex,
-			FunctionId: balances.FunctionTransferIndex,
+			ModuleId:   moduleId,
+			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
+		transfer: newTransfer(moduleId, storedMap, constants),
 	}
 
 	return call
 }
 
-func (c TransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c transferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -42,27 +39,27 @@ func (c TransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c TransferCall) Encode(buffer *bytes.Buffer) {
+func (c transferCall) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c TransferCall) Bytes() []byte {
+func (c transferCall) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c TransferCall) ModuleIndex() sc.U8 {
+func (c transferCall) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c TransferCall) FunctionIndex() sc.U8 {
+func (c transferCall) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c TransferCall) Args() sc.VaryingData {
+func (c transferCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ TransferCall) BaseWeight(b ...any) types.Weight {
+func (_ transferCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -76,22 +73,22 @@ func (_ TransferCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ TransferCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ transferCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ TransferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ transferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ TransferCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ transferCall) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (_ TransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c transferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
-	err := transfer(origin, args[0].(types.MultiAddress), value)
+	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -107,14 +104,28 @@ func (_ TransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) 
 	}
 }
 
-func (_ TransferCall) IsInherent() bool {
+func (_ transferCall) IsInherent() bool {
 	return false
+}
+
+type transfer struct {
+	moduleId  sc.U8
+	storedMap primitives.StoredMap
+	constants *consts
+}
+
+func newTransfer(moduleId sc.U8, storedMap primitives.StoredMap, constants *consts) transfer {
+	return transfer{
+		moduleId:  moduleId,
+		storedMap: storedMap,
+		constants: constants,
+	}
 }
 
 // transfer transfers liquid free balance from `source` to `dest`.
 // Increases the free balance of `dest` and decreases the free balance of `origin` transactor.
 // Must be signed by the transactor.
-func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -126,26 +137,26 @@ func transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) ty
 
 	transactor := origin.AsSigned()
 
-	return trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
+	return t.trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
 }
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
+func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
 	bnInt := value.ToBigInt()
 	if bnInt.Cmp(constants.Zero) == 0 || reflect.DeepEqual(from, to) {
 		return nil
 	}
 
-	result := tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-		return tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+	result := t.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+		return t.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 			newFromAccountFree := new(big.Int).Sub(fromAccount.Free.ToBigInt(), value.ToBigInt())
 
 			if newFromAccountFree.Cmp(constants.Zero) < 0 {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorInsufficientBalance),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -156,19 +167,19 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 			newToAccountFree := new(big.Int).Add(toAccount.Free.ToBigInt(), value.ToBigInt())
 			toAccount.Free = sc.NewU128FromBigInt(newToAccountFree)
 
-			existentialDeposit := balances.ExistentialDeposit
+			existentialDeposit := t.constants.ExistentialDeposit
 			if toAccount.Total().Cmp(existentialDeposit) < 0 {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorExistentialDeposit),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
 				}
 			}
 
-			err := ensureCanWithdraw(from, value.ToBigInt(), types.ReasonsAll, fromAccount.Free.ToBigInt())
+			err := t.ensureCanWithdraw(from, value.ToBigInt(), types.ReasonsAll, fromAccount.Free.ToBigInt())
 			if err != nil {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
@@ -177,13 +188,13 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 			}
 
 			allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
-			allowDeath = allowDeath && system.CanDecProviders(from)
+			allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
 
 			if !(allowDeath || fromAccount.Total().Cmp(existentialDeposit) > 0) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   balances.ModuleIndex,
+						Index:   t.moduleId,
 						Error:   sc.U32(errors.ErrorKeepAlive),
 						Message: sc.NewOption[sc.Str](nil),
 					}),
@@ -198,21 +209,21 @@ func trans(from types.Address32, to types.Address32, value sc.U128, existenceReq
 		return result.Value.(types.DispatchError)
 	}
 
-	system.DepositEvent(events.NewEventTransfer(from.FixedSequence, to.FixedSequence, value))
+	t.storedMap.DepositEvent(events.NewEventTransfer(from.FixedSequence, to.FixedSequence, value))
 	return nil
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reasons, newBalance *big.Int) types.DispatchError {
+func (t transfer) ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reasons, newBalance *big.Int) types.DispatchError {
 	if amount.Cmp(constants.Zero) == 0 {
 		return nil
 	}
 
-	accountInfo := system.StorageGetAccount(who.FixedSequence)
+	accountInfo := t.storedMap.Get(who.FixedSequence)
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Cmp(newBalance) > 0 {
 		return types.NewDispatchErrorModule(types.CustomModuleError{
-			Index:   balances.ModuleIndex,
+			Index:   t.moduleId,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})
@@ -223,14 +234,14 @@ func ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reaso
 
 // mutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func mutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	return tryMutateAccount(who, f)
+func (t transfer) mutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	return t.tryMutateAccount(who, f)
 }
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	result := tryMutateAccountWithDust(who, f)
+func (t transfer) tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	result := t.tryMutateAccountWithDust(who, f)
 	if result.HasError {
 		return result
 	}
@@ -245,8 +256,8 @@ func tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool b
 	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Encodable)}
 }
 
-func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	result := system.TryMutateExists(who, func(maybeAccount *types.AccountData) sc.Result[sc.Encodable] {
+func (t transfer) tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	result := t.storedMap.TryMutateExists(who, func(maybeAccount *types.AccountData) sc.Result[sc.Encodable] {
 		account := &types.AccountData{}
 		isNew := true
 		if !reflect.DeepEqual(maybeAccount, types.AccountData{}) {
@@ -263,7 +274,7 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 		if isNew {
 			maybeEndowed = sc.NewOption[types.Balance](account.Free)
 		}
-		maybeAccountWithDust, imbalance := postMutation(*account)
+		maybeAccountWithDust, imbalance := t.postMutation(*account)
 		if !maybeAccountWithDust.HasValue {
 			maybeAccount = &types.AccountData{}
 		} else {
@@ -287,10 +298,10 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 	resultValue := result.Value.(sc.VaryingData)
 	maybeEndowed := resultValue[0].(sc.Option[types.Balance])
 	if maybeEndowed.HasValue {
-		system.DepositEvent(events.NewEventEndowed(who.FixedSequence, maybeEndowed.Value))
+		t.storedMap.DepositEvent(events.NewEventEndowed(who.FixedSequence, maybeEndowed.Value))
 	}
-	maybeDust := resultValue[1].(sc.Option[NegativeImbalance])
-	dustCleaner := DustCleanerValue{
+	maybeDust := resultValue[1].(sc.Option[dispatchables.NegativeImbalance])
+	dustCleaner := dispatchables.DustCleanerValue{
 		AccountId:         who,
 		NegativeImbalance: maybeDust.Value,
 	}
@@ -300,28 +311,28 @@ func tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData
 	return sc.Result[sc.Encodable]{HasError: false, Value: r}
 }
 
-func postMutation(
-	new types.AccountData) (sc.Option[types.AccountData], sc.Option[NegativeImbalance]) {
+func (t transfer) postMutation(
+	new types.AccountData) (sc.Option[types.AccountData], sc.Option[dispatchables.NegativeImbalance]) {
 	total := new.Total()
 
-	if total.Cmp(balances.ExistentialDeposit) < 0 {
+	if total.Cmp(t.constants.ExistentialDeposit) < 0 {
 		if total.Cmp(constants.Zero) == 0 {
-			return sc.NewOption[types.AccountData](nil), sc.NewOption[NegativeImbalance](nil)
+			return sc.NewOption[types.AccountData](nil), sc.NewOption[dispatchables.NegativeImbalance](nil)
 		} else {
-			return sc.NewOption[types.AccountData](nil), sc.NewOption[NegativeImbalance](NewNegativeImbalance(sc.NewU128FromBigInt(total)))
+			return sc.NewOption[types.AccountData](nil), sc.NewOption[dispatchables.NegativeImbalance](dispatchables.NewNegativeImbalance(sc.NewU128FromBigInt(total)))
 		}
 	}
 
-	return sc.NewOption[types.AccountData](new), sc.NewOption[NegativeImbalance](nil)
+	return sc.NewOption[types.AccountData](new), sc.NewOption[dispatchables.NegativeImbalance](nil)
 }
 
 // totalBalance returns the total storage balance of an account id.
-func totalBalance(who types.Address32) *big.Int {
-	return system.StorageGetAccount(who.FixedSequence).Data.Total()
+func (t transfer) totalBalance(who types.Address32) *big.Int {
+	return t.storedMap.Get(who.FixedSequence).Data.Total()
 }
 
-func reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
-	accountData := system.StorageGetAccount(who.FixedSequence).Data
+func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
+	accountData := t.storedMap.Get(who.FixedSequence).Data
 
 	lockedOrFrozen := accountData.FeeFrozen
 	if accountData.FeeFrozen.ToBigInt().Cmp(accountData.MiscFrozen.ToBigInt()) < 0 {
@@ -333,11 +344,11 @@ func reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
 		liquid = big.NewInt(0)
 	}
 
-	if system.CanDecProviders(who) && !keepAlive {
+	if t.storedMap.CanDecProviders(who) && !keepAlive {
 		return sc.NewU128FromBigInt(liquid)
 	}
 
-	existentialDeposit := balances.ExistentialDeposit
+	existentialDeposit := t.constants.ExistentialDeposit
 	diff := new(big.Int).Sub(accountData.Total(), liquid)
 
 	mustRemainToExist := new(big.Int).Sub(existentialDeposit, diff)
