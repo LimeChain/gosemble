@@ -44,10 +44,7 @@ func CreateInherent(inherent primitives.InherentData) []byte {
 	// TODO: Refactor
 	function := module.NewSetCall(timestampConstants.ModuleIndex, timestampConstants.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))), nil, nil, nil)
 
-	extrinsic := types.UncheckedExtrinsic{
-		Version:  types.ExtrinsicFormatVersion,
-		Function: function,
-	}
+	extrinsic := types.NewUnsignedUncheckedExtrinsic(function)
 
 	return extrinsic.Bytes()
 }

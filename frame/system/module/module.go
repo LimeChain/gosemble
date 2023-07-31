@@ -1,6 +1,8 @@
 package module
 
 import (
+	"bytes"
+	"fmt"
 	"math"
 	"reflect"
 
@@ -9,6 +11,8 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
+	storage_root "github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/trie"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -51,6 +55,136 @@ func (sm SystemModule) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Tran
 
 func (sm SystemModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+}
+
+func (sm SystemModule) Initialize(blockNumber primitives.BlockNumber, parentHash primitives.Blake2bHash, digest primitives.Digest) {
+	sm.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseInitialization())
+	sm.Storage.ExtrinsicIndex.Put(sc.U32(0))
+	sm.Storage.BlockNumber.Put(blockNumber)
+	sm.Storage.Digest.Put(digest)
+	sm.Storage.ParentHash.Put(parentHash)
+	sm.Storage.BlockHash.Put(blockNumber-1, parentHash)
+	sm.Storage.BlockWeight.Clear()
+}
+
+// RegisterExtraWeightUnchecked - Inform the system pallet of some additional weight that should be accounted for, in the
+// current block.
+//
+// NOTE: use with extra care; this function is made public only be used for certain pallets
+// that need it. A runtime that does not have dynamic calls should never need this and should
+// stick to static weights. A typical use case for this is inner calls or smart contract calls.
+// Furthermore, it only makes sense to use this when it is presumably  _cheap_ to provide the
+// argument `weight`; In other words, if this function is to be used to account for some
+// unknown, user provided call's weight, it would only make sense to use it if you are sure you
+// can rapidly compute the weight of the inner call.
+//
+// Even more dangerous is to note that this function does NOT take any action, if the new sum
+// of block weight is more than the block weight limit. This is what the _unchecked_.
+//
+// Another potential use-case could be for the `on_initialize` and `on_finalize` hooks.
+func (sm SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
+	currentWeight := sm.Storage.BlockWeight.Get()
+	currentWeight.Accrue(weight, class)
+	sm.Storage.BlockWeight.Put(currentWeight)
+}
+
+func (sm SystemModule) NoteFinishedInitialize() {
+	sm.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(sc.U32(0)))
+}
+
+// NoteExtrinsic - what the extrinsic data of the current extrinsic index is.
+//
+// This is required to be called before applying an extrinsic. The data will used
+// in [`finalize`] to calculate the correct extrinsics root.
+func (sm SystemModule) NoteExtrinsic(encodedExt []byte) {
+	extrinsicIndex := sm.Storage.ExtrinsicIndex.Get()
+
+	sm.Storage.ExtrinsicData.Put(extrinsicIndex, sc.BytesToSequenceU8(encodedExt))
+}
+
+// NoteAppliedExtrinsic - To be called immediately after an extrinsic has been applied.
+//
+// Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
+// The emitted event contains the post-dispatch corrected weight including
+// the base-weight for its dispatch class.
+func (sm SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
+	baseWeight := system.DefaultBlockWeights().Get(info.Class).BaseExtrinsic // TODO: convert to be a const from module
+	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
+	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
+
+	if r.HasError {
+		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", sm.Storage.BlockNumber.Get(), r.Err))
+		sm.DepositEvent(system.NewEventExtrinsicFailed(r.Err.Error, info))
+	} else {
+		sm.DepositEvent(system.NewEventExtrinsicSuccess(info))
+	}
+
+	nextExtrinsicIndex := sm.Storage.ExtrinsicIndex.Get() + sc.U32(1)
+	sm.Storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
+
+	sm.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
+}
+
+func (sm SystemModule) Finalize() primitives.Header {
+	sm.Storage.ExecutionPhase.Clear()
+	sm.Storage.AllExtrinsicsLen.Clear()
+
+	blockNumber := sm.Storage.BlockNumber.Get()
+	parentHash := sm.Storage.ParentHash.Get()
+	digest := sm.Storage.Digest.Get()
+	extrinsicCount := sm.Storage.ExtrinsicCount.Take()
+
+	var extrinsics []byte
+
+	for i := 0; i < int(extrinsicCount); i++ {
+		sci := sc.U32(i)
+
+		extrinsic := sm.Storage.ExtrinsicData.TakeBytes(sci)
+		extrinsics = append(extrinsics, extrinsic...)
+	}
+
+	buf := &bytes.Buffer{}
+	extrinsicsRootBytes := trie.Blake2256OrderedRoot(
+		append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsics...),
+		constants.StorageVersion)
+	buf.Write(extrinsicsRootBytes)
+	extrinsicsRoot := primitives.DecodeH256(buf)
+	buf.Reset()
+
+	// saturating_sub
+	toRemove := blockNumber - sm.Constants.BlockHashCount - 1
+	if toRemove > blockNumber {
+		toRemove = 0
+	}
+
+	if toRemove != 0 {
+		sm.Storage.BlockHash.Remove(toRemove)
+	}
+
+	storageRootBytes := storage_root.Root(int32(sm.Constants.Version.StateVersion))
+	buf.Write(storageRootBytes)
+	storageRoot := primitives.DecodeH256(buf)
+	buf.Reset()
+
+	return primitives.Header{
+		ExtrinsicsRoot: extrinsicsRoot,
+		StateRoot:      storageRoot,
+		ParentHash:     parentHash,
+		Number:         blockNumber,
+		Digest:         digest,
+	}
+}
+
+func (sm SystemModule) NoteFinishedExtrinsics() {
+	extrinsicIndex := sm.Storage.ExtrinsicIndex.Take()
+	sm.Storage.ExtrinsicCount.Put(extrinsicIndex)
+	sm.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseFinalization())
+}
+
+func (sm SystemModule) ResetEvents() {
+	sm.Storage.Events.Clear()
+	sm.Storage.EventCount.Clear()
+	sm.Storage.EventTopics.Clear(sc.U32(math.MaxUint32))
 }
 
 func (sm SystemModule) Get(key primitives.PublicKey) primitives.AccountInfo {

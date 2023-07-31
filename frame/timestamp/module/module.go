@@ -47,7 +47,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m Module) OnFinalize() {
-	value := m.Storage.DidUpdate.Take()
+	value := m.Storage.DidUpdate.TakeBytes()
 	if value == nil {
 		log.Critical("Timestamp must be updated once in the block")
 	}

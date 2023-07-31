@@ -13,6 +13,16 @@ type TaggedTransactionQueue interface {
 	ValidateTransaction(dataPtr int32, dataLen int32) int64
 }
 
+type Module struct {
+	executive executive.Module
+}
+
+func New(executive executive.Module) Module {
+	return Module{
+		executive: executive,
+	}
+}
+
 // ValidateTransaction validates an extrinsic at a given block.
 // It takes two arguments:
 // - dataPtr: Pointer to the data in the Wasm memory.
@@ -20,7 +30,7 @@ type TaggedTransactionQueue interface {
 // which represent the SCALE-encoded tx source, extrinsic and block hash.
 // Returns a pointer-size of the SCALE-encoded result whether the extrinsic is valid.
 // [Specification](https://spec.polkadot.network/#sect-rte-validate-transaction)
-func ValidateTransaction(dataPtr int32, dataLen int32) int64 {
+func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
@@ -28,7 +38,7 @@ func ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	tx := types.DecodeUncheckedExtrinsic(buffer)
 	blockHash := primitives.DecodeBlake2bHash(buffer)
 
-	ok, err := executive.ValidateTransaction(txSource, tx, blockHash)
+	ok, err := m.executive.ValidateTransaction(txSource, tx, blockHash)
 
 	var res primitives.TransactionValidityResult
 	if err != nil {

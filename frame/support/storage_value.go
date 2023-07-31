@@ -23,45 +23,38 @@ func NewStorageValue[T sc.Encodable](prefix []byte, name []byte, decodeFunc func
 }
 
 func (sv StorageValue[T]) Get() T {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
-
-	return storage.GetDecode(append(prefixHash, nameHash...), sv.decodeFunc)
+	return storage.GetDecode(sv.key(), sv.decodeFunc)
 }
 
 func (sv StorageValue[T]) Exists() bool {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
-
-	exists := storage.Exists(append(prefixHash, nameHash...))
+	exists := storage.Exists(sv.key())
 
 	return exists != 0
 }
 
 func (sv StorageValue[T]) Put(value T) {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
+	storage.Set(sv.key(), value.Bytes())
+}
 
-	storage.Set(append(prefixHash, nameHash...), value.Bytes())
+func (sv StorageValue[T]) Clear() {
+	storage.Clear(sv.key())
 }
 
 func (sv StorageValue[T]) Append(value T) {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
-
-	storage.Append(append(prefixHash, nameHash...), value.Bytes())
+	storage.Append(sv.key(), value.Bytes())
 }
 
-func (sv StorageValue[T]) Take() []byte {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
-
-	return storage.TakeBytes(append(prefixHash, nameHash...))
+func (sv StorageValue[T]) Take() T {
+	return storage.TakeDecode(sv.key(), sv.decodeFunc)
 }
 
-func (sv StorageValue[T]) TakeExact() T {
+func (sv StorageValue[T]) TakeBytes() []byte {
+	return storage.TakeBytes(sv.key())
+}
+
+func (sv StorageValue[T]) key() []byte {
 	prefixHash := hashing.Twox128(sv.prefix)
 	nameHash := hashing.Twox128(sv.name)
 
-	return storage.TakeDecode(append(prefixHash, nameHash...), sv.decodeFunc)
+	return append(prefixHash, nameHash...)
 }
