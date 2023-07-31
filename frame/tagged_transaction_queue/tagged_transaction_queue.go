@@ -15,11 +15,13 @@ type TaggedTransactionQueue interface {
 
 type Module struct {
 	executive executive.Module
+	decoder   types.ModuleDecoder
 }
 
-func New(executive executive.Module) Module {
+func New(executive executive.Module, decoder types.ModuleDecoder) Module {
 	return Module{
 		executive: executive,
+		decoder:   decoder,
 	}
 }
 
@@ -35,7 +37,7 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	buffer := bytes.NewBuffer(data)
 
 	txSource := primitives.DecodeTransactionSource(buffer)
-	tx := types.DecodeUncheckedExtrinsic(buffer)
+	tx := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	blockHash := primitives.DecodeBlake2bHash(buffer)
 
 	ok, err := m.executive.ValidateTransaction(txSource, tx, blockHash)

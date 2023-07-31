@@ -17,6 +17,14 @@ import (
 var DefaultMultiplierValue = sc.NewU128FromUint64(1)
 var DefaultTip = sc.NewU128FromUint64(0)
 
+type Module struct {
+	decoder types.ModuleDecoder
+}
+
+func New(decoder types.ModuleDecoder) Module {
+	return Module{decoder: decoder}
+}
+
 // QueryInfo queries the data of an extrinsic.
 // It takes two arguments:
 // - dataPtr: Pointer to the data in the Wasm memory.
@@ -24,11 +32,11 @@ var DefaultTip = sc.NewU128FromUint64(0)
 // which represent the SCALE-encoded extrinsic and its length.
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-info)
-func QueryInfo(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	ext := types.DecodeUncheckedExtrinsic(buffer)
+	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function)
@@ -54,11 +62,11 @@ func QueryInfo(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded extrinsic and its length.
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-fee-details)
-func QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	ext := types.DecodeUncheckedExtrinsic(buffer)
+	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function)
@@ -82,11 +90,11 @@ func QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
-func QueryCallInfo(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	call := types.DecodeCall(buffer)
+	call := m.decoder.DecodeCall(buffer)
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
@@ -108,11 +116,11 @@ func QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
-func QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	call := types.DecodeCall(buffer)
+	call := m.decoder.DecodeCall(buffer)
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
