@@ -24,35 +24,34 @@ func NewStorageMap[K, V sc.Encodable](prefix []byte, name []byte, keyHashFunc fu
 	}
 }
 
-func (sm StorageMap[K, V]) Get(key K) V {
-	prefixHash := hashing.Twox128(sm.prefix)
-	nameHash := hashing.Twox128(sm.name)
-
-	keyBytes := key.Bytes()
-	keyHash := sm.keyHashFunc(keyBytes)
-
-	concatKey := append(prefixHash, nameHash...)
-	concatKey = append(concatKey, keyHash...)
-	concatKey = append(concatKey, keyBytes...)
-
-	return storage.GetDecode(concatKey, sm.decodeFunc)
+func (sm StorageMap[K, V]) Get(k K) V {
+	return storage.GetDecode(sm.key(k), sm.decodeFunc)
 }
 
-func (sm StorageMap[K, V]) Put(key K, value V) {
-	prefixHash := hashing.Twox128(sm.prefix)
-	nameHash := hashing.Twox128(sm.name)
-
-	keyBytes := key.Bytes()
-	keyHash := sm.keyHashFunc(keyBytes)
-
-	concatKey := append(prefixHash, nameHash...)
-	concatKey = append(concatKey, keyHash...)
-	concatKey = append(concatKey, keyBytes...)
-
-	storage.Set(concatKey, value.Bytes())
+func (sm StorageMap[K, V]) Put(k K, value V) {
+	storage.Set(sm.key(k), value.Bytes())
 }
 
-func (sm StorageMap[K, V]) Append(key K, value V) {
+func (sm StorageMap[K, V]) Append(k K, value V) {
+	storage.Append(sm.key(k), value.Bytes())
+}
+
+func (sm StorageMap[K, V]) TakeBytes(k K) []byte {
+	return storage.TakeBytes(sm.key(k))
+}
+
+func (sm StorageMap[K, V]) Remove(k K) {
+	storage.Clear(sm.key(k))
+}
+
+func (sm StorageMap[K, V]) Clear(limit sc.U32) {
+	prefixHash := hashing.Twox128(sm.prefix)
+	nameHash := hashing.Twox128(sm.name)
+
+	storage.ClearPrefix(append(prefixHash, nameHash...), sc.NewOption[sc.U32](limit).Bytes())
+}
+
+func (sm StorageMap[K, V]) key(key K) []byte {
 	prefixHash := hashing.Twox128(sm.prefix)
 	nameHash := hashing.Twox128(sm.name)
 
@@ -63,5 +62,5 @@ func (sm StorageMap[K, V]) Append(key K, value V) {
 	concatKey = append(concatKey, keyHash...)
 	concatKey = append(concatKey, keyBytes...)
 
-	storage.Append(concatKey, value.Bytes())
+	return concatKey
 }

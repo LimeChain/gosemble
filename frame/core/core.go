@@ -16,9 +16,19 @@ type Core interface {
 	InitializeBlock(dataPtr int32, dataLen int32)
 }
 
+type Module struct {
+	executive executive.Module
+}
+
+func New(module executive.Module) Module {
+	return Module{
+		module,
+	}
+}
+
 // Version returns a pointer-size SCALE-encoded Runtime version.
 // [Specification](https://spec.polkadot.network/#defn-rt-core-version)
-func Version() int64 {
+func (m Module) Version() int64 {
 	buffer := &bytes.Buffer{}
 	constants.RuntimeVersion.Encode(buffer)
 
@@ -31,12 +41,13 @@ func Version() int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded header of the block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-initialize-block)
-func InitializeBlock(dataPtr int32, dataLen int32) {
+func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
 	header := primitives.DecodeHeader(buffer)
-	executive.InitializeBlock(header)
+
+	m.executive.InitializeBlock(header)
 }
 
 // ExecuteBlock executes the provided block.
@@ -45,10 +56,10 @@ func InitializeBlock(dataPtr int32, dataLen int32) {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-execute-block)
-func ExecuteBlock(dataPtr int32, dataLen int32) {
+func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
 	block := types.DecodeBlock(buffer)
-	executive.ExecuteBlock(block)
+	m.executive.ExecuteBlock(block)
 }

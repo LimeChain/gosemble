@@ -16,6 +16,7 @@ type storage struct {
 	BlockHash          *support.StorageMap[sc.U32, types.Blake2bHash]
 	BlockNumber        *support.StorageValue[sc.U32]
 	AllExtrinsicsLen   *support.StorageValue[sc.U32]
+	ExtrinsicIndex     *support.SimpleStorageValue[sc.U32]
 	ExtrinsicData      *support.StorageMap[sc.U32, sc.Sequence[sc.U8]]
 	ExtrinsicCount     *support.StorageValue[sc.U32]
 	ParentHash         *support.StorageValue[types.Blake2bHash]
@@ -34,6 +35,7 @@ func newStorage() *storage {
 		BlockHash:          support.NewStorageMap[sc.U32, types.Blake2bHash](constants.KeySystem, constants.KeyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
 		BlockNumber:        support.NewStorageValue(constants.KeySystem, constants.KeyNumber, sc.DecodeU32),
 		AllExtrinsicsLen:   support.NewStorageValue(constants.KeySystem, constants.KeyAllExtrinsicsLen, sc.DecodeU32),
+		ExtrinsicIndex:     support.NewSimpleStorageValue(constants.KeyExtrinsicIndex, sc.DecodeU32),
 		ExtrinsicData:      support.NewStorageMap[sc.U32, sc.Sequence[sc.U8]](constants.KeySystem, constants.KeyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
 		ExtrinsicCount:     support.NewStorageValue(constants.KeySystem, constants.KeyExtrinsicCount, sc.DecodeU32),
 		ParentHash:         support.NewStorageValue(constants.KeySystem, constants.KeyParentHash, types.DecodeBlake2bHash),

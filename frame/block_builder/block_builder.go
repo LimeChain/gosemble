@@ -7,7 +7,6 @@ import (
 	"github.com/LimeChain/gosemble/execution/inherent"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -19,7 +18,16 @@ type BlockBuilder interface {
 	FinalizeBlock(dataPtr int32, dataLen int32) int64
 	InherentExtrinisics(dataPtr int32, dataLen int32) int64
 	CheckInherents(dataPtr int32, dataLen int32) int64
-	RandomSeed(dataPtr int32, dataLen int32) int64
+}
+
+type Module struct {
+	executive executive.Module
+}
+
+func New(module executive.Module) Module {
+	return Module{
+		module,
+	}
 }
 
 // ApplyExtrinsic applies an extrinsic to a particular block.
@@ -29,13 +37,13 @@ type BlockBuilder interface {
 // which represent the SCALE-encoded unchecked extrinsic.
 // Returns a pointer-size of the SCALE-encoded result, which specifies if this extrinsic is included in this block or not.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic)
-func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
+func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	uxt := types.DecodeUncheckedExtrinsic(buffer)
 
-	ok, err := executive.ApplyExtrinsic(uxt)
+	ok, err := m.executive.ApplyExtrinsic(uxt)
 	var applyExtrinsicResult primitives.ApplyExtrinsicResult
 	if err != nil {
 		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(err)
@@ -52,14 +60,8 @@ func ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 // FinalizeBlock finalizes the state changes for the current block.
 // Returns a pointer-size of the SCALE-encoded header for this block.
 // [Specification](https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block)
-func FinalizeBlock() int64 {
-	system.NoteFinishedExtrinsics()
-
-	blockNumber := system.StorageGetBlockNumber()
-
-	executive.IdleAndFinalizeHook(blockNumber)
-
-	header := system.Finalize()
+func (m Module) FinalizeBlock() int64 {
+	header := m.executive.FinalizeBlock()
 	encodedHeader := header.Bytes()
 
 	return utils.BytesToOffsetAndSize(encodedHeader)
@@ -76,6 +78,7 @@ func InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
+	// TODO: take modules and create inherents
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
 		log.Critical(err.Error())
@@ -106,6 +109,7 @@ func CheckInherents(dataPtr int32, dataLen int32) int64 {
 	}
 	buffer.Reset()
 
+	// TODO: take modules as parameter and iterate
 	checkInherentsResult := inherent.CheckExtrinsics(*inherentData, block)
 
 	checkInherentsResult.Encode(buffer)

@@ -4,14 +4,17 @@ Targets WebAssembly MVP
 package main
 
 import (
+	"github.com/LimeChain/gosemble/config"
 	"github.com/LimeChain/gosemble/frame/account_nonce"
 	"github.com/LimeChain/gosemble/frame/aura"
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
+	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/frame/metadata"
 	"github.com/LimeChain/gosemble/frame/offchain_worker"
 	"github.com/LimeChain/gosemble/frame/session_keys"
+	"github.com/LimeChain/gosemble/frame/system/module"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 )
@@ -21,35 +24,47 @@ import (
 // TinyGo requires to have a main function to compile to Wasm.
 func main() {}
 
+func newExecutiveModule() executive.Module {
+	return executive.New(config.Modules[config.SystemIndex].(module.SystemModule))
+}
+
 //go:export Core_version
 func CoreVersion(_ int32, _ int32) int64 {
-	// TODO: Try creating a global object, which is used in here. For example,
-	// access the global object here, so that you can use it. e.g. coreModule.Version()
-	return core.Version()
+	return core.
+		New(newExecutiveModule()).
+		Version()
 }
 
 //go:export Core_initialize_block
 func CoreInitializeBlock(dataPtr int32, dataLen int32) int64 {
-	core.InitializeBlock(dataPtr, dataLen)
+	core.
+		New(newExecutiveModule()).
+		InitializeBlock(dataPtr, dataLen)
 
 	return 0
 }
 
 //go:export Core_execute_block
 func CoreExecuteBlock(dataPtr int32, dataLen int32) int64 {
-	core.ExecuteBlock(dataPtr, dataLen)
+	core.
+		New(newExecutiveModule()).
+		ExecuteBlock(dataPtr, dataLen)
 
 	return 0
 }
 
 //go:export BlockBuilder_apply_extrinsic
 func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
-	return blockbuilder.ApplyExtrinsic(dataPtr, dataLen)
+	return blockbuilder.
+		New(newExecutiveModule()).
+		ApplyExtrinsic(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_finalize_block
 func BlockBuilderFinalizeBlock(_, _ int32) int64 {
-	return blockbuilder.FinalizeBlock()
+	return blockbuilder.
+		New(newExecutiveModule()).
+		FinalizeBlock()
 }
 
 //go:export BlockBuilder_inherent_extrinsics
@@ -64,7 +79,9 @@ func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64 {
 
 //go:export TaggedTransactionQueue_validate_transaction
 func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int64 {
-	return taggedtransactionqueue.ValidateTransaction(dataPtr, dataLen)
+	return taggedtransactionqueue.
+		New(newExecutiveModule()).
+		ValidateTransaction(dataPtr, dataLen)
 }
 
 //go:export AuraApi_slot_duration
@@ -124,7 +141,9 @@ func GrandpaApiAuthorities(_, _ int32) int64 {
 
 //go:export OffchainWorkerApi_offchain_worker
 func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
-	offchain_worker.OffchainWorker(dataPtr, dataLen)
+	offchain_worker.
+		New(newExecutiveModule()).
+		OffchainWorker(dataPtr, dataLen)
 
 	return 0
 }

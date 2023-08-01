@@ -29,15 +29,6 @@ type UncheckedExtrinsic struct {
 	Function  primitives.Call
 }
 
-func NewUncheckedExtrinsic(function primitives.Call, signedData sc.Option[primitives.ExtrinsicSignature]) UncheckedExtrinsic {
-	if signedData.HasValue {
-		address, signature, extra := signedData.Value.Signer, signedData.Value.Signature, signedData.Value.Extra
-		return NewSignedUncheckedExtrinsic(function, address, signature, extra)
-	} else {
-		return NewUnsignedUncheckedExtrinsic(function)
-	}
-}
-
 // NewSignedUncheckedExtrinsic returns a new instance of a signed extrinsic.
 func NewSignedUncheckedExtrinsic(function primitives.Call, address primitives.MultiAddress, signature primitives.MultiSignature, extra primitives.SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{

@@ -9,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
+// TODO: move to types
 type BlockLength struct {
 	//  Maximal total length in bytes for each extrinsic class.
 	//

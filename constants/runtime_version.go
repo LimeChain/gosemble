@@ -29,6 +29,7 @@ var RuntimeVersion = types.RuntimeVersion{
 	ImplVersion:      sc.U32(ImplVersion),
 	// Api Names are Blake2bHash8("ApiName")
 	// Example: common.MustBlake2b8([]byte("Core") -> [223 106 203 104 153 7 96 155]
+	// TODO: APIs have to be generated based on implemented interfaces
 	Apis: sc.Sequence[types.ApiItem]{
 		{
 			Name:    sc.NewFixedSequence[sc.U8](8, 223, 106, 203, 104, 153, 7, 96, 155), // Core
