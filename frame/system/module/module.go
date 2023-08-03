@@ -2,9 +2,9 @@ package module
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"reflect"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -113,7 +113,8 @@ func (sm SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPost
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
 	if r.HasError {
-		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", sm.Storage.BlockNumber.Get(), r.Err))
+		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", sm.Storage.BlockNumber.Get(), r.Err))
+		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(sm.Storage.BlockNumber.Get())) + "): {}")
 		sm.DepositEvent(system.NewEventExtrinsicFailed(r.Err.Error, info))
 	} else {
 		sm.DepositEvent(system.NewEventExtrinsicSuccess(info))

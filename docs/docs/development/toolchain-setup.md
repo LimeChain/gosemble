@@ -25,10 +25,10 @@ Similar to the Dockerfile.
 #### Build TinyGo by using a system-wide LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.25.0, requires LLVM 14. Keep in mind that even though there are some warning messages, they do not prevent builds from succeeding. Also, those warnings disappear with newer versions of LLVM and TinyGo.
+For example, TinyGo 0.28.0, requires LLVM 15.
 
 ```sh
-brew install llvm@14
+brew install llvm@15
 ```
 
 Make sure these environment variables are set correctly:
@@ -125,4 +125,19 @@ make test
 make smoketest
 make test-corpus-wasi
 make wasmtest
+```
+
+#### Env setup for building wasi-libc
+
+To be able to build `wasi-libc`, for example without bulk memory operations, make sure LLVM is in your `PATH` environment variable. Add the following line to your `.zshrc`, `.bashrc`, or `.bash_profile` file:
+
+```sh
+export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
+```
+
+Build wasi-libc:
+
+```sh
+cd tinygo/lib/wasi-libc
+make
 ```

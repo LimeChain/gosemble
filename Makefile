@@ -25,10 +25,15 @@ build:
 		echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
 	fi
 
-build-local:
+build-tinygo:
 	@cd tinygo; \
 		go install;
 	@tinygo version
+
+build-release: build-tinygo
+	@tinygo build --no-debug -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+
+build-dev: build-tinygo
 	@tinygo build -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
 
 start-network:
@@ -38,12 +43,12 @@ start-network:
 	cd ../..; \
 	WASMTIME_BACKTRACE_DETAILS=1 ./target/release/node-template --dev --execution Wasm
 
-test: test_unit test_integration
+test: test-unit test-integration
 
 # TODO: ignore the integration tests
-test_unit:
+test-unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
 # GOARCH=amd64 is required to run the integration tests in gossamer
-test_integration:
+test-integration:
 	@GOARCH=amd64 go test --tags="nonwasmenv" -v ./runtime/... -timeout 2000s
