@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 
@@ -17,12 +17,14 @@ func DecodeCall(buffer *bytes.Buffer) primitives.Call {
 
 	module, ok := config.Modules[moduleIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		log.Critical("module with index [" + strconv.Itoa(int(moduleIndex)) + "] not found") // fmt.Sprintf("module with index [%d] not found", moduleIndex)
 	}
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		log.Critical("function index [" + strconv.Itoa(int(functionIndex)) + "] for module [" + strconv.Itoa(int(moduleIndex)) + "] not found") // fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex)
 	}
 
 	function = function.DecodeArgs(buffer)

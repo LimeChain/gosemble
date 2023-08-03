@@ -290,10 +290,6 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	)
 }
 
-func Test_ApplyExtrinsic_InherentsFails(t *testing.T) {
-	t.Skip()
-}
-
 func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	runtimeVersion, err := rt.Version()

@@ -2,7 +2,6 @@ package module
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
@@ -117,7 +116,8 @@ func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress,
 
 	target, err := types.DefaultAccountIdLookup().Lookup(who)
 	if err != nil {
-		log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		log.Debug("Failed to lookup [" + string(who.Bytes()) + "]") // fmt.Sprintf("Failed to lookup [%s]", who.Bytes())
 		return types.NewDispatchErrorCannotLookup()
 	}
 

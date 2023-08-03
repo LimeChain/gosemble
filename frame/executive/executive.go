@@ -1,8 +1,8 @@
 package executive
 
 import (
-	"fmt"
 	"reflect"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
@@ -51,7 +51,8 @@ func (m Module) InitializeBlock(header primitives.Header) {
 }
 
 func (m Module) ExecuteBlock(block types.Block) {
-	log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
+	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number))) // fmt.Sprintf("execute_block %v", block.Header.Number)
 
 	m.InitializeBlock(block.Header)
 
@@ -219,7 +220,8 @@ func (m Module) initialChecks(block types.Block) {
 	inherentsAreFirst := inherent.EnsureInherentsAreFirst(block)
 
 	if inherentsAreFirst >= 0 {
-		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		log.Critical("invalid inherent position for extrinsic at index " + strconv.Itoa(int(inherentsAreFirst))) // fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst)
 	}
 }
 
