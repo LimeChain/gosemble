@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.16
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.1.0
 	github.com/stretchr/testify v1.8.4
 )
 
@@ -68,14 +68,13 @@ require (
 	github.com/qdm12/gotree v0.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/vedhavyas/go-subkey v1.0.4 // indirect
-	github.com/wasmerio/go-ext-wasm v0.3.2-0.20200326095750-0a32be6068ec // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
@@ -84,3 +83,5 @@ require (
 replace github.com/ChainSafe/gossamer => ./gossamer
 
 replace github.com/LimeChain/goscale => ./goscale
+
+replace github.com/tetratelabs/wazero => github.com/ChainSafe/wazero v0.0.0-20230710171859-39a4c235ec1f

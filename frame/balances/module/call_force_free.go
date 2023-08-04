@@ -117,7 +117,8 @@ func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress,
 	target, err := types.DefaultAccountIdLookup().Lookup(who)
 	if err != nil {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		log.Debug("Failed to lookup [" + string(who.Bytes()) + "]") // fmt.Sprintf("Failed to lookup [%s]", who.Bytes())
+		// log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
+		log.Debug("Failed to lookup [" + string(who.Bytes()) + "]")
 		return types.NewDispatchErrorCannotLookup()
 	}
 

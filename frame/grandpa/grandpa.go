@@ -21,7 +21,8 @@ func Authorities() int64 {
 	authorities := versionedAuthorityList.AuthorityList
 	if versionedAuthorityList.Version != grandpa.AuthorityVersion {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]") // fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version)
+		// log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
+		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]")
 		authorities = sc.Sequence[types.Authority]{}
 	}
 

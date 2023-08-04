@@ -53,9 +53,11 @@ func (ie InherentError) Error() string {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	switch ie.VaryingData[0] {
 	case InherentErrorInherentDataExists:
-		return "Inherent data already exists for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]" // fmt.Sprintf("Inherent data already exists for identifier: [%v]", ie.VaryingData[1])
+		// return fmt.Sprintf("Inherent data already exists for identifier: [%v]", ie.VaryingData[1])
+		return "Inherent data already exists for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]"
 	case InherentErrorDecodingFailed:
-		return "Failed to decode inherent data for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]" // fmt.Sprintf("Failed to decode inherent data for identifier: [%v]", ie.VaryingData[1])
+		// return fmt.Sprintf("Failed to decode inherent data for identifier: [%v]", ie.VaryingData[1])
+		return "Failed to decode inherent data for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]"
 	case InherentErrorFatalErrorReported:
 		return "There was already a fatal error reported and no other errors are allowed"
 	case InherentErrorApplication:

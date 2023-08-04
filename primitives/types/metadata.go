@@ -31,13 +31,13 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	metaReserved := sc.DecodeU32(buffer)
 	if metaReserved != MetadataReserved {
-		// fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved)
+		// return Metadata{}, errors.New(fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved))
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 	}
 
 	version := sc.DecodeU8(buffer)
 	if version != MetadataVersion {
-		// fmt.Sprintf("metadata version mismatch: expect [%d], actual [%d]", MetadataVersion, version)
+		// return Metadata{}, errors.New(fmt.Sprintf("metadata version mismatch: expect [%d], actual [%d]", MetadataVersion, version))
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion)) + "], actual [" + strconv.Itoa(int(version)) + "]")
 	}
 

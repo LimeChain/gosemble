@@ -8,7 +8,7 @@ import (
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/lib/runtime"
-	"github.com/ChainSafe/gossamer/lib/runtime/wasmer"
+	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
@@ -62,13 +62,12 @@ var (
 	}
 )
 
-func newTestRuntime(t *testing.T) (*wasmer.Instance, *runtime.Storage) {
-	runtime := wasmer.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
-	storage := &runtime.GetContext().Storage
-	return runtime, storage
+func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {
+	runtime := wazero_runtime.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
+	return runtime, &runtime.Context.Storage
 }
 
-func runtimeMetadata(t *testing.T, instance *wasmer.Instance) *ctypes.Metadata {
+func runtimeMetadata(t *testing.T, instance *wazero_runtime.Instance) *ctypes.Metadata {
 	bMetadata, err := instance.Metadata()
 	assert.NoError(t, err)
 
@@ -121,7 +120,7 @@ func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byt
 	return keyStorageAccount, accountInfo
 }
 
-func getQueryInfo(t *testing.T, runtime *wasmer.Instance, extrinsic []byte) primitives.RuntimeDispatchInfo {
+func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []byte) primitives.RuntimeDispatchInfo {
 	buffer := &bytes.Buffer{}
 
 	buffer.Write(extrinsic)

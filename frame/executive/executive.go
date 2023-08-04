@@ -52,7 +52,8 @@ func (m Module) InitializeBlock(header primitives.Header) {
 
 func (m Module) ExecuteBlock(block types.Block) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number))) // fmt.Sprintf("execute_block %v", block.Header.Number)
+	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
+	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number)))
 
 	m.InitializeBlock(block.Header)
 
@@ -221,7 +222,8 @@ func (m Module) initialChecks(block types.Block) {
 
 	if inherentsAreFirst >= 0 {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		log.Critical("invalid inherent position for extrinsic at index " + strconv.Itoa(int(inherentsAreFirst))) // fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst)
+		// log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
+		log.Critical("invalid inherent position for extrinsic at index " + strconv.Itoa(int(inherentsAreFirst)))
 	}
 }
 
