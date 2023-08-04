@@ -50,6 +50,6 @@ After the Runtime is built, execute the tests with the help of [Gossamer](https:
 is used to import necessary Polkadot Host functionality and interact with the Runtime.
 
 ```bash
-make test_unit
-make test_integration
+make test-unit
+make test-integration
 ```
