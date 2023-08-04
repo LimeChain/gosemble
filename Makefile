@@ -30,18 +30,20 @@ build-tinygo:
 		go install;
 	@tinygo version
 
+# -opt=0 is required to run the runtime in substrate
+
 build-release: build-tinygo
-	@tinygo build --no-debug -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+	@tinygo build --no-debug -opt=0 -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
 
 build-dev: build-tinygo
-	@tinygo build -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+	@tinygo build -opt=0 -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
 
 start-network:
 	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
 	cd substrate/bin/node-template; \
 	cargo build --release; \
 	cd ../..; \
-	WASMTIME_BACKTRACE_DETAILS=1 ./target/release/node-template --dev --execution Wasm
+	WASMTIME_BACKTRACE_DETAILS=1 RUST_LOG=runtime=trace ./target/release/node-template --dev --execution Wasm
 
 test: test-unit test-integration
 

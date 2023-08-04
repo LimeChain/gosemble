@@ -121,7 +121,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 
 	currentExtrinsicIndex := sc.U32(1)
-	extrinsicIndexValue := rt.GetContext().Storage.Get(constants.KeyExtrinsicIndex)
+	extrinsicIndexValue := (*storage).Get(constants.KeyExtrinsicIndex)
 	assert.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
 
 	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicDataHash...)
@@ -131,7 +131,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	keyExtrinsic := append(keyExtrinsicDataPrefixHash, hashIndex...)
-	storageUxt := rt.GetContext().Storage.Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
+	storageUxt := (*storage).Get(append(keyExtrinsic, prevExtrinsic.Bytes()...))
 
 	expectedExtrinsicDataStorage, err := scale.Marshal(extEnc.Bytes())
 	assert.NoError(t, err)
@@ -174,7 +174,7 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
-	rt, _ := newTestRuntime(t)
+	rt, storage := newTestRuntime(t)
 	runtimeVersion, err := rt.Version()
 	assert.NoError(t, err)
 
@@ -218,7 +218,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 
 	extrinsicIndex := sc.U32(0)
-	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
+	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
 
 	assert.NoError(t, err)
@@ -232,7 +232,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
-	rt, _ := newTestRuntime(t)
+	rt, storage := newTestRuntime(t)
 	runtimeVersion, err := rt.Version()
 	assert.NoError(t, err)
 
@@ -276,7 +276,7 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 
 	extrinsicIndex := sc.U32(0)
-	extrinsicIndexValue := rt.GetContext().Storage.Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
+	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
 
 	assert.NoError(t, err)

@@ -131,12 +131,14 @@ func EraTypeDefinition() sc.Sequence[MetadataDefinitionVariant] {
 	for i := 1; i <= 255; i++ {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		result = append(result, NewMetadataDefinitionVariant(
-			"Mortal "+strconv.Itoa(int(i)), // fmt.Sprintf("Mortal%d", i)
+			// fmt.Sprintf("Mortal%d", i),
+			"Mortal "+strconv.Itoa(int(i)),
 			sc.Sequence[MetadataTypeDefinitionField]{
 				NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
 			},
 			sc.U8(i),
-			"Era.Mortal "+strconv.Itoa(int(i)), // fmt.Sprintf("Era.Mortal%d", i)
+			// fmt.Sprintf("Era.Mortal%d", i),
+			"Era.Mortal "+strconv.Itoa(int(i)),
 		))
 	}
 
