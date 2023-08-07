@@ -19,7 +19,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/core"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/grandpa"
-	gm "github.com/LimeChain/gosemble/frame/grandpa/module"
 	"github.com/LimeChain/gosemble/frame/metadata"
 	"github.com/LimeChain/gosemble/frame/offchain_worker"
 	"github.com/LimeChain/gosemble/frame/session_keys"
@@ -74,7 +73,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 	timestampModule := tsm.NewModule(TimestampIndex,
 		tsm.NewConfig(auraModule, timestamp.MinimumPeriod))
 
-	grandpaModule := gm.NewGrandpaModule()
+	grandpaModule := grandpa.NewModule(GrandpaIndex)
 
 	balancesModule := bm.NewBalancesModule(BalancesIndex,
 		bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
@@ -221,7 +220,7 @@ func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
-	return grandpa.Authorities()
+	return modules[GrandpaIndex].(grandpa.Module).Authorities()
 }
 
 //go:export OffchainWorkerApi_offchain_worker
