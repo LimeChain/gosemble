@@ -30,6 +30,7 @@ func ExtCryptoSr25519VerifyVersion2(signature []byte, message []byte, pubKey []b
 }
 
 func ExtCryptoEcdsaGenerateVersion1(keyTypeId []byte, seed []byte) []byte {
+	// TODO: ext_crypto_ecdsa_generate_version_1 is not exported by Gossamer
 	panic("not exported by Gossamer")
 	//r := env.ExtCryptoEcdsaGenerateVersion1(utils.Offset32(keyTypeId), utils.BytesToOffsetAndSize(seed))
 	//return utils.ToWasmMemorySlice(r, 32)
