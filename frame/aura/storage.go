@@ -1,4 +1,4 @@
-package module
+package aura
 
 import (
 	sc "github.com/LimeChain/goscale"
