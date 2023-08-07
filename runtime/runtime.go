@@ -68,6 +68,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 
 	auraModule := aura.NewModule(AuraIndex,
 		aura.NewConfig(
+			primitives.PublicKeySr25519,
 			timestamp.MinimumPeriod,
 			AuraMaxAuthorites,
 			false,
@@ -213,12 +214,20 @@ func Metadata(_, _ int32) int64 {
 
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
-	return session_keys.GenerateSessionKeys(dataPtr, dataLen)
+	sessions := []primitives.Session{
+		modules[AuraIndex].(aura.Module),
+		modules[GrandpaIndex].(grandpa.Module),
+	}
+	return session_keys.New(sessions).GenerateSessionKeys(dataPtr, dataLen)
 }
 
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
-	return session_keys.DecodeSessionKeys(dataPtr, dataLen)
+	sessions := []primitives.Session{
+		modules[AuraIndex].(aura.Module),
+		modules[GrandpaIndex].(grandpa.Module),
+	}
+	return session_keys.New(sessions).DecodeSessionKeys(dataPtr, dataLen)
 }
 
 //go:export GrandpaApi_grandpa_authorities

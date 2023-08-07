@@ -4,11 +4,16 @@ import (
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/grandpa"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+var (
+	AuthorityVersion sc.U8 = 1
+	EngineId               = [4]byte{'f', 'r', 'n', 'k'}
+	KeyTypeId              = [4]byte{'g', 'r', 'a', 'n'}
 )
 
 type Module struct {
@@ -18,8 +23,17 @@ type Module struct {
 
 func NewModule(index sc.U8) Module {
 	return Module{
+		Index:   index,
 		storage: newStorage(),
 	}
+}
+
+func (gm Module) KeyType() primitives.PublicKeyType {
+	return primitives.PublicKeyEd25519
+}
+
+func (gm Module) KeyTypeId() [4]byte {
+	return KeyTypeId
 }
 
 func (gm Module) Functions() map[sc.U8]primitives.Call {
@@ -38,7 +52,7 @@ func (gm Module) Authorities() int64 {
 	versionedAuthorityList := gm.storage.Authorities.Get()
 
 	authorities := versionedAuthorityList.AuthorityList
-	if versionedAuthorityList.Version != grandpa.AuthorityVersion {
+	if versionedAuthorityList.Version != AuthorityVersion {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
 		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]")
@@ -56,7 +70,7 @@ func (gm Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Me
 		Event:     sc.NewOption[sc.Compact](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     grandpa.ModuleIndex,
+		Index:     gm.Index,
 	}
 }
 

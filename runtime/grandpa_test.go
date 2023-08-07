@@ -1,13 +1,14 @@
 package main
 
 import (
+	"testing"
+
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/grandpa"
+	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Grandpa_Authorities_Empty(t *testing.T) {
