@@ -18,14 +18,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	dateTime    = time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
+	storageRoot = common.MustHexToHash("0xe249588188046440b083bb3c9edc2a75d95a05104f86a739542a6da8b5cf5724") // Depends on date
+)
+
 func Test_BlockExecution(t *testing.T) {
 	// core.InitializeBlock
 	// blockBuilder.InherentExtrinsics
 	// blockBuilder.ApplyExtrinsics
 	// blockBuilder.FinalizeBlock
-
-	storageRoot := common.MustHexToHash("0x152062ceba215bcc9c8fa2acc30093d4ba1eb5a19a2ef57aed5b1ecb4ed52812") // Depends on timestamp
-	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
 
 	expectedStorageDigest := gossamertypes.NewDigest()
 	digest := gossamertypes.NewDigest()
@@ -41,7 +43,7 @@ func Test_BlockExecution(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(time.UnixMilli()) / slotDuration
+	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,
@@ -89,11 +91,11 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(blockHashKey))
 
 	idata := gossamertypes.NewInherentData()
-	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(dateTime.UnixMilli()))
 
 	assert.NoError(t, err)
 
-	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())), nil, nil, nil)
+	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())), nil, nil, nil)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -136,7 +138,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, header, resultHeader)
 
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
-	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
+	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
 	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
@@ -154,9 +156,6 @@ func Test_ExecuteBlock(t *testing.T) {
 	// blockBuilder.Inherent_Extrinsics
 	// blockBuilder.ExecuteBlock
 
-	storageRoot := common.MustHexToHash("0x152062ceba215bcc9c8fa2acc30093d4ba1eb5a19a2ef57aed5b1ecb4ed52812") // Depends on timestamp
-	time := time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
-
 	rt, storage := newTestRuntime(t)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
@@ -168,7 +167,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(time.UnixMilli()) / slotDuration
+	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,
@@ -176,14 +175,14 @@ func Test_ExecuteBlock(t *testing.T) {
 	}
 
 	idata := gossamertypes.NewInherentData()
-	err = idata.SetInherent(gossamertypes.Timstap0, uint64(time.UnixMilli()))
+	err = idata.SetInherent(gossamertypes.Timstap0, uint64(dateTime.UnixMilli()))
 
 	assert.NoError(t, err)
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time.UnixMilli())), nil, nil, nil)
+	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())), nil, nil, nil)
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -230,7 +229,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
-	assert.Equal(t, sc.U64(time.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
+	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
 	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))

@@ -144,20 +144,14 @@ func (bw BlockWeights) Get(class types.DispatchClass) *WeightsPerClass {
 //   - Average block initialization is assumed to be `10%`.
 //   - `Operational` transactions have reserved allowance (`1.0 - normal_ratio`)
 func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio types.Perbill) BlockWeights {
+	normalWeight := normalRatio.Mul(expectedBlockWeight)
 	return NewBlockWeightsBuilder().
-		BaseBlock(constants.BlockExecutionWeight).
-		ForClass(types.DispatchClassAll(), func(weights *WeightsPerClass) {
-			weights.BaseExtrinsic = constants.ExtrinsicBaseWeight
-		}).
 		ForClass([]types.DispatchClass{types.NewDispatchClassNormal()}, func(weights *WeightsPerClass) {
-			weights.MaxTotal = sc.NewOption[types.Weight](constants.NormalDispatchRatio.Mul(constants.MaximumBlockWeight))
+			weights.MaxTotal = sc.NewOption[types.Weight](normalWeight)
 		}).
 		ForClass([]types.DispatchClass{types.NewDispatchClassOperational()}, func(weights *WeightsPerClass) {
-			weights.MaxTotal = sc.NewOption[types.Weight](constants.MaximumBlockWeight)
-			// Operational transactions have some extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
-			weights.Reserved =
-				sc.NewOption[types.Weight]((constants.MaximumBlockWeight.Sub(constants.NormalDispatchRatio.Mul(constants.MaximumBlockWeight).(types.Weight))))
+			weights.MaxTotal = sc.NewOption[types.Weight](expectedBlockWeight)
+			weights.Reserved = sc.NewOption[types.Weight](expectedBlockWeight.Sub(normalWeight.(types.Weight)))
 		}).
 		AvgBlockInitialization(constants.AverageOnInitializeRatio).
 		Build()
@@ -199,7 +193,7 @@ func NewBlockWeightsBuilder() *BlockWeightsBuilder {
 
 	return &BlockWeightsBuilder{
 		Weights: BlockWeights{
-			BaseBlock: constants.BlockExecutionWeight,
+			BaseBlock: constants.ExtrinsicBaseWeight,
 			MaxBlock:  types.WeightZero(),
 			PerClass:  weightsPerClass,
 		},
