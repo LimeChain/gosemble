@@ -31,7 +31,7 @@ type SystemModule struct {
 func NewSystemModule(index sc.U8, config *Config) SystemModule {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
-	constants := newConstants(config.BlockHashCount, config.Version)
+	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.Version)
 
 	functions[functionRemarkIndex] = newRemarkCall(index, functionRemarkIndex)
 	// TODO: add more dispatchables
@@ -108,7 +108,7 @@ func (sm SystemModule) NoteExtrinsic(encodedExt []byte) {
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
 func (sm SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
-	baseWeight := system.DefaultBlockWeights().Get(info.Class).BaseExtrinsic // TODO: convert to be a const from module
+	baseWeight := sm.Constants.BlockWeights.Get(info.Class).BaseExtrinsic // TODO: convert to be a const from module
 	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
@@ -486,13 +486,13 @@ func (sm SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primiti
 			primitives.NewMetadataModuleConstant(
 				"BlockWeights",
 				sc.ToCompact(metadata.TypesBlockWeights),
-				sc.BytesToSequenceU8(system.DefaultBlockWeights().Bytes()),
+				sc.BytesToSequenceU8(sm.Constants.BlockWeights.Bytes()),
 				"Block & extrinsics weights: base values and limits.",
 			),
 			primitives.NewMetadataModuleConstant(
 				"BlockLength",
 				sc.ToCompact(metadata.TypesBlockLength),
-				sc.BytesToSequenceU8(system.DefaultBlockLength().Bytes()),
+				sc.BytesToSequenceU8(sm.Constants.BlockLength.Bytes()),
 				"The maximum length of a block (in bytes).",
 			),
 			primitives.NewMetadataModuleConstant(
