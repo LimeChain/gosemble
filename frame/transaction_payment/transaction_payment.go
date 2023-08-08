@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/frame/transaction_payment/module"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -18,11 +19,15 @@ var DefaultMultiplierValue = sc.NewU128FromUint64(1)
 var DefaultTip = sc.NewU128FromUint64(0)
 
 type Module struct {
-	decoder types.ModuleDecoder
+	decoder    types.ModuleDecoder
+	txPayments module.TransactionPaymentModule
 }
 
-func New(decoder types.ModuleDecoder) Module {
-	return Module{decoder: decoder}
+func New(decoder types.ModuleDecoder, txPayments module.TransactionPaymentModule) Module {
+	return Module{
+		decoder:    decoder,
+		txPayments: txPayments,
+	}
 }
 
 // QueryInfo queries the data of an extrinsic.
@@ -43,7 +48,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 
 	partialFee := sc.NewU128FromUint64(0)
 	if ext.IsSigned() {
-		partialFee = computeFee(length, dispatchInfo, DefaultTip)
+		partialFee = m.txPayments.ComputeFee(length, dispatchInfo, DefaultTip)
 	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
@@ -73,7 +78,7 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 
 	var feeDetails primitives.FeeDetails
 	if ext.IsSigned() {
-		feeDetails = computeFeeDetails(length, dispatchInfo, DefaultTip)
+		feeDetails = m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
 	} else {
 		feeDetails = primitives.FeeDetails{
 			InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
@@ -98,7 +103,7 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	partialFee := computeFee(length, dispatchInfo, DefaultTip)
+	partialFee := m.txPayments.ComputeFee(length, dispatchInfo, DefaultTip)
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
 		Weight:     dispatchInfo.Weight,
@@ -124,7 +129,7 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	feeDetails := computeFeeDetails(length, dispatchInfo, DefaultTip)
+	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
 
 	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
@@ -149,7 +154,10 @@ func computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance,
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := weightToFee(weight)
 		multiplier := storageNextFeeMultiplier()
-
+		// Storage value is FixedU128, which is different from U128.
+		// It implements a decimal fixed point number, which is `1 / VALUE`
+		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
+		// FixedU64, VALUE is 1_000_000_000.
 		fixedU128Div := big.NewInt(1_000_000_000_000_000_000)
 		bnAdjustedWeightFee := new(big.Int).Mul(multiplier.ToBigInt(), unadjustedWeightFee.ToBigInt())
 		adjustedWeightFee := sc.NewU128FromBigInt(new(big.Int).Div(bnAdjustedWeightFee, fixedU128Div)) // TODO: Create FixedU128 type
@@ -182,10 +190,6 @@ func weightToFee(weight primitives.Weight) primitives.Balance {
 }
 
 func storageNextFeeMultiplier() sc.U128 {
-	// Storage value is FixedU128, which is different from U128.
-	// It implements a decimal fixed point number, which is `1 / VALUE`
-	// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
-	// FixedU64, VALUE is 1_000_000_000.
 	txPaymentHash := hashing.Twox128(constants.KeyTransactionPayment)
 	nextFeeMultiplierHash := hashing.Twox128(constants.KeyNextFeeMultiplier)
 	key := append(txPaymentHash, nextFeeMultiplierHash...)

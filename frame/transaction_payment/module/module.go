@@ -1,17 +1,27 @@
 package module
 
 import (
+	"math/big"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type TransactionPaymentModule struct {
+	Index     sc.U8
+	Config    *Config
+	Constants *consts
+	storage   *storage
 }
 
-func NewTransactionPaymentModule() TransactionPaymentModule {
-	return TransactionPaymentModule{}
+func NewTransactionPaymentModule(index sc.U8, config *Config) TransactionPaymentModule {
+	return TransactionPaymentModule{
+		Index:     index,
+		Config:    config,
+		Constants: newConstants(config.OperationalFeeMultiplier),
+		storage:   newStorage(),
+	}
 }
 
 func (tpm TransactionPaymentModule) Functions() map[sc.U8]primitives.Call {
@@ -50,12 +60,12 @@ func (tpm TransactionPaymentModule) Metadata() (sc.Sequence[primitives.MetadataT
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
 				sc.ToCompact(metadata.PrimitiveTypesU8),
-				sc.BytesToSequenceU8(transaction_payment.OperationalFeeMultiplier.Bytes()),
+				sc.BytesToSequenceU8(tpm.Constants.OperationalFeeMultiplier.Bytes()),
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
 		Error: sc.NewOption[sc.Compact](nil),
-		Index: transaction_payment.ModuleIndex,
+		Index: tpm.Index,
 	}
 }
 
@@ -95,4 +105,59 @@ func (tpm TransactionPaymentModule) metadataTypes() sc.Sequence[primitives.Metad
 			primitives.NewMetadataEmptyTypeParameter("T"),
 		),
 	}
+}
+
+func (tpm TransactionPaymentModule) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
+	return tpm.ComputeFeeDetails(len, info, tip).FinalFee()
+}
+
+func (tpm TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+	return tpm.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
+}
+
+func (tpm TransactionPaymentModule) computeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+	return tpm.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
+}
+
+func (tpm TransactionPaymentModule) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+	return tpm.computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
+}
+
+func (tpm TransactionPaymentModule) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
+	if paysFee[0] == primitives.PaysYes { // TODO: type safety
+		unadjustedWeightFee := tpm.weightToFee(weight)
+		multiplier := tpm.storage.NextFeeMultiplier.Get()
+		// Storage value is FixedU128, which is different from U128.
+		// It implements a decimal fixed point number, which is `1 / VALUE`
+		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
+		// FixedU64, VALUE is 1_000_000_000.
+		fixedU128Div := big.NewInt(1_000_000_000_000_000_000)
+		bnAdjustedWeightFee := new(big.Int).Mul(multiplier.ToBigInt(), unadjustedWeightFee.ToBigInt())
+		adjustedWeightFee := sc.NewU128FromBigInt(new(big.Int).Div(bnAdjustedWeightFee, fixedU128Div)) // TODO: Create FixedU128 type
+
+		lenFee := tpm.lengthToFee(len)
+		baseFee := tpm.weightToFee(tpm.Config.BlockWeights.Get(class).BaseExtrinsic)
+
+		inclusionFee := sc.NewOption[primitives.InclusionFee](primitives.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
+
+		return primitives.FeeDetails{
+			InclusionFee: inclusionFee,
+			Tip:          tip,
+		}
+	}
+
+	return primitives.FeeDetails{
+		InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
+		Tip:          tip,
+	}
+}
+
+func (tpm TransactionPaymentModule) lengthToFee(length sc.U32) primitives.Balance {
+	return tpm.Config.LengthToFee.WeightToFee(primitives.WeightFromParts(sc.U64(length), 0))
+}
+
+func (tpm TransactionPaymentModule) weightToFee(weight primitives.Weight) primitives.Balance {
+	cappedWeight := weight.Min(tpm.Config.BlockWeights.MaxBlock)
+
+	return tpm.Config.WeightToFee.WeightToFee(cappedWeight)
 }
