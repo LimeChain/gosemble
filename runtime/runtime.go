@@ -22,6 +22,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/offchain_worker"
 	"github.com/LimeChain/gosemble/frame/session_keys"
 	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/frame/system/extensions"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	tm "github.com/LimeChain/gosemble/frame/testable/module"
@@ -113,7 +114,28 @@ func newExecutiveModule() executive.Module {
 }
 
 func newModuleDecoder() types.ModuleDecoder {
-	return types.NewModuleDecoder(modules)
+	return types.NewModuleDecoder(modules, newSignedExtra())
+}
+
+func newSignedExtra() primitives.SignedExtra {
+	systeModule := modules[SystemIndex].(sm.SystemModule)
+	txPaymentModule := modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)
+
+	checkMortality := extensions.NewCheckMortality(systeModule)
+	checkNonce := extensions.NewCheckNonce(systeModule)
+	chargeTxPayment := transaction_payment.NewChargeTransactionPayment(systeModule, txPaymentModule)
+
+	extras := []primitives.SignedExtension{
+		extensions.NewCheckNonZeroAddress(),
+		extensions.NewCheckSpecVersion(systeModule),
+		extensions.NewCheckTxVersion(systeModule),
+		extensions.NewCheckGenesis(systeModule),
+		&checkMortality,
+		&checkNonce,
+		extensions.NewCheckWeight(systeModule),
+		&chargeTxPayment,
+	}
+	return primitives.NewSignedExtra(extras)
 }
 
 //go:export Core_version

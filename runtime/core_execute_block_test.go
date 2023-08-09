@@ -114,7 +114,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	buffer.Write(inherentExt[1:])
 
-	decoder := types.NewModuleDecoder(modules)
+	decoder := types.NewModuleDecoder(modules, newSignedExtra())
 	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
 	buffer.Reset()
 
@@ -197,7 +197,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	buffer.Reset()
 
 	buffer.Write(inherentExt[1:])
-	decoder := types.NewModuleDecoder(modules)
+	decoder := types.NewModuleDecoder(modules, newSignedExtra())
 	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
 
 	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())

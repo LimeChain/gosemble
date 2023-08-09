@@ -2,15 +2,10 @@ package transaction_payment
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/module"
-	"github.com/LimeChain/gosemble/primitives/hashing"
-	"github.com/LimeChain/gosemble/primitives/storage"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -132,67 +127,4 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
 
 	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
-}
-
-func computeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
-	return computeFeeDetails(len, info, tip).FinalFee()
-}
-
-func computeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
-	return computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
-}
-
-func computeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
-	return computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
-}
-
-func computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
-	return computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
-}
-
-func computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
-	if paysFee[0] == primitives.PaysYes { // TODO: type safety
-		unadjustedWeightFee := weightToFee(weight)
-		multiplier := storageNextFeeMultiplier()
-		// Storage value is FixedU128, which is different from U128.
-		// It implements a decimal fixed point number, which is `1 / VALUE`
-		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
-		// FixedU64, VALUE is 1_000_000_000.
-		fixedU128Div := big.NewInt(1_000_000_000_000_000_000)
-		bnAdjustedWeightFee := new(big.Int).Mul(multiplier.ToBigInt(), unadjustedWeightFee.ToBigInt())
-		adjustedWeightFee := sc.NewU128FromBigInt(new(big.Int).Div(bnAdjustedWeightFee, fixedU128Div)) // TODO: Create FixedU128 type
-
-		lenFee := lengthToFee(len)
-		baseFee := weightToFee(system.DefaultBlockWeights().Get(class).BaseExtrinsic)
-
-		inclusionFee := sc.NewOption[primitives.InclusionFee](primitives.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
-
-		return primitives.FeeDetails{
-			InclusionFee: inclusionFee,
-			Tip:          tip,
-		}
-	}
-
-	return primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
-		Tip:          tip,
-	}
-}
-
-func lengthToFee(length sc.U32) primitives.Balance {
-	return constants.LengthToFee.WeightToFee(primitives.WeightFromParts(sc.U64(length), 0))
-}
-
-func weightToFee(weight primitives.Weight) primitives.Balance {
-	cappedWeight := weight.Min(system.DefaultBlockWeights().MaxBlock)
-
-	return constants.WeightToFee.WeightToFee(cappedWeight)
-}
-
-func storageNextFeeMultiplier() sc.U128 {
-	txPaymentHash := hashing.Twox128(constants.KeyTransactionPayment)
-	nextFeeMultiplierHash := hashing.Twox128(constants.KeyNextFeeMultiplier)
-	key := append(txPaymentHash, nextFeeMultiplierHash...)
-
-	return storage.GetDecodeOnEmpty(key, sc.DecodeU128, DefaultMultiplierValue)
 }

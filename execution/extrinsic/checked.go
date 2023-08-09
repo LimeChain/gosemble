@@ -4,7 +4,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/support"
-	system "github.com/LimeChain/gosemble/frame/system/extensions"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -13,9 +12,9 @@ type Checked types.CheckedExtrinsic
 func (xt Checked) Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
-		ok, err = system.Extra(extra).Validate(&id, &xt.Function, info, length)
+		ok, err = extra.Validate(&id, &xt.Function, info, length)
 	} else {
-		valid, err := system.Extra(primitives.SignedExtra{}).ValidateUnsigned(&xt.Function, info, length)
+		valid, err := xt.Signed.Value.SignedExtra.ValidateUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return ok, err
 		}
@@ -39,7 +38,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 
 	if xt.Signed.HasValue {
 		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
-		pre, err := system.Extra(extra).PreDispatch(&id, &xt.Function, info, length)
+		pre, err := extra.PreDispatch(&id, &xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
@@ -53,7 +52,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		//
 		// If you ever override this function, you need to make sure to always
 		// perform the same validation as in `ValidateUnsigned`.
-		_, err := system.Extra{}.PreDispatchUnsigned(&xt.Function, info, length)
+		err := xt.Signed.Value.SignedExtra.PreDispatchUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
@@ -91,7 +90,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 	}
 
 	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
-	_, err := system.Extra{}.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	err := xt.Signed.Value.SignedExtra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
 	dispatchResultWithPostInfo := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
 	// TODO: err should be checked, not resWithInfo again

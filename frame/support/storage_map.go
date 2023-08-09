@@ -28,6 +28,12 @@ func (sm StorageMap[K, V]) Get(k K) V {
 	return storage.GetDecode(sm.key(k), sm.decodeFunc)
 }
 
+func (sm StorageMap[K, V]) Exists(k K) bool {
+	exists := storage.Exists(sm.key(k))
+
+	return exists != 0
+}
+
 func (sm StorageMap[K, V]) Put(k K, value V) {
 	storage.Set(sm.key(k), value.Bytes())
 }

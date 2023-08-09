@@ -16,13 +16,6 @@ func (ae AccountIdExtra) Encode(buffer *bytes.Buffer) {
 	ae.SignedExtra.Encode(buffer)
 }
 
-func DecodeAccountIdExtra(buffer *bytes.Buffer) AccountIdExtra {
-	ae := AccountIdExtra{}
-	ae.Address32 = DecodeAddress32(buffer)
-	ae.SignedExtra = DecodeExtra(buffer)
-	return ae
-}
-
 func (ae AccountIdExtra) Bytes() []byte {
 	return sc.EncodedBytes(ae)
 }
