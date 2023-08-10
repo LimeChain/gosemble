@@ -5,24 +5,25 @@ import (
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/transaction_payment"
-	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
 	tpm "github.com/LimeChain/gosemble/frame/transaction_payment/module"
+	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type ChargeTransactionPayment struct {
-	fee             primitives.Balance
-	systemModule    sm.SystemModule
-	txPaymentModule tpm.TransactionPaymentModule
+	fee                 primitives.Balance
+	systemModule        sm.SystemModule
+	txPaymentModule     tpm.TransactionPaymentModule
+	onChargeTransaction hooks.OnChargeTransaction
 }
 
-func NewChargeTransactionPayment(module sm.SystemModule, txPaymentModule tpm.TransactionPaymentModule) ChargeTransactionPayment {
+func NewChargeTransactionPayment(module sm.SystemModule, txPaymentModule tpm.TransactionPaymentModule, currencyAdapter primitives.CurrencyAdapter) ChargeTransactionPayment {
 	return ChargeTransactionPayment{
-		systemModule:    module,
-		txPaymentModule: txPaymentModule,
+		systemModule:        module,
+		txPaymentModule:     txPaymentModule,
+		onChargeTransaction: newChargeTransaction(currencyAdapter),
 	}
 }
 
@@ -76,7 +77,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
 		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
-		err := correctAndDepositFee(&who, actualFee, tip, imbalance)
+		err := ctp.onChargeTransaction.CorrectAndDepositFee(&who, actualFee, tip, imbalance)
 		if err != nil {
 			return err
 		}
@@ -147,48 +148,10 @@ func (ctp ChargeTransactionPayment) withdrawFee(who *primitives.Address32, _call
 	tip := ctp.fee
 	fee := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 
-	imbalance, err := withdrawFee(who, _call, info, fee, sc.NewU128FromBigInt(tip.ToBigInt()))
+	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, _call, info, fee, sc.NewU128FromBigInt(tip.ToBigInt()))
 	if err != nil {
 		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), err
 	}
 
 	return fee, imbalance, nil
-}
-
-func withdrawFee(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, fee primitives.Balance, tip primitives.Balance) (sc.Option[primitives.Balance], primitives.TransactionValidityError) {
-	if fee.ToBigInt().Cmp(constants.Zero) == 0 {
-		return sc.NewOption[primitives.Balance](nil), nil
-	}
-
-	withdrawReasons := primitives.WithdrawReasonsTransactionPayment
-	if tip.ToBigInt().Cmp(constants.Zero) == 0 {
-		withdrawReasons = primitives.WithdrawReasonsTransactionPayment
-	} else {
-		withdrawReasons = primitives.WithdrawReasonsTransactionPayment | primitives.WithdrawReasonsTip
-	}
-
-	imbalance, err := dispatchables.Withdraw(*who, fee, sc.U8(withdrawReasons), primitives.ExistenceRequirementKeepAlive)
-	if err != nil {
-		return sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-	}
-
-	return sc.NewOption[primitives.Balance](imbalance), nil
-}
-
-func correctAndDepositFee(who *primitives.Address32, correctedFee primitives.Balance, tip primitives.Balance, alreadyWithdrawn sc.Option[primitives.Balance]) primitives.TransactionValidityError {
-	if alreadyWithdrawn.HasValue {
-		alreadyPaidNegativeImbalance := alreadyWithdrawn.Value
-		refundAmount := new(big.Int).Sub(alreadyPaidNegativeImbalance.ToBigInt(), correctedFee.ToBigInt())
-
-		refundPositiveImbalance, err := dispatchables.DepositIntoExisting(*who, sc.NewU128FromBigInt(refundAmount))
-		if err != nil {
-			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-		}
-
-		comparison := alreadyPaidNegativeImbalance.ToBigInt().Cmp(refundPositiveImbalance.ToBigInt())
-		if comparison < 0 {
-			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-		}
-	}
-	return nil
 }

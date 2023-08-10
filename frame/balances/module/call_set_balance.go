@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/balances/dispatchables"
 	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -14,16 +13,20 @@ import (
 
 type setBalanceCall struct {
 	primitives.Callable
-	transfer
+	constants      *consts
+	storedMap      primitives.StoredMap
+	accountMutator accountMutator
 }
 
-func newSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+func newSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
 	call := setBalanceCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(moduleId, storedMap, constants),
+		constants:      constants,
+		storedMap:      storedMap,
+		accountMutator: mutator,
 	}
 
 	return call
@@ -130,7 +133,7 @@ func (c setBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddres
 		newReserved = big.NewInt(0)
 	}
 
-	result := c.transfer.mutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {
+	result := c.accountMutator.tryMutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {
 		oldFree := acc.Free
 		oldReserved := acc.Reserved
 
@@ -149,21 +152,21 @@ func (c setBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddres
 	if newFree.Cmp(oldFree.ToBigInt()) > 0 {
 		diff := new(big.Int).Sub(newFree, oldFree.ToBigInt())
 
-		dispatchables.NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		newPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	} else if newFree.Cmp(oldFree.ToBigInt()) < 0 {
 		diff := new(big.Int).Sub(oldFree.ToBigInt(), newFree)
 
-		dispatchables.NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		newNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	}
 
 	if newReserved.Cmp(oldReserved.ToBigInt()) > 0 {
 		diff := new(big.Int).Sub(newReserved, oldReserved.ToBigInt())
 
-		dispatchables.NewPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		newPositiveImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	} else if newReserved.Cmp(oldReserved.ToBigInt()) < 0 {
 		diff := new(big.Int).Sub(oldReserved.ToBigInt(), newReserved)
 
-		dispatchables.NewNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
+		newNegativeImbalance(sc.NewU128FromBigInt(diff)).Drop()
 	}
 
 	c.storedMap.DepositEvent(
