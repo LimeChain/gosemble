@@ -209,7 +209,8 @@ func AuraApiAuthorities(_, _ int32) int64 {
 
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
-	return account_nonce.AccountNonce(dataPtr, dataLen)
+	return account_nonce.New(modules[SystemIndex].(sm.SystemModule)).
+		AccountNonce(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_info
