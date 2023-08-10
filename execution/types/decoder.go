@@ -46,11 +46,7 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 		log.Critical("invalid length prefix")
 	}
 
-	return UncheckedExtrinsic{
-		Version:   sc.U8(version),
-		Signature: extSignature,
-		Function:  function,
-	}
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, md.extra)
 }
 
 func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {

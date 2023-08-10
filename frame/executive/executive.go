@@ -136,7 +136,7 @@ func (m Module) FinalizeBlock() primitives.Header {
 // not.
 //
 // Changes made to storage should be discarded.
-func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	currentBlockNumber := m.system.Storage.BlockNumber.Get()
 	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
 
@@ -148,14 +148,14 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	log.Trace("check")
 	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
-		return ok, err
+		return primitives.ValidTransaction{}, err
 	}
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
 
 	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
-		return ok, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
 	log.Trace("validate")

@@ -9,40 +9,38 @@ import (
 
 type Checked types.CheckedExtrinsic
 
-func (xt Checked) Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (xt Checked) Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	if xt.Signed.HasValue {
-		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
-		ok, err = extra.Validate(&id, &xt.Function, info, length)
-	} else {
-		valid, err := xt.Signed.Value.SignedExtra.ValidateUnsigned(&xt.Function, info, length)
-		if err != nil {
-			return ok, err
-		}
-
-		unsignedValidation, err := validator.ValidateUnsigned(source, &xt.Function)
-		if err != nil {
-			return ok, err
-		}
-
-		ok = valid.CombineWith(unsignedValidation)
+		id := xt.Signed.Value
+		return xt.Extra.Validate(&id, &xt.Function, info, length)
 	}
 
-	return ok, err
+	valid, err := xt.Extra.ValidateUnsigned(&xt.Function, info, length)
+	if err != nil {
+		return primitives.ValidTransaction{}, err
+	}
+
+	unsignedValidation, err := validator.ValidateUnsigned(source, &xt.Function)
+	if err != nil {
+		return primitives.ValidTransaction{}, err
+	}
+
+	return valid.CombineWith(unsignedValidation), nil
 }
 
 func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[primitives.Address32]
-		maybePre sc.Option[primitives.Pre]
+		maybePre sc.Option[sc.Sequence[primitives.Pre]]
 	)
 
 	if xt.Signed.HasValue {
-		id, extra := xt.Signed.Value.Address32, xt.Signed.Value.SignedExtra
-		pre, err := extra.PreDispatch(&id, &xt.Function, info, length)
+		id := xt.Signed.Value
+		pre, err := xt.Extra.PreDispatch(&id, &xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
-		maybeWho, maybePre = sc.NewOption[primitives.Address32](id), sc.NewOption[primitives.Pre](pre)
+		maybeWho, maybePre = sc.NewOption[primitives.Address32](id), sc.NewOption[sc.Sequence[primitives.Pre]](pre)
 	} else {
 		// Do any pre-flight stuff for an unsigned transaction.
 		//
@@ -52,7 +50,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		//
 		// If you ever override this function, you need to make sure to always
 		// perform the same validation as in `ValidateUnsigned`.
-		err := xt.Signed.Value.SignedExtra.PreDispatchUnsigned(&xt.Function, info, length)
+		err := xt.Extra.PreDispatchUnsigned(&xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
@@ -62,7 +60,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 
-		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[primitives.Pre](nil)
+		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[sc.Sequence[primitives.Pre]](nil)
 	}
 
 	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
@@ -90,7 +88,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 	}
 
 	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
-	err := xt.Signed.Value.SignedExtra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	err := xt.Extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
 	dispatchResultWithPostInfo := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
 	// TODO: err should be checked, not resWithInfo again

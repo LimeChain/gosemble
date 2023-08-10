@@ -6,8 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// SignedExtra implements SignedExtension
-// Extra data, E, is a tuple containing additional metadata about the extrinsic and the system it is meant to be executed in.
+// SignedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
 type SignedExtra struct {
 	extras []SignedExtension
 }
@@ -76,8 +75,8 @@ func (e SignedExtra) ValidateUnsigned(call *Call, info *DispatchInfo, length sc.
 	return valid, nil
 }
 
-func (e SignedExtra) PreDispatch(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
-	pre := sc.NewVaryingData()
+func (e SignedExtra) PreDispatch(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
+	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {
 		p, err := extra.PreDispatch(who, call, info, length)
@@ -85,7 +84,7 @@ func (e SignedExtra) PreDispatch(who *Address32, call *Call, info *DispatchInfo,
 			return nil, err
 		}
 
-		pre = append(pre, p...)
+		pre = append(pre, p)
 	}
 
 	return pre, nil
@@ -102,11 +101,21 @@ func (e SignedExtra) PreDispatchUnsigned(call *Call, info *DispatchInfo, length 
 	return nil
 }
 
-func (e SignedExtra) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
-	for _, extra := range e.extras {
-		err := extra.PostDispatch(pre, info, postInfo, length, result)
-		if err != nil {
-			return err
+func (e SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+	if pre.HasValue {
+		preValue := pre.Value
+		for i, extra := range e.extras {
+			err := extra.PostDispatch(sc.NewOption[Pre](preValue[i]), info, postInfo, length, result)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		for _, extra := range e.extras {
+			err := extra.PostDispatch(sc.NewOption[Pre](nil), info, postInfo, length, result)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

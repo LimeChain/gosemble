@@ -8,7 +8,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// TODO: to be able to provide a custom implementation of the Validate function
 type CheckMortality struct {
 	era          primitives.Era
 	systemModule module.SystemModule
