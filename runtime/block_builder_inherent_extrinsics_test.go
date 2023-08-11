@@ -7,7 +7,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,18 +15,17 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	idata := gossamertypes.NewInherentData()
 	time := time.Now().UnixMilli()
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
-	decoder := types.NewModuleDecoder(modules, newSignedExtra())
-
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time)))
+	decoder := types.NewModuleDecoder(modules, newSignedExtra())
 
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t, rt)
+
+	expectedExtrinsicBytes := timestampExtrinsicBytes(t, metadata, uint64(time))
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
-
-	rt, _ := newTestRuntime(t)
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
@@ -44,5 +42,5 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	buffer.Write(inherentExt[1:])
 	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
 
-	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
+	assert.Equal(t, expectedExtrinsicBytes, extrinsic.Bytes())
 }

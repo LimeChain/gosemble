@@ -11,8 +11,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/constants/timestamp"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,6 +30,7 @@ func Test_BlockExecution(t *testing.T) {
 	digest := gossamertypes.NewDigest()
 
 	rt, storage := newTestRuntime(t)
+	metadata := runtimeMetadata(t, rt)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
@@ -91,12 +90,9 @@ func Test_BlockExecution(t *testing.T) {
 
 	idata := gossamertypes.NewInherentData()
 	err = idata.SetInherent(gossamertypes.Timstap0, uint64(dateTime.UnixMilli()))
-
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())))
-
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
+	expectedExtrinsicBytes := timestampExtrinsicBytes(t, metadata, uint64(dateTime.UnixMilli()))
 
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
@@ -111,13 +107,8 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
 
-	buffer.Write(inherentExt[1:])
-
-	decoder := types.NewModuleDecoder(modules, newSignedExtra())
-	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
-	buffer.Reset()
-
-	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
+	actualExtrinsic := inherentExt[1:]
+	assert.Equal(t, expectedExtrinsicBytes, actualExtrinsic)
 
 	applyResult, err := rt.Exec("BlockBuilder_apply_extrinsic", inherentExt[1:])
 	assert.NoError(t, err)
@@ -156,6 +147,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	// blockBuilder.ExecuteBlock
 
 	rt, storage := newTestRuntime(t)
+	metadata := runtimeMetadata(t, rt)
 
 	bytesSlotDuration, err := rt.Exec("AuraApi_slot_duration", []byte{})
 	assert.NoError(t, err)
@@ -181,9 +173,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())))
-
-	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
+	expectedExtrinsicBytes := timestampExtrinsicBytes(t, metadata, uint64(dateTime.UnixMilli()))
 
 	inherentExt, err := rt.Exec("BlockBuilder_inherent_extrinsics", ienc)
 	assert.NoError(t, err)
@@ -195,11 +185,8 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
 
-	buffer.Write(inherentExt[1:])
-	decoder := types.NewModuleDecoder(modules, newSignedExtra())
-	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
-
-	assert.Equal(t, expectedExtrinsic.Bytes(), extrinsic.Bytes())
+	actualExtrinsic := inherentExt[1:]
+	assert.Equal(t, expectedExtrinsicBytes, actualExtrinsic)
 
 	var exts [][]byte
 	err = scale.Unmarshal(inherentExt, &exts)

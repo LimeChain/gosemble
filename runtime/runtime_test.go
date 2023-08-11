@@ -15,6 +15,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
@@ -135,62 +136,16 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 	return primitives.DecodeRuntimeDispatchInfo(buffer)
 }
 
-type testCall struct {
-	primitives.Callable
-}
+func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint64) []byte {
+	call, err := ctypes.NewCall(metadata, "Timestamp.set", ctypes.NewUCompactFromUInt(time))
+	assert.NoError(t, err)
 
-func newTestCall(moduleId, functionId sc.U8, args sc.VaryingData) primitives.Call {
-	call := testCall{
-		Callable: primitives.Callable{
-			ModuleId:   moduleId,
-			FunctionId: functionId,
-			Arguments:  args,
-		},
-	}
+	expectedExtrinsic := ctypes.NewExtrinsic(call)
 
-	return call
-}
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = expectedExtrinsic.Encode(*encoder)
+	assert.NoError(t, err)
 
-func (c testCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
-	panic("unimplemented")
-}
-
-func (c testCall) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
-}
-
-func (c testCall) Bytes() []byte {
-	return c.Callable.Bytes()
-}
-
-func (c testCall) ModuleIndex() sc.U8 {
-	return c.Callable.ModuleIndex()
-}
-
-func (c testCall) FunctionIndex() sc.U8 {
-	return c.Callable.FunctionIndex()
-}
-
-func (c testCall) Args() sc.VaryingData {
-	return c.Callable.Args()
-}
-
-func (_ testCall) BaseWeight(args ...any) primitives.Weight {
-	panic("unimplemented")
-}
-
-func (_ testCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
-	panic("unimplemented")
-}
-
-func (_ testCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
-	panic("unimplemented")
-}
-
-func (_ testCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
-	panic("unimplemented")
-}
-
-func (_ testCall) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
-	panic("unimplemented")
+	return extEnc.Bytes()
 }
