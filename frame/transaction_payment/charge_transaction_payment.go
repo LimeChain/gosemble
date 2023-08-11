@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
 	tpm "github.com/LimeChain/gosemble/frame/transaction_payment/module"
 	"github.com/LimeChain/gosemble/hooks"
@@ -132,7 +131,7 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	} else if info.Class.Is(primitives.DispatchClassMandatory) {
 		return sc.U64(scaledTip.Uint64())
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
-		feeMultiplier := transaction_payment.OperationalFeeMultiplier
+		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
 		virtualTip := new(big.Int).Mul(finalFee.ToBigInt(), big.NewInt(int64(feeMultiplier)))
 		scaledVirtualTip := new(big.Int).Mul(virtualTip, new(big.Int).SetUint64(uint64(maxTxPerBlock)))
 
