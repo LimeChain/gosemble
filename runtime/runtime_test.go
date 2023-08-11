@@ -134,3 +134,63 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 
 	return primitives.DecodeRuntimeDispatchInfo(buffer)
 }
+
+type testCall struct {
+	primitives.Callable
+}
+
+func newTestCall(moduleId, functionId sc.U8, args sc.VaryingData) primitives.Call {
+	call := testCall{
+		Callable: primitives.Callable{
+			ModuleId:   moduleId,
+			FunctionId: functionId,
+			Arguments:  args,
+		},
+	}
+
+	return call
+}
+
+func (c testCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+	panic("unimplemented")
+}
+
+func (c testCall) Encode(buffer *bytes.Buffer) {
+	c.Callable.Encode(buffer)
+}
+
+func (c testCall) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c testCall) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c testCall) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c testCall) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (_ testCall) BaseWeight(args ...any) primitives.Weight {
+	panic("unimplemented")
+}
+
+func (_ testCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+	panic("unimplemented")
+}
+
+func (_ testCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	panic("unimplemented")
+}
+
+func (_ testCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	panic("unimplemented")
+}
+
+func (_ testCall) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+	panic("unimplemented")
+}

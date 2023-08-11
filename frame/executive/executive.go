@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
-	"github.com/LimeChain/gosemble/execution/inherent"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system/module"
 	"github.com/LimeChain/gosemble/frame/timestamp"
@@ -221,8 +220,7 @@ func (m Module) initialChecks(block types.Block) {
 		}
 	}
 
-	inherentsAreFirst := inherent.EnsureInherentsAreFirst(block)
-
+	inherentsAreFirst := m.runtimeExtrinsic.EnsureInherentsAreFirst(block)
 	if inherentsAreFirst >= 0 {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))

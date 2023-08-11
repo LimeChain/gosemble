@@ -13,7 +13,6 @@ import (
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
-	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -95,7 +94,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())), nil, nil, nil)
+	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())))
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 
@@ -182,7 +181,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	ienc, err := idata.Encode()
 	assert.NoError(t, err)
 
-	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())), nil, nil, nil)
+	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(dateTime.UnixMilli())))
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 

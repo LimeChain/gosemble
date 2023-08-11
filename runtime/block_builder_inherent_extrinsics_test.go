@@ -9,7 +9,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/types"
-	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	call := tsm.NewSetCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time)), nil, nil, nil)
+	call := newTestCall(timestamp.ModuleIndex, timestamp.FunctionSetIndex, sc.NewVaryingData(sc.ToCompact(time)))
 
 	expectedExtrinsic := types.NewUnsignedUncheckedExtrinsic(call)
 

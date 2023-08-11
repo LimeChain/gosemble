@@ -21,6 +21,7 @@ const (
 )
 
 type SystemModule struct {
+	primitives.DefaultProvideInherent
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage

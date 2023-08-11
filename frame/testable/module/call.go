@@ -13,16 +13,12 @@ type testCall struct {
 	primitives.Callable
 }
 
-func newTestCall(moduleId, functionId sc.U8, args sc.VaryingData) primitives.Call {
+func newTestCall(moduleId, functionId sc.U8) primitives.Call {
 	call := testCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-	}
-
-	if len(args) != 0 {
-		call.Arguments = args
 	}
 
 	return call
@@ -55,10 +51,6 @@ func (c testCall) Args() sc.VaryingData {
 
 func (_ testCall) BaseWeight(args ...any) primitives.Weight {
 	return primitives.WeightFromParts(1_000_000, 0)
-}
-
-func (_ testCall) IsInherent() bool {
-	return false
 }
 
 func (_ testCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {

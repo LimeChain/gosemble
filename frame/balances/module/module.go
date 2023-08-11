@@ -23,6 +23,7 @@ const (
 )
 
 type BalancesModule struct {
+	primitives.DefaultProvideInherent
 	Index     sc.U8
 	Config    *Config
 	Constants *consts

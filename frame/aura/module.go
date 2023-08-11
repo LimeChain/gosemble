@@ -18,6 +18,7 @@ var (
 )
 
 type Module struct {
+	primitives.DefaultProvideInherent
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage
