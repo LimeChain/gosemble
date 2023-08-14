@@ -13,7 +13,6 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/account_nonce"
 	"github.com/LimeChain/gosemble/frame/aura"
-	am "github.com/LimeChain/gosemble/frame/aura/module"
 	bm "github.com/LimeChain/gosemble/frame/balances/module"
 	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
 	"github.com/LimeChain/gosemble/frame/core"
@@ -67,8 +66,12 @@ func initializeModules() map[sc.U8]primitives.Module {
 	systemModule := sm.NewSystemModule(SystemIndex,
 		sm.NewConfig(constants.BlockHashCount, constants.RuntimeVersion))
 
-	auraModule := am.NewModule(AuraIndex,
-		am.NewConfig(timestamp.MinimumPeriod, AuraMaxAuthorites, false))
+	auraModule := aura.NewModule(AuraIndex,
+		aura.NewConfig(
+			timestamp.MinimumPeriod,
+			AuraMaxAuthorites,
+			false,
+			systemModule.Storage.Digest.Get))
 
 	timestampModule := tsm.NewModule(TimestampIndex,
 		tsm.NewConfig(auraModule, timestamp.MinimumPeriod))
@@ -93,7 +96,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 }
 
 func newExecutiveModule() executive.Module {
-	return executive.New(modules[SystemIndex].(sm.SystemModule), extrinsic.New(modules))
+	return executive.New(modules[SystemIndex].(sm.SystemModule), extrinsic.New(modules), modules[AuraIndex].(aura.Module))
 }
 
 func newModuleDecoder() types.ModuleDecoder {
@@ -160,12 +163,12 @@ func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int
 
 //go:export AuraApi_slot_duration
 func AuraApiSlotDuration(_, _ int32) int64 {
-	return aura.SlotDuration()
+	return modules[AuraIndex].(aura.Module).SlotDuration()
 }
 
 //go:export AuraApi_authorities
 func AuraApiAuthorities(_, _ int32) int64 {
-	return aura.Authorities()
+	return modules[AuraIndex].(aura.Module).Authorities()
 }
 
 //go:export AccountNonceApi_account_nonce

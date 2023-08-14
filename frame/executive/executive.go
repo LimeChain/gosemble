@@ -8,10 +8,10 @@ import (
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/inherent"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/system/module"
 	"github.com/LimeChain/gosemble/frame/timestamp"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/crypto"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -21,12 +21,14 @@ import (
 type Module struct {
 	system           module.SystemModule
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
+	onInitialize     hooks.OnInitialize[sc.U32]
 }
 
-func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic) Module {
+func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onInitialize hooks.OnInitialize[sc.U32]) Module {
 	return Module{
 		system:           systemModule,
 		runtimeExtrinsic: runtimeExtrinsic,
+		onInitialize:     onInitialize,
 	}
 }
 
@@ -44,7 +46,7 @@ func (m Module) InitializeBlock(header primitives.Header) {
 	m.system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
 	// TODO: accumulate the weight from all pallets that have on_initialize
-	weight = weight.SaturatingAdd(aura.OnInitialize())
+	weight = weight.SaturatingAdd(m.onInitialize.OnInitialize(header.Number))
 	weight = weight.SaturatingAdd(system.DefaultBlockWeights().BaseBlock)
 	// use in case of dynamic weight calculation
 	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
