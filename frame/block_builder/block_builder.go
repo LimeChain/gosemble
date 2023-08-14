@@ -22,11 +22,13 @@ type BlockBuilder interface {
 
 type Module struct {
 	executive executive.Module
+	decoder   types.ModuleDecoder
 }
 
-func New(module executive.Module) Module {
+func New(module executive.Module, decoder types.ModuleDecoder) Module {
 	return Module{
 		module,
+		decoder,
 	}
 }
 
@@ -41,7 +43,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	uxt := types.DecodeUncheckedExtrinsic(buffer)
+	uxt := m.decoder.DecodeUncheckedExtrinsic(buffer)
 
 	ok, err := m.executive.ApplyExtrinsic(uxt)
 	var applyExtrinsicResult primitives.ApplyExtrinsicResult
@@ -97,11 +99,11 @@ func InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded inherent data.
 // Returns a pointer-size of the SCALE-encoded result, specifying if all inherents are valid.
 // [Specification](https://spec.polkadot.network/#id-blockbuilder_check_inherents)
-func CheckInherents(dataPtr int32, dataLen int32) int64 {
+func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	block := types.DecodeBlock(buffer)
+	block := m.decoder.DecodeBlock(buffer)
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {

@@ -19,12 +19,14 @@ import (
 )
 
 type Module struct {
-	system module.SystemModule
+	system           module.SystemModule
+	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 }
 
-func New(systemModule module.SystemModule) Module {
+func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic) Module {
 	return Module{
-		system: systemModule,
+		system:           systemModule,
+		runtimeExtrinsic: runtimeExtrinsic,
 	}
 }
 
@@ -95,7 +97,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
 	log.Trace("get_dispatch_info: weight ref time " + dispatchInfo.Weight.RefTime.String())
 
-	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
+	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
 	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
@@ -156,7 +158,7 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	}
 
 	log.Trace("validate")
-	unsignedValidator := extrinsic.UnsignedValidatorForChecked{}
+	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
 	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 

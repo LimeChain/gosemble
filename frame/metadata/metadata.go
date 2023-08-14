@@ -2,7 +2,6 @@ package metadata
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/config"
 	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/constants/grandpa"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -14,23 +13,31 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+type Module struct {
+	modules map[sc.U8]primitives.Module
+}
+
+func New(modules map[sc.U8]primitives.Module) Module {
+	return Module{modules: modules}
+}
+
 // Metadata returns the metadata of the runtime.
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
-func Metadata() int64 {
-	metadata := buildMetadata()
+func (m Module) Metadata() int64 {
+	metadata := m.buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
 
 	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func buildMetadata() primitives.Metadata {
+func (m Module) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 	metadataTypes = append(metadataTypes, runtimeTypes()...)
 
 	var modules sc.Sequence[primitives.MetadataModule]
 
-	for _, module := range config.Modules {
+	for _, module := range m.modules {
 		mTypes, mModule := module.Metadata()
 
 		metadataTypes = append(metadataTypes, mTypes...)

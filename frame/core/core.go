@@ -18,11 +18,13 @@ type Core interface {
 
 type Module struct {
 	executive executive.Module
+	decoder   types.ModuleDecoder
 }
 
-func New(module executive.Module) Module {
+func New(module executive.Module, decoder types.ModuleDecoder) Module {
 	return Module{
 		module,
+		decoder,
 	}
 }
 
@@ -60,6 +62,6 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
-	block := types.DecodeBlock(buffer)
+	block := m.decoder.DecodeBlock(buffer)
 	m.executive.ExecuteBlock(block)
 }
