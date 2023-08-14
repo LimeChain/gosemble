@@ -30,11 +30,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// TODO:
-// remove the _start export and find a way to call it from the runtime to initialize the memory.
-// TinyGo requires to have a main function to compile to Wasm.
-func main() {}
-
 const (
 	AuraMaxAuthorites = 100
 )
