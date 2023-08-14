@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -58,12 +58,16 @@ func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 
 	module, ok := md.modules[moduleIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		// log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
+		log.Critical("module with index [" + strconv.Itoa(int(moduleIndex)) + "] not found")
 	}
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
+		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
+		// log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
+		log.Critical("function index [" + strconv.Itoa(int(functionIndex)) + "] for module [" + strconv.Itoa(int(moduleIndex)) + "] not found")
 	}
 
 	function = function.DecodeArgs(buffer)
