@@ -24,6 +24,10 @@ func ExtCryptoSr25519VerifyVersion2(signature []byte, message []byte, pubKey []b
 	panic("not implemented")
 }
 
+func ExtCryptoEcdsaGenerateVersion1(keyTypeId []byte, seed []byte) []byte {
+	panic("not implemented")
+}
+
 func ExtCryptoStartBatchVerify() {
 	panic("not implemented")
 }

@@ -13,6 +13,10 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
+var (
+	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
+)
+
 type Module struct {
 	Index     sc.U8
 	Config    *Config
@@ -42,6 +46,14 @@ func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 
 func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+}
+
+func (m Module) KeyType() primitives.PublicKeyType {
+	return m.Config.KeyType
+}
+
+func (m Module) KeyTypeId() [4]byte {
+	return KeyTypeId
 }
 
 // Authorities returns current set of AuRa (Authority Round) authorities.

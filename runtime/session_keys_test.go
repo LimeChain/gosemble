@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/aura"
-	"github.com/LimeChain/gosemble/constants/grandpa"
+	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
