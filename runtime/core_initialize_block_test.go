@@ -83,8 +83,8 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	allConsumedWeight := types.ConsumedWeight{
 		Operational: types.Weight{RefTime: 0, ProofSize: 0},
 		Normal:      types.Weight{RefTime: 0, ProofSize: 0},
-		// initial weight 0 + upgrade weight 200 + on initialize aura weight + base ext weight + extra weight
-		Mandatory: types.Weight{RefTime: 135536200, ProofSize: 0},
+		// initial weight 0 + on initialize aura weight + base ext weight + extra weight
+		Mandatory: types.Weight{RefTime: 135536000, ProofSize: 0},
 	}
 	assert.Equal(t, allConsumedWeight.Bytes(), (*storage).Get(append(keySystemHash, keyBlockWeight...)))
 }

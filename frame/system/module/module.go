@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	storage_root "github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/trie"
@@ -22,6 +23,7 @@ const (
 
 type SystemModule struct {
 	primitives.DefaultProvideInherent
+	hooks.DefaultDispatchModule[sc.U32]
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage

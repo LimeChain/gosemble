@@ -8,7 +8,6 @@ import (
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system/module"
-	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/crypto"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -19,14 +18,14 @@ import (
 type Module struct {
 	system           module.SystemModule
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
-	onInitialize     hooks.OnInitialize[sc.U32]
+	onRuntimeUpgrade hooks.OnRuntimeUpgrade
 }
 
-func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onInitialize hooks.OnInitialize[sc.U32]) Module {
+func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
 	return Module{
 		system:           systemModule,
 		runtimeExtrinsic: runtimeExtrinsic,
-		onInitialize:     onInitialize,
+		onRuntimeUpgrade: onRuntimeUpgrade,
 	}
 }
 
@@ -38,13 +37,12 @@ func (m Module) InitializeBlock(header primitives.Header) {
 
 	weight := primitives.WeightZero()
 	if m.runtimeUpgrade() {
-		weight = weight.SaturatingAdd(executeOnRuntimeUpgrade())
+		weight = weight.SaturatingAdd(m.executeOnRuntimeUpgrade())
 	}
 
 	m.system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	// TODO: accumulate the weight from all pallets that have on_initialize
-	weight = weight.SaturatingAdd(m.onInitialize.OnInitialize(header.Number))
+	weight = weight.SaturatingAdd(m.runtimeExtrinsic.OnInitialize(header.Number))
 	weight = weight.SaturatingAdd(m.system.Constants.BlockWeights.BaseBlock)
 	// use in case of dynamic weight calculation
 	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
@@ -170,10 +168,7 @@ func (m Module) OffchainWorker(header primitives.Header) {
 
 	m.system.Storage.BlockHash.Put(header.Number, blockHash)
 
-	// TODO:
-	/*
-		<AllPalletsWithSystem as OffchainWorker<System::BlockNumber>>::offchain_worker(*header.number(),)
-	*/
+	m.runtimeExtrinsic.OffchainWorker(header.Number)
 }
 
 func (m Module) idleAndFinalizeHook(blockNumber primitives.BlockNumber) {
@@ -183,14 +178,11 @@ func (m Module) idleAndFinalizeHook(blockNumber primitives.BlockNumber) {
 	remainingWeight := maxWeight.SaturatingSub(weight.Total())
 
 	if remainingWeight.AllGt(primitives.WeightZero()) {
-		// TODO: call on_idle hook for each pallet
-		usedWeight := onIdle(blockNumber, remainingWeight)
+		usedWeight := m.runtimeExtrinsic.OnIdle(blockNumber, remainingWeight)
 		m.system.RegisterExtraWeightUnchecked(usedWeight, primitives.NewDispatchClassMandatory())
 	}
 
-	// Each pallet (babe, grandpa) has its own on_finalize that has to be implemented once it is supported
-	// TODO:
-	timestamp.OnFinalize()
+	m.runtimeExtrinsic.OnFinalize(blockNumber)
 }
 
 func (m Module) executeExtrinsicsWithBookKeeping(block types.Block) {
@@ -269,11 +261,11 @@ func (m Module) finalChecks(header *primitives.Header) {
 	}
 }
 
-// Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.
-func executeOnRuntimeUpgrade() primitives.Weight {
-	// TODO: ex: balances
-	// call on_runtime_upgrade hook for all modules that implement it
-	return onRuntimeUpgrade()
+// executeOnRuntimeUpgrade - Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.
+func (m Module) executeOnRuntimeUpgrade() primitives.Weight {
+	weight := m.onRuntimeUpgrade.OnRuntimeUpgrade()
+
+	return weight.SaturatingAdd(m.runtimeExtrinsic.OnRuntimeUpgrade())
 }
 
 func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {

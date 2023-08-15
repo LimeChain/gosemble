@@ -14,10 +14,10 @@ import (
 )
 
 type Module struct {
-	modules map[sc.U8]primitives.Module
+	modules map[sc.U8]types.Module
 }
 
-func New(modules map[sc.U8]primitives.Module) Module {
+func New(modules map[sc.U8]types.Module) Module {
 	return Module{modules: modules}
 }
 

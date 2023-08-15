@@ -30,6 +30,7 @@ import (
 	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	tpm "github.com/LimeChain/gosemble/frame/transaction_payment/module"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -72,7 +73,7 @@ const (
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()
 
-func initializeModules() map[sc.U8]primitives.Module {
+func initializeModules() map[sc.U8]types.Module {
 	systemModule := sm.NewSystemModule(SystemIndex,
 		sm.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, constants.RuntimeVersion))
 
@@ -95,7 +96,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 	tpmModule := tpm.NewTransactionPaymentModule(TxPaymentsIndex, tpm.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights))
 	testableModule := tm.NewTestingModule(TestableIndex)
 
-	return map[sc.U8]primitives.Module{
+	return map[sc.U8]types.Module{
 		SystemIndex:     systemModule,
 		TimestampIndex:  timestampModule,
 		AuraIndex:       auraModule,
@@ -106,7 +107,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 	}
 }
 
-func getInstance[T primitives.Module]() T {
+func getInstance[T types.Module]() T {
 	for _, module := range modules {
 		if reflect.TypeOf(module) == reflect.TypeOf(*new(T)) {
 			return modules[module.GetIndex()].(T)
@@ -120,7 +121,7 @@ func newExecutiveModule() executive.Module {
 	return executive.New(
 		getInstance[sm.SystemModule](),
 		extrinsic.New(modules),
-		getInstance[aura.Module](),
+		hooks.DefaultOnRuntimeUpgrade{},
 	)
 }
 
