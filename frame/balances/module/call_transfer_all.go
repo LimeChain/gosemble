@@ -15,13 +15,13 @@ type transferAllCall struct {
 	transfer
 }
 
-func newTransferAllCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+func newTransferAllCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
 	call := transferAllCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(moduleId, storedMap, constants),
+		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
 
 	return call

@@ -114,11 +114,12 @@ func newModuleDecoder() types.ModuleDecoder {
 
 func newSignedExtra() primitives.SignedExtra {
 	systeModule := modules[SystemIndex].(sm.SystemModule)
+	balancesModule := modules[BalancesIndex].(bm.BalancesModule)
 	txPaymentModule := modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)
 
 	checkMortality := extensions.NewCheckMortality(systeModule)
 	checkNonce := extensions.NewCheckNonce(systeModule)
-	chargeTxPayment := transaction_payment.NewChargeTransactionPayment(systeModule, txPaymentModule)
+	chargeTxPayment := transaction_payment.NewChargeTransactionPayment(systeModule, txPaymentModule, balancesModule)
 
 	extras := []primitives.SignedExtension{
 		extensions.NewCheckNonZeroAddress(),

@@ -14,13 +14,13 @@ type forceTransferCall struct {
 	transfer
 }
 
-func newForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts) primitives.Call {
+func newForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
 	call := forceTransferCall{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		transfer: newTransfer(moduleId, storedMap, constants),
+		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
 
 	return call
