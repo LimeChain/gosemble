@@ -3,36 +3,52 @@ package core
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
+const (
+	ApiModuleName = "Core"
+	apiVersion    = 4
+)
+
 type Core interface {
-	Version(dataPtr int32, dataLen int32) int64
+	Version() int64
 	ExecuteBlock(dataPtr int32, dataLen int32)
 	InitializeBlock(dataPtr int32, dataLen int32)
 }
 
 type Module struct {
-	executive executive.Module
-	decoder   types.ModuleDecoder
+	executive      executive.Module
+	decoder        types.ModuleDecoder
+	runtimeVersion *primitives.RuntimeVersion
 }
 
-func New(module executive.Module, decoder types.ModuleDecoder) Module {
+func New(module executive.Module, decoder types.ModuleDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
 	return Module{
 		module,
 		decoder,
+		runtimeVersion,
 	}
+}
+
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Version returns a pointer-size SCALE-encoded Runtime version.
 // [Specification](https://spec.polkadot.network/#defn-rt-core-version)
 func (m Module) Version() int64 {
 	buffer := &bytes.Buffer{}
-	constants.RuntimeVersion.Encode(buffer)
+	m.runtimeVersion.Encode(buffer)
 
 	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }

@@ -9,8 +9,14 @@ import (
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	ApiModuleName = "Metadata"
+	apiVersion    = 1
 )
 
 type Module struct {
@@ -19,6 +25,15 @@ type Module struct {
 
 func New(modules map[sc.U8]primitives.Module) Module {
 	return Module{modules: modules}
+}
+
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Metadata returns the metadata of the runtime.
