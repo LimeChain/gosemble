@@ -46,6 +46,10 @@ func NewSystemModule(index sc.U8, config *Config) SystemModule {
 	}
 }
 
+func (sm SystemModule) GetIndex() sc.U8 {
+	return sm.Index
+}
+
 func (sm SystemModule) Functions() map[sc.U8]primitives.Call {
 	return sm.functions
 }

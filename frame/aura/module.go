@@ -37,6 +37,10 @@ func NewModule(index sc.U8, config *Config) Module {
 	}
 }
 
+func (m Module) GetIndex() sc.U8 {
+	return m.Index
+}
+
 func (m Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }

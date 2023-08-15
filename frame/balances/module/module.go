@@ -51,6 +51,10 @@ func NewBalancesModule(index sc.U8, config *Config) BalancesModule {
 	return balancesModule
 }
 
+func (bm BalancesModule) GetIndex() sc.U8 {
+	return bm.Index
+}
+
 func (bm BalancesModule) Functions() map[sc.U8]primitives.Call {
 	return bm.functions
 }

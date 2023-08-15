@@ -106,34 +106,21 @@ func initializeModules() map[sc.U8]primitives.Module {
 	}
 }
 
-func GetInstance[T primitives.Module]() T {
-	switch reflect.TypeOf(*new(T)) {
-	case reflect.TypeOf(sm.SystemModule{}):
-		return modules[SystemIndex].(T)
-	case reflect.TypeOf(tsm.Module{}):
-		return modules[TimestampIndex].(T)
-	case reflect.TypeOf(aura.Module{}):
-		return modules[AuraIndex].(T)
-	case reflect.TypeOf(grandpa.Module{}):
-		return modules[GrandpaIndex].(T)
-	case reflect.TypeOf(bm.BalancesModule{}):
-		return modules[BalancesIndex].(T)
-	case reflect.TypeOf(tpm.TransactionPaymentModule{}):
-		return modules[TxPaymentsIndex].(T)
-	case reflect.TypeOf(tm.TestableModule{}):
-		return modules[TestableIndex].(T)
-	default:
-		log.Critical("unknown type T for module instance")
+func getInstance[T primitives.Module]() T {
+	for _, module := range modules {
+		if reflect.TypeOf(module) == reflect.TypeOf(*new(T)) {
+			return modules[module.GetIndex()].(T)
+		}
 	}
-
+	log.Critical("unknown type T for module instance")
 	panic("unreachable")
 }
 
 func newExecutiveModule() executive.Module {
 	return executive.New(
-		GetInstance[sm.SystemModule](),
+		getInstance[sm.SystemModule](),
 		extrinsic.New(modules),
-		GetInstance[aura.Module](),
+		getInstance[aura.Module](),
 	)
 }
 
@@ -142,9 +129,9 @@ func newModuleDecoder() types.ModuleDecoder {
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systeModule := GetInstance[sm.SystemModule]()
-	balancesModule := GetInstance[bm.BalancesModule]()
-	txPaymentModule := GetInstance[tpm.TransactionPaymentModule]()
+	systeModule := getInstance[sm.SystemModule]()
+	balancesModule := getInstance[bm.BalancesModule]()
+	txPaymentModule := getInstance[tpm.TransactionPaymentModule]()
 
 	checkMortality := extensions.NewCheckMortality(systeModule)
 	checkNonce := extensions.NewCheckNonce(systeModule)
@@ -225,45 +212,45 @@ func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int
 
 //go:export AuraApi_slot_duration
 func AuraApiSlotDuration(_, _ int32) int64 {
-	return GetInstance[aura.Module]().SlotDuration()
+	return getInstance[aura.Module]().SlotDuration()
 }
 
 //go:export AuraApi_authorities
 func AuraApiAuthorities(_, _ int32) int64 {
-	return GetInstance[aura.Module]().Authorities()
+	return getInstance[aura.Module]().Authorities()
 }
 
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
-	return account_nonce.New(GetInstance[sm.SystemModule]()).
+	return account_nonce.New(getInstance[sm.SystemModule]()).
 		AccountNonce(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_info
 func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder(), GetInstance[tpm.TransactionPaymentModule]()).
+		New(newModuleDecoder(), getInstance[tpm.TransactionPaymentModule]()).
 		QueryInfo(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_fee_details
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder(), GetInstance[tpm.TransactionPaymentModule]()).
+		New(newModuleDecoder(), getInstance[tpm.TransactionPaymentModule]()).
 		QueryFeeDetails(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentCallApi_query_call_info
 func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder(), GetInstance[tpm.TransactionPaymentModule]()).
+		New(newModuleDecoder(), getInstance[tpm.TransactionPaymentModule]()).
 		QueryCallInfo(dataPtr, dataLan)
 }
 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder(), GetInstance[tpm.TransactionPaymentModule]()).
+		New(newModuleDecoder(), getInstance[tpm.TransactionPaymentModule]()).
 		QueryCallFeeDetails(dataPtr, dataLen)
 }
 
@@ -277,8 +264,8 @@ func Metadata(_, _ int32) int64 {
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	sessions := []primitives.Session{
-		GetInstance[aura.Module](),
-		GetInstance[grandpa.Module](),
+		getInstance[aura.Module](),
+		getInstance[grandpa.Module](),
 	}
 	return session_keys.New(sessions).GenerateSessionKeys(dataPtr, dataLen)
 }
@@ -286,15 +273,15 @@ func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	sessions := []primitives.Session{
-		GetInstance[aura.Module](),
-		GetInstance[grandpa.Module](),
+		getInstance[aura.Module](),
+		getInstance[grandpa.Module](),
 	}
 	return session_keys.New(sessions).DecodeSessionKeys(dataPtr, dataLen)
 }
 
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
-	return GetInstance[grandpa.Module]().Authorities()
+	return getInstance[grandpa.Module]().Authorities()
 }
 
 //go:export OffchainWorkerApi_offchain_worker

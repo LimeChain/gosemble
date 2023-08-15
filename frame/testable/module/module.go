@@ -26,6 +26,10 @@ func NewTestingModule(index sc.U8) TestableModule {
 	}
 }
 
+func (tm TestableModule) GetIndex() sc.U8 {
+	return tm.Index
+}
+
 func (tm TestableModule) Functions() map[sc.U8]primitives.Call {
 	return tm.functions
 }

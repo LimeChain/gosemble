@@ -25,6 +25,10 @@ func NewTransactionPaymentModule(index sc.U8, config *Config) TransactionPayment
 	}
 }
 
+func (tpm TransactionPaymentModule) GetIndex() sc.U8 {
+	return tpm.Index
+}
+
 func (tpm TransactionPaymentModule) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
