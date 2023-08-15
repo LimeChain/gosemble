@@ -52,6 +52,10 @@ func (m Module) Item() primitives.ApiItem {
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
+func (m Module) GetIndex() sc.U8 {
+	return m.Index
+}
+
 func (m Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }

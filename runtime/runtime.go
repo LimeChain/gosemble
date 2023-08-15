@@ -5,6 +5,7 @@ package main
 
 import (
 	"math/big"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -29,6 +30,7 @@ import (
 	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	tpm "github.com/LimeChain/gosemble/frame/transaction_payment/module"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -115,8 +117,22 @@ func initializeModules() map[sc.U8]primitives.Module {
 	}
 }
 
+func getInstance[T primitives.Module]() T {
+	for _, module := range modules {
+		if reflect.TypeOf(module) == reflect.TypeOf(*new(T)) {
+			return modules[module.GetIndex()].(T)
+		}
+	}
+	log.Critical("unknown type T for module instance")
+	panic("unreachable")
+}
+
 func newExecutiveModule() executive.Module {
-	return executive.New(modules[SystemIndex].(sm.SystemModule), extrinsic.New(modules), modules[AuraIndex].(aura.Module))
+	return executive.New(
+		getInstance[sm.SystemModule](),
+		extrinsic.New(modules),
+		getInstance[aura.Module](),
+	)
 }
 
 func newModuleDecoder() types.ModuleDecoder {
@@ -124,9 +140,9 @@ func newModuleDecoder() types.ModuleDecoder {
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systeModule := modules[SystemIndex].(sm.SystemModule)
-	balancesModule := modules[BalancesIndex].(bm.BalancesModule)
-	txPaymentModule := modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)
+	systeModule := getInstance[sm.SystemModule]()
+	balancesModule := getInstance[bm.BalancesModule]()
+	txPaymentModule := getInstance[tpm.TransactionPaymentModule]()
 
 	checkMortality := extensions.NewCheckMortality(systeModule)
 	checkNonce := extensions.NewCheckNonce(systeModule)
@@ -149,10 +165,12 @@ func runtimeApi() types.RuntimeApi {
 	executiveModule := newExecutiveModule()
 	decoder := newModuleDecoder()
 	runtimeExtrinsic := extrinsic.New(modules)
+	auraModule := getInstance[aura.Module]()
+	grandpaModule := getInstance[grandpa.Module]()
 
 	sessions := []primitives.Session{
-		modules[AuraIndex].(aura.Module),
-		modules[GrandpaIndex].(grandpa.Module),
+		auraModule,
+		grandpaModule,
 	}
 
 	apis := []primitives.ApiModule{
@@ -160,11 +178,11 @@ func runtimeApi() types.RuntimeApi {
 		blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
 		taggedtransactionqueue.New(executiveModule, decoder),
 		metadata.New(modules),
-		modules[AuraIndex].(aura.Module),
-		modules[GrandpaIndex].(grandpa.Module),
-		account_nonce.New(modules[SystemIndex].(sm.SystemModule)),
-		transaction_payment.New(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
-		transaction_payment.NewCallApi(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
+		auraModule,
+		grandpaModule,
+		account_nonce.New(getInstance[sm.SystemModule]()),
+		transaction_payment.New(decoder, getInstance[tpm.TransactionPaymentModule]()),
+		transaction_payment.NewCallApi(decoder, getInstance[tpm.TransactionPaymentModule]()),
 		session_keys.New(sessions),
 		offchain_worker.New(executiveModule),
 	}

@@ -52,6 +52,10 @@ func (gm Module) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
+func (gm Module) GetIndex() sc.U8 {
+	return gm.Index
+}
+
 func (gm Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
