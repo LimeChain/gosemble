@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	apiModuleName = "AccountNonceApi"
+	ApiModuleName = "AccountNonceApi"
 	apiVersion    = 1
 )
 
@@ -22,8 +22,12 @@ func New(systemModule module.SystemModule) Module {
 	return Module{systemModule}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() types.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
 

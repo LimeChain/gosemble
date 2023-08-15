@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	apiModuleName = "BlockBuilder"
+	ApiModuleName = "BlockBuilder"
 	apiVersion    = 6
 )
 
@@ -38,8 +38,12 @@ func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module
 	}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

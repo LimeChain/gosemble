@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	apiModuleName = "Core"
+	ApiModuleName = "Core"
 	apiVersion    = 4
 )
 
@@ -35,8 +35,12 @@ func New(module executive.Module, decoder types.ModuleDecoder, runtimeVersion *p
 	}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

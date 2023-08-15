@@ -145,37 +145,7 @@ func newSignedExtra() primitives.SignedExtra {
 	return primitives.NewSignedExtra(extras)
 }
 
-type api struct {
-	core           core.Module
-	blockBuilder   blockbuilder.Module
-	taggedTxQueue  taggedtransactionqueue.Module
-	metadata       metadata.Module
-	aura           aura.Module
-	grandpa        grandpa.Module
-	accountNonce   account_nonce.Module
-	txPayment      transaction_payment.Module
-	txPaymentCall  transaction_payment.TransactionPaymentCallApi
-	sessionKeys    session_keys.Module
-	offchainWorker offchain_worker.Module
-}
-
-func (api api) Items() sc.Sequence[primitives.ApiItem] {
-	return sc.Sequence[primitives.ApiItem]{
-		api.core.Item(),
-		api.blockBuilder.Item(),
-		api.taggedTxQueue.Item(),
-		api.metadata.Item(),
-		api.aura.Item(),
-		api.grandpa.Item(),
-		api.accountNonce.Item(),
-		api.txPayment.Item(),
-		api.txPaymentCall.Item(),
-		api.sessionKeys.Item(),
-		api.offchainWorker.Item(),
-	}
-}
-
-func apiModules() api {
+func runtimeApi() types.RuntimeApi {
 	executiveModule := newExecutiveModule()
 	decoder := newModuleDecoder()
 	runtimeExtrinsic := extrinsic.New(modules)
@@ -185,127 +155,168 @@ func apiModules() api {
 		modules[GrandpaIndex].(grandpa.Module),
 	}
 
-	apis := api{
-		core:           core.New(executiveModule, decoder, RuntimeVersion),
-		blockBuilder:   blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
-		taggedTxQueue:  taggedtransactionqueue.New(executiveModule, decoder),
-		metadata:       metadata.New(modules),
-		aura:           modules[AuraIndex].(aura.Module),
-		grandpa:        modules[GrandpaIndex].(grandpa.Module),
-		accountNonce:   account_nonce.New(modules[SystemIndex].(sm.SystemModule)),
-		txPayment:      transaction_payment.New(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
-		txPaymentCall:  transaction_payment.NewCallApi(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
-		sessionKeys:    session_keys.New(sessions),
-		offchainWorker: offchain_worker.New(executiveModule),
+	apis := []primitives.ApiModule{
+		core.New(executiveModule, decoder, RuntimeVersion),
+		blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
+		taggedtransactionqueue.New(executiveModule, decoder),
+		metadata.New(modules),
+		modules[AuraIndex].(aura.Module),
+		modules[GrandpaIndex].(grandpa.Module),
+		account_nonce.New(modules[SystemIndex].(sm.SystemModule)),
+		transaction_payment.New(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
+		transaction_payment.NewCallApi(decoder, modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)),
+		session_keys.New(sessions),
+		offchain_worker.New(executiveModule),
 	}
 
-	RuntimeVersion.SetApis(apis.Items())
+	runtimeApi := types.NewRuntimeApi(apis)
 
-	return apis
+	RuntimeVersion.SetApis(runtimeApi.Items())
+
+	return runtimeApi
 }
 
 //go:export Core_version
 func CoreVersion(_ int32, _ int32) int64 {
-	return apiModules().core.Version()
+	return runtimeApi().
+		Module(core.ApiModuleName).(core.Core).
+		Version()
 }
 
 //go:export Core_initialize_block
 func CoreInitializeBlock(dataPtr int32, dataLen int32) int64 {
-	apiModules().core.InitializeBlock(dataPtr, dataLen)
+	runtimeApi().
+		Module(core.ApiModuleName).(core.Core).
+		InitializeBlock(dataPtr, dataLen)
 
 	return 0
 }
 
 //go:export Core_execute_block
 func CoreExecuteBlock(dataPtr int32, dataLen int32) int64 {
-	apiModules().core.ExecuteBlock(dataPtr, dataLen)
+	runtimeApi().Module(core.ApiModuleName).(core.Core).
+		ExecuteBlock(dataPtr, dataLen)
 
 	return 0
 }
 
 //go:export BlockBuilder_apply_extrinsic
 func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
-	return apiModules().blockBuilder.ApplyExtrinsic(dataPtr, dataLen)
+	return runtimeApi().
+		Module(blockbuilder.ApiModuleName).(blockbuilder.BlockBuilder).
+		ApplyExtrinsic(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_finalize_block
 func BlockBuilderFinalizeBlock(_, _ int32) int64 {
-	return apiModules().blockBuilder.FinalizeBlock()
+	return runtimeApi().
+		Module(blockbuilder.ApiModuleName).(blockbuilder.BlockBuilder).
+		FinalizeBlock()
 }
 
 //go:export BlockBuilder_inherent_extrinsics
 func BlockBuilderInherentExtrinsics(dataPtr int32, dataLen int32) int64 {
-	return apiModules().blockBuilder.InherentExtrinsics(dataPtr, dataLen)
+	return runtimeApi().
+		Module(blockbuilder.ApiModuleName).(blockbuilder.BlockBuilder).
+		InherentExtrinsics(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_check_inherents
 func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64 {
-	return apiModules().blockBuilder.CheckInherents(dataPtr, dataLen)
+	return runtimeApi().
+		Module(blockbuilder.ApiModuleName).(blockbuilder.BlockBuilder).
+		CheckInherents(dataPtr, dataLen)
 }
 
 //go:export TaggedTransactionQueue_validate_transaction
 func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int64 {
-	return apiModules().taggedTxQueue.ValidateTransaction(dataPtr, dataLen)
+	return runtimeApi().
+		Module(taggedtransactionqueue.ApiModuleName).(taggedtransactionqueue.TaggedTransactionQueue).
+		ValidateTransaction(dataPtr, dataLen)
 }
 
 //go:export AuraApi_slot_duration
 func AuraApiSlotDuration(_, _ int32) int64 {
-	return apiModules().aura.SlotDuration()
+	return runtimeApi().
+		Module(aura.ApiModuleName).(aura.Module).
+		SlotDuration()
 }
 
 //go:export AuraApi_authorities
 func AuraApiAuthorities(_, _ int32) int64 {
-	return apiModules().aura.Authorities()
+	return runtimeApi().
+		Module(aura.ApiModuleName).(aura.Module).
+		Authorities()
 }
 
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
-	return apiModules().accountNonce.AccountNonce(dataPtr, dataLen)
+	return runtimeApi().
+		Module(account_nonce.ApiModuleName).(account_nonce.Module).
+		AccountNonce(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_info
 func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
-	return apiModules().txPayment.QueryInfo(dataPtr, dataLen)
+	return runtimeApi().
+		Module(transaction_payment.ApiModuleName).(transaction_payment.Module).
+		QueryInfo(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_fee_details
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
-	return apiModules().txPayment.QueryFeeDetails(dataPtr, dataLen)
+	return runtimeApi().
+		Module(transaction_payment.ApiModuleName).(transaction_payment.Module).
+		QueryFeeDetails(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentCallApi_query_call_info
 func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
-	return apiModules().txPaymentCall.QueryCallInfo(dataPtr, dataLan)
+	return runtimeApi().
+		Module(transaction_payment.CallApiModuleName).(transaction_payment.TransactionPaymentCallApi).
+		QueryCallInfo(dataPtr, dataLan)
 }
 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
-	return apiModules().txPaymentCall.QueryCallFeeDetails(dataPtr, dataLen)
+	return runtimeApi().
+		Module(transaction_payment.CallApiModuleName).(transaction_payment.TransactionPaymentCallApi).
+		QueryCallFeeDetails(dataPtr, dataLen)
 }
 
 //go:export Metadata_metadata
 func Metadata(_, _ int32) int64 {
-	return apiModules().metadata.Metadata()
+	return runtimeApi().
+		Module(metadata.ApiModuleName).(metadata.Module).
+		Metadata()
 }
 
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
-	return apiModules().sessionKeys.GenerateSessionKeys(dataPtr, dataLen)
+	return runtimeApi().
+		Module(session_keys.ApiModuleName).(session_keys.Module).
+		GenerateSessionKeys(dataPtr, dataLen)
 }
 
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
-	return apiModules().sessionKeys.DecodeSessionKeys(dataPtr, dataLen)
+	return runtimeApi().
+		Module(session_keys.ApiModuleName).(session_keys.Module).
+		DecodeSessionKeys(dataPtr, dataLen)
 }
 
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
-	return apiModules().grandpa.Authorities()
+	return runtimeApi().
+		Module(grandpa.ApiModuleName).(grandpa.Module).
+		Authorities()
 }
 
 //go:export OffchainWorkerApi_offchain_worker
 func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
-	apiModules().offchainWorker.OffchainWorker(dataPtr, dataLen)
+	runtimeApi().
+		Module(offchain_worker.ApiModuleName).(offchain_worker.Module).
+		OffchainWorker(dataPtr, dataLen)
 
 	return 0
 }

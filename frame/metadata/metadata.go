@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	apiModuleName = "Metadata"
+	ApiModuleName = "Metadata"
 	apiVersion    = 1
 )
 
@@ -27,8 +27,12 @@ func New(modules map[sc.U8]primitives.Module) Module {
 	return Module{modules: modules}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

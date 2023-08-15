@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	apiModuleName = "TaggedTransactionQueue"
+	ApiModuleName = "TaggedTransactionQueue"
 	apiVersion    = 3
 )
 
@@ -31,8 +31,12 @@ func New(executive executive.Module, decoder types.ModuleDecoder) Module {
 	}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

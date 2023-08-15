@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	callApiModuleName = "TransactionPaymentCallApi"
+	CallApiModuleName = "TransactionPaymentCallApi"
 	callApiVersion    = 3
 )
 
@@ -28,9 +28,13 @@ func NewCallApi(decoder types.ModuleDecoder, txPayments module.TransactionPaymen
 	}
 }
 
+func (m TransactionPaymentCallApi) Name() string {
+	return CallApiModuleName
+}
+
 func (m TransactionPaymentCallApi) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
-	return primitives.NewApiItem(hash, apiVersion)
+	hash := hashing.MustBlake2b8([]byte(CallApiModuleName))
+	return primitives.NewApiItem(hash, callApiVersion)
 }
 
 // QueryCallInfo queries the data of a dispatch call.

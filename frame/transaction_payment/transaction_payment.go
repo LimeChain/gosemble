@@ -15,7 +15,7 @@ var DefaultMultiplierValue = sc.NewU128FromUint64(1)
 var DefaultTip = sc.NewU128FromUint64(0)
 
 const (
-	apiModuleName = "TransactionPaymentApi"
+	ApiModuleName = "TransactionPaymentApi"
 	apiVersion    = 3
 )
 
@@ -31,8 +31,12 @@ func New(decoder types.ModuleDecoder, txPayments module.TransactionPaymentModule
 	}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

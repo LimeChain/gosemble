@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	apiModuleName = "AuraApi"
+	ApiModuleName = "AuraApi"
 	apiVersion    = 1
 )
 
@@ -43,8 +43,12 @@ func NewModule(index sc.U8, config *Config) Module {
 	}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

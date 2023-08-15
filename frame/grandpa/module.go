@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	apiModuleName = "GrandpaApi"
+	ApiModuleName = "GrandpaApi"
 	apiVersion    = 3
 )
 
@@ -35,8 +35,12 @@ func NewModule(index sc.U8) Module {
 	}
 }
 
+func (gm Module) Name() string {
+	return ApiModuleName
+}
+
 func (gm Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

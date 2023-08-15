@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	apiModuleName = "SessionKeys"
+	ApiModuleName = "SessionKeys"
 	apiVersion    = 1
 )
 
@@ -24,8 +24,12 @@ func New(sessions []types.Session) Module {
 	return Module{sessions: sessions}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() types.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
 

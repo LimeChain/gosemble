@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	apiModuleName = "OffchainWorkerApi"
+	ApiModuleName = "OffchainWorkerApi"
 	apiVersion    = 2
 )
 
@@ -22,8 +22,12 @@ func New(executive executive.Module) Module {
 	return Module{executive: executive}
 }
 
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
 func (m Module) Item() types.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
 
