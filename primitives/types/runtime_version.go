@@ -11,6 +11,13 @@ type ApiItem struct {
 	Version sc.U32
 }
 
+func NewApiItem(name []byte, version sc.U32) ApiItem {
+	return ApiItem{
+		Name:    sc.BytesToFixedSequenceU8(name),
+		Version: version,
+	}
+}
+
 func (ai ApiItem) Encode(buffer *bytes.Buffer) {
 	ai.Name.Encode(buffer)
 	ai.Version.Encode(buffer)
@@ -50,6 +57,10 @@ func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) {
 	rv.Apis.Encode(buffer)
 	rv.TransactionVersion.Encode(buffer)
 	rv.StateVersion.Encode(buffer)
+}
+
+func (rv *RuntimeVersion) SetApis(apis sc.Sequence[ApiItem]) {
+	rv.Apis = apis
 }
 
 func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {

@@ -5,9 +5,15 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	apiModuleName = "GrandpaApi"
+	apiVersion    = 3
 )
 
 var (
@@ -27,6 +33,11 @@ func NewModule(index sc.U8) Module {
 		Index:   index,
 		storage: newStorage(),
 	}
+}
+
+func (gm Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 func (gm Module) KeyType() primitives.PublicKeyType {

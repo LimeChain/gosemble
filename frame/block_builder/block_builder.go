@@ -6,15 +6,21 @@ import (
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
+const (
+	apiModuleName = "BlockBuilder"
+	apiVersion    = 6
+)
+
 type BlockBuilder interface {
 	ApplyExtrinsic(dataPtr int32, dataLen int32) int64
-	FinalizeBlock(dataPtr int32, dataLen int32) int64
-	InherentExtrinisics(dataPtr int32, dataLen int32) int64
+	FinalizeBlock() int64
+	InherentExtrinsics(dataPtr int32, dataLen int32) int64
 	CheckInherents(dataPtr int32, dataLen int32) int64
 }
 
@@ -30,6 +36,11 @@ func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module
 		executive,
 		decoder,
 	}
+}
+
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // ApplyExtrinsic applies an extrinsic to a particular block.

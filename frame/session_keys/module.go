@@ -5,9 +5,15 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/crypto"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	apiModuleName = "SessionKeys"
+	apiVersion    = 1
 )
 
 type Module struct {
@@ -16,6 +22,11 @@ type Module struct {
 
 func New(sessions []types.Session) Module {
 	return Module{sessions: sessions}
+}
+
+func (m Module) Item() types.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	return types.NewApiItem(hash, apiVersion)
 }
 
 // GenerateSessionKeys generates a set of session keys with an optional seed.

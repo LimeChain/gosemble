@@ -4,8 +4,14 @@ import (
 	"bytes"
 
 	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	apiModuleName = "AccountNonceApi"
+	apiVersion    = 1
 )
 
 type Module struct {
@@ -14,6 +20,11 @@ type Module struct {
 
 func New(systemModule module.SystemModule) Module {
 	return Module{systemModule}
+}
+
+func (m Module) Item() types.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	return types.NewApiItem(hash, apiVersion)
 }
 
 // AccountNonce returns the account nonce of given AccountId.

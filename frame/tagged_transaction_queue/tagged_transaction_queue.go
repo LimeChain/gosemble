@@ -5,8 +5,14 @@ import (
 
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	apiModuleName = "TaggedTransactionQueue"
+	apiVersion    = 3
 )
 
 type TaggedTransactionQueue interface {
@@ -23,6 +29,11 @@ func New(executive executive.Module, decoder types.ModuleDecoder) Module {
 		executive: executive,
 		decoder:   decoder,
 	}
+}
+
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(apiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // ValidateTransaction validates an extrinsic at a given block.
