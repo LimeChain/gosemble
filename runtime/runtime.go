@@ -21,6 +21,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/metadata"
 	"github.com/LimeChain/gosemble/frame/offchain_worker"
 	"github.com/LimeChain/gosemble/frame/session_keys"
+	"github.com/LimeChain/gosemble/frame/system"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
 	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	tm "github.com/LimeChain/gosemble/frame/testable/module"
@@ -44,6 +45,11 @@ var (
 	BalancesExistentialDeposit = big.NewInt(0).SetUint64(balancesExistentialDeposit)
 )
 
+var (
+	BlockWeights = system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
+	BlockLength  = system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
+)
+
 const (
 	SystemIndex sc.U8 = iota
 	TimestampIndex
@@ -59,7 +65,7 @@ var modules = initializeModules()
 
 func initializeModules() map[sc.U8]primitives.Module {
 	systemModule := sm.NewSystemModule(SystemIndex,
-		sm.NewConfig(constants.BlockHashCount, constants.RuntimeVersion))
+		sm.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, constants.RuntimeVersion))
 
 	auraModule := aura.NewModule(AuraIndex,
 		aura.NewConfig(

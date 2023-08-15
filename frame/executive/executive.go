@@ -8,7 +8,6 @@ import (
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/inherent"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/system/module"
 	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/hooks"
@@ -47,7 +46,7 @@ func (m Module) InitializeBlock(header primitives.Header) {
 
 	// TODO: accumulate the weight from all pallets that have on_initialize
 	weight = weight.SaturatingAdd(m.onInitialize.OnInitialize(header.Number))
-	weight = weight.SaturatingAdd(system.DefaultBlockWeights().BaseBlock)
+	weight = weight.SaturatingAdd(m.system.Constants.BlockWeights.BaseBlock)
 	// use in case of dynamic weight calculation
 	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
 
@@ -181,7 +180,7 @@ func (m Module) OffchainWorker(header primitives.Header) {
 func (m Module) idleAndFinalizeHook(blockNumber primitives.BlockNumber) {
 	weight := m.system.Storage.BlockWeight.Get()
 
-	maxWeight := system.DefaultBlockWeights().MaxBlock
+	maxWeight := m.system.Constants.BlockWeights.MaxBlock
 	remainingWeight := maxWeight.SaturatingSub(weight.Total())
 
 	if remainingWeight.AllGt(primitives.WeightZero()) {
