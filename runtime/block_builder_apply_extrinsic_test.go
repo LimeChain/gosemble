@@ -119,6 +119,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+	assert.NoError(t, err)
 
 	currentExtrinsicIndex := sc.U32(1)
 	extrinsicIndexValue := (*storage).Get(constants.KeyExtrinsicIndex)
@@ -137,8 +138,6 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedExtrinsicDataStorage, storageUxt)
-
-	assert.NoError(t, err)
 
 	assert.Equal(t,
 		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
@@ -161,8 +160,8 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
-
 	assert.NoError(t, err)
+
 	assert.Equal(
 		t,
 		primitives.NewApplyExtrinsicResult(
@@ -216,12 +215,11 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	assert.NoError(t, err)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+	assert.NoError(t, err)
 
 	extrinsicIndex := sc.U32(0)
 	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
-
-	assert.NoError(t, err)
 
 	assert.Equal(t,
 		primitives.NewApplyExtrinsicResult(
@@ -274,12 +272,11 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	assert.NoError(t, err)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
+	assert.NoError(t, err)
 
 	extrinsicIndex := sc.U32(0)
 	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
-
-	assert.NoError(t, err)
 
 	assert.Equal(t,
 		primitives.NewApplyExtrinsicResult(

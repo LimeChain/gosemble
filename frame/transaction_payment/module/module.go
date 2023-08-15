@@ -115,7 +115,7 @@ func (tpm TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info primitive
 	return tpm.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
-func (tpm TransactionPaymentModule) computeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+func (tpm TransactionPaymentModule) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
 	return tpm.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
 }
 

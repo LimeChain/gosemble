@@ -11,10 +11,11 @@ import (
 
 type ModuleDecoder struct {
 	modules map[sc.U8]primitives.Module
+	extra   primitives.SignedExtra
 }
 
-func NewModuleDecoder(modules map[sc.U8]primitives.Module) ModuleDecoder {
-	return ModuleDecoder{modules: modules}
+func NewModuleDecoder(modules map[sc.U8]primitives.Module, extra primitives.SignedExtra) ModuleDecoder {
+	return ModuleDecoder{modules: modules, extra: extra}
 }
 
 func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
@@ -33,7 +34,7 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	if isSigned {
-		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(buffer))
+		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(md.extra, buffer))
 	}
 
 	// Decodes the dispatch call, including its arguments.
@@ -45,11 +46,7 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 		log.Critical("invalid length prefix")
 	}
 
-	return UncheckedExtrinsic{
-		Version:   sc.U8(version),
-		Signature: extSignature,
-		Function:  function,
-	}
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, md.extra)
 }
 
 func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {

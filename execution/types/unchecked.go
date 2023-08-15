@@ -26,20 +26,16 @@ type UncheckedExtrinsic struct {
 	// if this is a signed extrinsic.
 	Signature sc.Option[primitives.ExtrinsicSignature]
 	Function  primitives.Call
+	Extra     primitives.SignedExtra
 }
 
 // NewSignedUncheckedExtrinsic returns a new instance of a signed extrinsic.
-func NewSignedUncheckedExtrinsic(function primitives.Call, address primitives.MultiAddress, signature primitives.MultiSignature, extra primitives.SignedExtra) UncheckedExtrinsic {
+func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) UncheckedExtrinsic {
 	return UncheckedExtrinsic{
-		Version: sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned),
-		Signature: sc.NewOption[primitives.ExtrinsicSignature](
-			primitives.ExtrinsicSignature{
-				Signer:    address,
-				Signature: signature,
-				Extra:     extra,
-			},
-		),
-		Function: function,
+		Version:   version,
+		Signature: signature,
+		Function:  function,
+		Extra:     extra,
 	}
 }
 

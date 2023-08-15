@@ -15,19 +15,6 @@ func StorageGetBlockNumber() types.BlockNumber {
 	return storage.GetDecode(append(systemHash, numberHash...), sc.DecodeU32)
 }
 
-// StorageGetAllExtrinsicsLen returns the total length (in bytes) for all extrinsics put together, for the current block.
-func StorageGetAllExtrinsicsLen() sc.U32 {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
-	return storage.GetDecode(append(systemHash, allExtrinsicsLenHash...), sc.DecodeU32)
-}
-
-func StorageSetAllExtrinsicsLen(length sc.U32) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	allExtrinsicsLenHash := hashing.Twox128(constants.KeyAllExtrinsicsLen)
-	storage.Set(append(systemHash, allExtrinsicsLenHash...), length.Bytes())
-}
-
 func StorageGetAccount(who types.PublicKey) types.AccountInfo {
 	systemHash := hashing.Twox128(constants.KeySystem)
 	accountHash := hashing.Twox128(constants.KeyAccount)
@@ -52,38 +39,6 @@ func StorageSetAccount(who types.PublicKey, account types.AccountInfo) {
 	key = append(key, whoBytes...)
 
 	storage.Set(key, account.Bytes())
-}
-
-// Map of block numbers to block hashes.
-func StorageGetBlockHash(blockNumber sc.U32) types.Blake2bHash {
-	// Module prefix
-	systemHash := hashing.Twox128(constants.KeySystem)
-	// Storage prefix
-	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
-	// Block number hash
-	blockNumHash := hashing.Twox64(blockNumber.Bytes())
-
-	key := append(systemHash, blockHashHash...)
-	key = append(key, blockNumHash...)
-	key = append(key, blockNumber.Bytes()...)
-
-	return storage.GetDecode(key, types.DecodeBlake2bHash)
-}
-
-// Map of block numbers to block hashes.
-func StorageExistsBlockHash(blockNumber sc.U32) sc.Bool {
-	// Module prefix
-	systemHash := hashing.Twox128(constants.KeySystem)
-	// Storage prefix
-	blockHashHash := hashing.Twox128(constants.KeyBlockHash)
-	// Block number hash
-	blockNumHash := hashing.Twox64(blockNumber.Bytes())
-
-	key := append(systemHash, blockHashHash...)
-	key = append(key, blockNumHash...)
-	key = append(key, blockNumber.Bytes()...)
-
-	return storage.Exists(key) == 1
 }
 
 func StorageExecutionPhase() types.ExtrinsicPhase {
@@ -121,23 +76,4 @@ func storageAppendTopic(topic types.H256, value sc.VaryingData) {
 
 	key := append(eventTopicsPrefix, topic.Bytes()...)
 	storage.Append(key, value.Bytes())
-}
-
-// block weight
-func StorageGetBlockWeight() types.ConsumedWeight {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
-	return storage.GetDecode(append(systemHash, blockWeightHash...), types.DecodeConsumedWeight)
-}
-
-func StorageSetBlockWeight(weight types.ConsumedWeight) {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	blockWeightHash := hashing.Twox128(constants.KeyBlockWeight)
-	storage.Set(append(systemHash, blockWeightHash...), weight.Bytes())
-}
-
-func StorageGetDigest() types.Digest {
-	systemHash := hashing.Twox128(constants.KeySystem)
-	digestHash := hashing.Twox128(constants.KeyDigest)
-	return storage.GetDecode(append(systemHash, digestHash...), types.DecodeDigest)
 }

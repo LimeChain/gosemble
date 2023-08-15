@@ -1,6 +1,7 @@
-package system
+package extensions
 
 import (
+	"bytes"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -9,29 +10,50 @@ import (
 
 var ZeroAddress = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
-type CheckNonZeroAddress primitives.Address32
+type CheckNonZeroAddress struct{}
 
-func (a CheckNonZeroAddress) AdditionalSigned() (ok sc.Empty, err primitives.TransactionValidityError) {
-	ok = sc.Empty{}
-	return ok, err
+func NewCheckNonZeroAddress() CheckNonZeroAddress {
+	return CheckNonZeroAddress{}
 }
 
-func (who CheckNonZeroAddress) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError) {
+func (c CheckNonZeroAddress) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+	return primitives.AdditionalSigned{}, nil
+}
+
+func (c CheckNonZeroAddress) Encode(*bytes.Buffer) {}
+
+func (c CheckNonZeroAddress) Decode(*bytes.Buffer) {}
+
+func (c CheckNonZeroAddress) Bytes() []byte {
+	return sc.EncodedBytes(c)
+}
+
+func (c CheckNonZeroAddress) Validate(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
-	if !reflect.DeepEqual(who, ZeroAddress) {
-		ok = primitives.DefaultValidTransaction()
-		return ok, err
+	if reflect.DeepEqual(who, ZeroAddress) {
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
 
-	err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
-
-	return ok, err
+	return primitives.DefaultValidTransaction(), nil
 }
 
-func (a CheckNonZeroAddress) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.Pre, err primitives.TransactionValidityError) {
-	_, err = a.Validate(who, call, info, length)
-	return ok, err
+func (c CheckNonZeroAddress) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+	return primitives.DefaultValidTransaction(), nil
+}
+
+func (c CheckNonZeroAddress) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+	_, err := c.Validate(who, call, info, length)
+	return primitives.Pre{}, err
+}
+
+func (c CheckNonZeroAddress) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+	_, err := c.ValidateUnsigned(call, info, length)
+	return err
+}
+
+func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+	return nil
 }

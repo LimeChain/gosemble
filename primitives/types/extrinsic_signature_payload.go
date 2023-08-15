@@ -21,27 +21,12 @@ type SignedPayload struct {
 	AdditionalSigned
 }
 
-type AdditionalSigned struct {
-	SpecVersion sc.U32
-	// FormatVersion sc.U32
-
-	// Hh(G): a 32-byte array containing the genesis hash.
-	GenesisHash H256 // size 32
-
-	// Hh(B): a 32-byte array containing the hash of the block which starts the mortality period, as described in
-	BlockHash H256 // size 32
-
-	TransactionVersion sc.U32
-}
+type AdditionalSigned = sc.VaryingData
 
 func (sp SignedPayload) Encode(buffer *bytes.Buffer) {
 	sp.Call.Encode(buffer)
 	sp.Extra.Encode(buffer)
-	sp.SpecVersion.Encode(buffer)
-	sp.TransactionVersion.Encode(buffer)
-	// sp.FormatVersion.Encode(buffer)
-	sp.GenesisHash.Encode(buffer)
-	sp.BlockHash.Encode(buffer)
+	sp.AdditionalSigned.Encode(buffer)
 }
 
 func (sp SignedPayload) Bytes() []byte {

@@ -8,38 +8,29 @@ import (
 
 type Unchecked types.UncheckedExtrinsic
 
-func (uxt Unchecked) Check(lookup primitives.AccountIdLookup) (ok types.CheckedExtrinsic, err primitives.TransactionValidityError) {
-	switch uxt.Signature.HasValue {
-	case true:
+func (uxt Unchecked) Check(lookup primitives.AccountIdLookup) (types.CheckedExtrinsic, primitives.TransactionValidityError) {
+	if uxt.Signature.HasValue {
 		signer, signature, extra := uxt.Signature.Value.Signer, uxt.Signature.Value.Signature, uxt.Signature.Value.Extra
 
 		signedAddress, err := lookup.Lookup(signer)
 		if err != nil {
-			return ok, err
+			return types.CheckedExtrinsic{}, err
 		}
 
 		rawPayload, err := NewSignedPayload(uxt.Function, extra)
 		if err != nil {
-			return ok, err
+			return types.CheckedExtrinsic{}, err
 		}
 
 		if !signature.Verify(rawPayload.UsingEncoded(), signedAddress) {
 			err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-			return ok, err
+			return types.CheckedExtrinsic{}, err
 		}
 
 		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
 
-		ok = types.CheckedExtrinsic{
-			Signed:   sc.NewOption[primitives.AccountIdExtra](primitives.AccountIdExtra{Address32: signedAddress, SignedExtra: extra}),
-			Function: function,
-		}
-	case false:
-		ok = types.CheckedExtrinsic{
-			Signed:   sc.NewOption[primitives.AccountIdExtra](nil),
-			Function: uxt.Function,
-		}
+		return types.NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signedAddress), function, extra), nil
 	}
 
-	return ok, err
+	return types.NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.Function, uxt.Extra), nil
 }

@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -14,20 +12,17 @@ import (
 // TODO: make it generic
 // generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 type CheckedExtrinsic struct {
-	Version sc.U8
-
 	// Who this purports to be from and the number of extrinsics have come before
 	// from the same signer, if anyone (note this is not a signature).
-	Signed   sc.Option[primitives.AccountIdExtra]
+	Signed   sc.Option[primitives.Address32]
 	Function primitives.Call
+	Extra    primitives.SignedExtra
 }
 
-func (cxt CheckedExtrinsic) Encode(buffer *bytes.Buffer) {
-	cxt.Version.Encode(buffer)
-	cxt.Signed.Encode(buffer)
-	cxt.Function.Encode(buffer)
-}
-
-func (cxt CheckedExtrinsic) Bytes() []byte {
-	return sc.EncodedBytes(cxt)
+func NewCheckedExtrinsic(signed sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) CheckedExtrinsic {
+	return CheckedExtrinsic{
+		Signed:   signed,
+		Function: function,
+		Extra:    extra,
+	}
 }

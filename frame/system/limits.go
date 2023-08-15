@@ -26,15 +26,6 @@ func (bl BlockLength) Bytes() []byte {
 	return sc.EncodedBytes(bl)
 }
 
-func DefaultBlockLength() BlockLength {
-	return MaxWithNormalRatio(
-		constants.FiveMbPerBlockPerExtrinsic,
-		constants.NormalDispatchRatio,
-	)
-
-	// return MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.DefaultNormalRatio)
-}
-
 // MaxWithNormalRatio Create new `BlockLength` with `max` for `Operational` & `Mandatory`
 // and `normal * max` for `Normal`.
 func MaxWithNormalRatio(max sc.U32, normal types.Perbill) BlockLength {
@@ -113,13 +104,6 @@ func (bw BlockWeights) Encode(buffer *bytes.Buffer) {
 
 func (bw BlockWeights) Bytes() []byte {
 	return sc.EncodedBytes(bw)
-}
-
-func DefaultBlockWeights() BlockWeights {
-	return WithSensibleDefaults(
-		constants.MaximumBlockWeight,
-		constants.NormalDispatchRatio,
-	)
 }
 
 // Get per-class weight settings.
