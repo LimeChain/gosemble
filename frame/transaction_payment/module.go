@@ -9,17 +9,17 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Module struct {
+type Module[N sc.Numeric] struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[sc.U32]
+	hooks.DefaultDispatchModule[N]
 	Index     sc.U8
 	Config    *Config
 	Constants *consts
 	storage   *storage
 }
 
-func New(index sc.U8, config *Config) Module {
-	return Module{
+func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
+	return Module[N]{
 		Index:     index,
 		Config:    config,
 		Constants: newConstants(config.OperationalFeeMultiplier),
@@ -27,23 +27,23 @@ func New(index sc.U8, config *Config) Module {
 	}
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name: "TransactionPayment",
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
@@ -76,7 +76,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -114,23 +114,23 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
+func (m Module[N]) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
 	return m.ComputeFeeDetails(len, info, tip).FinalFee()
 }
 
-func (m Module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m Module[N]) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
 	return m.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
-func (m Module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+func (m Module[N]) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
 	return m.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
 }
 
-func (m Module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m Module[N]) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
 	return m.computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
 }
 
-func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
+func (m Module[N]) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := m.weightToFee(weight)
 		multiplier := m.storage.NextFeeMultiplier.Get()
@@ -159,11 +159,11 @@ func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 	}
 }
 
-func (m Module) lengthToFee(length sc.U32) primitives.Balance {
+func (m Module[N]) lengthToFee(length sc.U32) primitives.Balance {
 	return m.Config.LengthToFee.WeightToFee(primitives.WeightFromParts(sc.U64(length), 0))
 }
 
-func (m Module) weightToFee(weight primitives.Weight) primitives.Balance {
+func (m Module[N]) weightToFee(weight primitives.Weight) primitives.Balance {
 	cappedWeight := weight.Min(m.Config.BlockWeights.MaxBlock)
 
 	return m.Config.WeightToFee.WeightToFee(cappedWeight)

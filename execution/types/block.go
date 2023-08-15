@@ -7,16 +7,16 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Block struct {
-	Header     types.Header
+type Block[N sc.Numeric] struct {
+	Header     types.Header[N]
 	Extrinsics sc.Sequence[UncheckedExtrinsic]
 }
 
-func (b Block) Encode(buffer *bytes.Buffer) {
+func (b Block[N]) Encode(buffer *bytes.Buffer) {
 	buffer.Write(b.Header.Bytes())
 	buffer.Write(b.Extrinsics.Bytes())
 }
 
-func (b Block) Bytes() []byte {
+func (b Block[N]) Bytes() []byte {
 	return sc.EncodedBytes(b)
 }

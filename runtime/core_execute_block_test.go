@@ -70,7 +70,7 @@ func Test_BlockExecution(t *testing.T) {
 	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+	encBlockNumber, _ := scale.Marshal(BlockNumberType(blockNumber))
 	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
 	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
@@ -80,7 +80,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
+	encPrevBlock, _ := scale.Marshal(BlockNumberType(blockNumber - 1))
 	numHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
 
@@ -199,7 +199,7 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
-	encBlockNumber, _ := scale.Marshal(uint32(blockNumber))
+	encBlockNumber, _ := scale.Marshal(BlockNumberType(blockNumber))
 
 	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
 

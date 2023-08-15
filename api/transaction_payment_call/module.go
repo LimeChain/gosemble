@@ -20,23 +20,23 @@ var (
 	DefaultTip = sc.NewU128FromUint64(0)
 )
 
-type Module struct {
-	decoder    types.ModuleDecoder
-	txPayments transaction_payment.Module
+type Module[N sc.Numeric] struct {
+	decoder    types.ModuleDecoder[N]
+	txPayments transaction_payment.Module[N]
 }
 
-func NewCallApi(decoder types.ModuleDecoder, txPayments transaction_payment.Module) Module {
-	return Module{
+func NewCallApi[N sc.Numeric](decoder types.ModuleDecoder[N], txPayments transaction_payment.Module[N]) Module[N] {
+	return Module[N]{
 		decoder:    decoder,
 		txPayments: txPayments,
 	}
 }
 
-func (m Module) Name() string {
+func (m Module[N]) Name() string {
 	return ApiModuleName
 }
 
-func (m Module) Item() primitives.ApiItem {
+func (m Module[N]) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
@@ -48,7 +48,7 @@ func (m Module) Item() primitives.ApiItem {
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
-func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
+func (m Module[N]) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -74,7 +74,7 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
-func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
+func (m Module[N]) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 

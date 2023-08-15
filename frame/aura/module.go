@@ -17,20 +17,20 @@ var (
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
 )
 
-type Module struct {
+type Module[N sc.Numeric] struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[sc.U32]
+	hooks.DefaultDispatchModule[N]
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage
 	Constants *consts
 }
 
-func New(index sc.U8, config *Config) Module {
+func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	storage := newStorage()
 	constants := newConstants(config.MinimumPeriod)
 
-	return Module{
+	return Module[N]{
 		Index:     index,
 		Config:    config,
 		Storage:   storage,
@@ -38,31 +38,31 @@ func New(index sc.U8, config *Config) Module {
 	}
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) KeyType() primitives.PublicKeyType {
+func (m Module[N]) KeyType() primitives.PublicKeyType {
 	return m.Config.KeyType
 }
 
-func (m Module) KeyTypeId() [4]byte {
+func (m Module[N]) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module) OnInitialize(_ sc.U32) primitives.Weight {
+func (m Module[N]) OnInitialize(_ N) primitives.Weight { // TODO: _ sc.U32
 	slot := m.currentSlotFromDigests()
 
 	if slot.HasValue {
@@ -97,7 +97,7 @@ func (m Module) OnInitialize(_ sc.U32) primitives.Weight {
 	}
 }
 
-func (m Module) OnTimestampSet(now sc.U64) {
+func (m Module[N]) OnTimestampSet(now sc.U64) {
 	slotDuration := m.SlotDuration()
 	if slotDuration == 0 {
 		log.Critical("Aura slot duration cannot be zero.")
@@ -111,7 +111,7 @@ func (m Module) OnTimestampSet(now sc.U64) {
 	}
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name: "Aura",
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
@@ -137,7 +137,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(
 			metadata.TypesAuraStorageAuthorities,
@@ -177,7 +177,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) currentSlotFromDigests() sc.Option[slot] {
+func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {
 	digest := m.Config.SystemDigest()
 
 	for keyDigest, dig := range digest {
@@ -196,6 +196,6 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 	return sc.NewOption[slot](nil)
 }
 
-func (m Module) SlotDuration() sc.U64 {
+func (m Module[N]) SlotDuration() sc.U64 {
 	return m.Constants.MinimumPeriod.Mul(2)
 }

@@ -8,46 +8,46 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type CheckSpecVersion struct {
-	systemModule system.Module
+type CheckSpecVersion[N sc.Numeric] struct {
+	systemModule system.Module[N]
 }
 
-func NewCheckSpecVersion(systemModule system.Module) CheckSpecVersion {
-	return CheckSpecVersion{
+func NewCheckSpecVersion[N sc.Numeric](systemModule system.Module[N]) CheckSpecVersion[N] {
+	return CheckSpecVersion[N]{
 		systemModule: systemModule,
 	}
 }
 
-func (csv CheckSpecVersion) Encode(*bytes.Buffer) {}
+func (csv CheckSpecVersion[N]) Encode(*bytes.Buffer) {}
 
-func (csv CheckSpecVersion) Decode(*bytes.Buffer) {}
+func (csv CheckSpecVersion[N]) Decode(*bytes.Buffer) {}
 
-func (csv CheckSpecVersion) Bytes() []byte {
+func (csv CheckSpecVersion[N]) Bytes() []byte {
 	return sc.EncodedBytes(csv)
 }
 
-func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	return sc.NewVaryingData(csv.systemModule.Constants.Version.SpecVersion), nil
 }
 
-func (_ CheckSpecVersion) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckSpecVersion[N]) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion[N]) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion[N]) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := csv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (csv CheckSpecVersion) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (csv CheckSpecVersion[N]) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := csv.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (csv CheckSpecVersion[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
 }
