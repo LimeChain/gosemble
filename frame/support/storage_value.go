@@ -9,21 +9,35 @@ import (
 )
 
 type StorageValue[T sc.Encodable] struct {
-	prefix     []byte
-	name       []byte
-	decodeFunc func(buffer *bytes.Buffer) T
+	prefix       []byte
+	name         []byte
+	decodeFunc   func(buffer *bytes.Buffer) T
+	defaultValue *T
 }
 
 func NewStorageValue[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T) *StorageValue[T] {
 	return &StorageValue[T]{
-		prefix,
-		name,
-		decodeFunc,
+		prefix:     prefix,
+		name:       name,
+		decodeFunc: decodeFunc,
+	}
+}
+
+func NewStorageValueWithDefault[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T, defaultValue *T) *StorageValue[T] {
+	return &StorageValue[T]{
+		prefix:       prefix,
+		name:         name,
+		decodeFunc:   decodeFunc,
+		defaultValue: defaultValue,
 	}
 }
 
 func (sv StorageValue[T]) Get() T {
-	return storage.GetDecode(sv.key(), sv.decodeFunc)
+	if sv.defaultValue == nil {
+		return storage.GetDecode(sv.key(), sv.decodeFunc)
+	}
+
+	return storage.GetDecodeOnEmpty(sv.key(), sv.decodeFunc, *sv.defaultValue)
 }
 
 func (sv StorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {

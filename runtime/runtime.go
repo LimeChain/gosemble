@@ -50,6 +50,12 @@ var (
 	BlockLength  = system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
 )
 
+var (
+	OperationalFeeMultiplier                        = sc.U8(5)
+	WeightToFee              primitives.WeightToFee = primitives.IdentityFee{}
+	LengthToFee              primitives.WeightToFee = primitives.IdentityFee{}
+)
+
 const (
 	SystemIndex sc.U8 = iota
 	TimestampIndex
@@ -83,7 +89,7 @@ func initializeModules() map[sc.U8]primitives.Module {
 	balancesModule := bm.NewBalancesModule(BalancesIndex,
 		bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
 
-	tpmModule := tpm.NewTransactionPaymentModule()
+	tpmModule := tpm.NewTransactionPaymentModule(TxPaymentsIndex, tpm.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights))
 	testableModule := tm.NewTestingModule(TestableIndex)
 
 	return map[sc.U8]primitives.Module{
@@ -181,28 +187,28 @@ func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 //go:export TransactionPaymentApi_query_info
 func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder()).
+		New(newModuleDecoder(), modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)).
 		QueryInfo(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_fee_details
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder()).
+		New(newModuleDecoder(), modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)).
 		QueryFeeDetails(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentCallApi_query_call_info
 func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder()).
+		New(newModuleDecoder(), modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)).
 		QueryCallInfo(dataPtr, dataLan)
 }
 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return transaction_payment.
-		New(newModuleDecoder()).
+		New(newModuleDecoder(), modules[TxPaymentsIndex].(tpm.TransactionPaymentModule)).
 		QueryCallFeeDetails(dataPtr, dataLen)
 }
 
