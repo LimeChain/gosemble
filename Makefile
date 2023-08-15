@@ -47,7 +47,6 @@ start-network:
 
 test: test-unit test-integration
 
-# TODO: ignore the integration tests
 test-unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
