@@ -54,10 +54,6 @@ func (c transferKeepAliveCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ transferKeepAliveCall) IsInherent() bool {
-	return false
-}
-
 func (_ transferKeepAliveCall) BaseWeight(b ...any) types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`

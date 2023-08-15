@@ -69,10 +69,6 @@ func (_ forceTransferCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ forceTransferCall) IsInherent() bool {
-	return false
-}
-
 func (_ forceTransferCall) WeightInfo(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }

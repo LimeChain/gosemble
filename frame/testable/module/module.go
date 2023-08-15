@@ -11,13 +11,14 @@ const (
 )
 
 type TestableModule struct {
+	primitives.DefaultProvideInherent
 	Index     sc.U8
 	functions map[sc.U8]primitives.Call
 }
 
 func NewTestingModule(index sc.U8) TestableModule {
 	functions := make(map[sc.U8]primitives.Call)
-	functions[functionTestIndex] = newTestCall(index, functionTestIndex, nil)
+	functions[functionTestIndex] = newTestCall(index, functionTestIndex)
 
 	return TestableModule{
 		Index:     index,

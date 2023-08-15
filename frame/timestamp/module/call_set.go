@@ -17,8 +17,7 @@ type setCall struct {
 	primitives.Callable
 }
 
-// TODO: switch to private once inherents are modularised
-func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) primitives.Call {
+func newSetCall(moduleId sc.U8, functionId sc.U8, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) primitives.Call {
 	call := setCall{
 		storage:   storage,
 		constants: constants,
@@ -29,8 +28,16 @@ func NewSetCall(moduleId sc.U8, functionId sc.U8, args sc.VaryingData, storage *
 		onTimestampSet: onTimestampSet,
 	}
 
-	if len(args) != 0 {
-		call.Arguments = args
+	return call
+}
+
+func newSetCallWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) primitives.Call {
+	call := setCall{
+		Callable: primitives.Callable{
+			ModuleId:   moduleId,
+			FunctionId: functionId,
+			Arguments:  args,
+		},
 	}
 
 	return call
@@ -74,10 +81,6 @@ func (_ setCall) BaseWeight(b ...any) primitives.Weight {
 	r := constants.DbWeight.Reads(2)
 	w := constants.DbWeight.Writes(1)
 	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
-}
-
-func (_ setCall) IsInherent() bool {
-	return true
 }
 
 func (_ setCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {

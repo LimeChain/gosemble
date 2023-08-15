@@ -15,6 +15,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
@@ -133,4 +134,18 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 	buffer.Write(bytesRuntimeDispatchInfo)
 
 	return primitives.DecodeRuntimeDispatchInfo(buffer)
+}
+
+func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint64) []byte {
+	call, err := ctypes.NewCall(metadata, "Timestamp.set", ctypes.NewUCompactFromUInt(time))
+	assert.NoError(t, err)
+
+	expectedExtrinsic := ctypes.NewExtrinsic(call)
+
+	extEnc := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&extEnc)
+	err = expectedExtrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	return extEnc.Bytes()
 }

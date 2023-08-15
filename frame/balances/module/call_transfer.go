@@ -104,10 +104,6 @@ func (c transferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) 
 	}
 }
 
-func (_ transferCall) IsInherent() bool {
-	return false
-}
-
 type transfer struct {
 	moduleId       sc.U8
 	storedMap      primitives.StoredMap

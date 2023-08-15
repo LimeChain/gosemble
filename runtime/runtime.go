@@ -162,26 +162,28 @@ func CoreExecuteBlock(dataPtr int32, dataLen int32) int64 {
 //go:export BlockBuilder_apply_extrinsic
 func BlockBuilderApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	return blockbuilder.
-		New(newExecutiveModule(), newModuleDecoder()).
+		New(extrinsic.New(modules), newExecutiveModule(), newModuleDecoder()).
 		ApplyExtrinsic(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_finalize_block
 func BlockBuilderFinalizeBlock(_, _ int32) int64 {
 	return blockbuilder.
-		New(newExecutiveModule(), newModuleDecoder()).
+		New(extrinsic.New(modules), newExecutiveModule(), newModuleDecoder()).
 		FinalizeBlock()
 }
 
 //go:export BlockBuilder_inherent_extrinsics
 func BlockBuilderInherentExtrinsics(dataPtr int32, dataLen int32) int64 {
-	return blockbuilder.InherentExtrinsics(dataPtr, dataLen)
+	return blockbuilder.
+		New(extrinsic.New(modules), newExecutiveModule(), newModuleDecoder()).
+		InherentExtrinsics(dataPtr, dataLen)
 }
 
 //go:export BlockBuilder_check_inherents
 func BlockBuilderCheckInherents(dataPtr int32, dataLen int32) int64 {
 	return blockbuilder.
-		New(newExecutiveModule(), newModuleDecoder()).
+		New(extrinsic.New(modules), newExecutiveModule(), newModuleDecoder()).
 		CheckInherents(dataPtr, dataLen)
 }
 

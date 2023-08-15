@@ -1,6 +1,9 @@
 package module
 
 import (
+	"bytes"
+	"errors"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -9,6 +12,10 @@ import (
 
 const (
 	functionSetIndex = 0
+)
+
+var (
+	inherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
 )
 
 type Module struct {
@@ -23,7 +30,7 @@ func NewModule(index sc.U8, config *Config) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
 	constants := newConstants(config.MinimumPeriod)
-	functions[functionSetIndex] = NewSetCall(index, functionSetIndex, nil, storage, constants, config.OnTimestampSet)
+	functions[functionSetIndex] = newSetCall(index, functionSetIndex, storage, constants, config.OnTimestampSet)
 
 	return Module{
 		Index:     index,
@@ -51,6 +58,69 @@ func (m Module) OnFinalize() {
 	if value == nil {
 		log.Critical("Timestamp must be updated once in the block")
 	}
+}
+
+func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
+	inherentData := inherent.Data[inherentIdentifier]
+
+	if inherentData == nil {
+		log.Critical("Timestamp inherent must be provided.")
+	}
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	ts := sc.DecodeU64(buffer)
+	// TODO: err if not able to parse it.
+
+	nextTimestamp := m.Storage.Now.Get() + m.Constants.MinimumPeriod
+	if ts > nextTimestamp {
+		nextTimestamp = ts
+	}
+
+	function := newSetCallWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
+
+	return sc.NewOption[primitives.Call](function)
+}
+
+func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
+	if !m.IsInherent(call) {
+		return errors.New("invalid inherent check for timestamp module")
+	}
+
+	maxTimestampDriftMillis := sc.U64(30 * 1000)
+
+	compactTs := call.Args()[0].(sc.Compact)
+	t := sc.U64(compactTs.ToBigInt().Uint64())
+
+	inherentData := inherent.Data[inherentIdentifier]
+
+	if inherentData == nil {
+		log.Critical("Timestamp inherent must be provided.")
+	}
+
+	buffer := &bytes.Buffer{}
+	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	ts := sc.DecodeU64(buffer)
+	// TODO: err if not able to parse it.
+
+	systemNow := m.Storage.Now.Get()
+
+	minimum := systemNow + m.Constants.MinimumPeriod
+	if t > ts+maxTimestampDriftMillis {
+		return primitives.NewTimestampErrorTooFarInFuture()
+	} else if t < minimum {
+		return primitives.NewTimestampErrorTooEarly()
+	}
+
+	return nil
+}
+
+func (m Module) InherentIdentifier() [8]byte {
+	return inherentIdentifier
+}
+
+func (m Module) IsInherent(call primitives.Call) bool {
+	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

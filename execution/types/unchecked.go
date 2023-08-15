@@ -53,7 +53,7 @@ func (uxt UncheckedExtrinsic) UnmaskedVersion() sc.U8 {
 }
 
 func (uxt UncheckedExtrinsic) IsSigned() sc.Bool {
-	return uxt.Version&ExtrinsicBitSigned == ExtrinsicBitSigned
+	return uxt.Version&ExtrinsicBitSigned == ExtrinsicBitSigned // TODO: uxt.Signature.HasValue?
 }
 
 func (uxt UncheckedExtrinsic) Encode(buffer *bytes.Buffer) {

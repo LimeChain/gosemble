@@ -63,10 +63,6 @@ func (_ remarkCall) BaseWeight(args ...any) primitives.Weight {
 	return primitives.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
-func (_ remarkCall) IsInherent() bool {
-	return false
-}
-
 func (_ remarkCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
