@@ -4,8 +4,14 @@ import (
 	"bytes"
 
 	"github.com/LimeChain/gosemble/frame/executive"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	ApiModuleName = "OffchainWorkerApi"
+	apiVersion    = 2
 )
 
 type Module struct {
@@ -14,6 +20,15 @@ type Module struct {
 
 func New(executive executive.Module) Module {
 	return Module{executive: executive}
+}
+
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
+func (m Module) Item() types.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	return types.NewApiItem(hash, apiVersion)
 }
 
 // OffchainWorker starts an off-chain task for an imported block.

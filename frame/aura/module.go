@@ -9,9 +9,15 @@ import (
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+)
+
+const (
+	ApiModuleName = "AuraApi"
+	apiVersion    = 1
 )
 
 var (
@@ -37,6 +43,15 @@ func NewModule(index sc.U8, config *Config) Module {
 		Storage:   storage,
 		Constants: constants,
 	}
+}
+
+func (m Module) Name() string {
+	return ApiModuleName
+}
+
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 func (m Module) GetIndex() sc.U8 {
