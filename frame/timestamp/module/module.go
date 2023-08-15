@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -19,6 +20,7 @@ var (
 )
 
 type Module struct {
+	hooks.DefaultDispatchModule[sc.U32]
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage
@@ -57,7 +59,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (m Module) OnFinalize() {
+func (m Module) OnFinalize(_ sc.U32) {
 	value := m.Storage.DidUpdate.TakeBytes()
 	if value == nil {
 		log.Critical("Timestamp must be updated once in the block")

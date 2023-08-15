@@ -10,11 +10,11 @@ import (
 )
 
 type ModuleDecoder struct {
-	modules map[sc.U8]primitives.Module
+	modules map[sc.U8]Module
 	extra   primitives.SignedExtra
 }
 
-func NewModuleDecoder(modules map[sc.U8]primitives.Module, extra primitives.SignedExtra) ModuleDecoder {
+func NewModuleDecoder(modules map[sc.U8]Module, extra primitives.SignedExtra) ModuleDecoder {
 	return ModuleDecoder{modules: modules, extra: extra}
 }
 

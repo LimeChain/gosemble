@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -25,6 +26,7 @@ var (
 
 type Module struct {
 	primitives.DefaultProvideInherent
+	hooks.DefaultDispatchModule[sc.U32]
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage

@@ -5,11 +5,13 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type TransactionPaymentModule struct {
 	primitives.DefaultProvideInherent
+	hooks.DefaultDispatchModule[sc.U32]
 	Index     sc.U8
 	Config    *Config
 	Constants *consts

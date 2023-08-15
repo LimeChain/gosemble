@@ -8,14 +8,14 @@ import (
 )
 
 type RuntimeExtrinsic struct {
-	modules map[sc.U8]primitives.Module
+	modules map[sc.U8]types.Module
 }
 
-func New(modules map[sc.U8]primitives.Module) RuntimeExtrinsic {
+func New(modules map[sc.U8]types.Module) RuntimeExtrinsic {
 	return RuntimeExtrinsic{modules: modules}
 }
 
-func (re RuntimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFound bool) {
+func (re RuntimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
 	m, ok := re.modules[index]
 	return m, ok
 }
@@ -109,4 +109,44 @@ func (re RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 	}
 
 	return -1
+}
+
+func (re RuntimeExtrinsic) OnInitialize(n sc.U32) primitives.Weight {
+	weight := primitives.Weight{}
+	for _, m := range re.modules {
+		weight = weight.Add(m.OnInitialize(n))
+	}
+
+	return weight
+}
+
+func (re RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
+	weight := primitives.Weight{}
+	for _, m := range re.modules {
+		weight = weight.Add(m.OnRuntimeUpgrade())
+	}
+
+	return weight
+}
+
+func (re RuntimeExtrinsic) OnFinalize(n sc.U32) {
+	for _, m := range re.modules {
+		m.OnFinalize(n)
+	}
+}
+
+func (re RuntimeExtrinsic) OnIdle(n sc.U32, remainingWeight primitives.Weight) primitives.Weight {
+	weight := primitives.WeightZero()
+	for _, m := range re.modules {
+		adjustedRemainingWeight := remainingWeight.SaturatingSub(weight)
+		weight = weight.SaturatingAdd(m.OnIdle(n, adjustedRemainingWeight))
+	}
+
+	return weight
+}
+
+func (re RuntimeExtrinsic) OffchainWorker(n sc.U32) {
+	for _, m := range re.modules {
+		m.OffchainWorker(n)
+	}
 }
