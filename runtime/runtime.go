@@ -20,20 +20,18 @@ import (
 	apiTxPayments "github.com/LimeChain/gosemble/api/transaction_payment"
 	apiTxPaymentsCall "github.com/LimeChain/gosemble/api/transaction_payment_call"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/aura"
-	bm "github.com/LimeChain/gosemble/frame/balances/module"
+	"github.com/LimeChain/gosemble/frame/balances"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/frame/system/extensions"
-	sm "github.com/LimeChain/gosemble/frame/system/module"
-	tm "github.com/LimeChain/gosemble/frame/testable/module"
-	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
+	sysExtensions "github.com/LimeChain/gosemble/frame/system/extensions"
+	tm "github.com/LimeChain/gosemble/frame/testable"
+	"github.com/LimeChain/gosemble/frame/timestamp"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
-	tpm "github.com/LimeChain/gosemble/frame/transaction_payment/module"
+	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -46,6 +44,10 @@ const (
 const (
 	BalancesMaxLocks    = 50
 	BalancesMaxReserves = 50
+)
+
+const (
+	TimestampMinimumPeriod = 1 * 1_000 // 1 second
 )
 
 // RuntimeVersion contains the version identifiers of the Runtime.
@@ -89,27 +91,26 @@ const (
 var modules = initializeModules()
 
 func initializeModules() map[sc.U8]types.Module {
-	systemModule := sm.NewSystemModule(SystemIndex,
-		sm.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, *RuntimeVersion))
+	systemModule := system.New(SystemIndex,
+		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, *RuntimeVersion))
 
-	auraModule := aura.NewModule(AuraIndex,
+	auraModule := aura.New(AuraIndex,
 		aura.NewConfig(
 			primitives.PublicKeySr25519,
-			timestamp.MinimumPeriod,
+			TimestampMinimumPeriod,
 			AuraMaxAuthorites,
 			false,
 			systemModule.Storage.Digest.Get))
 
-	timestampModule := tsm.NewModule(TimestampIndex,
-		tsm.NewConfig(auraModule, timestamp.MinimumPeriod))
+	timestampModule := timestamp.New(TimestampIndex, timestamp.NewConfig(auraModule, TimestampMinimumPeriod))
 
-	grandpaModule := grandpa.NewModule(GrandpaIndex)
+	grandpaModule := grandpa.New(GrandpaIndex)
 
-	balancesModule := bm.NewBalancesModule(BalancesIndex,
-		bm.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
+	balancesModule := balances.New(BalancesIndex,
+		balances.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
 
-	tpmModule := tpm.NewTransactionPaymentModule(TxPaymentsIndex, tpm.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights))
-	testableModule := tm.NewTestingModule(TestableIndex)
+	tpmModule := transaction_payment.New(TxPaymentsIndex, transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights))
+	testableModule := tm.New(TestableIndex)
 
 	return map[sc.U8]types.Module{
 		SystemIndex:     systemModule,
@@ -134,7 +135,7 @@ func getInstance[T types.Module]() T {
 
 func newExecutiveModule() executive.Module {
 	return executive.New(
-		getInstance[sm.SystemModule](),
+		getInstance[system.Module](),
 		extrinsic.New(modules),
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
@@ -145,22 +146,22 @@ func newModuleDecoder() types.ModuleDecoder {
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systeModule := getInstance[sm.SystemModule]()
-	balancesModule := getInstance[bm.BalancesModule]()
-	txPaymentModule := getInstance[tpm.TransactionPaymentModule]()
+	systeModule := getInstance[system.Module]()
+	balancesModule := getInstance[balances.Module]()
+	txPaymentModule := getInstance[transaction_payment.Module]()
 
-	checkMortality := extensions.NewCheckMortality(systeModule)
-	checkNonce := extensions.NewCheckNonce(systeModule)
-	chargeTxPayment := transaction_payment.NewChargeTransactionPayment(systeModule, txPaymentModule, balancesModule)
+	checkMortality := sysExtensions.NewCheckMortality(systeModule)
+	checkNonce := sysExtensions.NewCheckNonce(systeModule)
+	chargeTxPayment := txExtensions.NewChargeTransactionPayment(systeModule, txPaymentModule, balancesModule)
 
 	extras := []primitives.SignedExtension{
-		extensions.NewCheckNonZeroAddress(),
-		extensions.NewCheckSpecVersion(systeModule),
-		extensions.NewCheckTxVersion(systeModule),
-		extensions.NewCheckGenesis(systeModule),
+		sysExtensions.NewCheckNonZeroAddress(),
+		sysExtensions.NewCheckSpecVersion(systeModule),
+		sysExtensions.NewCheckTxVersion(systeModule),
+		sysExtensions.NewCheckGenesis(systeModule),
 		&checkMortality,
 		&checkNonce,
-		extensions.NewCheckWeight(systeModule),
+		sysExtensions.NewCheckWeight(systeModule),
 		&chargeTxPayment,
 	}
 	return primitives.NewSignedExtra(extras)
@@ -172,7 +173,7 @@ func runtimeApi() types.RuntimeApi {
 	runtimeExtrinsic := extrinsic.New(modules)
 	auraModule := getInstance[aura.Module]()
 	grandpaModule := getInstance[grandpa.Module]()
-	txPaymentsModule := getInstance[tpm.TransactionPaymentModule]()
+	txPaymentsModule := getInstance[transaction_payment.Module]()
 
 	sessions := []primitives.Session{
 		auraModule,
@@ -186,7 +187,7 @@ func runtimeApi() types.RuntimeApi {
 		metadata.New(modules),
 		apiAura.New(auraModule),
 		apiGrandpa.New(grandpaModule),
-		account_nonce.New(getInstance[sm.SystemModule]()),
+		account_nonce.New(getInstance[system.Module]()),
 		apiTxPayments.New(decoder, txPaymentsModule),
 		apiTxPaymentsCall.NewCallApi(decoder, txPaymentsModule),
 		session_keys.New(sessions),

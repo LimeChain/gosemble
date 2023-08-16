@@ -26,7 +26,7 @@ type Module struct {
 	Constants *consts
 }
 
-func NewModule(index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config) Module {
 	storage := newStorage()
 	constants := newConstants(config.MinimumPeriod)
 

@@ -23,7 +23,7 @@ type Module struct {
 	storage *storage
 }
 
-func NewModule(index sc.U8) Module {
+func New(index sc.U8) Module {
 	return Module{
 		Index:   index,
 		storage: newStorage(),

@@ -7,7 +7,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/crypto"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -16,12 +16,12 @@ import (
 )
 
 type Module struct {
-	system           module.SystemModule
+	system           system.Module
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	onRuntimeUpgrade hooks.OnRuntimeUpgrade
 }
 
-func New(systemModule module.SystemModule, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
+func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
 	return Module{
 		system:           systemModule,
 		runtimeExtrinsic: runtimeExtrinsic,

@@ -3,7 +3,7 @@ package account_nonce
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -15,10 +15,10 @@ const (
 )
 
 type Module struct {
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func New(systemModule module.SystemModule) Module {
+func New(systemModule system.Module) Module {
 	return Module{systemModule}
 }
 

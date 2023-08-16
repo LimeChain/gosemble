@@ -5,16 +5,16 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckNonce struct {
 	nonce        sc.U32
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func NewCheckNonce(systemModule module.SystemModule) CheckNonce {
+func NewCheckNonce(systemModule system.Module) CheckNonce {
 	return CheckNonce{systemModule: systemModule}
 }
 

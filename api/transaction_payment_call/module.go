@@ -5,7 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/transaction_payment/module"
+	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -22,10 +22,10 @@ var (
 
 type Module struct {
 	decoder    types.ModuleDecoder
-	txPayments module.TransactionPaymentModule
+	txPayments transaction_payment.Module
 }
 
-func NewCallApi(decoder types.ModuleDecoder, txPayments module.TransactionPaymentModule) Module {
+func NewCallApi(decoder types.ModuleDecoder, txPayments transaction_payment.Module) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
