@@ -11,12 +11,13 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
-var DefaultMultiplierValue = sc.NewU128FromUint64(1)
-var DefaultTip = sc.NewU128FromUint64(0)
-
 const (
 	ApiModuleName = "TransactionPaymentApi"
 	apiVersion    = 3
+)
+
+var (
+	DefaultTip = sc.NewU128FromUint64(0)
 )
 
 type Module struct {
