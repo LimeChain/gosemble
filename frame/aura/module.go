@@ -9,15 +9,8 @@ import (
 	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
-)
-
-const (
-	ApiModuleName = "AuraApi"
-	apiVersion    = 1
 )
 
 var (
@@ -45,15 +38,6 @@ func NewModule(index sc.U8, config *Config) Module {
 	}
 }
 
-func (m Module) Name() string {
-	return ApiModuleName
-}
-
-func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
-	return primitives.NewApiItem(hash, apiVersion)
-}
-
 func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
@@ -76,25 +60,6 @@ func (m Module) KeyType() primitives.PublicKeyType {
 
 func (m Module) KeyTypeId() [4]byte {
 	return KeyTypeId
-}
-
-// Authorities returns current set of AuRa (Authority Round) authorities.
-// Returns a pointer-size of the SCALE-encoded set of authorities.
-func (m Module) Authorities() int64 {
-	authorities := m.Storage.Authorities.GetBytes()
-
-	if !authorities.HasValue {
-		return utils.BytesToOffsetAndSize([]byte{0})
-	}
-
-	return utils.BytesToOffsetAndSize(sc.SequenceU8ToBytes(authorities.Value))
-}
-
-// SlotDuration returns the slot duration for AuRa.
-// Returns a pointer-size of the SCALE-encoded slot duration
-func (m Module) SlotDuration() int64 {
-	slotDuration := m.slotDuration()
-	return utils.BytesToOffsetAndSize(slotDuration.Bytes())
 }
 
 func (m Module) OnInitialize(_ sc.U32) primitives.Weight {
@@ -133,7 +98,7 @@ func (m Module) OnInitialize(_ sc.U32) primitives.Weight {
 }
 
 func (m Module) OnTimestampSet(now sc.U64) {
-	slotDuration := m.slotDuration()
+	slotDuration := m.SlotDuration()
 	if slotDuration == 0 {
 		log.Critical("Aura slot duration cannot be zero.")
 	}
@@ -231,6 +196,6 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 	return sc.NewOption[slot](nil)
 }
 
-func (m Module) slotDuration() sc.U64 {
+func (m Module) SlotDuration() sc.U64 {
 	return m.Constants.MinimumPeriod.Mul(2)
 }

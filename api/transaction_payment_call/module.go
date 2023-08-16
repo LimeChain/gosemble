@@ -1,4 +1,4 @@
-package transaction_payment
+package transaction_payment_call
 
 import (
 	"bytes"
@@ -12,29 +12,33 @@ import (
 )
 
 const (
-	CallApiModuleName = "TransactionPaymentCallApi"
-	callApiVersion    = 3
+	ApiModuleName = "TransactionPaymentCallApi"
+	apiVersion    = 3
 )
 
-type TransactionPaymentCallApi struct {
+var (
+	DefaultTip = sc.NewU128FromUint64(0)
+)
+
+type Module struct {
 	decoder    types.ModuleDecoder
 	txPayments module.TransactionPaymentModule
 }
 
-func NewCallApi(decoder types.ModuleDecoder, txPayments module.TransactionPaymentModule) TransactionPaymentCallApi {
-	return TransactionPaymentCallApi{
+func NewCallApi(decoder types.ModuleDecoder, txPayments module.TransactionPaymentModule) Module {
+	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
 	}
 }
 
-func (m TransactionPaymentCallApi) Name() string {
-	return CallApiModuleName
+func (m Module) Name() string {
+	return ApiModuleName
 }
 
-func (m TransactionPaymentCallApi) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(CallApiModuleName))
-	return primitives.NewApiItem(hash, callApiVersion)
+func (m Module) Item() primitives.ApiItem {
+	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // QueryCallInfo queries the data of a dispatch call.
@@ -44,7 +48,7 @@ func (m TransactionPaymentCallApi) Item() primitives.ApiItem {
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
-func (m TransactionPaymentCallApi) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -70,7 +74,7 @@ func (m TransactionPaymentCallApi) QueryCallInfo(dataPtr int32, dataLen int32) i
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
-func (m TransactionPaymentCallApi) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
+func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 

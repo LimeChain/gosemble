@@ -8,24 +8,28 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/api/account_nonce"
+	apiAura "github.com/LimeChain/gosemble/api/aura"
+	"github.com/LimeChain/gosemble/api/block_builder"
+	"github.com/LimeChain/gosemble/api/core"
+	apiGrandpa "github.com/LimeChain/gosemble/api/grandpa"
+	"github.com/LimeChain/gosemble/api/metadata"
+	"github.com/LimeChain/gosemble/api/offchain_worker"
+	"github.com/LimeChain/gosemble/api/session_keys"
+	taggedtransactionqueue "github.com/LimeChain/gosemble/api/tagged_transaction_queue"
+	apiTxPayments "github.com/LimeChain/gosemble/api/transaction_payment"
+	apiTxPaymentsCall "github.com/LimeChain/gosemble/api/transaction_payment_call"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/timestamp"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
-	"github.com/LimeChain/gosemble/frame/account_nonce"
 	"github.com/LimeChain/gosemble/frame/aura"
 	bm "github.com/LimeChain/gosemble/frame/balances/module"
-	blockbuilder "github.com/LimeChain/gosemble/frame/block_builder"
-	"github.com/LimeChain/gosemble/frame/core"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/grandpa"
-	"github.com/LimeChain/gosemble/frame/metadata"
-	"github.com/LimeChain/gosemble/frame/offchain_worker"
-	"github.com/LimeChain/gosemble/frame/session_keys"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/system/extensions"
 	sm "github.com/LimeChain/gosemble/frame/system/module"
-	taggedtransactionqueue "github.com/LimeChain/gosemble/frame/tagged_transaction_queue"
 	tm "github.com/LimeChain/gosemble/frame/testable/module"
 	tsm "github.com/LimeChain/gosemble/frame/timestamp/module"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
@@ -168,6 +172,7 @@ func runtimeApi() types.RuntimeApi {
 	runtimeExtrinsic := extrinsic.New(modules)
 	auraModule := getInstance[aura.Module]()
 	grandpaModule := getInstance[grandpa.Module]()
+	txPaymentsModule := getInstance[tpm.TransactionPaymentModule]()
 
 	sessions := []primitives.Session{
 		auraModule,
@@ -179,11 +184,11 @@ func runtimeApi() types.RuntimeApi {
 		blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
 		taggedtransactionqueue.New(executiveModule, decoder),
 		metadata.New(modules),
-		auraModule,
-		grandpaModule,
+		apiAura.New(auraModule),
+		apiGrandpa.New(grandpaModule),
 		account_nonce.New(getInstance[sm.SystemModule]()),
-		transaction_payment.New(decoder, getInstance[tpm.TransactionPaymentModule]()),
-		transaction_payment.NewCallApi(decoder, getInstance[tpm.TransactionPaymentModule]()),
+		apiTxPayments.New(decoder, txPaymentsModule),
+		apiTxPaymentsCall.NewCallApi(decoder, txPaymentsModule),
 		session_keys.New(sessions),
 		offchain_worker.New(executiveModule),
 	}
@@ -257,14 +262,14 @@ func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int
 //go:export AuraApi_slot_duration
 func AuraApiSlotDuration(_, _ int32) int64 {
 	return runtimeApi().
-		Module(aura.ApiModuleName).(aura.Module).
+		Module(apiAura.ApiModuleName).(apiAura.Module).
 		SlotDuration()
 }
 
 //go:export AuraApi_authorities
 func AuraApiAuthorities(_, _ int32) int64 {
 	return runtimeApi().
-		Module(aura.ApiModuleName).(aura.Module).
+		Module(apiAura.ApiModuleName).(apiAura.Module).
 		Authorities()
 }
 
@@ -278,28 +283,28 @@ func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 //go:export TransactionPaymentApi_query_info
 func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(transaction_payment.ApiModuleName).(transaction_payment.Module).
+		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module).
 		QueryInfo(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_fee_details
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(transaction_payment.ApiModuleName).(transaction_payment.Module).
+		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module).
 		QueryFeeDetails(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentCallApi_query_call_info
 func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
 	return runtimeApi().
-		Module(transaction_payment.CallApiModuleName).(transaction_payment.TransactionPaymentCallApi).
+		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module).
 		QueryCallInfo(dataPtr, dataLan)
 }
 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(transaction_payment.CallApiModuleName).(transaction_payment.TransactionPaymentCallApi).
+		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module).
 		QueryCallFeeDetails(dataPtr, dataLen)
 }
 
@@ -327,7 +332,7 @@ func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
 	return runtimeApi().
-		Module(grandpa.ApiModuleName).(grandpa.Module).
+		Module(apiGrandpa.ApiModuleName).(apiGrandpa.Module).
 		Authorities()
 }
 

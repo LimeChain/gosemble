@@ -6,15 +6,8 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
-)
-
-const (
-	ApiModuleName = "GrandpaApi"
-	apiVersion    = 3
 )
 
 var (
@@ -35,15 +28,6 @@ func NewModule(index sc.U8) Module {
 		Index:   index,
 		storage: newStorage(),
 	}
-}
-
-func (gm Module) Name() string {
-	return ApiModuleName
-}
-
-func (gm Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
-	return primitives.NewApiItem(hash, apiVersion)
 }
 
 func (gm Module) KeyType() primitives.PublicKeyType {
@@ -70,7 +54,7 @@ func (gm Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.C
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (gm Module) Authorities() int64 {
+func (gm Module) Authorities() sc.Sequence[primitives.Authority] {
 	versionedAuthorityList := gm.storage.Authorities.Get()
 
 	authorities := versionedAuthorityList.AuthorityList
@@ -78,10 +62,10 @@ func (gm Module) Authorities() int64 {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
 		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]")
-		authorities = sc.Sequence[primitives.Authority]{}
+		return sc.Sequence[primitives.Authority]{}
 	}
 
-	return utils.BytesToOffsetAndSize(authorities.Bytes())
+	return authorities
 }
 
 func (gm Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
