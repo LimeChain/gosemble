@@ -4,16 +4,16 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckMortality struct {
 	era          primitives.Era
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func NewCheckMortality(systemModule module.SystemModule) CheckMortality {
+func NewCheckMortality(systemModule system.Module) CheckMortality {
 	return CheckMortality{
 		systemModule: systemModule,
 	}

@@ -4,15 +4,15 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckGenesis struct {
-	module module.SystemModule
+	module system.Module
 }
 
-func NewCheckGenesis(module module.SystemModule) CheckGenesis {
+func NewCheckGenesis(module system.Module) CheckGenesis {
 	return CheckGenesis{
 		module,
 	}

@@ -4,15 +4,15 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckSpecVersion struct {
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func NewCheckSpecVersion(systemModule module.SystemModule) CheckSpecVersion {
+func NewCheckSpecVersion(systemModule system.Module) CheckSpecVersion {
 	return CheckSpecVersion{
 		systemModule: systemModule,
 	}

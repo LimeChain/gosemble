@@ -5,16 +5,15 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/frame/system/module"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckWeight struct {
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func NewCheckWeight(systemModule module.SystemModule) CheckWeight {
+func NewCheckWeight(systemModule system.Module) CheckWeight {
 	return CheckWeight{
 		systemModule: systemModule,
 	}

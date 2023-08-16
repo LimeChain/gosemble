@@ -4,15 +4,15 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/system/module"
+	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckTxVersion struct {
-	systemModule module.SystemModule
+	systemModule system.Module
 }
 
-func NewCheckTxVersion(module module.SystemModule) CheckTxVersion {
+func NewCheckTxVersion(module system.Module) CheckTxVersion {
 	return CheckTxVersion{
 		systemModule: module,
 	}
