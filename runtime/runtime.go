@@ -10,7 +10,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/api/account_nonce"
 	apiAura "github.com/LimeChain/gosemble/api/aura"
-	"github.com/LimeChain/gosemble/api/block_builder"
+	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
 	"github.com/LimeChain/gosemble/api/core"
 	apiGrandpa "github.com/LimeChain/gosemble/api/grandpa"
 	"github.com/LimeChain/gosemble/api/metadata"
@@ -87,32 +87,48 @@ const (
 	TestableIndex = 255
 )
 
+type BlockNumberType = sc.U32
+
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()
 
-func initializeModules() map[sc.U8]types.Module {
-	systemModule := system.New(SystemIndex,
-		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, *RuntimeVersion))
+func initializeModules() map[sc.U8]types.Module[BlockNumberType] {
+	systemModule := system.New[BlockNumberType](
+		SystemIndex,
+		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, *RuntimeVersion),
+	)
 
-	auraModule := aura.New(AuraIndex,
+	auraModule := aura.New[BlockNumberType](
+		AuraIndex,
 		aura.NewConfig(
 			primitives.PublicKeySr25519,
 			TimestampMinimumPeriod,
 			AuraMaxAuthorites,
 			false,
-			systemModule.Storage.Digest.Get))
+			systemModule.Storage.Digest.Get,
+		),
+	)
 
-	timestampModule := timestamp.New(TimestampIndex, timestamp.NewConfig(auraModule, TimestampMinimumPeriod))
+	timestampModule := timestamp.New[BlockNumberType](
+		TimestampIndex,
+		timestamp.NewConfig(auraModule, TimestampMinimumPeriod),
+	)
 
-	grandpaModule := grandpa.New(GrandpaIndex)
+	grandpaModule := grandpa.New[BlockNumberType](GrandpaIndex)
 
-	balancesModule := balances.New(BalancesIndex,
-		balances.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule))
+	balancesModule := balances.New[BlockNumberType](
+		BalancesIndex,
+		balances.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
+	)
 
-	tpmModule := transaction_payment.New(TxPaymentsIndex, transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights))
-	testableModule := tm.New(TestableIndex)
+	tpmModule := transaction_payment.New[BlockNumberType](
+		TxPaymentsIndex,
+		transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights),
+	)
 
-	return map[sc.U8]types.Module{
+	testableModule := tm.New[BlockNumberType](TestableIndex)
+
+	return map[sc.U8]types.Module[BlockNumberType]{
 		SystemIndex:     systemModule,
 		TimestampIndex:  timestampModule,
 		AuraIndex:       auraModule,
@@ -123,7 +139,7 @@ func initializeModules() map[sc.U8]types.Module {
 	}
 }
 
-func getInstance[T types.Module]() T {
+func getInstance[T types.Module[BlockNumberType]]() T {
 	for _, module := range modules {
 		if reflect.TypeOf(module) == reflect.TypeOf(*new(T)) {
 			return modules[module.GetIndex()].(T)
@@ -133,22 +149,22 @@ func getInstance[T types.Module]() T {
 	panic("unreachable")
 }
 
-func newExecutiveModule() executive.Module {
-	return executive.New(
-		getInstance[system.Module](),
+func newExecutiveModule() executive.Module[BlockNumberType] {
+	return executive.New[BlockNumberType](
+		getInstance[system.Module[BlockNumberType]](),
 		extrinsic.New(modules),
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
 }
 
-func newModuleDecoder() types.ModuleDecoder {
-	return types.NewModuleDecoder(modules, newSignedExtra())
+func newModuleDecoder() types.ModuleDecoder[BlockNumberType] {
+	return types.NewModuleDecoder[BlockNumberType](modules, newSignedExtra())
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systeModule := getInstance[system.Module]()
-	balancesModule := getInstance[balances.Module]()
-	txPaymentModule := getInstance[transaction_payment.Module]()
+	systeModule := getInstance[system.Module[BlockNumberType]]()
+	balancesModule := getInstance[balances.Module[BlockNumberType]]()
+	txPaymentModule := getInstance[transaction_payment.Module[BlockNumberType]]()
 
 	checkMortality := sysExtensions.NewCheckMortality(systeModule)
 	checkNonce := sysExtensions.NewCheckNonce(systeModule)
@@ -170,10 +186,10 @@ func newSignedExtra() primitives.SignedExtra {
 func runtimeApi() types.RuntimeApi {
 	executiveModule := newExecutiveModule()
 	decoder := newModuleDecoder()
-	runtimeExtrinsic := extrinsic.New(modules)
-	auraModule := getInstance[aura.Module]()
-	grandpaModule := getInstance[grandpa.Module]()
-	txPaymentsModule := getInstance[transaction_payment.Module]()
+	runtimeExtrinsic := extrinsic.New[BlockNumberType](modules)
+	auraModule := getInstance[aura.Module[BlockNumberType]]()
+	grandpaModule := getInstance[grandpa.Module[BlockNumberType]]()
+	txPaymentsModule := getInstance[transaction_payment.Module[BlockNumberType]]()
 
 	sessions := []primitives.Session{
 		auraModule,
@@ -181,17 +197,17 @@ func runtimeApi() types.RuntimeApi {
 	}
 
 	apis := []primitives.ApiModule{
-		core.New(executiveModule, decoder, RuntimeVersion),
-		blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
-		taggedtransactionqueue.New(executiveModule, decoder),
-		metadata.New(modules),
-		apiAura.New(auraModule),
-		apiGrandpa.New(grandpaModule),
-		account_nonce.New(getInstance[system.Module]()),
-		apiTxPayments.New(decoder, txPaymentsModule),
-		apiTxPaymentsCall.NewCallApi(decoder, txPaymentsModule),
+		core.New[BlockNumberType](executiveModule, decoder, RuntimeVersion),
+		blockbuilder.New[BlockNumberType](runtimeExtrinsic, executiveModule, decoder),
+		taggedtransactionqueue.New[BlockNumberType](executiveModule, decoder),
+		metadata.New[BlockNumberType](modules),
+		apiAura.New[BlockNumberType](auraModule),
+		apiGrandpa.New[BlockNumberType](grandpaModule),
+		account_nonce.New[BlockNumberType](getInstance[system.Module[BlockNumberType]]()),
+		apiTxPayments.New[BlockNumberType](decoder, txPaymentsModule),
+		apiTxPaymentsCall.NewCallApi[BlockNumberType](decoder, txPaymentsModule),
 		session_keys.New(sessions),
-		offchain_worker.New(executiveModule),
+		offchain_worker.New[BlockNumberType](executiveModule),
 	}
 
 	runtimeApi := types.NewRuntimeApi(apis)
@@ -263,56 +279,56 @@ func TaggedTransactionQueueValidateTransaction(dataPtr int32, dataLen int32) int
 //go:export AuraApi_slot_duration
 func AuraApiSlotDuration(_, _ int32) int64 {
 	return runtimeApi().
-		Module(apiAura.ApiModuleName).(apiAura.Module).
+		Module(apiAura.ApiModuleName).(apiAura.Module[BlockNumberType]).
 		SlotDuration()
 }
 
 //go:export AuraApi_authorities
 func AuraApiAuthorities(_, _ int32) int64 {
 	return runtimeApi().
-		Module(apiAura.ApiModuleName).(apiAura.Module).
+		Module(apiAura.ApiModuleName).(apiAura.Module[BlockNumberType]).
 		Authorities()
 }
 
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(account_nonce.ApiModuleName).(account_nonce.Module).
+		Module(account_nonce.ApiModuleName).(account_nonce.Module[BlockNumberType]).
 		AccountNonce(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_info
 func TransactionPaymentApiQueryInfo(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module).
+		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module[BlockNumberType]).
 		QueryInfo(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentApi_query_fee_details
 func TransactionPaymentApiQueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module).
+		Module(apiTxPayments.ApiModuleName).(apiTxPayments.Module[BlockNumberType]).
 		QueryFeeDetails(dataPtr, dataLen)
 }
 
 //go:export TransactionPaymentCallApi_query_call_info
 func TransactionPaymentCallApiQueryCallInfo(dataPtr int32, dataLan int32) int64 {
 	return runtimeApi().
-		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module).
+		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module[BlockNumberType]).
 		QueryCallInfo(dataPtr, dataLan)
 }
 
 //go:export TransactionPaymentCallApi_query_call_fee_details
 func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module).
+		Module(apiTxPaymentsCall.ApiModuleName).(apiTxPaymentsCall.Module[BlockNumberType]).
 		QueryCallFeeDetails(dataPtr, dataLen)
 }
 
 //go:export Metadata_metadata
 func Metadata(_, _ int32) int64 {
 	return runtimeApi().
-		Module(metadata.ApiModuleName).(metadata.Module).
+		Module(metadata.ApiModuleName).(metadata.Module[BlockNumberType]).
 		Metadata()
 }
 
@@ -333,14 +349,14 @@ func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 //go:export GrandpaApi_grandpa_authorities
 func GrandpaApiAuthorities(_, _ int32) int64 {
 	return runtimeApi().
-		Module(apiGrandpa.ApiModuleName).(apiGrandpa.Module).
+		Module(apiGrandpa.ApiModuleName).(apiGrandpa.Module[BlockNumberType]).
 		Authorities()
 }
 
 //go:export OffchainWorkerApi_offchain_worker
 func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 	runtimeApi().
-		Module(offchain_worker.ApiModuleName).(offchain_worker.Module).
+		Module(offchain_worker.ApiModuleName).(offchain_worker.Module[BlockNumberType]).
 		OffchainWorker(dataPtr, dataLen)
 
 	return 0

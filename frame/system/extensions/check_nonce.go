@@ -9,32 +9,32 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type CheckNonce struct {
+type CheckNonce[N sc.Numeric] struct {
 	nonce        sc.U32
-	systemModule system.Module
+	systemModule system.Module[N]
 }
 
-func NewCheckNonce(systemModule system.Module) CheckNonce {
-	return CheckNonce{systemModule: systemModule}
+func NewCheckNonce[N sc.Numeric](systemModule system.Module[N]) CheckNonce[N] {
+	return CheckNonce[N]{systemModule: systemModule}
 }
 
-func (cn CheckNonce) Encode(buffer *bytes.Buffer) {
+func (cn CheckNonce[N]) Encode(buffer *bytes.Buffer) {
 	sc.ToCompact(cn.nonce).Encode(buffer)
 }
 
-func (cn *CheckNonce) Decode(buffer *bytes.Buffer) {
+func (cn *CheckNonce[N]) Decode(buffer *bytes.Buffer) {
 	cn.nonce = sc.U32(sc.U128(sc.DecodeCompact(buffer)).ToBigInt().Uint64())
 }
 
-func (cn CheckNonce) Bytes() []byte {
+func (cn CheckNonce[N]) Bytes() []byte {
 	return sc.EncodedBytes(cn)
 }
 
-func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (cn CheckNonce[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cn CheckNonce[N]) Validate(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	account := cn.systemModule.Storage.Account.Get((*who).FixedSequence)
 
 	if cn.nonce < account.Nonce {
@@ -63,11 +63,11 @@ func (cn CheckNonce) Validate(who *primitives.Address32, _call *primitives.Call,
 	}, nil
 }
 
-func (cn CheckNonce) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cn CheckNonce[N]) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cn CheckNonce[N]) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	account := cn.systemModule.Storage.Account.Get(who.FixedSequence)
 
 	if cn.nonce != account.Nonce {
@@ -86,11 +86,11 @@ func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Cal
 	return primitives.Pre{}, nil
 }
 
-func (cn CheckNonce) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cn CheckNonce[N]) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := cn.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cn CheckNonce[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
 }

@@ -10,11 +10,11 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type storage struct {
+type storage[N sc.Numeric] struct {
 	Account            *support.StorageMap[types.PublicKey, types.AccountInfo]
 	BlockWeight        *support.StorageValue[types.ConsumedWeight]
-	BlockHash          *support.StorageMap[sc.U32, types.Blake2bHash]
-	BlockNumber        *support.StorageValue[sc.U32]
+	BlockHash          *support.StorageMap[N, types.Blake2bHash]
+	BlockNumber        *support.StorageValue[N]
 	AllExtrinsicsLen   *support.StorageValue[sc.U32]
 	ExtrinsicIndex     *support.SimpleStorageValue[sc.U32]
 	ExtrinsicData      *support.StorageMap[sc.U32, sc.Sequence[sc.U8]]
@@ -28,12 +28,12 @@ type storage struct {
 	ExecutionPhase     *support.StorageValue[types.ExtrinsicPhase]
 }
 
-func newStorage() *storage {
-	return &storage{
+func newStorage[N sc.Numeric]() *storage[N] {
+	return &storage[N]{
 		Account:            support.NewStorageMap[types.PublicKey, types.AccountInfo](constants.KeySystem, constants.KeyAccount, hashing.Blake128, types.DecodeAccountInfo),
 		BlockWeight:        support.NewStorageValue(constants.KeySystem, constants.KeyBlockWeight, types.DecodeConsumedWeight),
-		BlockHash:          support.NewStorageMap[sc.U32, types.Blake2bHash](constants.KeySystem, constants.KeyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
-		BlockNumber:        support.NewStorageValue(constants.KeySystem, constants.KeyNumber, sc.DecodeU32),
+		BlockHash:          support.NewStorageMap[N, types.Blake2bHash](constants.KeySystem, constants.KeyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
+		BlockNumber:        support.NewStorageValue(constants.KeySystem, constants.KeyNumber, sc.DecodeNumeric[N]),
 		AllExtrinsicsLen:   support.NewStorageValue(constants.KeySystem, constants.KeyAllExtrinsicsLen, sc.DecodeU32),
 		ExtrinsicIndex:     support.NewSimpleStorageValue(constants.KeyExtrinsicIndex, sc.DecodeU32),
 		ExtrinsicData:      support.NewStorageMap[sc.U32, sc.Sequence[sc.U8]](constants.KeySystem, constants.KeyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
