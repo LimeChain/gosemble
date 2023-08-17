@@ -14,19 +14,19 @@ const (
 	apiVersion    = 1
 )
 
-type Module struct {
-	modules map[sc.U8]types.Module
+type Module[N sc.Numeric] struct {
+	modules map[sc.U8]types.Module[N]
 }
 
-func New(modules map[sc.U8]types.Module) Module {
-	return Module{modules: modules}
+func New[N sc.Numeric](modules map[sc.U8]types.Module[N]) Module[N] {
+	return Module[N]{modules: modules}
 }
 
-func (m Module) Name() string {
+func (m Module[N]) Name() string {
 	return ApiModuleName
 }
 
-func (m Module) Item() primitives.ApiItem {
+func (m Module[N]) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
@@ -34,14 +34,14 @@ func (m Module) Item() primitives.ApiItem {
 // Metadata returns the metadata of the runtime.
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
-func (m Module) Metadata() int64 {
+func (m Module[N]) Metadata() int64 {
 	metadata := m.buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
 
 	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func (m Module) buildMetadata() primitives.Metadata {
+func (m Module[N]) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
@@ -533,7 +533,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) runtimeTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, primitives.NewMetadataTypeDefinitionComposite(
@@ -580,7 +580,7 @@ func (m Module) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) runtimeCall() primitives.MetadataType {
+func (m Module[N]) runtimeCall() primitives.MetadataType {
 	runtimeCallSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
 
 	idName := "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<"
@@ -612,7 +612,7 @@ func (m Module) runtimeCall() primitives.MetadataType {
 	)
 }
 
-func (m Module) runtimeEvent() primitives.MetadataType {
+func (m Module[N]) runtimeEvent() primitives.MetadataType {
 	runtimeEventSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
 
 	for _, module := range m.modules {

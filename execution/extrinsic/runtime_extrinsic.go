@@ -7,20 +7,20 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type RuntimeExtrinsic struct {
-	modules map[sc.U8]types.Module
+type RuntimeExtrinsic[N sc.Numeric] struct {
+	modules map[sc.U8]types.Module[N]
 }
 
-func New(modules map[sc.U8]types.Module) RuntimeExtrinsic {
-	return RuntimeExtrinsic{modules: modules}
+func New[N sc.Numeric](modules map[sc.U8]types.Module[N]) RuntimeExtrinsic[N] {
+	return RuntimeExtrinsic[N]{modules: modules}
 }
 
-func (re RuntimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
+func (re RuntimeExtrinsic[N]) Module(index sc.U8) (module types.Module[N], isFound bool) {
 	m, ok := re.modules[index]
 	return m, ok
 }
 
-func (re RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
+func (re RuntimeExtrinsic[N]) CreateInherents(inherentData primitives.InherentData) []byte {
 	i := 0
 	var result []byte
 
@@ -41,7 +41,7 @@ func (re RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData)
 	return append(sc.ToCompact(i).Bytes(), result...)
 }
 
-func (re RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
+func (re RuntimeExtrinsic[N]) CheckInherents(data primitives.InherentData, block types.Block[N]) primitives.CheckInherentsResult {
 	result := primitives.NewCheckInherentsResult()
 
 	for _, extrinsic := range block.Extrinsics {
@@ -85,7 +85,7 @@ func (re RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block ty
 }
 
 // EnsureInherentsAreFirst checks if the inherents are before non-inherents.
-func (re RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
+func (re RuntimeExtrinsic[N]) EnsureInherentsAreFirst(block types.Block[N]) int {
 	signedExtrinsicFound := false
 
 	for i, extrinsic := range block.Extrinsics {
@@ -111,7 +111,7 @@ func (re RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 	return -1
 }
 
-func (re RuntimeExtrinsic) OnInitialize(n sc.U32) primitives.Weight {
+func (re RuntimeExtrinsic[N]) OnInitialize(n N) primitives.Weight {
 	weight := primitives.Weight{}
 	for _, m := range re.modules {
 		weight = weight.Add(m.OnInitialize(n))
@@ -120,7 +120,7 @@ func (re RuntimeExtrinsic) OnInitialize(n sc.U32) primitives.Weight {
 	return weight
 }
 
-func (re RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
+func (re RuntimeExtrinsic[N]) OnRuntimeUpgrade() primitives.Weight {
 	weight := primitives.Weight{}
 	for _, m := range re.modules {
 		weight = weight.Add(m.OnRuntimeUpgrade())
@@ -129,13 +129,13 @@ func (re RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 	return weight
 }
 
-func (re RuntimeExtrinsic) OnFinalize(n sc.U32) {
+func (re RuntimeExtrinsic[N]) OnFinalize(n N) {
 	for _, m := range re.modules {
 		m.OnFinalize(n)
 	}
 }
 
-func (re RuntimeExtrinsic) OnIdle(n sc.U32, remainingWeight primitives.Weight) primitives.Weight {
+func (re RuntimeExtrinsic[N]) OnIdle(n N, remainingWeight primitives.Weight) primitives.Weight {
 	weight := primitives.WeightZero()
 	for _, m := range re.modules {
 		adjustedRemainingWeight := remainingWeight.SaturatingSub(weight)
@@ -145,7 +145,7 @@ func (re RuntimeExtrinsic) OnIdle(n sc.U32, remainingWeight primitives.Weight) p
 	return weight
 }
 
-func (re RuntimeExtrinsic) OffchainWorker(n sc.U32) {
+func (re RuntimeExtrinsic[N]) OffchainWorker(n N) {
 	for _, m := range re.modules {
 		m.OffchainWorker(n)
 	}

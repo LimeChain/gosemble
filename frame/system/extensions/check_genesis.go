@@ -8,48 +8,48 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type CheckGenesis struct {
-	module system.Module
+type CheckGenesis[N sc.Numeric] struct {
+	module system.Module[N]
 }
 
-func NewCheckGenesis(module system.Module) CheckGenesis {
-	return CheckGenesis{
+func NewCheckGenesis[N sc.Numeric](module system.Module[N]) CheckGenesis[N] {
+	return CheckGenesis[N]{
 		module,
 	}
 }
 
-func (cg CheckGenesis) Encode(*bytes.Buffer) {}
+func (cg CheckGenesis[N]) Encode(*bytes.Buffer) {}
 
-func (cg CheckGenesis) Decode(*bytes.Buffer) {}
+func (cg CheckGenesis[N]) Decode(*bytes.Buffer) {}
 
-func (cg CheckGenesis) Bytes() []byte {
+func (cg CheckGenesis[N]) Bytes() []byte {
 	return sc.EncodedBytes(cg)
 }
 
-func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	hash := cg.module.Storage.BlockHash.Get(sc.U32(0))
+func (cg CheckGenesis[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+	hash := cg.module.Storage.BlockHash.Get(N(0))
 
 	return sc.NewVaryingData(primitives.H256(hash)), nil
 }
 
-func (_ CheckGenesis) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckGenesis[N]) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cg CheckGenesis) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cg CheckGenesis[N]) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cg CheckGenesis) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cg CheckGenesis[N]) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := cg.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (cg CheckGenesis) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cg CheckGenesis[N]) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := cg.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cg CheckGenesis) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cg CheckGenesis[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
 }

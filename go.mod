@@ -7,6 +7,7 @@ require (
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.1.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.12.0
 )
 
 require (
@@ -71,7 +72,6 @@ require (
 	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/vedhavyas/go-subkey v1.0.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect

@@ -21,19 +21,19 @@ const (
 	functionForceFreeIndex         = 5
 )
 
-type Module struct {
+type Module[N sc.Numeric] struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[sc.U32]
+	hooks.DefaultDispatchModule[N]
 	Index     sc.U8
 	Config    *Config
 	Constants *consts
 	functions map[sc.U8]primitives.Call
 }
 
-func New(index sc.U8, config *Config) Module {
+func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	constants := newConstants(config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 
-	module := Module{
+	module := Module[N]{
 		Index:     index,
 		Config:    config,
 		Constants: constants,
@@ -51,29 +51,29 @@ func New(index sc.U8, config *Config) Module {
 	return module
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) name() sc.Str {
+func (m Module[N]) name() sc.Str {
 	return "Balances"
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
 // If `value` is 0, it does nothing.
-func (m Module) DepositIntoExisting(who primitives.Address32, value sc.U128) (primitives.Balance, primitives.DispatchError) {
+func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) (primitives.Balance, primitives.DispatchError) {
 	if value.ToBigInt().Cmp(constants.Zero) == 0 {
 		return sc.NewU128FromUint64(uint64(0)), nil
 	}
@@ -108,7 +108,7 @@ func (m Module) DepositIntoExisting(who primitives.Address32, value sc.U128) (pr
 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
-func (m Module) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
+func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
 	if value.ToBigInt().Cmp(constants.Zero) == 0 {
 		return sc.NewU128FromUint64(uint64(0)), nil
 	}
@@ -171,7 +171,7 @@ func (m Module) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8,
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func (m Module) ensureCanWithdraw(who primitives.Address32, amount *big.Int, reasons primitives.Reasons, newBalance *big.Int) primitives.DispatchError {
+func (m Module[N]) ensureCanWithdraw(who primitives.Address32, amount *big.Int, reasons primitives.Reasons, newBalance *big.Int) primitives.DispatchError {
 	if amount.Cmp(constants.Zero) == 0 {
 		return nil
 	}
@@ -191,7 +191,7 @@ func (m Module) ensureCanWithdraw(who primitives.Address32, amount *big.Int, rea
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func (m Module) tryMutateAccount(who primitives.Address32, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module[N]) tryMutateAccount(who primitives.Address32, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := m.tryMutateAccountWithDust(who, f)
 	if result.HasError {
 		return result
@@ -207,7 +207,7 @@ func (m Module) tryMutateAccount(who primitives.Address32, f func(who *primitive
 	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Encodable)}
 }
 
-func (m Module) tryMutateAccountWithDust(who primitives.Address32, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module[N]) tryMutateAccountWithDust(who primitives.Address32, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := m.Config.StoredMap.TryMutateExists(who, func(maybeAccount *primitives.AccountData) sc.Result[sc.Encodable] {
 		account := &primitives.AccountData{}
 		isNew := true
@@ -259,7 +259,7 @@ func (m Module) tryMutateAccountWithDust(who primitives.Address32, f func(who *p
 	return sc.Result[sc.Encodable]{HasError: false, Value: r}
 }
 
-func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
+func (m Module[N]) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
 	total := new.Total()
 
 	if total.Cmp(m.Constants.ExistentialDeposit) < 0 {
@@ -273,7 +273,7 @@ func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.A
 	return sc.NewOption[primitives.AccountData](new), sc.NewOption[negativeImbalance](nil)
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
@@ -328,7 +328,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesBalancesEvent, "pallet_balances pallet Event", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{

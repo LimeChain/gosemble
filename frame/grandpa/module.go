@@ -16,49 +16,49 @@ var (
 	KeyTypeId              = [4]byte{'g', 'r', 'a', 'n'}
 )
 
-type Module struct {
+type Module[N sc.Numeric] struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[sc.U32]
+	hooks.DefaultDispatchModule[N]
 	Index   sc.U8
 	storage *storage
 }
 
-func New(index sc.U8) Module {
-	return Module{
+func New[N sc.Numeric](index sc.U8) Module[N] {
+	return Module[N]{
 		Index:   index,
 		storage: newStorage(),
 	}
 }
 
-func (m Module) KeyType() primitives.PublicKeyType {
+func (m Module[N]) KeyType() primitives.PublicKeyType {
 	return primitives.PublicKeyEd25519
 }
 
-func (m Module) KeyTypeId() [4]byte {
+func (m Module[N]) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) name() sc.Str {
+func (m Module[N]) name() sc.Str {
 	return "Grandpa"
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Authorities() sc.Sequence[primitives.Authority] {
+func (m Module[N]) Authorities() sc.Sequence[primitives.Authority] {
 	versionedAuthorityList := m.storage.Authorities.Get()
 
 	authorities := versionedAuthorityList.AuthorityList
@@ -72,7 +72,7 @@ func (m Module) Authorities() sc.Sequence[primitives.Authority] {
 	return authorities
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -84,7 +84,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			// TODO: types

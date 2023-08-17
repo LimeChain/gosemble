@@ -17,7 +17,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
 	assert.NoError(t, err)
 
-	decoder := types.NewModuleDecoder(modules, newSignedExtra())
+	decoder := types.NewModuleDecoder[BlockNumberType](modules, newSignedExtra())
 
 	rt, _ := newTestRuntime(t)
 	metadata := runtimeMetadata(t, rt)

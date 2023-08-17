@@ -44,14 +44,14 @@ func Test_Offchain_Worker(t *testing.T) {
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
 
-	encBlockNumber, err := scale.Marshal(uint32(blockNumber))
+	encBlockNumber, err := scale.Marshal(BlockNumberType(blockNumber))
 	assert.NoError(t, err)
 
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	encPrevBlock, _ := scale.Marshal(uint32(blockNumber - 1))
+	encPrevBlock, _ := scale.Marshal(BlockNumberType(blockNumber - 1))
 	prevBlockNumHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
 
