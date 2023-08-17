@@ -62,7 +62,7 @@ func (m Module[N]) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module[N]) OnInitialize(_ N) primitives.Weight { // TODO: _ sc.U32
+func (m Module[N]) OnInitialize(_ N) primitives.Weight {
 	slot := m.currentSlotFromDigests()
 
 	if slot.HasValue {
