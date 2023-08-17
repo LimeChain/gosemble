@@ -8,7 +8,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
-	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -207,7 +206,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 		return result.Value.(types.DispatchError)
 	}
 
-	t.storedMap.DepositEvent(events.NewEventTransfer(from.FixedSequence, to.FixedSequence, value))
+	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from.FixedSequence, to.FixedSequence, value))
 	return nil
 }
 

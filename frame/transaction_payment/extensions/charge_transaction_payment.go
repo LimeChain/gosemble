@@ -81,7 +81,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 			return err
 		}
 
-		ctp.systemModule.DepositEvent(transaction_payment.NewEventTransactionFeePaid(who.FixedSequence, actualFee, tip))
+		ctp.systemModule.DepositEvent(transaction_payment.NewEventTransactionFeePaid(ctp.txPaymentModule.Index, who.FixedSequence, actualFee, tip))
 	}
 	return nil
 }

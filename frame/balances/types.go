@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -60,13 +59,15 @@ func (pi positiveImbalance) Drop() {
 }
 
 type dustCleanerValue struct {
+	moduleIndex       sc.U8
 	AccountId         types.Address32
 	NegativeImbalance negativeImbalance
 	eventDepositor    types.EventDepositor
 }
 
-func newDustCleanerValue(accountId types.Address32, negativeImbalance negativeImbalance, eventDepositor types.EventDepositor) dustCleanerValue {
+func newDustCleanerValue(moduleId sc.U8, accountId types.Address32, negativeImbalance negativeImbalance, eventDepositor types.EventDepositor) dustCleanerValue {
 	return dustCleanerValue{
+		moduleIndex:       moduleId,
 		AccountId:         accountId,
 		NegativeImbalance: negativeImbalance,
 		eventDepositor:    eventDepositor,
@@ -83,6 +84,6 @@ func (dcv dustCleanerValue) Bytes() []byte {
 }
 
 func (dcv dustCleanerValue) Drop() {
-	dcv.eventDepositor.DepositEvent(events.NewEventDustLost(dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
+	dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
 	dcv.NegativeImbalance.Drop()
 }

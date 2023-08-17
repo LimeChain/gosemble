@@ -47,6 +47,10 @@ func New(index sc.U8, config *Config) Module {
 	}
 }
 
+func (m Module) name() sc.Str {
+	return "System"
+}
+
 func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
@@ -121,9 +125,9 @@ func (m Module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(m.Storage.BlockNumber.Get())) + "): {}")
-		m.DepositEvent(NewEventExtrinsicFailed(r.Err.Error, info))
+		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
 	} else {
-		m.DepositEvent(NewEventExtrinsicSuccess(info))
+		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
 
 	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get() + sc.U32(1)
@@ -370,11 +374,11 @@ func (m Module) depositEventIndexed(topics []primitives.H256, event primitives.E
 func (m Module) onCreatedAccount(who primitives.Address32) {
 	// hook on creating new account, currently not used in Substrate
 	//T::OnNewAccount::on_new_account(&who);
-	m.DepositEvent(NewEventNewAccount(who.FixedSequence))
+	m.DepositEvent(newEventNewAccount(m.Index, who.FixedSequence))
 }
 
 func (m Module) onKilledAccount(who primitives.Address32) {
-	m.DepositEvent(NewEventKilledAccount(who.FixedSequence))
+	m.DepositEvent(newEventKilledAccount(m.Index, who.FixedSequence))
 }
 
 // TODO: Check difference with TryMutateExists
@@ -392,9 +396,9 @@ func (m Module) AccountTryMutateExists(who primitives.Address32, f func(who *pri
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	metadataModule := primitives.MetadataModule{
-		Name: "System",
+		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: "System",
+			Prefix: m.name(),
 			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
 				primitives.NewMetadataModuleStorageEntry(
 					"Account",
@@ -486,8 +490,9 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 					"The execution phase of the block."),
 			},
 		}),
-		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
+		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
+		EventPath: "frame_system::Event<Runtime>",
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"BlockWeights",

@@ -32,6 +32,10 @@ func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
 
+func (m Module) name() sc.Str {
+	return "Testable"
+}
+
 func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
@@ -46,7 +50,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name:      "Testable",
+		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
 		Event:     sc.NewOption[sc.Compact](nil),

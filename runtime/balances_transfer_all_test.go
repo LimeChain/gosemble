@@ -9,7 +9,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
@@ -178,7 +177,7 @@ func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 			primitives.NewDispatchOutcome(
 				primitives.NewDispatchErrorModule(
 					primitives.CustomModuleError{
-						Index: balances.ModuleIndex,
+						Index: BalancesIndex,
 						Error: sc.U32(errors.ErrorKeepAlive),
 					})))
 

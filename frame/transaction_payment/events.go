@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -14,13 +13,13 @@ const (
 	EventTransactionFeePaid sc.U8 = iota
 )
 
-func NewEventTransactionFeePaid(account types.PublicKey, actualFee types.Balance, tip types.Balance) types.Event {
-	return types.NewEvent(transaction_payment.ModuleIndex, EventTransactionFeePaid, account, actualFee, tip)
+func NewEventTransactionFeePaid(moduleIndex sc.U8, account types.PublicKey, actualFee types.Balance, tip types.Balance) types.Event {
+	return types.NewEvent(moduleIndex, EventTransactionFeePaid, account, actualFee, tip)
 }
 
-func DecodeEvent(buffer *bytes.Buffer) types.Event {
-	module := sc.DecodeU8(buffer)
-	if module != transaction_payment.ModuleIndex {
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
+	decodedModuleIndex := sc.DecodeU8(buffer)
+	if decodedModuleIndex != moduleIndex {
 		log.Critical("invalid transaction_payment.Event module")
 	}
 
@@ -31,7 +30,7 @@ func DecodeEvent(buffer *bytes.Buffer) types.Event {
 		account := types.DecodePublicKey(buffer)
 		actualFee := sc.DecodeU128(buffer)
 		tip := sc.DecodeU128(buffer)
-		return NewEventTransactionFeePaid(account, actualFee, tip)
+		return NewEventTransactionFeePaid(moduleIndex, account, actualFee, tip)
 	default:
 		log.Critical("invalid transaction_payment.Event type")
 	}

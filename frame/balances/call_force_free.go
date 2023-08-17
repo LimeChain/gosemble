@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -159,7 +158,7 @@ func (c forceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
 		return value
 	}
 
-	c.storedMap.DepositEvent(events.NewEventUnreserved(who.FixedSequence, actual))
+	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
 	return new(big.Int).Sub(value, actual.ToBigInt())
 }

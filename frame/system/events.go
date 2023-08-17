@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -19,33 +18,33 @@ const (
 	EventRemarked
 )
 
-func NewEventExtrinsicSuccess(dispatchInfo types.DispatchInfo) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventExtrinsicSuccess, dispatchInfo)
+func newEventExtrinsicSuccess(moduleIndex sc.U8, dispatchInfo types.DispatchInfo) types.Event {
+	return types.NewEvent(moduleIndex, EventExtrinsicSuccess, dispatchInfo)
 }
 
-func NewEventExtrinsicFailed(dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventExtrinsicFailed, dispatchError, dispatchInfo)
+func newEventExtrinsicFailed(moduleIndex sc.U8, dispatchError types.DispatchError, dispatchInfo types.DispatchInfo) types.Event {
+	return types.NewEvent(moduleIndex, EventExtrinsicFailed, dispatchError, dispatchInfo)
 }
 
-func NewEventCodeUpdated() types.Event {
-	return types.NewEvent(system.ModuleIndex, EventCodeUpdated)
+func newEventCodeUpdated(moduleIndex sc.U8) types.Event {
+	return types.NewEvent(moduleIndex, EventCodeUpdated)
 }
 
-func NewEventNewAccount(account types.PublicKey) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventNewAccount, account)
+func newEventNewAccount(moduleIndex sc.U8, account types.PublicKey) types.Event {
+	return types.NewEvent(moduleIndex, EventNewAccount, account)
 }
 
-func NewEventKilledAccount(account types.PublicKey) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventKilledAccount, account)
+func newEventKilledAccount(moduleIndex sc.U8, account types.PublicKey) types.Event {
+	return types.NewEvent(moduleIndex, EventKilledAccount, account)
 }
 
-func NewEventRemarked(sender types.PublicKey, hash types.H256) types.Event {
-	return types.NewEvent(system.ModuleIndex, EventRemarked, sender, hash)
+func newEventRemarked(moduleIndex sc.U8, sender types.PublicKey, hash types.H256) types.Event {
+	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
 }
 
-func DecodeEvent(buffer *bytes.Buffer) types.Event {
-	moduleIndex := sc.DecodeU8(buffer)
-	if moduleIndex != system.ModuleIndex {
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
+	decodedModuleIndex := sc.DecodeU8(buffer)
+	if decodedModuleIndex != moduleIndex {
 		log.Critical("invalid system.Event")
 	}
 
@@ -54,23 +53,23 @@ func DecodeEvent(buffer *bytes.Buffer) types.Event {
 	switch b {
 	case EventExtrinsicSuccess:
 		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return NewEventExtrinsicSuccess(dispatchInfo)
+		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo)
 	case EventExtrinsicFailed:
 		dispatchErr := types.DecodeDispatchError(buffer)
 		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return NewEventExtrinsicFailed(dispatchErr, dispatchInfo)
+		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo)
 	case EventCodeUpdated:
-		return NewEventCodeUpdated()
+		return newEventCodeUpdated(moduleIndex)
 	case EventNewAccount:
 		account := types.DecodePublicKey(buffer)
-		return NewEventNewAccount(account)
+		return newEventNewAccount(moduleIndex, account)
 	case EventKilledAccount:
 		account := types.DecodePublicKey(buffer)
-		return NewEventKilledAccount(account)
+		return newEventKilledAccount(moduleIndex, account)
 	case EventRemarked:
 		account := types.DecodePublicKey(buffer)
 		hash := types.DecodeH256(buffer)
-		return NewEventRemarked(account, hash)
+		return newEventRemarked(moduleIndex, account, hash)
 	default:
 		log.Critical("invalid system.Event type")
 	}
