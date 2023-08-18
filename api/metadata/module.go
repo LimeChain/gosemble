@@ -535,7 +535,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 
 func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-
+		m.runtimeEvent(),
 		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString), // spec_name
@@ -574,7 +574,6 @@ func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 			},
 		),
 		m.runtimeCall(),
-		m.runtimeEvent(),
 		primitives.NewMetadataType(metadata.Runtime, "Runtime", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
 	}
@@ -595,7 +594,7 @@ func (m Module[N]) runtimeCall() primitives.MetadataType {
 			metadataVariantType := primitives.NewMetadataDefinitionVariant(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), sc.Str(idName+name+">Runtime")),
+					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), sc.Str(idName+name+", Runtime>")),
 				},
 				metadataModule.Index,
 				"Call."+name)
