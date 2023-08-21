@@ -395,137 +395,31 @@ func (m Module[N]) AccountTryMutateExists(who primitives.Address32, f func(who *
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	metadataModule := primitives.MetadataModule{
-		Name: m.name(),
-		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: m.name(),
-			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-				primitives.NewMetadataModuleStorageEntry(
-					"Account",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionMap(
-						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
-						sc.ToCompact(metadata.TypesAddress32),
-						sc.ToCompact(metadata.TypesAccountInfo)),
-					"The full account information for a particular account ID."),
-				primitives.NewMetadataModuleStorageEntry(
-					"ExtrinsicCount",
-					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.PrimitiveTypesU32)),
-					"Total extrinsics count for the current block."),
-				primitives.NewMetadataModuleStorageEntry(
-					"BlockWeight",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.TypesPerDispatchClassWeight)),
-					"The current weight for the block."),
-				primitives.NewMetadataModuleStorageEntry(
-					"AllExtrinsicsLen",
-					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.PrimitiveTypesU32)),
-					"Total length (in bytes) for all extrinsics put together, for the current block."),
-				primitives.NewMetadataModuleStorageEntry(
-					"BlockHash",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionMap(
-						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
-						sc.ToCompact(metadata.PrimitiveTypesU32),
-						sc.ToCompact(metadata.TypesFixedSequence32U8)),
-					"Map of block numbers to block hashes."),
-				primitives.NewMetadataModuleStorageEntry(
-					"ExtrinsicData",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionMap(
-						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
-						sc.ToCompact(metadata.PrimitiveTypesU32),
-						sc.ToCompact(metadata.TypesSequenceU8)),
-					"Extrinsics data for the current block (maps an extrinsic's index to its data)."),
-				primitives.NewMetadataModuleStorageEntry(
-					"Number",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.PrimitiveTypesU32)),
-					"The current block number being processed. Set by `execute_block`."),
-				primitives.NewMetadataModuleStorageEntry(
-					"ParentHash",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.TypesFixedSequence32U8)),
-					"Hash of the previous block."),
-				primitives.NewMetadataModuleStorageEntry(
-					"Digest",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.TypesDigest)),
-					"Digest of the current block, also part of the block header."),
-				primitives.NewMetadataModuleStorageEntry(
-					"Events",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesSystemEventStorage)),
-					"Events deposited for the current block.   NOTE: The item is unbound and should therefore never be read on chain."),
-				primitives.NewMetadataModuleStorageEntry(
-					"EventTopics",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionMap(
-						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
-						sc.ToCompact(metadata.TypesH256),
-						sc.ToCompact(metadata.TypesVecBlockNumEventIndex)), "Mapping between a topic (represented by T::Hash) and a vector of indexes  of events in the `<Events<T>>` list."),
-				primitives.NewMetadataModuleStorageEntry(
-					"EventCount",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-						sc.ToCompact(metadata.PrimitiveTypesU32)),
-					"The number of events in the `Events<T>` list."),
-				primitives.NewMetadataModuleStorageEntry(
-					"LastRuntimeUpgrade",
-					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesLastRuntimeUpgradeInfo)),
-					"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
-				primitives.NewMetadataModuleStorageEntry(
-					"ExecutionPhase",
-					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesPhase)),
-					"The execution phase of the block."),
-			},
-		}),
-		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
-		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
-		EventPath: "frame_system::Event<Runtime>",
-		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
-			primitives.NewMetadataModuleConstant(
-				"BlockWeights",
-				sc.ToCompact(metadata.TypesBlockWeights),
-				sc.BytesToSequenceU8(m.Constants.BlockWeights.Bytes()),
-				"Block & extrinsics weights: base values and limits.",
-			),
-			primitives.NewMetadataModuleConstant(
-				"BlockLength",
-				sc.ToCompact(metadata.TypesBlockLength),
-				sc.BytesToSequenceU8(m.Constants.BlockLength.Bytes()),
-				"The maximum length of a block (in bytes).",
-			),
-			primitives.NewMetadataModuleConstant(
-				"BlockHashCount",
-				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(m.Constants.BlockHashCount.Bytes()),
-				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
-			),
-			primitives.NewMetadataModuleConstant(
-				"DbWeight",
-				sc.ToCompact(metadata.TypesDbWeight),
-				sc.BytesToSequenceU8(constants.DbWeight.Bytes()),
-				"The weight of runtime database operations the runtime can invoke.",
-			),
-			primitives.NewMetadataModuleConstant(
-				"Version",
-				sc.ToCompact(metadata.TypesRuntimeVersion),
-				sc.BytesToSequenceU8(m.Constants.Version.Bytes()),
-				"Get the chain's current version.",
-			),
-		},
-		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
-		Index: m.Index,
+		Name:    m.name(),
+		Storage: m.metadataStorage(),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
+				},
+				m.Index,
+				"Call.System"),
+		),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
+		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSystemEvent, "frame_system::Event<Runtime>"),
+				},
+				m.Index,
+				"Events.System"),
+		),
+		Constants: m.metadataConstants(),
+		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		Index:     m.Index,
 	}
 
 	return m.metadataTypes(), metadataModule
@@ -728,21 +622,137 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				}),
 			primitives.NewMetadataEmptyTypeParameter("T")),
 
-		primitives.NewMetadataTypeWithPath(metadata.CheckNonZeroSender, "CheckNonZeroSender", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataTypeWithPath(metadata.CheckSpecVersion, "CheckSpecVersion", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataTypeWithPath(metadata.CheckTxVersion, "CheckTxVersion", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataTypeWithPath(metadata.CheckGenesis, "CheckGenesis", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-		primitives.NewMetadataTypeWithPath(metadata.CheckMortality, "CheckMortality", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era")})),
-		primitives.NewMetadataTypeWithPath(metadata.CheckNonce, "CheckNonce", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"}, primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		primitives.NewMetadataTypeWithPath(metadata.CheckWeight, "CheckWeight", sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
-
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
+	}
+}
+
+func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+		Prefix: m.name(),
+		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+			primitives.NewMetadataModuleStorageEntry(
+				"Account",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionMap(
+					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+					sc.ToCompact(metadata.TypesAddress32),
+					sc.ToCompact(metadata.TypesAccountInfo)),
+				"The full account information for a particular account ID."),
+			primitives.NewMetadataModuleStorageEntry(
+				"ExtrinsicCount",
+				primitives.MetadataModuleStorageEntryModifierOptional,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.PrimitiveTypesU32)),
+				"Total extrinsics count for the current block."),
+			primitives.NewMetadataModuleStorageEntry(
+				"BlockWeight",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.TypesPerDispatchClassWeight)),
+				"The current weight for the block."),
+			primitives.NewMetadataModuleStorageEntry(
+				"AllExtrinsicsLen",
+				primitives.MetadataModuleStorageEntryModifierOptional,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.PrimitiveTypesU32)),
+				"Total length (in bytes) for all extrinsics put together, for the current block."),
+			primitives.NewMetadataModuleStorageEntry(
+				"BlockHash",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionMap(
+					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
+					sc.ToCompact(metadata.PrimitiveTypesU32),
+					sc.ToCompact(metadata.TypesFixedSequence32U8)),
+				"Map of block numbers to block hashes."),
+			primitives.NewMetadataModuleStorageEntry(
+				"ExtrinsicData",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionMap(
+					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
+					sc.ToCompact(metadata.PrimitiveTypesU32),
+					sc.ToCompact(metadata.TypesSequenceU8)),
+				"Extrinsics data for the current block (maps an extrinsic's index to its data)."),
+			primitives.NewMetadataModuleStorageEntry(
+				"Number",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.PrimitiveTypesU32)),
+				"The current block number being processed. Set by `execute_block`."),
+			primitives.NewMetadataModuleStorageEntry(
+				"ParentHash",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.TypesFixedSequence32U8)),
+				"Hash of the previous block."),
+			primitives.NewMetadataModuleStorageEntry(
+				"Digest",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.TypesDigest)),
+				"Digest of the current block, also part of the block header."),
+			primitives.NewMetadataModuleStorageEntry(
+				"Events",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesSystemEventStorage)),
+				"Events deposited for the current block.   NOTE: The item is unbound and should therefore never be read on chain."),
+			primitives.NewMetadataModuleStorageEntry(
+				"EventTopics",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionMap(
+					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+					sc.ToCompact(metadata.TypesH256),
+					sc.ToCompact(metadata.TypesVecBlockNumEventIndex)), "Mapping between a topic (represented by T::Hash) and a vector of indexes  of events in the `<Events<T>>` list."),
+			primitives.NewMetadataModuleStorageEntry(
+				"EventCount",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+					sc.ToCompact(metadata.PrimitiveTypesU32)),
+				"The number of events in the `Events<T>` list."),
+			primitives.NewMetadataModuleStorageEntry(
+				"LastRuntimeUpgrade",
+				primitives.MetadataModuleStorageEntryModifierOptional,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesLastRuntimeUpgradeInfo)),
+				"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
+			primitives.NewMetadataModuleStorageEntry(
+				"ExecutionPhase",
+				primitives.MetadataModuleStorageEntryModifierOptional,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesPhase)),
+				"The execution phase of the block."),
+		},
+	})
+}
+
+func (m Module[N]) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
+	return sc.Sequence[primitives.MetadataModuleConstant]{
+		primitives.NewMetadataModuleConstant(
+			"BlockWeights",
+			sc.ToCompact(metadata.TypesBlockWeights),
+			sc.BytesToSequenceU8(m.Constants.BlockWeights.Bytes()),
+			"Block & extrinsics weights: base values and limits.",
+		),
+		primitives.NewMetadataModuleConstant(
+			"BlockLength",
+			sc.ToCompact(metadata.TypesBlockLength),
+			sc.BytesToSequenceU8(m.Constants.BlockLength.Bytes()),
+			"The maximum length of a block (in bytes).",
+		),
+		primitives.NewMetadataModuleConstant(
+			"BlockHashCount",
+			sc.ToCompact(metadata.PrimitiveTypesU32),
+			sc.BytesToSequenceU8(m.Constants.BlockHashCount.Bytes()),
+			"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
+		),
+		primitives.NewMetadataModuleConstant(
+			"DbWeight",
+			sc.ToCompact(metadata.TypesDbWeight),
+			sc.BytesToSequenceU8(constants.DbWeight.Bytes()),
+			"The weight of runtime database operations the runtime can invoke.",
+		),
+		primitives.NewMetadataModuleConstant(
+			"Version",
+			sc.ToCompact(metadata.TypesRuntimeVersion),
+			sc.BytesToSequenceU8(m.Constants.Version.Bytes()),
+			"Get the chain's current version.",
+		),
 	}
 }

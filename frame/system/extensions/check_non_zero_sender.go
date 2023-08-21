@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -56,4 +57,14 @@ func (c CheckNonZeroAddress) PreDispatchUnsigned(call *primitives.Call, info *pr
 
 func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
+}
+
+func (c CheckNonZeroAddress) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithPath(
+			metadata.CheckNonZeroSender,
+			"CheckNonZeroSender",
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+		),
+		primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple)
 }

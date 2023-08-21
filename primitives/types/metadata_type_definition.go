@@ -142,8 +142,12 @@ type MetadataDefinitionVariant struct {
 }
 
 func NewMetadataDefinitionVariant(name string, fields sc.Sequence[MetadataTypeDefinitionField], index sc.U8, docs string) MetadataDefinitionVariant {
+	return NewMetadataDefinitionVariantStr(sc.Str(name), fields, index, docs)
+}
+
+func NewMetadataDefinitionVariantStr(name sc.Str, fields sc.Sequence[MetadataTypeDefinitionField], index sc.U8, docs string) MetadataDefinitionVariant {
 	return MetadataDefinitionVariant{
-		Name:   sc.Str(name),
+		Name:   name,
 		Fields: fields,
 		Index:  index,
 		Docs:   sc.Sequence[sc.Str]{sc.Str(docs)},

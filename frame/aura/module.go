@@ -117,24 +117,12 @@ func (m Module[N]) OnTimestampSet(now sc.U64) {
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: m.name(),
-		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: m.name(),
-			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-				primitives.NewMetadataModuleStorageEntry(
-					"Authorities",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraStorageAuthorities)),
-					"The current authority set."),
-				primitives.NewMetadataModuleStorageEntry(
-					"CurrentSlot",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraSlot)),
-					"The current slot of this block.   This will be set in `on_initialize`."),
-			},
-		}),
+		Name:      m.name(),
+		Storage:   m.metadataStorage(),
 		Call:      sc.NewOption[sc.Compact](nil),
+		CallDef:   sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Event:     sc.NewOption[sc.Compact](nil),
+		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
@@ -179,6 +167,24 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
 				})),
 	}
+}
+
+func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+		Prefix: m.name(),
+		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+			primitives.NewMetadataModuleStorageEntry(
+				"Authorities",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraStorageAuthorities)),
+				"The current authority set."),
+			primitives.NewMetadataModuleStorageEntry(
+				"CurrentSlot",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraSlot)),
+				"The current slot of this block.   This will be set in `on_initialize`."),
+		},
+	})
 }
 
 func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {

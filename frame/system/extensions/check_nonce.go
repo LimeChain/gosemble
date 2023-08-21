@@ -5,6 +5,7 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -93,4 +94,14 @@ func (cn CheckNonce[N]) PreDispatchUnsigned(call *primitives.Call, info *primiti
 
 func (cn CheckNonce[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
+}
+
+func (cn CheckNonce[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithPath(
+			metadata.CheckNonce,
+			"CheckNonce",
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"},
+			primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32)),
+		),
+		primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple)
 }

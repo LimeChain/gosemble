@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 // SignedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
@@ -120,4 +121,22 @@ func (e SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	}
 
 	return nil
+}
+
+func (e SignedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
+	ids := sc.Sequence[sc.Compact]{}
+	extraTypes := sc.Sequence[MetadataType]{}
+	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
+
+	for _, extra := range e.extras {
+		metadataType, extension := extra.Metadata()
+
+		ids = append(ids, metadataType.Id)
+		extraTypes = append(extraTypes, metadataType)
+		signedExtensions = append(signedExtensions, extension)
+	}
+
+	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
+
+	return append(extraTypes, signedExtraType), signedExtensions
 }

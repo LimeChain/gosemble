@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -195,4 +196,14 @@ func (cw CheckWeight[N]) calculateConsumedWeight(maximumWeight system.BlockWeigh
 	}
 
 	return allConsumedWeight, nil
+}
+
+func (cw CheckWeight[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithPath(
+			metadata.CheckWeight,
+			"CheckWeight",
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+		),
+		primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
 }
