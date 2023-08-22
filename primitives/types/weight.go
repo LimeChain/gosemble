@@ -25,17 +25,17 @@ func (dbw RuntimeDbWeight) Bytes() []byte {
 }
 
 func (dbw RuntimeDbWeight) Reads(r sc.U64) Weight {
-	return WeightFromParts(dbw.Read.SaturatingMul(r), 0)
+	return WeightFromParts(dbw.Read.SaturatingMul(r).(sc.U64), 0)
 }
 
 func (dbw RuntimeDbWeight) Writes(w sc.U64) Weight {
-	return WeightFromParts(dbw.Write.SaturatingMul(w), 0)
+	return WeightFromParts(dbw.Write.SaturatingMul(w).(sc.U64), 0)
 }
 
 func (dbw RuntimeDbWeight) ReadsWrites(r, w sc.U64) Weight {
 	readWeight := dbw.Read.SaturatingMul(r)
 	writeWeight := dbw.Write.SaturatingMul(w)
-	return WeightFromParts(readWeight.SaturatingAdd(writeWeight), 0)
+	return WeightFromParts(readWeight.SaturatingAdd(writeWeight).(sc.U64), 0)
 }
 
 type Weight struct {
@@ -74,8 +74,8 @@ func (w Weight) Add(rhs Weight) Weight {
 
 func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime),
-		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize).(sc.U64),
 	}
 }
 
@@ -83,8 +83,8 @@ func (w Weight) SaturatingAdd(rhs Weight) Weight {
 // of all fields instead of overflowing.
 func (w Weight) SaturatingSub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime),
-		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize).(sc.U64),
 	}
 }
 
@@ -129,24 +129,24 @@ func (w Weight) Mul(b sc.U64) Weight {
 
 func (w Weight) SaturatingMul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingMul(b),
-		ProofSize: w.ProofSize.SaturatingMul(b),
+		RefTime:   w.RefTime.SaturatingMul(b).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingMul(b).(sc.U64),
 	}
 }
 
 // Min Get the conservative min of `self` and `other` weight.
 func (w Weight) Min(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Min(rhs.RefTime),
-		ProofSize: w.ProofSize.Min(rhs.ProofSize),
+		RefTime:   w.RefTime.Min(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Min(rhs.ProofSize).(sc.U64),
 	}
 }
 
 // Max Get the aggressive max of `self` and `other` weight.
 func (w Weight) Max(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Max(rhs.RefTime),
-		ProofSize: w.ProofSize.Max(rhs.ProofSize),
+		RefTime:   w.RefTime.Max(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Max(rhs.ProofSize).(sc.U64),
 	}
 }
 

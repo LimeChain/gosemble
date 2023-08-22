@@ -197,5 +197,5 @@ func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {
 }
 
 func (m Module[N]) SlotDuration() sc.U64 {
-	return m.Constants.MinimumPeriod.Mul(2)
+	return m.Constants.MinimumPeriod.Mul(sc.U64(2)).(sc.U64)
 }

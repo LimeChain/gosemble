@@ -174,8 +174,8 @@ func (cw ConsumedWeight) Total() Weight {
 // SaturatingAdd Increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
 	weightForClass := cw.Get(class)
-	weightForClass.RefTime = weightForClass.RefTime.SaturatingAdd(weight.RefTime)
-	weightForClass.ProofSize = weightForClass.ProofSize.SaturatingAdd(weight.ProofSize)
+	weightForClass.RefTime = weightForClass.RefTime.SaturatingAdd(weight.RefTime).(sc.U64)
+	weightForClass.ProofSize = weightForClass.ProofSize.SaturatingAdd(weight.ProofSize).(sc.U64)
 }
 
 // Accrue Increase the weight of the given class. Saturates at the numeric bounds.

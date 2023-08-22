@@ -152,7 +152,7 @@ func getInstance[T types.Module[BlockNumberType]]() T {
 func newExecutiveModule() executive.Module[BlockNumberType] {
 	return executive.New[BlockNumberType](
 		getInstance[system.Module[BlockNumberType]](),
-		extrinsic.New(modules),
+		extrinsic.New[BlockNumberType](modules),
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
 }

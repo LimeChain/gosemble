@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"math"
 	"reflect"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -69,7 +68,7 @@ func (m Module[N]) Initialize(blockNumber N, parentHash primitives.Blake2bHash, 
 	m.Storage.BlockNumber.Put(blockNumber)
 	m.Storage.Digest.Put(digest)
 	m.Storage.ParentHash.Put(parentHash)
-	m.Storage.BlockHash.Put(N(blockNumber-1), parentHash)
+	m.Storage.BlockHash.Put(blockNumber.Sub(sc.NewNumeric[N](uint8(1))).(N), parentHash)
 	m.Storage.BlockWeight.Clear()
 }
 
@@ -119,7 +118,7 @@ func (m Module[N]) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(m.Storage.BlockNumber.Get())) + "): {}")
+		// log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(m.Storage.BlockNumber.Get())) + "): {}")
 		m.DepositEvent(NewEventExtrinsicFailed(r.Err.Error, info))
 	} else {
 		m.DepositEvent(NewEventExtrinsicSuccess(info))
@@ -158,13 +157,15 @@ func (m Module[N]) Finalize() primitives.Header[N] {
 	buf.Reset()
 
 	// saturating_sub
-	toRemove := blockNumber - N(m.Constants.BlockHashCount-1)
-	if toRemove > blockNumber {
-		toRemove = 0
+	v := sc.NewNumeric[N](uint32(m.Constants.BlockHashCount)).Sub(sc.NewNumeric[N](uint8(1)))
+	toRemove := blockNumber.Sub(v)
+
+	if toRemove.Gt(blockNumber) {
+		toRemove = sc.NewNumeric[N](uint8(0))
 	}
 
-	if toRemove != 0 {
-		m.Storage.BlockHash.Remove(N(toRemove))
+	if toRemove.Ne(sc.NewNumeric[N](uint8(0))) {
+		m.Storage.BlockHash.Remove(toRemove.(N))
 	}
 
 	storageRootBytes := storage_root.Root(int32(m.Constants.Version.StateVersion))
@@ -340,7 +341,7 @@ func (m Module[N]) decProviders(who primitives.Address32) (primitives.DecRefStat
 // NOTE: Events not registered at the genesis block and quietly omitted.
 func (m Module[N]) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
 	blockNumber := m.Storage.BlockNumber.Get()
-	if blockNumber == 0 {
+	if blockNumber.Eq(sc.NewNumeric[N](uint8(0))) {
 		return
 	}
 

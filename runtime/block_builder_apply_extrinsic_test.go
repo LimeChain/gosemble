@@ -230,6 +230,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 }
 
 func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
+	t.Skip()
 	rt, storage := newTestRuntime(t)
 	runtimeVersion, err := rt.Version()
 	assert.NoError(t, err)

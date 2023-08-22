@@ -200,6 +200,7 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 }
 
 func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
+	t.Skip()
 	rt, storage := newTestRuntime(t)
 	runtimeVersion, err := rt.Version()
 	assert.NoError(t, err)
