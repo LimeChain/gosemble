@@ -213,35 +213,36 @@ func (re RuntimeExtrinsic[N]) Metadata() (sc.Sequence[primitives.MetadataType], 
 }
 
 func (re RuntimeExtrinsic[N]) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
-	runtimeCallSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
-
-	for _, v := range variants {
-		if v.HasValue {
-			runtimeCallSubTypes = append(runtimeCallSubTypes, v.Value)
-		}
-	}
-
-	return primitives.NewMetadataTypeWithPath(
+	return re.runtimeType(
+		variants,
 		metadata.RuntimeCall,
 		"RuntimeCall",
 		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
-		primitives.NewMetadataTypeDefinitionVariant(runtimeCallSubTypes),
 	)
 }
 
 func (re RuntimeExtrinsic[N]) runtimeEvent(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
-	runtimeEventSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+	return re.runtimeType(
+		variants,
+		metadata.TypesRuntimeEvent,
+		"node_template_runtime RuntimeEvent",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
+	)
+}
+
+func (re RuntimeExtrinsic[N]) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
+	subTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
 
 	for _, v := range variants {
 		if v.HasValue {
-			runtimeEventSubTypes = append(runtimeEventSubTypes, v.Value)
+			subTypes = append(subTypes, v.Value)
 		}
 	}
 
 	return primitives.NewMetadataTypeWithPath(
-		metadata.TypesRuntimeEvent,
-		"node_template_runtime RuntimeEvent",
-		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
-		primitives.NewMetadataTypeDefinitionVariant(runtimeEventSubTypes),
+		id,
+		docs,
+		path,
+		primitives.NewMetadataTypeDefinitionVariant(subTypes),
 	)
 }
