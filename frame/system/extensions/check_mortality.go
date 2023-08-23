@@ -33,10 +33,10 @@ func (cm CheckMortality[N]) Bytes() []byte {
 
 func (cm CheckMortality[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	// TODO: impl saturated_into::<u64>()
-	current := sc.ToU64(cm.systemModule.Storage.BlockNumber.Get())
+	current := sc.To[sc.U64](cm.systemModule.Storage.BlockNumber.Get())
 
 	// TODO: impl saturated_into::<T::BlockNumber>()
-	n := sc.NewNumeric[N](uint32(cm.era.Birth(current)))
+	n := sc.NewNumeric[N](sc.U32(cm.era.Birth(current)))
 
 	if !cm.systemModule.Storage.BlockHash.Exists(n) {
 		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
@@ -47,7 +47,7 @@ func (cm CheckMortality[N]) AdditionalSigned() (primitives.AdditionalSigned, pri
 }
 
 func (cm CheckMortality[N]) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentU64 := sc.ToU64(cm.systemModule.Storage.BlockNumber.Get()) // TODO: per module implementation
+	currentU64 := sc.To[sc.U64](cm.systemModule.Storage.BlockNumber.Get()) // TODO: per module implementation
 
 	validTill := cm.era.Death(currentU64)
 

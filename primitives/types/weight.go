@@ -110,7 +110,7 @@ func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
 		return sc.NewOption[Weight](nil)
 	}
 
-	return sc.NewOption[Weight](Weight{refTime, proofSize})
+	return sc.NewOption[Weight](Weight{refTime.(sc.U64), proofSize.(sc.U64)})
 }
 
 func (w Weight) Sub(rhs Weight) Weight {

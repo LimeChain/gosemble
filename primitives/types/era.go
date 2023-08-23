@@ -67,7 +67,7 @@ func (e Era) Encode(buffer *bytes.Buffer) {
 	}
 
 	quantizeFactor := (e.EraPeriod >> 12).Max(sc.U64(1))
-	encoded := sc.ToU16(e.EraPeriod.TrailingZeros().Sub(sc.U64(1))).Clamp(sc.U16(1), sc.U16(15)).(sc.U16) | sc.U16((e.EraPhase.Div(quantizeFactor).(sc.U64))<<4)
+	encoded := sc.To[sc.U16](e.EraPeriod.TrailingZeros().Sub(sc.U64(1))).Clamp(sc.U16(1), sc.U16(15)).(sc.U16) | sc.U16((e.EraPhase.Div(quantizeFactor).(sc.U64))<<4)
 	buffer.Write(encoded.Bytes())
 }
 
@@ -104,7 +104,7 @@ func (e Era) Birth(current sc.U64) sc.U64 {
 	} else {
 		period := e.EraPeriod
 		phase := e.EraPhase
-		return (current.Max(phase).Sub(phase)).Div(period.Mul(period)).Add(phase).(sc.U64)
+		return (((current.Max(phase).Sub(phase)).Div(period)).Mul(period)).Add(phase).(sc.U64)
 	}
 }
 

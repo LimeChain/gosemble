@@ -191,13 +191,13 @@ func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok 
 	if err != nil {
 		return ok, err
 	}
-	weightForClass.RefTime = refTime
+	weightForClass.RefTime = refTime.(sc.U64)
 
 	proofSize, err := weightForClass.ProofSize.CheckedAdd(weight.ProofSize)
 	if err != nil {
 		return ok, err
 	}
-	weightForClass.ProofSize = proofSize
+	weightForClass.ProofSize = proofSize.(sc.U64)
 
 	return ok, err
 }
