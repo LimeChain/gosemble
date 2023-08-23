@@ -90,14 +90,5 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
 	err := xt.Extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
-	dispatchResultWithPostInfo := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
-	// TODO: err should be checked, not resWithInfo again
-	if resWithInfo.HasError {
-		dispatchResultWithPostInfo.HasError = true
-		dispatchResultWithPostInfo.Err = resWithInfo.Err
-	} else {
-		dispatchResultWithPostInfo.Ok = resWithInfo.Ok
-	}
-
-	return dispatchResultWithPostInfo, err
+	return resWithInfo, err
 }
