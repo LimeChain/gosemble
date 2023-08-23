@@ -117,7 +117,7 @@ func (m Module[N]) NoteExtrinsic(encodedExt []byte) {
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
 func (m Module[N]) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
-	baseWeight := m.Constants.BlockWeights.Get(info.Class).BaseExtrinsic // TODO: convert to be a const from module
+	baseWeight := m.Constants.BlockWeights.Get(info.Class).BaseExtrinsic
 	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
