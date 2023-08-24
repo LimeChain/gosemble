@@ -13,7 +13,6 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -81,16 +80,6 @@ func runtimeMetadata(t *testing.T, instance *wazero_runtime.Instance) *ctypes.Me
 	assert.NoError(t, err)
 
 	return metadata
-}
-
-func setBlockNumber(t *testing.T, storage *runtime.Storage, blockNumber sc.U64) {
-	blockNumberBytes, err := scale.Marshal(uint64(blockNumber))
-	assert.NoError(t, err)
-
-	systemHash := hashing.Twox128(constants.KeySystem)
-	numberHash := hashing.Twox128(constants.KeyNumber)
-	err = (*storage).Put(append(systemHash, numberHash...), blockNumberBytes)
-	assert.NoError(t, err)
 }
 
 func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {

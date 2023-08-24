@@ -32,11 +32,8 @@ func (cm CheckMortality[N]) Bytes() []byte {
 }
 
 func (cm CheckMortality[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	// TODO: impl saturated_into::<u64>()
-	current := sc.To[sc.U64](cm.systemModule.Storage.BlockNumber.Get())
-
-	// TODO: impl saturated_into::<T::BlockNumber>()
-	n := sc.NewNumeric[N](sc.U32(cm.era.Birth(current)))
+	current := sc.To[sc.U64](cm.systemModule.Storage.BlockNumber.Get()) // TODO: impl saturated_into::<u64>()
+	n := sc.NewNumeric[N](sc.U32(cm.era.Birth(current)))                // TODO: impl saturated_into::<T::BlockNumber>()
 
 	if !cm.systemModule.Storage.BlockHash.Exists(n) {
 		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())

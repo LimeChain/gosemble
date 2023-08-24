@@ -87,7 +87,7 @@ const (
 	TestableIndex = 255
 )
 
-type BlockNumberType = sc.U32
+type BlockNumberType = sc.U128
 
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()

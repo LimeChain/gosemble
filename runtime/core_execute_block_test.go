@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"math/big"
 	"testing"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 
 var (
 	dateTime    = time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
-	storageRoot = common.MustHexToHash("0xf2995719db9a5b3e992419673ece3c244c002c54c4a967a503f7961c282d1789") // Depends on date
+	storageRoot = common.MustHexToHash("0xd7c45ad97556321e94eb91710f9363ae56a723c66e708604f754596f787a99a2") // Depends on date
 )
 
 func Test_BlockExecution(t *testing.T) {
@@ -70,7 +71,10 @@ func Test_BlockExecution(t *testing.T) {
 	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	encBlockNumber, _ := scale.Marshal(BlockNumberType(blockNumber))
+	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
+	assert.NoError(t, err)
+	encBlockNumber, err := scale.Marshal(bn)
+	assert.NoError(t, err)
 	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
 	encExpectedDigest, err := scale.Marshal(expectedStorageDigest)
@@ -80,7 +84,10 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	encPrevBlock, _ := scale.Marshal(BlockNumberType(blockNumber - 1))
+	bn, err = scale.NewUint128(big.NewInt(int64(blockNumber - 1)))
+	assert.NoError(t, err)
+	encPrevBlock, err := scale.Marshal(bn)
+	assert.NoError(t, err)
 	numHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
 
@@ -199,7 +206,10 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
-	encBlockNumber, _ := scale.Marshal(BlockNumberType(blockNumber))
+	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
+	assert.NoError(t, err)
+	encBlockNumber, err := scale.Marshal(bn)
+	assert.NoError(t, err)
 
 	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
 

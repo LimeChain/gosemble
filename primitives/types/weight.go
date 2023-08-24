@@ -67,8 +67,8 @@ func (w Weight) Bytes() []byte {
 
 func (w Weight) Add(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime + rhs.RefTime,
-		ProofSize: w.ProofSize + rhs.ProofSize,
+		RefTime:   w.RefTime.Add(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Add(rhs.ProofSize).(sc.U64),
 	}
 }
 
@@ -115,15 +115,15 @@ func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
 
 func (w Weight) Sub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime - rhs.RefTime,
-		ProofSize: w.ProofSize - rhs.ProofSize,
+		RefTime:   w.RefTime.Sub(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Sub(rhs.ProofSize).(sc.U64),
 	}
 }
 
 func (w Weight) Mul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime * b,
-		ProofSize: w.ProofSize * b,
+		RefTime:   w.RefTime.Mul(b).(sc.U64),
+		ProofSize: w.ProofSize.Mul(b).(sc.U64),
 	}
 }
 
@@ -153,13 +153,13 @@ func (w Weight) Max(rhs Weight) Weight {
 // AllGt Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AllGt(rhs Weight) sc.Bool {
-	return w.RefTime > rhs.RefTime && w.ProofSize > rhs.ProofSize
+	return sc.Bool(w.RefTime.Gt(rhs.RefTime) && w.ProofSize.Gt(rhs.ProofSize))
 }
 
 // AnyGt Returns true if any of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AnyGt(otherW Weight) sc.Bool {
-	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
+	return sc.Bool(w.RefTime.Gt(otherW.RefTime) || w.ProofSize.Gt(otherW.ProofSize))
 }
 
 // Construct [`Weight`] from weight parts, namely reference time and proof size weights.

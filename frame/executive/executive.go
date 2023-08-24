@@ -53,7 +53,7 @@ func (m Module[N]) InitializeBlock(header primitives.Header[N]) {
 func (m Module[N]) ExecuteBlock(block types.Block[N]) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
-	log.Trace("execute_block " + strconv.Itoa(int(sc.NewNumeric[sc.U64](block.Header.Number))))
+	// log.Trace("execute_block " + strconv.Itoa(int(sc.NewNumeric[sc.U64](block.Header.Number))))
 
 	m.InitializeBlock(block.Header)
 

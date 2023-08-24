@@ -124,9 +124,8 @@ func (m Module[N]) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo
 		m.DepositEvent(NewEventExtrinsicSuccess(info))
 	}
 
-	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get() + sc.U32(1)
+	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get().Add(sc.U32(1)).(sc.U32)
 	m.Storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
-
 	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
 }
 
@@ -201,7 +200,7 @@ func (m Module[N]) Get(key primitives.PublicKey) primitives.AccountInfo {
 func (m Module[N]) CanDecProviders(who primitives.Address32) bool {
 	acc := m.Get(who.FixedSequence)
 
-	return acc.Consumers == 0 || acc.Providers > 1
+	return acc.Consumers.Eq(sc.U32(0)) || acc.Providers.Gt(sc.U32(1))
 }
 
 // DepositEvent deposits an event into block's event record.
@@ -271,7 +270,7 @@ func (m Module[N]) TryMutateExists(who primitives.Address32, f func(who *primiti
 
 func (m Module[N]) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	result := m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if a.Providers == 0 && a.Sufficients == 0 {
+		if a.Providers.Eq(sc.U32(0)) && a.Sufficients.Eq(sc.U32(0)) {
 			a.Providers = 1
 			m.onCreatedAccount(who)
 
@@ -281,8 +280,8 @@ func (m Module[N]) incProviders(who primitives.Address32) primitives.IncRefStatu
 			}
 		} else {
 			// saturating_add
-			newProviders := a.Providers + 1
-			if newProviders < a.Providers {
+			newProviders := a.Providers.Add(sc.U32(1)).(sc.U32)
+			if newProviders.Lt(a.Providers) {
 				newProviders = math.MaxUint32
 			}
 
@@ -304,21 +303,21 @@ func (m Module[N]) decProviders(who primitives.Address32) (primitives.DecRefStat
 			account.Providers = 1
 		}
 
-		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Eq(sc.U32(0)) && account.Sufficients.Eq(sc.U32(0)) {
 			return sc.Result[sc.Encodable]{
 				HasError: false,
 				Value:    primitives.DecRefStatusReaped,
 			}
 		}
 
-		if account.Providers == 1 && account.Consumers > 0 {
+		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Gt(sc.U32(0)) {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value:    primitives.NewDispatchErrorConsumerRemaining(),
 			}
 		}
 
-		account.Providers -= 1
+		account.Providers = account.Providers.Sub(sc.U32(1)).(sc.U32)
 		return sc.Result[sc.Encodable]{
 			HasError: false,
 			Value:    primitives.DecRefStatusExists,
@@ -352,8 +351,8 @@ func (m Module[N]) depositEventIndexed(topics []primitives.H256, event primitive
 	}
 
 	oldEventCount := m.Storage.EventCount.Get()
-	newEventCount := oldEventCount + 1 // checked_add
-	if newEventCount < oldEventCount {
+	newEventCount := oldEventCount.Add(sc.U32(1)).(sc.U32) // checked_add
+	if newEventCount.Lt(oldEventCount) {
 		return
 	}
 
