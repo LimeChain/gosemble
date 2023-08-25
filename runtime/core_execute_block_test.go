@@ -42,7 +42,7 @@ func Test_BlockExecution(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
+	slot := sc.U64(dateTime.UnixMilli()).Div(slotDuration).(sc.U64)
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,
@@ -165,7 +165,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
+	slot := sc.U64(dateTime.UnixMilli()).Div(slotDuration).(sc.U64)
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,

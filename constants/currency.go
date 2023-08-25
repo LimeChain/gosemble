@@ -1,6 +1,8 @@
 package constants
 
-import "math/big"
+import (
+	sc "github.com/LimeChain/goscale"
+)
 
 const (
 	MilliCents        = Cents / 1000
@@ -10,5 +12,5 @@ const (
 )
 
 var (
-	Zero = big.NewInt(0)
+	Zero = sc.NewU128FromUint64(0)
 )

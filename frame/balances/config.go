@@ -1,8 +1,6 @@
 package balances
 
 import (
-	"math/big"
-
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -10,11 +8,11 @@ import (
 type Config struct {
 	MaxLocks           sc.U32
 	MaxReserves        sc.U32
-	ExistentialDeposit *big.Int
+	ExistentialDeposit sc.U128
 	StoredMap          primitives.StoredMap
 }
 
-func NewConfig(maxLocks sc.U32, maxReserves sc.U32, existentialDeposit *big.Int, storedMap primitives.StoredMap) *Config {
+func NewConfig(maxLocks sc.U32, maxReserves sc.U32, existentialDeposit sc.U128, storedMap primitives.StoredMap) *Config {
 	return &Config{
 		MaxLocks:           maxLocks,
 		MaxReserves:        maxReserves,

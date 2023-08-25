@@ -1,7 +1,6 @@
 package balances
 
 import (
-	"math/big"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -74,8 +73,8 @@ func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
 // If `value` is 0, it does nothing.
 func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) (primitives.Balance, primitives.DispatchError) {
-	if value.ToBigInt().Cmp(constants.Zero) == 0 {
-		return sc.NewU128FromUint64(uint64(0)), nil
+	if value.Eq(constants.Zero) {
+		return sc.NewU128FromUint64(0), nil
 	}
 
 	result := m.tryMutateAccount(who, func(from *primitives.AccountData, isNew bool) sc.Result[sc.Encodable] {
@@ -107,14 +106,14 @@ func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
 func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
-	if value.ToBigInt().Cmp(constants.Zero) == 0 {
-		return sc.NewU128FromUint64(uint64(0)), nil
+	if value.Eq(constants.Zero) {
+		return sc.NewU128FromUint64(0), nil
 	}
 
 	result := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
 		newFromAccountFree := account.Free.Sub(value)
 
-		if newFromAccountFree.Lt(sc.NewU128FromBigInt(constants.Zero)) {
+		if newFromAccountFree.Lt(constants.Zero) {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
@@ -125,7 +124,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			}
 		}
 
-		existentialDeposit := sc.NewU128FromBigInt(m.Constants.ExistentialDeposit)
+		existentialDeposit := m.Constants.ExistentialDeposit
 		sumNewFreeReserved := newFromAccountFree.Add(account.Reserved)
 		sumFreeReserved := account.Free.Add(account.Reserved)
 
@@ -143,7 +142,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			}
 		}
 
-		err := m.ensureCanWithdraw(who, value.ToBigInt(), primitives.Reasons(reasons), newFromAccountFree.(sc.U128).ToBigInt())
+		err := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFromAccountFree.(sc.U128))
 		if err != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
@@ -169,14 +168,14 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func (m Module[N]) ensureCanWithdraw(who primitives.Address32, amount *big.Int, reasons primitives.Reasons, newBalance *big.Int) primitives.DispatchError {
-	if amount.Cmp(constants.Zero) == 0 {
+func (m Module[N]) ensureCanWithdraw(who primitives.Address32, amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
+	if amount.Eq(constants.Zero) {
 		return nil
 	}
 
 	accountInfo := m.Config.StoredMap.Get(who.FixedSequence)
 	minBalance := accountInfo.Frozen(reasons)
-	if minBalance.Gt(sc.NewU128FromBigInt(newBalance)) {
+	if minBalance.Gt(newBalance) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   m.Index,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
@@ -260,8 +259,8 @@ func (m Module[N]) tryMutateAccountWithDust(who primitives.Address32, f func(who
 func (m Module[N]) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
 	total := new.Total()
 
-	if total.Lt(sc.NewU128FromBigInt(m.Constants.ExistentialDeposit)) {
-		if total.Eq(sc.NewU128FromBigInt(constants.Zero)) {
+	if total.Lt(m.Constants.ExistentialDeposit) {
+		if total.Eq(constants.Zero) {
 			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](nil)
 		} else {
 			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](newNegativeImbalance(total))
@@ -550,7 +549,7 @@ func (m Module[N]) metadataConstants() sc.Sequence[primitives.MetadataModuleCons
 		primitives.NewMetadataModuleConstant(
 			"ExistentialDeposit",
 			sc.ToCompact(metadata.PrimitiveTypesU128),
-			sc.BytesToSequenceU8(sc.NewU128FromBigInt(m.Constants.ExistentialDeposit).Bytes()),
+			sc.BytesToSequenceU8(m.Constants.ExistentialDeposit.Bytes()),
 			"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
 		),
 		primitives.NewMetadataModuleConstant(

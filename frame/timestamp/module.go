@@ -100,7 +100,7 @@ func (m Module[N]) CheckInherent(call primitives.Call, inherent primitives.Inher
 	maxTimestampDriftMillis := sc.U64(30 * 1000)
 
 	compactTs := call.Args()[0].(sc.Compact)
-	t := sc.U64(compactTs.ToBigInt().Uint64())
+	t := sc.To[sc.U64](sc.U128(compactTs))
 
 	inherentData := inherent.Data[inherentIdentifier]
 
@@ -130,7 +130,7 @@ func (m Module[N]) InherentIdentifier() [8]byte {
 }
 
 func (m Module[N]) IsInherent(call primitives.Call) bool {
-	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
+	return call.ModuleIndex().Eq(m.Index) && call.FunctionIndex().Eq(sc.U8(functionSetIndex))
 }
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

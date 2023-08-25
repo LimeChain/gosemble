@@ -109,7 +109,7 @@ func (cw CheckWeight[N]) doPreDispatch(info *primitives.DispatchInfo, length sc.
 func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
 	lengthLimit := cw.systemModule.Constants.BlockLength
 	currentLen := cw.systemModule.Storage.AllExtrinsicsLen.Get()
-	addedLen := sc.U32(sc.U128(length).ToBigInt().Uint64())
+	addedLen := sc.To[sc.U32](sc.U128(length))
 
 	nextLen := currentLen.SaturatingAdd(addedLen)
 
@@ -128,7 +128,7 @@ func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length 
 		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 
-	return sc.U32(sc.ToCompact(nextLen).ToBigInt().Uint64()), nil
+	return nextLen.(sc.U32), nil
 }
 
 // Checks if the current extrinsic can fit into the block with respect to block weight limits.

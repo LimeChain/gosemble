@@ -2,14 +2,13 @@ package balances
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type accountMutator interface {
-	ensureCanWithdraw(who types.Address32, amount *big.Int, reasons types.Reasons, newBalance *big.Int) types.DispatchError
+	ensureCanWithdraw(who types.Address32, amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
 	tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 	tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 }
@@ -25,15 +24,13 @@ func newNegativeImbalance(balance types.Balance) negativeImbalance {
 func (ni negativeImbalance) Drop() {
 	st := newStorage() // TODO: revise
 	issuance := st.TotalIssuance.Get()
-	issuanceBn := issuance.ToBigInt()
 
-	sub := new(big.Int).Sub(issuanceBn, ni.ToBigInt())
-
-	if sub.Cmp(issuanceBn) > 0 {
-		sub = issuanceBn
+	sub := issuance.Sub(ni)
+	if sub.Gt(issuance) {
+		sub = issuance
 	}
 
-	st.TotalIssuance.Put(sc.NewU128FromBigInt(sub))
+	st.TotalIssuance.Put(sub.(sc.U128))
 }
 
 type positiveImbalance struct {
@@ -47,15 +44,13 @@ func newPositiveImbalance(balance types.Balance) positiveImbalance {
 func (pi positiveImbalance) Drop() {
 	st := newStorage() // TODO: revise
 	issuance := st.TotalIssuance.Get()
-	issuanceBn := issuance.ToBigInt()
 
-	add := new(big.Int).Add(issuanceBn, pi.ToBigInt())
-
-	if add.Cmp(issuanceBn) < 0 {
-		add = issuanceBn
+	add := issuance.Add(pi)
+	if add.Lt(issuance) {
+		add = issuance
 	}
 
-	st.TotalIssuance.Put(sc.NewU128FromBigInt(add))
+	st.TotalIssuance.Put(add.(sc.U128))
 }
 
 type dustCleanerValue struct {
