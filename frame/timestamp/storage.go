@@ -2,8 +2,13 @@ package timestamp
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/support"
+)
+
+var (
+	keyTimestamp = []byte("Timestamp")
+	keyDidUpdate = []byte("DidUpdate")
+	keyNow       = []byte("Now")
 )
 
 type storage struct {
@@ -13,7 +18,7 @@ type storage struct {
 
 func newStorage() *storage {
 	return &storage{
-		Now:       support.NewStorageValue(constants.KeyTimestamp, constants.KeyNow, sc.DecodeU64),
-		DidUpdate: support.NewStorageValue(constants.KeyTimestamp, constants.KeyDidUpdate, sc.DecodeBool),
+		Now:       support.NewStorageValue(keyTimestamp, keyNow, sc.DecodeU64),
+		DidUpdate: support.NewStorageValue(keyTimestamp, keyDidUpdate, sc.DecodeBool),
 	}
 }

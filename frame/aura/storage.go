@@ -2,8 +2,13 @@ package aura
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/support"
+)
+
+var (
+	keyAura        = []byte("Aura")
+	keyAuthorities = []byte("Authorities")
+	keyCurrentSlot = []byte("CurrentSlot")
 )
 
 type storage struct {
@@ -13,7 +18,7 @@ type storage struct {
 
 func newStorage() *storage {
 	return &storage{
-		Authorities: support.NewStorageValue(constants.KeyAura, constants.KeyAuthorities, sc.DecodeSequence[sc.U8]),
-		CurrentSlot: support.NewStorageValue(constants.KeyAura, constants.KeyCurrentSlot, sc.DecodeU64),
+		Authorities: support.NewStorageValue(keyAura, keyAuthorities, sc.DecodeSequence[sc.U8]),
+		CurrentSlot: support.NewStorageValue(keyAura, keyCurrentSlot, sc.DecodeU64),
 	}
 }

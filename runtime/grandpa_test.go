@@ -5,7 +5,6 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +39,7 @@ func Test_Grandpa_Authorities(t *testing.T) {
 		},
 	}
 
-	err := (*storage).Put(constants.KeyGrandpaAuthorities, storageAuthorityList.Bytes())
+	err := (*storage).Put([]byte(":grandpa_authorities"), storageAuthorityList.Bytes())
 	assert.NoError(t, err)
 
 	result, err := rt.Exec("GrandpaApi_grandpa_authorities", []byte{})

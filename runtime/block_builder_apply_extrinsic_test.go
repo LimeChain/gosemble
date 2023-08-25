@@ -122,7 +122,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	currentExtrinsicIndex := sc.U32(1)
-	extrinsicIndexValue := (*storage).Get(constants.KeyExtrinsicIndex)
+	extrinsicIndexValue := (*storage).Get(keyExtrinsicIndex)
 	assert.Equal(t, currentExtrinsicIndex.Bytes(), extrinsicIndexValue)
 
 	keyExtrinsicDataPrefixHash := append(keySystemHash, keyExtrinsicDataHash...)

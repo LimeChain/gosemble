@@ -58,7 +58,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
-	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(keyExtrinsicIndex))
 
 	expectedExecutionPhase := types.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
