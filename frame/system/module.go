@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math"
 	"reflect"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -118,7 +119,9 @@ func (m Module[N]) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		// log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(m.Storage.BlockNumber.Get())) + "): {}")
+		bn := m.Storage.BlockNumber.Get()
+		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(sc.To[sc.U64](bn))) + "): {}")
+
 		m.DepositEvent(NewEventExtrinsicFailed(r.Err.Error, info))
 	} else {
 		m.DepositEvent(NewEventExtrinsicSuccess(info))

@@ -47,7 +47,7 @@ func NewMortalEra(period sc.U64, current sc.U64) Era {
 	// period = period.checked_next_power_of_two().unwrap_or(1<<16).clamp(4, 1<<16)
 	phase := current % period
 	quantizeFactor := (period >> 12).Max(sc.U64(1))
-	quantizeFactor = phase.Div(quantizeFactor.Mul(quantizeFactor))
+	quantizeFactor = phase.Div(quantizeFactor).Mul(quantizeFactor)
 	return Era{
 		IsImmortal: false,
 		EraPeriod:  period,
