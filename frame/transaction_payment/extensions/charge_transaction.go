@@ -15,12 +15,12 @@ func newChargeTransaction(currencyAdapter primitives.CurrencyAdapter) chargeTran
 }
 
 func (ct chargeTransaction) WithdrawFee(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, fee primitives.Balance, tip primitives.Balance) (sc.Option[primitives.Balance], primitives.TransactionValidityError) {
-	if fee.ToBigInt().Cmp(constants.Zero) == 0 {
+	if fee.Eq(constants.Zero) {
 		return sc.NewOption[primitives.Balance](nil), nil
 	}
 
 	withdrawReasons := primitives.WithdrawReasonsTransactionPayment
-	if tip.ToBigInt().Cmp(constants.Zero) == 0 {
+	if tip.Eq(constants.Zero) {
 		withdrawReasons = primitives.WithdrawReasonsTransactionPayment
 	} else {
 		withdrawReasons = primitives.WithdrawReasonsTransactionPayment | primitives.WithdrawReasonsTip
@@ -44,8 +44,7 @@ func (ct chargeTransaction) CorrectAndDepositFee(who *primitives.Address32, corr
 			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 		}
 
-		comparison := alreadyPaidNegativeImbalance.ToBigInt().Cmp(refundPositiveImbalance.ToBigInt())
-		if comparison < 0 {
+		if alreadyPaidNegativeImbalance.Lt(refundPositiveImbalance) {
 			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 		}
 	}

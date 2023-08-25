@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -52,5 +51,5 @@ func (ai AccountInfo) Frozen(reasons Reasons) sc.U128 {
 		return ai.Data.MiscFrozen
 	}
 
-	return sc.NewU128FromBigInt(big.NewInt(0))
+	return sc.NewU128FromUint64(0)
 }

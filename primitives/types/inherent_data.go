@@ -56,7 +56,7 @@ func (id *InherentData) Clear() {
 
 func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
 	result := NewInherentData()
-	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	length := sc.To[sc.U64](sc.U128(sc.DecodeCompact(buffer)))
 
 	for i := 0; i < int(length); i++ {
 		key := [8]byte{}

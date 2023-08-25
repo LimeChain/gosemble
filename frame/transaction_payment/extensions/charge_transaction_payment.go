@@ -2,7 +2,6 @@ package extensions
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -76,7 +75,7 @@ func (ctp ChargeTransactionPayment[N]) PostDispatch(pre sc.Option[primitives.Pre
 		who := preValue[1].(primitives.Address32)
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
-		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
+		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.To[sc.U32](sc.U128(length)), *info, *postInfo, tip)
 		err := ctp.onChargeTransaction.CorrectAndDepositFee(&who, actualFee, tip, imbalance)
 		if err != nil {
 			return err
@@ -123,24 +122,24 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 	}
 
 	// (len as u64).clamp(1, max_block_length);
-	boundedLength := sc.U64(len.ToBigInt().Uint64())
+	boundedLength := sc.To[sc.U64](sc.U128(len))
 	if boundedLength < 1 {
 		boundedLength = 1
 	} else if boundedLength > maxBlockLength {
 		boundedLength = maxBlockLength
 	}
 
-	maxTxPerBlockWeight := maxBlockWeight / boundedWeight
-	maxTxPerBlockLength := maxBlockLength / boundedLength
+	maxTxPerBlockWeight := maxBlockWeight.Div(boundedWeight).(sc.U64)
+	maxTxPerBlockLength := maxBlockLength.Div(boundedLength).(sc.U64)
 
 	maxTxPerBlock := maxTxPerBlockWeight
 	if maxTxPerBlockWeight > maxTxPerBlockLength {
 		maxTxPerBlock = maxTxPerBlockLength
 	}
 
-	bnTip := tip.Add(sc.NewU128FromBigInt(big.NewInt(1)))
+	bnTip := tip.Add(sc.NewU128FromUint64(1))
 
-	scaledTip := bnTip.Mul(sc.NewU128FromBigInt(new(big.Int).SetUint64(uint64(maxTxPerBlock)))).(sc.U128)
+	scaledTip := bnTip.Mul(sc.NewU128FromUint64(uint64(maxTxPerBlock))).(sc.U128)
 
 	if info.Class.Is(primitives.DispatchClassNormal) {
 		return sc.To[sc.U64](scaledTip)
@@ -149,7 +148,7 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
 		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
 		virtualTip := finalFee.Mul(sc.NewU128FromUint64(uint64(feeMultiplier)))
-		scaledVirtualTip := virtualTip.Mul(sc.NewU128FromBigInt(new(big.Int).SetUint64(uint64(maxTxPerBlock))))
+		scaledVirtualTip := virtualTip.Mul(maxTxPerBlock)
 
 		sum := scaledTip.Add(scaledVirtualTip).(sc.U128)
 
@@ -161,9 +160,9 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 
 func (ctp ChargeTransactionPayment[N]) withdrawFee(who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	tip := ctp.fee
-	fee := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
+	fee := ctp.txPaymentModule.ComputeFee(sc.To[sc.U32](sc.U128(length)), *info, tip)
 
-	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, _call, info, fee, sc.NewU128FromBigInt(tip.ToBigInt()))
+	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, _call, info, fee, tip)
 	if err != nil {
 		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), err
 	}

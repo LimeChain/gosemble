@@ -255,7 +255,7 @@ func (m Module[N]) TryMutateExists(who primitives.Address32, f func(who *primiti
 				Value:    err,
 			}
 		}
-		if status == primitives.DecRefStatusExists {
+		if status.Eq(primitives.DecRefStatusExists) {
 			return result
 		}
 	} else if !wasProviding && !isProviding {
@@ -304,7 +304,7 @@ func (m Module[N]) incProviders(who primitives.Address32) primitives.IncRefStatu
 
 func (m Module[N]) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
 	result := m.AccountTryMutateExists(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if account.Providers == 0 {
+		if account.Providers.Eq(sc.U32(0)) {
 			log.Warn("Logic error: Unexpected underflow in reducing provider")
 
 			account.Providers = 1

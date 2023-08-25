@@ -125,12 +125,12 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 
 // forceFree frees some funds, returning the amount that has not been freed.
 func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
-	if value.Eq(sc.NewU128FromBigInt(constants.Zero)) {
-		return sc.NewU128FromBigInt(constants.Zero)
+	if value.Eq(constants.Zero) {
+		return constants.Zero
 	}
 
 	totalBalance := c.storedMap.Get(who.FixedSequence).Data.Total()
-	if totalBalance.Eq(sc.NewU128FromBigInt(constants.Zero)) {
+	if totalBalance.Eq(constants.Zero) {
 		return value
 	}
 

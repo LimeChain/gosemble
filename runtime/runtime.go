@@ -4,7 +4,6 @@ Targets WebAssembly MVP
 package main
 
 import (
-	"math/big"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -63,7 +62,7 @@ var RuntimeVersion = &primitives.RuntimeVersion{
 
 var (
 	balancesExistentialDeposit = 1 * constants.Dollar
-	BalancesExistentialDeposit = big.NewInt(0).SetUint64(balancesExistentialDeposit)
+	BalancesExistentialDeposit = sc.NewU128FromUint64(balancesExistentialDeposit)
 )
 
 var (

@@ -24,7 +24,8 @@ func (cn CheckNonce[N]) Encode(buffer *bytes.Buffer) {
 }
 
 func (cn *CheckNonce[N]) Decode(buffer *bytes.Buffer) {
-	cn.nonce = sc.U32(sc.U128(sc.DecodeCompact(buffer)).ToBigInt().Uint64())
+	compactNonce := sc.DecodeCompact(buffer)
+	cn.nonce = sc.To[sc.U32](sc.U128(compactNonce))
 }
 
 func (cn CheckNonce[N]) Bytes() []byte {

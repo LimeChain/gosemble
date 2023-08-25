@@ -100,8 +100,8 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
-	compactTs := args[0].(sc.Compact)
-	return c.set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
+	valueTs := sc.U128(args[0].(sc.Compact))
+	return c.set(origin, sc.To[sc.U64](valueTs))
 }
 
 // set sets the current time.
