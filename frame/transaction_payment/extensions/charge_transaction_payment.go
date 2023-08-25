@@ -122,22 +122,22 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 		maxTxPerBlock = maxTxPerBlockLength
 	}
 
-	bnTip := new(big.Int).Add(tip.ToBigInt(), big.NewInt(1))
+	bnTip := tip.Add(sc.NewU128FromBigInt(big.NewInt(1)))
 
-	scaledTip := new(big.Int).Mul(bnTip, new(big.Int).SetUint64(uint64(maxTxPerBlock)))
+	scaledTip := bnTip.Mul(sc.NewU128FromBigInt(new(big.Int).SetUint64(uint64(maxTxPerBlock)))).(sc.U128)
 
 	if info.Class.Is(primitives.DispatchClassNormal) {
-		return sc.U64(scaledTip.Uint64())
+		return sc.To[sc.U64](scaledTip)
 	} else if info.Class.Is(primitives.DispatchClassMandatory) {
-		return sc.U64(scaledTip.Uint64())
+		return sc.To[sc.U64](scaledTip)
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
 		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
-		virtualTip := new(big.Int).Mul(finalFee.ToBigInt(), big.NewInt(int64(feeMultiplier)))
-		scaledVirtualTip := new(big.Int).Mul(virtualTip, new(big.Int).SetUint64(uint64(maxTxPerBlock)))
+		virtualTip := finalFee.Mul(sc.NewU128FromUint64(uint64(feeMultiplier)))
+		scaledVirtualTip := virtualTip.Mul(sc.NewU128FromBigInt(new(big.Int).SetUint64(uint64(maxTxPerBlock))))
 
-		sum := new(big.Int).Add(scaledTip, scaledVirtualTip)
+		sum := scaledTip.Add(scaledVirtualTip).(sc.U128)
 
-		return sc.U64(sum.Uint64())
+		return sc.To[sc.U64](sum)
 	}
 
 	return 0

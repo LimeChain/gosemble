@@ -78,8 +78,8 @@ func (m Module[N]) CreateInherent(inherent primitives.InherentData) sc.Option[pr
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 
-	nextTimestamp := m.Storage.Now.Get() + m.Constants.MinimumPeriod
-	if ts > nextTimestamp {
+	nextTimestamp := m.Storage.Now.Get().Add(m.Constants.MinimumPeriod).(sc.U64)
+	if ts.Gt(nextTimestamp) {
 		nextTimestamp = ts
 	}
 
@@ -111,10 +111,10 @@ func (m Module[N]) CheckInherent(call primitives.Call, inherent primitives.Inher
 
 	systemNow := m.Storage.Now.Get()
 
-	minimum := systemNow + m.Constants.MinimumPeriod
-	if t > ts+maxTimestampDriftMillis {
+	minimum := systemNow.Add(m.Constants.MinimumPeriod)
+	if t.Gt(ts.Add(maxTimestampDriftMillis)) {
 		return primitives.NewTimestampErrorTooFarInFuture()
-	} else if t < minimum {
+	} else if t.Lt(minimum) {
 		return primitives.NewTimestampErrorTooEarly()
 	}
 

@@ -1,5 +1,7 @@
 package grandpa
 
+import sc "github.com/LimeChain/goscale"
+
 const (
-	ModuleIndex = 3
+	ModuleIndex = sc.U8(3)
 )

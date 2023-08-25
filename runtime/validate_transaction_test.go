@@ -10,6 +10,7 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -282,14 +283,20 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	setBlockNumber(t, storage, 16)
+	// set the block number
+	bn, err := scale.NewUint128(big.NewInt(16))
+	assert.NoError(t, err)
+	blockNumberBytes, err := scale.Marshal(bn)
+	assert.NoError(t, err)
+	err = (*storage).Put(append(hashing.Twox128(constants.KeySystem), hashing.Twox128(constants.KeyNumber)...), blockNumberBytes)
+	assert.NoError(t, err)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)
