@@ -73,7 +73,7 @@ func (m Module[N]) Initialize(blockNumber N, parentHash primitives.Blake2bHash, 
 	m.Storage.BlockNumber.Put(blockNumber)
 	m.Storage.Digest.Put(digest)
 	m.Storage.ParentHash.Put(parentHash)
-	m.Storage.BlockHash.Put(N(blockNumber-1), parentHash)
+	m.Storage.BlockHash.Put(blockNumber.Sub(sc.NewNumeric[N](1)).(N), parentHash)
 	m.Storage.BlockWeight.Clear()
 }
 
@@ -123,15 +123,16 @@ func (m Module[N]) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(m.Storage.BlockNumber.Get())) + "): {}")
+		bn := m.Storage.BlockNumber.Get()
+		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(sc.To[sc.U64](bn))) + "): {}")
+
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
 	} else {
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
 
-	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get() + sc.U32(1)
+	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get().Add(sc.U32(1)).(sc.U32)
 	m.Storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
-
 	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
 }
 
@@ -162,13 +163,15 @@ func (m Module[N]) Finalize() primitives.Header[N] {
 	buf.Reset()
 
 	// saturating_sub
-	toRemove := blockNumber - N(m.Constants.BlockHashCount-1)
-	if toRemove > blockNumber {
-		toRemove = 0
+	v := sc.NewNumeric[N](m.Constants.BlockHashCount).Sub(sc.NewNumeric[N](1))
+	toRemove := blockNumber.Sub(v)
+
+	if toRemove.Gt(blockNumber) {
+		toRemove = sc.NewNumeric[N](0)
 	}
 
-	if toRemove != 0 {
-		m.Storage.BlockHash.Remove(N(toRemove))
+	if toRemove.Ne(sc.NewNumeric[N](0)) {
+		m.Storage.BlockHash.Remove(toRemove.(N))
 	}
 
 	storageRootBytes := storage_root.Root(int32(m.Constants.Version.StateVersion))
@@ -204,7 +207,7 @@ func (m Module[N]) Get(key primitives.PublicKey) primitives.AccountInfo {
 func (m Module[N]) CanDecProviders(who primitives.Address32) bool {
 	acc := m.Get(who.FixedSequence)
 
-	return acc.Consumers == 0 || acc.Providers > 1
+	return acc.Consumers.Eq(sc.U32(0)) || acc.Providers.Gt(sc.U32(1))
 }
 
 // DepositEvent deposits an event into block's event record.
@@ -274,7 +277,7 @@ func (m Module[N]) TryMutateExists(who primitives.Address32, f func(who *primiti
 
 func (m Module[N]) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	result := m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if a.Providers == 0 && a.Sufficients == 0 {
+		if a.Providers.Eq(sc.U32(0)) && a.Sufficients.Eq(sc.U32(0)) {
 			a.Providers = 1
 			m.onCreatedAccount(who)
 
@@ -284,8 +287,8 @@ func (m Module[N]) incProviders(who primitives.Address32) primitives.IncRefStatu
 			}
 		} else {
 			// saturating_add
-			newProviders := a.Providers + 1
-			if newProviders < a.Providers {
+			newProviders := a.Providers.Add(sc.U32(1)).(sc.U32)
+			if newProviders.Lt(a.Providers) {
 				newProviders = math.MaxUint32
 			}
 
@@ -307,21 +310,21 @@ func (m Module[N]) decProviders(who primitives.Address32) (primitives.DecRefStat
 			account.Providers = 1
 		}
 
-		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Eq(sc.U32(0)) && account.Sufficients.Eq(sc.U32(0)) {
 			return sc.Result[sc.Encodable]{
 				HasError: false,
 				Value:    primitives.DecRefStatusReaped,
 			}
 		}
 
-		if account.Providers == 1 && account.Consumers > 0 {
+		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Gt(sc.U32(0)) {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value:    primitives.NewDispatchErrorConsumerRemaining(),
 			}
 		}
 
-		account.Providers -= 1
+		account.Providers = account.Providers.Sub(sc.U32(1)).(sc.U32)
 		return sc.Result[sc.Encodable]{
 			HasError: false,
 			Value:    primitives.DecRefStatusExists,
@@ -344,7 +347,7 @@ func (m Module[N]) decProviders(who primitives.Address32) (primitives.DecRefStat
 // NOTE: Events not registered at the genesis block and quietly omitted.
 func (m Module[N]) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
 	blockNumber := m.Storage.BlockNumber.Get()
-	if blockNumber == 0 {
+	if blockNumber.Eq(sc.NewNumeric[N](0)) {
 		return
 	}
 
@@ -355,8 +358,8 @@ func (m Module[N]) depositEventIndexed(topics []primitives.H256, event primitive
 	}
 
 	oldEventCount := m.Storage.EventCount.Get()
-	newEventCount := oldEventCount + 1 // checked_add
-	if newEventCount < oldEventCount {
+	newEventCount := oldEventCount.Add(sc.U32(1)).(sc.U32) // checked_add
+	if newEventCount.Lt(oldEventCount) {
 		return
 	}
 

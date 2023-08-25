@@ -164,8 +164,8 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 			newToAccountFree := new(big.Int).Add(toAccount.Free.ToBigInt(), value.ToBigInt())
 			toAccount.Free = sc.NewU128FromBigInt(newToAccountFree)
 
-			existentialDeposit := t.constants.ExistentialDeposit
-			if toAccount.Total().Cmp(existentialDeposit) < 0 {
+			existentialDeposit := sc.NewU128FromBigInt(t.constants.ExistentialDeposit)
+			if toAccount.Total().Lt(existentialDeposit) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -187,7 +187,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 			allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
 			allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
 
-			if !(allowDeath || fromAccount.Total().Cmp(existentialDeposit) > 0) {
+			if !(allowDeath || fromAccount.Total().Gt(existentialDeposit)) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -218,24 +218,24 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 		lockedOrFrozen = accountData.MiscFrozen
 	}
 
-	liquid := new(big.Int).Sub(accountData.Free.ToBigInt(), lockedOrFrozen.ToBigInt())
-	if liquid.Cmp(accountData.Free.ToBigInt()) > 0 {
-		liquid = big.NewInt(0)
+	liquid := accountData.Free.Sub(lockedOrFrozen).(sc.U128)
+	if liquid.Gt(accountData.Free) {
+		liquid = sc.NewU128FromBigInt(big.NewInt(0))
 	}
 
 	if t.storedMap.CanDecProviders(who) && !keepAlive {
-		return sc.NewU128FromBigInt(liquid)
+		return liquid
 	}
 
-	existentialDeposit := t.constants.ExistentialDeposit
-	diff := new(big.Int).Sub(accountData.Total(), liquid)
+	existentialDeposit := sc.NewU128FromBigInt(t.constants.ExistentialDeposit)
+	diff := accountData.Total().Sub(liquid)
 
-	mustRemainToExist := new(big.Int).Sub(existentialDeposit, diff)
+	mustRemainToExist := existentialDeposit.Sub(diff)
 
-	result := new(big.Int).Sub(liquid, mustRemainToExist)
-	if result.Cmp(liquid) > 0 {
+	result := liquid.Sub(mustRemainToExist)
+	if result.Gt(liquid) {
 		return sc.NewU128FromBigInt(big.NewInt(0))
 	}
 
-	return sc.NewU128FromBigInt(result)
+	return result.(sc.U128)
 }

@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -85,7 +84,7 @@ func (_ forceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
 func (c forceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
-	err := c.forceFree(origin, args[0].(types.MultiAddress), amount.ToBigInt())
+	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
@@ -104,7 +103,7 @@ func (c forceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount *big.Int) types.DispatchError {
+func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -123,32 +122,32 @@ func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees some funds, returning the amount that has not been freed.
-func (c forceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
-	if value.Cmp(constants.Zero) == 0 {
-		return big.NewInt(0)
+func (c forceFreeCall) force(who types.Address32, value sc.U128) sc.U128 {
+	if value.Eq(sc.NewU128FromBigInt(constants.Zero)) {
+		return sc.NewU128FromBigInt(constants.Zero)
 	}
 
 	totalBalance := c.storedMap.Get(who.FixedSequence).Data.Total()
-	if totalBalance.Cmp(constants.Zero) == 0 {
+	if totalBalance.Eq(sc.NewU128FromBigInt(constants.Zero)) {
 		return value
 	}
 
 	result := c.storedMap.Mutate(who, func(accountData *types.AccountInfo) sc.Result[sc.Encodable] {
-		actual := accountData.Data.Reserved.ToBigInt()
-		if value.Cmp(actual) < 0 {
+		actual := accountData.Data.Reserved
+		if value.Lt(actual) {
 			actual = value
 		}
 
-		newReserved := new(big.Int).Sub(accountData.Data.Reserved.ToBigInt(), actual)
-		accountData.Data.Reserved = sc.NewU128FromBigInt(newReserved)
+		newReserved := accountData.Data.Reserved.Sub(actual)
+		accountData.Data.Reserved = newReserved.(sc.U128)
 
 		// TODO: defensive_saturating_add
-		newFree := new(big.Int).Add(accountData.Data.Free.ToBigInt(), actual)
-		accountData.Data.Free = sc.NewU128FromBigInt(newFree)
+		newFree := accountData.Data.Free.Add(actual)
+		accountData.Data.Free = newFree.(sc.U128)
 
 		return sc.Result[sc.Encodable]{
 			HasError: false,
-			Value:    sc.NewU128FromBigInt(actual),
+			Value:    actual,
 		}
 	})
 
@@ -160,5 +159,5 @@ func (c forceFreeCall) force(who types.Address32, value *big.Int) *big.Int {
 
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
-	return new(big.Int).Sub(value, actual.ToBigInt())
+	return value.Sub(actual).(sc.U128)
 }
