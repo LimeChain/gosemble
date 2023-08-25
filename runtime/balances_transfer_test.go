@@ -10,7 +10,6 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
@@ -182,7 +181,7 @@ func Test_Balances_Transfer_Invalid_InsufficientBalance(t *testing.T) {
 			primitives.NewDispatchOutcome(
 				primitives.NewDispatchErrorModule(
 					primitives.CustomModuleError{
-						Index: balances.ModuleIndex,
+						Index: BalancesIndex,
 						Error: sc.U32(errors.ErrorInsufficientBalance),
 					})))
 
@@ -245,7 +244,7 @@ func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 			primitives.NewDispatchOutcome(
 				primitives.NewDispatchErrorModule(
 					primitives.CustomModuleError{
-						Index: balances.ModuleIndex,
+						Index: BalancesIndex,
 						Error: sc.U32(errors.ErrorExistentialDeposit),
 					})))
 

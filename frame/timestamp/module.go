@@ -47,6 +47,10 @@ func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
+func (m Module[N]) name() sc.Str {
+	return "Timestamp"
+}
+
 func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
@@ -131,9 +135,9 @@ func (m Module[N]) IsInherent(call primitives.Call) bool {
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: "Timestamp",
+		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: "Timestamp",
+			Prefix: m.name(),
 			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
 				primitives.NewMetadataModuleStorageEntry(
 					"Now",

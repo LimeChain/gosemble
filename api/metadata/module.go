@@ -2,12 +2,7 @@ package metadata
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/balances"
-	"github.com/LimeChain/gosemble/constants/grandpa"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/constants/system"
-	"github.com/LimeChain/gosemble/constants/timestamp"
-	"github.com/LimeChain/gosemble/constants/transaction_payment"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -48,7 +43,7 @@ func (m Module[N]) Metadata() int64 {
 
 func (m Module[N]) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
-	metadataTypes = append(metadataTypes, runtimeTypes()...)
+	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
 	var modules sc.Sequence[primitives.MetadataModule]
 
@@ -538,38 +533,9 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func runtimeTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeEvent, "node_template_runtime RuntimeEvent", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"}, primitives.NewMetadataTypeDefinitionVariant(
-			sc.Sequence[primitives.MetadataDefinitionVariant]{
-				primitives.NewMetadataDefinitionVariant(
-					"System",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSystemEvent, "frame_system::Event<Runtime>"),
-					},
-					system.ModuleIndex,
-					"Events.System"),
-				primitives.NewMetadataDefinitionVariant( // TODO:
-					"Grandpa",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					grandpa.ModuleIndex,
-					"Events.Grandpa"),
-				primitives.NewMetadataDefinitionVariant(
-					"Balances",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesBalancesEvent, "pallet_balances::Event<Runtime>"),
-					},
-					balances.ModuleIndex,
-					"Events.Balances"),
-				primitives.NewMetadataDefinitionVariant(
-					"TransactionPayment",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvent, "pallet_transaction_payment::Event<Runtime>"),
-					},
-					transaction_payment.ModuleIndex,
-					"Events.TransactionPayment"),
-			})),
-
+		m.runtimeEvent(),
 		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString), // spec_name
@@ -607,46 +573,70 @@ func runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
 			},
 		),
-
-		primitives.NewMetadataTypeWithPath(metadata.RuntimeCall, "RuntimeCall", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
-			primitives.NewMetadataTypeDefinitionVariant(sc.Sequence[primitives.MetadataDefinitionVariant]{
-				primitives.NewMetadataDefinitionVariant(
-					"System",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
-					},
-					system.ModuleIndex,
-					"Call.System"),
-				primitives.NewMetadataDefinitionVariant(
-					"Timestamp",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
-					},
-					timestamp.ModuleIndex,
-					"Call.Timestamp"),
-				primitives.NewMetadataDefinitionVariant(
-					"Grandpa",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.GrandpaCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Grandpa, Runtime>"),
-					},
-					grandpa.ModuleIndex,
-					"Call.Grandpa"),
-				primitives.NewMetadataDefinitionVariant(
-					"Balances",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.BalancesCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
-					},
-					balances.ModuleIndex,
-					"Call.Balances"),
-				primitives.NewMetadataDefinitionVariant(
-					"Testable",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TestableCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
-					},
-					balances.ModuleIndex,
-					"Call.Testable"),
-			})),
+		m.runtimeCall(),
 		primitives.NewMetadataType(metadata.Runtime, "Runtime", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
 	}
+}
+
+func (m Module[N]) runtimeCall() primitives.MetadataType {
+	runtimeCallSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+
+	idName := "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<"
+
+	for _, module := range m.modules {
+		_, metadataModule := module.Metadata()
+
+		if metadataModule.Call.HasValue {
+			callIndex := metadataModule.Call.Value.ToBigInt().Uint64()
+			name := string(metadataModule.Name)
+
+			metadataVariantType := primitives.NewMetadataDefinitionVariant(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), sc.Str(idName+name+", Runtime>")),
+				},
+				metadataModule.Index,
+				"Call."+name)
+
+			runtimeCallSubTypes = append(runtimeCallSubTypes, metadataVariantType)
+		}
+	}
+
+	return primitives.NewMetadataTypeWithPath(
+		metadata.RuntimeCall,
+		"RuntimeCall",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
+		primitives.NewMetadataTypeDefinitionVariant(runtimeCallSubTypes),
+	)
+}
+
+func (m Module[N]) runtimeEvent() primitives.MetadataType {
+	runtimeEventSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+
+	for _, module := range m.modules {
+		_, metadataModule := module.Metadata()
+
+		if metadataModule.Event.HasValue {
+			callIndex := metadataModule.Event.Value.ToBigInt().Uint64()
+			name := string(metadataModule.Name)
+
+			metadataVariantType := primitives.NewMetadataDefinitionVariant(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), metadataModule.EventPath),
+				},
+				metadataModule.Index,
+				"Events."+name)
+
+			runtimeEventSubTypes = append(runtimeEventSubTypes, metadataVariantType)
+		}
+	}
+
+	return primitives.NewMetadataTypeWithPath(
+		metadata.TypesRuntimeEvent,
+		"node_template_runtime RuntimeEvent",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
+		primitives.NewMetadataTypeDefinitionVariant(runtimeEventSubTypes),
+	)
 }

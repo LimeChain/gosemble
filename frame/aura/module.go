@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/aura"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -14,6 +13,7 @@ import (
 )
 
 var (
+	EngineId  = [4]byte{'a', 'u', 'r', 'a'}
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
 )
 
@@ -40,6 +40,10 @@ func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 
 func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
+}
+
+func (m Module[N]) name() sc.Str {
+	return "Aura"
 }
 
 func (m Module[N]) Functions() map[sc.U8]primitives.Call {
@@ -113,9 +117,9 @@ func (m Module[N]) OnTimestampSet(now sc.U64) {
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: "Aura",
+		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: "Aura",
+			Prefix: m.name(),
 			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
 				primitives.NewMetadataModuleStorageEntry(
 					"Authorities",
@@ -183,7 +187,7 @@ func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {
 	for keyDigest, dig := range digest {
 		if keyDigest == primitives.DigestTypePreRuntime {
 			for _, digestItem := range dig {
-				if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(digestItem.Engine), aura.EngineId[:]) {
+				if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(digestItem.Engine), EngineId[:]) {
 					buffer := &bytes.Buffer{}
 					buffer.Write(sc.SequenceU8ToBytes(digestItem.Payload))
 

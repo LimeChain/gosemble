@@ -6,10 +6,8 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/balances"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/balances/errors"
-	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -57,6 +55,10 @@ func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
+func (m Module[N]) name() sc.Str {
+	return "Balances"
+}
+
 func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
@@ -81,7 +83,7 @@ func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) 
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-					Index:   balances.ModuleIndex,
+					Index:   m.Index,
 					Error:   sc.U32(errors.ErrorDeadAccount),
 					Message: sc.NewOption[sc.Str](nil),
 				}),
@@ -90,7 +92,7 @@ func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) 
 
 		from.Free = from.Free.Add(value).(sc.U128)
 
-		m.Config.StoredMap.DepositEvent(events.NewEventDeposit(who.FixedSequence, value))
+		m.Config.StoredMap.DepositEvent(newEventDeposit(m.Index, who.FixedSequence, value))
 
 		return sc.Result[sc.Encodable]{}
 	})
@@ -116,7 +118,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-					Index:   balances.ModuleIndex,
+					Index:   m.Index,
 					Error:   sc.U32(errors.ErrorInsufficientBalance),
 					Message: sc.NewOption[sc.Str](nil),
 				}),
@@ -134,7 +136,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-					Index:   balances.ModuleIndex,
+					Index:   m.Index,
 					Error:   sc.U32(errors.ErrorKeepAlive),
 					Message: sc.NewOption[sc.Str](nil),
 				}),
@@ -151,7 +153,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 
 		account.Free = newFromAccountFree.(sc.U128)
 
-		m.Config.StoredMap.DepositEvent(events.NewEventWithdraw(who.FixedSequence, value))
+		m.Config.StoredMap.DepositEvent(newEventWithdraw(m.Index, who.FixedSequence, value))
 
 		return sc.Result[sc.Encodable]{
 			HasError: false,
@@ -176,7 +178,7 @@ func (m Module[N]) ensureCanWithdraw(who primitives.Address32, amount *big.Int, 
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Gt(sc.NewU128FromBigInt(newBalance)) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-			Index:   balances.ModuleIndex,
+			Index:   m.Index,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})
@@ -245,10 +247,10 @@ func (m Module[N]) tryMutateAccountWithDust(who primitives.Address32, f func(who
 	resultValue := result.Value.(sc.VaryingData)
 	maybeEndowed := resultValue[0].(sc.Option[primitives.Balance])
 	if maybeEndowed.HasValue {
-		m.Config.StoredMap.DepositEvent(events.NewEventEndowed(who.FixedSequence, maybeEndowed.Value))
+		m.Config.StoredMap.DepositEvent(newEventEndowed(m.Index, who.FixedSequence, maybeEndowed.Value))
 	}
 	maybeDust := resultValue[1].(sc.Option[negativeImbalance])
-	dustCleaner := newDustCleanerValue(who, maybeDust.Value, m.Config.StoredMap)
+	dustCleaner := newDustCleanerValue(m.Index, who, maybeDust.Value, m.Config.StoredMap)
 
 	r := sc.NewVaryingData(resultValue[2], dustCleaner)
 
@@ -271,9 +273,9 @@ func (m Module[N]) postMutation(new primitives.AccountData) (sc.Option[primitive
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: "Balances",
+		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: "Balances",
+			Prefix: m.name(),
 			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
 				primitives.NewMetadataModuleStorageEntry(
 					"TotalIssuance",
@@ -296,8 +298,9 @@ func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 				// TODO: Locks, Reserves, currently not used
 			},
 		}),
-		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
+		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
+		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
+		EventPath: "pallet_balances::Event<Runtime>",
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"ExistentialDeposit",
@@ -333,7 +336,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "free_balance", "T::Balance"),
 					},
-					events.EventEndowed,
+					EventEndowed,
 					"Event.Endowed"),
 				primitives.NewMetadataDefinitionVariant(
 					"DustLost",
@@ -341,7 +344,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "account", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventDustLost,
+					EventDustLost,
 					"Events.DustLost"),
 				primitives.NewMetadataDefinitionVariant(
 					"Transfer",
@@ -350,7 +353,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "to", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventTransfer,
+					EventTransfer,
 					"Events.Transfer"),
 				primitives.NewMetadataDefinitionVariant(
 					"BalanceSet",
@@ -359,7 +362,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "free", "T::Balance"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "reserved", "T::Balance"),
 					},
-					events.EventBalanceSet,
+					EventBalanceSet,
 					"Events.BalanceSet"),
 				primitives.NewMetadataDefinitionVariant(
 					"Reserved",
@@ -367,7 +370,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventReserved,
+					EventReserved,
 					"Events.Reserved"),
 				primitives.NewMetadataDefinitionVariant(
 					"Unreserved",
@@ -375,7 +378,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventUnreserved,
+					EventUnreserved,
 					"Events.Unreserved"),
 				primitives.NewMetadataDefinitionVariant(
 					"ReserveRepatriated",
@@ -385,7 +388,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesBalanceStatus, "destination_status", "Status"),
 					},
-					events.EventReserveRepatriated,
+					EventReserveRepatriated,
 					"Events.ReserveRepatriated"),
 				primitives.NewMetadataDefinitionVariant(
 					"Deposit",
@@ -393,7 +396,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventDeposit,
+					EventDeposit,
 					"Event.Deposit"),
 				primitives.NewMetadataDefinitionVariant(
 					"Withdraw",
@@ -401,7 +404,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventWithdraw,
+					EventWithdraw,
 					"Event.Withdraw"),
 				primitives.NewMetadataDefinitionVariant(
 					"Slashed",
@@ -409,7 +412,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesAddress32, "who", "T::AccountId"),
 						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
 					},
-					events.EventSlashed,
+					EventSlashed,
 					"Event.Slashed"),
 			},
 		)),

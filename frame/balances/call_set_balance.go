@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/balances/events"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -170,7 +169,8 @@ func (c setBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddres
 	}
 
 	c.storedMap.DepositEvent(
-		events.NewEventBalanceSet(
+		newEventBalanceSet(
+			c.ModuleId,
 			who.AsAddress32().FixedSequence,
 			newFree,
 			newReserved,

@@ -31,6 +31,10 @@ func (m Module[N]) GetIndex() sc.U8 {
 	return m.Index
 }
 
+func (m Module[N]) name() sc.Str {
+	return "TransactionPayment"
+}
+
 func (m Module[N]) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
@@ -45,9 +49,9 @@ func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: "TransactionPayment",
+		Name: m.name(),
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: "TransactionPayment",
+			Prefix: m.name(),
 			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
 				primitives.NewMetadataModuleStorageEntry(
 					"NextFeeMultiplier",
@@ -61,8 +65,9 @@ func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 					"StorageVersion"),
 			},
 		}),
-		Call:  sc.NewOption[sc.Compact](nil),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		Call:      sc.NewOption[sc.Compact](nil),
+		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		EventPath: "pallet_transaction_payment::Event<Runtime>",
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
