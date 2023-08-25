@@ -90,9 +90,7 @@ func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) 
 			}
 		}
 
-		sum := new(big.Int).Add(from.Free.ToBigInt(), value.ToBigInt())
-
-		from.Free = sc.NewU128FromBigInt(sum)
+		from.Free = from.Free.Add(value).(sc.U128)
 
 		m.Config.StoredMap.DepositEvent(newEventDeposit(m.Index, who.FixedSequence, value))
 
@@ -114,9 +112,9 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 	}
 
 	result := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
-		newFromAccountFree := new(big.Int).Sub(account.Free.ToBigInt(), value.ToBigInt())
+		newFromAccountFree := account.Free.Sub(value)
 
-		if newFromAccountFree.Cmp(constants.Zero) < 0 {
+		if newFromAccountFree.Lt(sc.NewU128FromBigInt(constants.Zero)) {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
@@ -127,12 +125,12 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			}
 		}
 
-		existentialDeposit := m.Constants.ExistentialDeposit
-		sumNewFreeReserved := new(big.Int).Add(newFromAccountFree, account.Reserved.ToBigInt())
-		sumFreeReserved := new(big.Int).Add(account.Free.ToBigInt(), account.Reserved.ToBigInt())
+		existentialDeposit := sc.NewU128FromBigInt(m.Constants.ExistentialDeposit)
+		sumNewFreeReserved := newFromAccountFree.Add(account.Reserved)
+		sumFreeReserved := account.Free.Add(account.Reserved)
 
-		wouldBeDead := sumNewFreeReserved.Cmp(existentialDeposit) < 0
-		wouldKill := wouldBeDead && (sumFreeReserved.Cmp(existentialDeposit) >= 0)
+		wouldBeDead := sumNewFreeReserved.Lt(existentialDeposit)
+		wouldKill := wouldBeDead && (sumFreeReserved.Gte(existentialDeposit))
 
 		if !(liveness == primitives.ExistenceRequirementAllowDeath || !wouldKill) {
 			return sc.Result[sc.Encodable]{
@@ -145,7 +143,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			}
 		}
 
-		err := m.ensureCanWithdraw(who, value.ToBigInt(), primitives.Reasons(reasons), newFromAccountFree)
+		err := m.ensureCanWithdraw(who, value.ToBigInt(), primitives.Reasons(reasons), newFromAccountFree.(sc.U128).ToBigInt())
 		if err != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
@@ -153,7 +151,7 @@ func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.
 			}
 		}
 
-		account.Free = sc.NewU128FromBigInt(newFromAccountFree)
+		account.Free = newFromAccountFree.(sc.U128)
 
 		m.Config.StoredMap.DepositEvent(newEventWithdraw(m.Index, who.FixedSequence, value))
 
@@ -178,7 +176,7 @@ func (m Module[N]) ensureCanWithdraw(who primitives.Address32, amount *big.Int, 
 
 	accountInfo := m.Config.StoredMap.Get(who.FixedSequence)
 	minBalance := accountInfo.Frozen(reasons)
-	if minBalance.Cmp(newBalance) > 0 {
+	if minBalance.Gt(sc.NewU128FromBigInt(newBalance)) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   m.Index,
 			Error:   sc.U32(errors.ErrorLiquidityRestrictions),
@@ -262,11 +260,11 @@ func (m Module[N]) tryMutateAccountWithDust(who primitives.Address32, f func(who
 func (m Module[N]) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
 	total := new.Total()
 
-	if total.Cmp(m.Constants.ExistentialDeposit) < 0 {
-		if total.Cmp(constants.Zero) == 0 {
+	if total.Lt(sc.NewU128FromBigInt(m.Constants.ExistentialDeposit)) {
+		if total.Eq(sc.NewU128FromBigInt(constants.Zero)) {
 			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](nil)
 		} else {
-			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](newNegativeImbalance(sc.NewU128FromBigInt(total)))
+			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](newNegativeImbalance(total))
 		}
 	}
 

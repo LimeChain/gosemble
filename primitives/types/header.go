@@ -37,7 +37,7 @@ func DecodeHeader[N sc.Numeric](buffer *bytes.Buffer) Header[N] {
 
 	return Header[N]{
 		ParentHash:     parentHash,
-		Number:         N(blockNumber.ToBigInt().Int64()),
+		Number:         sc.NewNumeric[N](blockNumber.ToBigInt().Int64()),
 		StateRoot:      stateRoot,
 		ExtrinsicsRoot: extrinsicRoot,
 		Digest:         digest,

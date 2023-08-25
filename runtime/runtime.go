@@ -87,7 +87,7 @@ const (
 	TestableIndex = 255
 )
 
-type BlockNumberType = sc.U32
+type BlockNumberType = sc.U128
 
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()
@@ -152,7 +152,7 @@ func getInstance[T types.Module[BlockNumberType]]() T {
 func newExecutiveModule() executive.Module[BlockNumberType] {
 	return executive.New[BlockNumberType](
 		getInstance[system.Module[BlockNumberType]](),
-		extrinsic.New(modules),
+		extrinsic.New[BlockNumberType](modules),
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
 }

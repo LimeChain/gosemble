@@ -80,7 +80,7 @@ func (sv StorageValue[T]) DecodeLen() sc.Option[sc.U64] {
 	}
 
 	length := option.Value
-	if length > sc.U32(len(data)) {
+	if length.Gt(sc.U32(len(data))) {
 		length = sc.U32(len(data))
 	}
 
