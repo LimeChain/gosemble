@@ -39,18 +39,18 @@ func DecodeAccountInfo(buffer *bytes.Buffer) AccountInfo {
 	}
 }
 
-func (ai AccountInfo) Frozen(reasons Reasons) *big.Int {
+func (ai AccountInfo) Frozen(reasons Reasons) sc.U128 {
 	switch reasons {
 	case ReasonsAll:
-		if ai.Data.MiscFrozen.ToBigInt().Cmp(ai.Data.FeeFrozen.ToBigInt()) > 0 {
-			return ai.Data.MiscFrozen.ToBigInt()
+		if ai.Data.MiscFrozen.Gt(ai.Data.FeeFrozen) {
+			return ai.Data.MiscFrozen
 		}
-		return ai.Data.FeeFrozen.ToBigInt()
+		return ai.Data.FeeFrozen
 	case ReasonsMisc:
-		return big.NewInt(0).Set(ai.Data.MiscFrozen.ToBigInt())
+		return ai.Data.MiscFrozen
 	case ReasonsFee:
-		return big.NewInt(0).Set(ai.Data.MiscFrozen.ToBigInt())
+		return ai.Data.MiscFrozen
 	}
 
-	return big.NewInt(0)
+	return sc.NewU128FromBigInt(big.NewInt(0))
 }
