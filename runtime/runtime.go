@@ -149,18 +149,6 @@ func getInstance[T types.Module[BlockNumberType]]() T {
 	panic("unreachable")
 }
 
-func newExecutiveModule() executive.Module[BlockNumberType] {
-	return executive.New[BlockNumberType](
-		getInstance[system.Module[BlockNumberType]](),
-		extrinsic.New[BlockNumberType](modules),
-		hooks.DefaultOnRuntimeUpgrade{},
-	)
-}
-
-func newModuleDecoder() types.ModuleDecoder[BlockNumberType] {
-	return types.NewModuleDecoder[BlockNumberType](modules, newSignedExtra())
-}
-
 func newSignedExtra() primitives.SignedExtra {
 	systeModule := getInstance[system.Module[BlockNumberType]]()
 	balancesModule := getInstance[balances.Module[BlockNumberType]]()
@@ -184,12 +172,18 @@ func newSignedExtra() primitives.SignedExtra {
 }
 
 func runtimeApi() types.RuntimeApi {
-	executiveModule := newExecutiveModule()
-	decoder := newModuleDecoder()
-	runtimeExtrinsic := extrinsic.New[BlockNumberType](modules)
+	extra := newSignedExtra()
+	decoder := types.NewModuleDecoder[BlockNumberType](modules, extra)
+	runtimeExtrinsic := extrinsic.New[BlockNumberType](modules, extra)
 	auraModule := getInstance[aura.Module[BlockNumberType]]()
 	grandpaModule := getInstance[grandpa.Module[BlockNumberType]]()
 	txPaymentsModule := getInstance[transaction_payment.Module[BlockNumberType]]()
+
+	executiveModule := executive.New[BlockNumberType](
+		getInstance[system.Module[BlockNumberType]](),
+		runtimeExtrinsic,
+		hooks.DefaultOnRuntimeUpgrade{},
+	)
 
 	sessions := []primitives.Session{
 		auraModule,
@@ -200,7 +194,7 @@ func runtimeApi() types.RuntimeApi {
 		core.New[BlockNumberType](executiveModule, decoder, RuntimeVersion),
 		blockbuilder.New[BlockNumberType](runtimeExtrinsic, executiveModule, decoder),
 		taggedtransactionqueue.New[BlockNumberType](executiveModule, decoder),
-		metadata.New[BlockNumberType](modules),
+		metadata.New[BlockNumberType](runtimeExtrinsic),
 		apiAura.New[BlockNumberType](auraModule),
 		apiGrandpa.New[BlockNumberType](grandpaModule),
 		account_nonce.New[BlockNumberType](getInstance[system.Module[BlockNumberType]]()),

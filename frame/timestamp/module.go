@@ -135,24 +135,20 @@ func (m Module[N]) IsInherent(call primitives.Call) bool {
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: m.name(),
-		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: m.name(),
-			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-				primitives.NewMetadataModuleStorageEntry(
-					"Now",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU64)),
-					"Current time for the current block."),
-				primitives.NewMetadataModuleStorageEntry(
-					"DidUpdate",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesBool)),
-					"Did the timestamp get updated in this block?"),
-			},
-		}),
-		Call:  sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
-		Event: sc.NewOption[sc.Compact](nil),
+		Name:    m.name(),
+		Storage: m.metadataStorage(),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
+		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
+				},
+				m.Index,
+				"Call.Timestamp"),
+		),
+		Event:    sc.NewOption[sc.Compact](nil),
+		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"MinimumPeriod",
@@ -179,4 +175,22 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					"Set the current time."),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
 	}
+}
+
+func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+		Prefix: m.name(),
+		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+			primitives.NewMetadataModuleStorageEntry(
+				"Now",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU64)),
+				"Current time for the current block."),
+			primitives.NewMetadataModuleStorageEntry(
+				"DidUpdate",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesBool)),
+				"Did the timestamp get updated in this block?"),
+		},
+	})
 }

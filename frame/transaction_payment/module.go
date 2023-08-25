@@ -49,25 +49,20 @@ func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: m.name(),
-		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: m.name(),
-			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-				primitives.NewMetadataModuleStorageEntry(
-					"NextFeeMultiplier",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesFixedU128)),
-					"NextFeeMultiplier"),
-				primitives.NewMetadataModuleStorageEntry(
-					"StorageVersion",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesTransactionPaymentReleases)),
-					"StorageVersion"),
-			},
-		}),
-		Call:      sc.NewOption[sc.Compact](nil),
-		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
-		EventPath: "pallet_transaction_payment::Event<Runtime>",
+		Name:    m.name(),
+		Storage: m.metadataStorage(),
+		Call:    sc.NewOption[sc.Compact](nil),
+		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Event:   sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvent, "pallet_transaction_payment::Event<Runtime>"),
+				},
+				m.Index,
+				"Events.TransactionPayment"),
+		),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
@@ -109,14 +104,25 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					0,
 					"Event.TransactionFeePaid"),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
-
-		primitives.NewMetadataTypeWithParam(metadata.ChargeTransactionPayment, "ChargeTransactionPayment", sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
-			}),
-			primitives.NewMetadataEmptyTypeParameter("T"),
-		),
 	}
+}
+
+func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+		Prefix: m.name(),
+		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+			primitives.NewMetadataModuleStorageEntry(
+				"NextFeeMultiplier",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesFixedU128)),
+				"NextFeeMultiplier"),
+			primitives.NewMetadataModuleStorageEntry(
+				"StorageVersion",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesTransactionPaymentReleases)),
+				"StorageVersion"),
+		},
+	})
 }
 
 func (m Module[N]) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {

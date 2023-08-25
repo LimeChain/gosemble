@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -70,4 +71,19 @@ func (cm CheckMortality[N]) PreDispatchUnsigned(call *primitives.Call, info *pri
 
 func (cm CheckMortality[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
+}
+
+func (cm CheckMortality[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithPath(
+			metadata.CheckMortality,
+			"CheckMortality",
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
+				},
+			),
+		),
+		primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
+
 }

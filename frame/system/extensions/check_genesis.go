@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -52,4 +53,14 @@ func (cg CheckGenesis[N]) PreDispatchUnsigned(call *primitives.Call, info *primi
 
 func (cg CheckGenesis[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	return nil
+}
+
+func (cg CheckGenesis[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithPath(
+			metadata.CheckGenesis,
+			"CheckGenesis",
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+		),
+		primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256)
 }

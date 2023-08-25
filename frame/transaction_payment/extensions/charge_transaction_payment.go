@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/hooks"
@@ -89,6 +90,21 @@ func (ctp ChargeTransactionPayment[N]) PostDispatch(pre sc.Option[primitives.Pre
 func (ctp ChargeTransactionPayment[N]) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := ctp.ValidateUnsigned(call, info, length)
 	return err
+}
+
+func (ctp ChargeTransactionPayment[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+	return primitives.NewMetadataTypeWithParam(
+			metadata.ChargeTransactionPayment,
+			"ChargeTransactionPayment",
+			sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
+				},
+			),
+			primitives.NewMetadataEmptyTypeParameter("T"),
+		),
+		primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple)
 }
 
 func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {

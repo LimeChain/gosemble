@@ -2,6 +2,7 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -9,10 +10,11 @@ import (
 
 type RuntimeExtrinsic[N sc.Numeric] struct {
 	modules map[sc.U8]types.Module[N]
+	extra   primitives.SignedExtra
 }
 
-func New[N sc.Numeric](modules map[sc.U8]types.Module[N]) RuntimeExtrinsic[N] {
-	return RuntimeExtrinsic[N]{modules: modules}
+func New[N sc.Numeric](modules map[sc.U8]types.Module[N], extra primitives.SignedExtra) RuntimeExtrinsic[N] {
+	return RuntimeExtrinsic[N]{modules: modules, extra: extra}
 }
 
 func (re RuntimeExtrinsic[N]) Module(index sc.U8) (module types.Module[N], isFound bool) {
@@ -149,4 +151,98 @@ func (re RuntimeExtrinsic[N]) OffchainWorker(n N) {
 	for _, m := range re.modules {
 		m.OffchainWorker(n)
 	}
+}
+
+func (re RuntimeExtrinsic[N]) Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic) {
+	metadataTypes := sc.Sequence[primitives.MetadataType]{}
+	modules := sc.Sequence[primitives.MetadataModule]{}
+
+	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
+	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
+
+	// iterate all modules and append their types and modules
+	for _, module := range re.modules {
+		mTypes, mModule := module.Metadata()
+
+		metadataTypes = append(metadataTypes, mTypes...)
+		modules = append(modules, mModule)
+
+		callVariants = append(callVariants, mModule.CallDef)
+		eventVariants = append(eventVariants, mModule.EventDef)
+	}
+
+	// append runtime event
+	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
+
+	// get the signed extra types and extensions
+	signedExtraTypes, signedExtensions := re.extra.Metadata()
+	// append to signed extra types to all types
+	metadataTypes = append(metadataTypes, signedExtraTypes...)
+
+	// create runtime call type
+	runtimeCall := re.runtimeCall(callVariants)
+	// append runtime call to all types
+	metadataTypes = append(metadataTypes, runtimeCall)
+
+	// create the unchecked extrinsic type using runtime call id
+	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
+		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
+		primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+			}),
+		sc.Sequence[primitives.MetadataTypeParameter]{
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
+			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
+			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
+		},
+	)
+
+	// append it to all types
+	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
+
+	// create the metadata extrinsic, which uses the id of the unchecked extrinsic and signed extra extensions
+	extrinsic := primitives.MetadataExtrinsic{
+		Type:             uncheckedExtrinsicType.Id,
+		Version:          types.ExtrinsicFormatVersion,
+		SignedExtensions: signedExtensions,
+	}
+
+	return metadataTypes, modules, extrinsic
+}
+
+func (re RuntimeExtrinsic[N]) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
+	return re.runtimeType(
+		variants,
+		metadata.RuntimeCall,
+		"RuntimeCall",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
+	)
+}
+
+func (re RuntimeExtrinsic[N]) runtimeEvent(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
+	return re.runtimeType(
+		variants,
+		metadata.TypesRuntimeEvent,
+		"node_template_runtime RuntimeEvent",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
+	)
+}
+
+func (re RuntimeExtrinsic[N]) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
+	subTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+
+	for _, v := range variants {
+		if v.HasValue {
+			subTypes = append(subTypes, v.Value)
+		}
+	}
+
+	return primitives.NewMetadataTypeWithPath(
+		id,
+		docs,
+		path,
+		primitives.NewMetadataTypeDefinitionVariant(subTypes),
+	)
 }

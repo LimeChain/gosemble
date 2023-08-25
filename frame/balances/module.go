@@ -273,56 +273,31 @@ func (m Module[N]) postMutation(new primitives.AccountData) (sc.Option[primitive
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name: m.name(),
-		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-			Prefix: m.name(),
-			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-				primitives.NewMetadataModuleStorageEntry(
-					"TotalIssuance",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
-					"The total units issued in the system."),
-				primitives.NewMetadataModuleStorageEntry(
-					"InactiveIssuance",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
-					"The total units of outstanding deactivated balance in the system."),
-				primitives.NewMetadataModuleStorageEntry(
-					"Account",
-					primitives.MetadataModuleStorageEntryModifierDefault,
-					primitives.NewMetadataModuleStorageEntryDefinitionMap(
-						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
-						sc.ToCompact(metadata.TypesAddress32),
-						sc.ToCompact(metadata.TypesAccountData)),
-					"The Balances pallet example of storing the balance of an account."),
-				// TODO: Locks, Reserves, currently not used
-			},
-		}),
-		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
-		Event:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
-		EventPath: "pallet_balances::Event<Runtime>",
-		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
-			primitives.NewMetadataModuleConstant(
-				"ExistentialDeposit",
-				sc.ToCompact(metadata.PrimitiveTypesU128),
-				sc.BytesToSequenceU8(sc.NewU128FromBigInt(m.Constants.ExistentialDeposit).Bytes()),
-				"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
-			),
-			primitives.NewMetadataModuleConstant(
-				"MaxLocks",
-				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(m.Constants.MaxLocks.Bytes()),
-				"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
-			),
-			primitives.NewMetadataModuleConstant(
-				"MaxReserves",
-				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(m.Constants.MaxReserves.Bytes()),
-				"The maximum number of named reserves that can exist on an account.",
-			),
-		}, // TODO:
-		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
-		Index: m.Index,
+		Name:    m.name(),
+		Storage: m.metadataStorage(),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
+		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.BalancesCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
+				},
+				m.Index,
+				"Call.Balances"),
+		),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
+		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesBalancesEvent, "pallet_balances::Event<Runtime>"),
+				},
+				m.Index,
+				"Events.Balances"),
+		),
+		Constants: m.metadataConstants(),
+		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
+		Index:     m.Index,
 	}
 }
 
@@ -541,4 +516,54 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 	}
+}
+
+func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
+		Prefix: m.name(),
+		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+			primitives.NewMetadataModuleStorageEntry(
+				"TotalIssuance",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
+				"The total units issued in the system."),
+			primitives.NewMetadataModuleStorageEntry(
+				"InactiveIssuance",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
+				"The total units of outstanding deactivated balance in the system."),
+			primitives.NewMetadataModuleStorageEntry(
+				"Account",
+				primitives.MetadataModuleStorageEntryModifierDefault,
+				primitives.NewMetadataModuleStorageEntryDefinitionMap(
+					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+					sc.ToCompact(metadata.TypesAddress32),
+					sc.ToCompact(metadata.TypesAccountData)),
+				"The Balances pallet example of storing the balance of an account."),
+			// TODO: Locks, Reserves, currently not used
+		},
+	})
+}
+
+func (m Module[N]) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
+	return sc.Sequence[primitives.MetadataModuleConstant]{
+		primitives.NewMetadataModuleConstant(
+			"ExistentialDeposit",
+			sc.ToCompact(metadata.PrimitiveTypesU128),
+			sc.BytesToSequenceU8(sc.NewU128FromBigInt(m.Constants.ExistentialDeposit).Bytes()),
+			"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
+		),
+		primitives.NewMetadataModuleConstant(
+			"MaxLocks",
+			sc.ToCompact(metadata.PrimitiveTypesU32),
+			sc.BytesToSequenceU8(m.Constants.MaxLocks.Bytes()),
+			"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
+		),
+		primitives.NewMetadataModuleConstant(
+			"MaxReserves",
+			sc.ToCompact(metadata.PrimitiveTypesU32),
+			sc.BytesToSequenceU8(m.Constants.MaxReserves.Bytes()),
+			"The maximum number of named reserves that can exist on an account.",
+		),
+	} // TODO: add more
 }

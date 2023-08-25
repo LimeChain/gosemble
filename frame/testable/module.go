@@ -50,10 +50,20 @@ func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives
 
 func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
-		Name:      m.name(),
-		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
-		Call:      sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
+		Name:    m.name(),
+		Storage: sc.Option[primitives.MetadataModuleStorage]{},
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
+		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TestableCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Testable, Runtime>"),
+				},
+				m.Index,
+				"Call.Testable"),
+		),
 		Event:     sc.NewOption[sc.Compact](nil),
+		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,

@@ -3,7 +3,7 @@ package metadata
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -15,11 +15,11 @@ const (
 )
 
 type Module[N sc.Numeric] struct {
-	modules map[sc.U8]types.Module[N]
+	runtimeExtrinsic extrinsic.RuntimeExtrinsic[N]
 }
 
-func New[N sc.Numeric](modules map[sc.U8]types.Module[N]) Module[N] {
-	return Module[N]{modules: modules}
+func New[N sc.Numeric](runtimeExtrinsic extrinsic.RuntimeExtrinsic[N]) Module[N] {
+	return Module[N]{runtimeExtrinsic}
 }
 
 func (m Module[N]) Name() string {
@@ -43,31 +43,13 @@ func (m Module[N]) Metadata() int64 {
 
 func (m Module[N]) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
+
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	var modules sc.Sequence[primitives.MetadataModule]
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata()
 
-	for _, module := range m.modules {
-		mTypes, mModule := module.Metadata()
-
-		metadataTypes = append(metadataTypes, mTypes...)
-		modules = append(modules, mModule)
-	}
-
-	extrinsic := primitives.MetadataExtrinsic{
-		Type:    sc.ToCompact(metadata.UncheckedExtrinsic),
-		Version: types.ExtrinsicFormatVersion,
-		SignedExtensions: sc.Sequence[primitives.MetadataSignedExtension]{
-			primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple),
-			primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32),
-			primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32),
-			primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256),
-			primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256),
-			primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple),
-			primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple),
-			primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple),
-		},
-	}
+	// append types to all
+	metadataTypes = append(metadataTypes, types...)
 
 	runtimeV14Metadata := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -535,7 +517,6 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 
 func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		m.runtimeEvent(),
 		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString), // spec_name
@@ -547,96 +528,7 @@ func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32),    // transaction_version
 				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),     // state_version
 			})),
-
-		primitives.NewMetadataType(metadata.SignedExtra, "SignedExtra", primitives.NewMetadataTypeDefinitionTuple(
-			sc.Sequence[sc.Compact]{
-				sc.ToCompact(metadata.CheckNonZeroSender),
-				sc.ToCompact(metadata.CheckSpecVersion),
-				sc.ToCompact(metadata.CheckTxVersion),
-				sc.ToCompact(metadata.CheckGenesis),
-				sc.ToCompact(metadata.CheckMortality),
-				sc.ToCompact(metadata.CheckNonce),
-				sc.ToCompact(metadata.CheckWeight),
-				sc.ToCompact(metadata.ChargeTransactionPayment),
-			})),
-
-		primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
-			sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-				}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
-				primitives.NewMetadataTypeParameter(metadata.RuntimeCall, "Call"),
-				primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
-				primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
-			},
-		),
-		m.runtimeCall(),
 		primitives.NewMetadataType(metadata.Runtime, "Runtime", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{})),
 	}
-}
-
-func (m Module[N]) runtimeCall() primitives.MetadataType {
-	runtimeCallSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
-
-	idName := "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<"
-
-	for _, module := range m.modules {
-		_, metadataModule := module.Metadata()
-
-		if metadataModule.Call.HasValue {
-			callIndex := metadataModule.Call.Value.ToBigInt().Uint64()
-			name := string(metadataModule.Name)
-
-			metadataVariantType := primitives.NewMetadataDefinitionVariant(
-				name,
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), sc.Str(idName+name+", Runtime>")),
-				},
-				metadataModule.Index,
-				"Call."+name)
-
-			runtimeCallSubTypes = append(runtimeCallSubTypes, metadataVariantType)
-		}
-	}
-
-	return primitives.NewMetadataTypeWithPath(
-		metadata.RuntimeCall,
-		"RuntimeCall",
-		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeCall"},
-		primitives.NewMetadataTypeDefinitionVariant(runtimeCallSubTypes),
-	)
-}
-
-func (m Module[N]) runtimeEvent() primitives.MetadataType {
-	runtimeEventSubTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
-
-	for _, module := range m.modules {
-		_, metadataModule := module.Metadata()
-
-		if metadataModule.Event.HasValue {
-			callIndex := metadataModule.Event.Value.ToBigInt().Uint64()
-			name := string(metadataModule.Name)
-
-			metadataVariantType := primitives.NewMetadataDefinitionVariant(
-				name,
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(int(callIndex), metadataModule.EventPath),
-				},
-				metadataModule.Index,
-				"Events."+name)
-
-			runtimeEventSubTypes = append(runtimeEventSubTypes, metadataVariantType)
-		}
-	}
-
-	return primitives.NewMetadataTypeWithPath(
-		metadata.TypesRuntimeEvent,
-		"node_template_runtime RuntimeEvent",
-		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
-		primitives.NewMetadataTypeDefinitionVariant(runtimeEventSubTypes),
-	)
 }

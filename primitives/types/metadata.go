@@ -161,10 +161,17 @@ func NewMetadataTypeParameter(id int, text string) MetadataTypeParameter {
 	}
 }
 
+func NewMetadataTypeParameterCompactId(id sc.Compact, text string) MetadataTypeParameter {
+	return MetadataTypeParameter{
+		Text: sc.Str(text),
+		Type: sc.NewOption[sc.Compact](id),
+	}
+}
+
 func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
 	return MetadataTypeParameter{
-		Type: sc.NewOption[sc.Compact](nil),
 		Text: sc.Str(text),
+		Type: sc.NewOption[sc.Compact](nil),
 	}
 }
 
