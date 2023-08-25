@@ -282,14 +282,20 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
 	_, err = rt.Exec("Core_initialize_block", encodedHeader)
 	assert.NoError(t, err)
 
-	setBlockNumber(t, storage, 16)
+	// set the block number
+	bn, err := scale.NewUint128(big.NewInt(16))
+	assert.NoError(t, err)
+	blockNumberBytes, err := scale.Marshal(bn)
+	assert.NoError(t, err)
+	err = (*storage).Put(append(keySystemHash, keyNumberHash...), blockNumberBytes)
+	assert.NoError(t, err)
 
 	call, err := ctypes.NewCall(metadata, "System.remark", []byte{})
 	assert.NoError(t, err)

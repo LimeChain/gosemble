@@ -53,7 +53,7 @@ func (m Module[N]) InitializeBlock(header primitives.Header[N]) {
 func (m Module[N]) ExecuteBlock(block types.Block[N]) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
-	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number)))
+	log.Trace("execute_block " + strconv.Itoa(int(sc.To[sc.U64](block.Header.Number))))
 
 	m.InitializeBlock(block.Header)
 
@@ -135,7 +135,8 @@ func (m Module[N]) FinalizeBlock() primitives.Header[N] {
 // Changes made to storage should be discarded.
 func (m Module[N]) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	currentBlockNumber := m.system.Storage.BlockNumber.Get()
-	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
+	blockNumber := currentBlockNumber.Add(sc.NewNumeric[N](1)).(N)
+	m.system.Initialize(blockNumber, blockHash, primitives.Digest{})
 
 	log.Trace("validate_transaction")
 
@@ -204,8 +205,8 @@ func (m Module[N]) initialChecks(block types.Block[N]) {
 	header := block.Header
 	blockNumber := header.Number
 
-	if blockNumber > 0 {
-		storageParentHash := m.system.Storage.BlockHash.Get(N(blockNumber - 1))
+	if blockNumber.Gt(sc.NewNumeric[N](0)) {
+		storageParentHash := m.system.Storage.BlockHash.Get(blockNumber.Sub(sc.NewNumeric[N](1)).(N))
 
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")

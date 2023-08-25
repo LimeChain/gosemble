@@ -124,7 +124,7 @@ func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length 
 		log.Critical("invalid DispatchClass type in CheckBlockLength()")
 	}
 
-	if nextLen > maxLimit {
+	if nextLen.Gt(maxLimit) {
 		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 

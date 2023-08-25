@@ -1,10 +1,6 @@
 package types
 
-import (
-	"math/big"
-
-	sc "github.com/LimeChain/goscale"
-)
+import sc "github.com/LimeChain/goscale"
 
 type ConstantMultiplier struct {
 	Multiplier Balance
@@ -17,8 +13,5 @@ func NewConstantMultiplier(multiplier Balance) ConstantMultiplier {
 }
 
 func (cm ConstantMultiplier) WeightToFee(weight Weight) Balance {
-	bnRefTime := new(big.Int).SetUint64(uint64(weight.RefTime))
-
-	res := new(big.Int).Mul(bnRefTime, cm.Multiplier.ToBigInt())
-	return sc.NewU128FromBigInt(res)
+	return sc.NewU128FromUint64(uint64(weight.RefTime)).Mul(cm.Multiplier).(Balance)
 }

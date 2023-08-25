@@ -82,14 +82,6 @@ func runtimeMetadata(t *testing.T, instance *wazero_runtime.Instance) *ctypes.Me
 	return metadata
 }
 
-func setBlockNumber(t *testing.T, storage *runtime.Storage, blockNumber sc.U64) {
-	blockNumberBytes, err := scale.Marshal(uint64(blockNumber))
-	assert.NoError(t, err)
-
-	err = (*storage).Put(append(keySystemHash, keyNumberHash...), blockNumberBytes)
-	assert.NoError(t, err)
-}
-
 func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {
 	accountInfo := gossamertypes.AccountInfo{
 		Nonce:       nonce,

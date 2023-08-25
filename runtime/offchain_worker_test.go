@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"math/big"
 	"testing"
 	"time"
 
@@ -38,19 +39,24 @@ func Test_Offchain_Worker(t *testing.T) {
 	}
 	assert.NoError(t, digest.Add(preRuntimeDigest))
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
 
-	encBlockNumber, err := scale.Marshal(BlockNumberType(blockNumber))
+	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
+	assert.NoError(t, err)
+	encBlockNumber, err := scale.Marshal(bn)
 	assert.NoError(t, err)
 
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	encPrevBlock, _ := scale.Marshal(BlockNumberType(blockNumber - 1))
+	bn, err = scale.NewUint128(big.NewInt(int64(blockNumber - 1)))
+	assert.NoError(t, err)
+	encPrevBlock, err := scale.Marshal(bn)
+	assert.NoError(t, err)
 	prevBlockNumHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
 

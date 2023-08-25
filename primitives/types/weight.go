@@ -25,17 +25,17 @@ func (dbw RuntimeDbWeight) Bytes() []byte {
 }
 
 func (dbw RuntimeDbWeight) Reads(r sc.U64) Weight {
-	return WeightFromParts(dbw.Read.SaturatingMul(r), 0)
+	return WeightFromParts(dbw.Read.SaturatingMul(r).(sc.U64), 0)
 }
 
 func (dbw RuntimeDbWeight) Writes(w sc.U64) Weight {
-	return WeightFromParts(dbw.Write.SaturatingMul(w), 0)
+	return WeightFromParts(dbw.Write.SaturatingMul(w).(sc.U64), 0)
 }
 
 func (dbw RuntimeDbWeight) ReadsWrites(r, w sc.U64) Weight {
 	readWeight := dbw.Read.SaturatingMul(r)
 	writeWeight := dbw.Write.SaturatingMul(w)
-	return WeightFromParts(readWeight.SaturatingAdd(writeWeight), 0)
+	return WeightFromParts(readWeight.SaturatingAdd(writeWeight).(sc.U64), 0)
 }
 
 type Weight struct {
@@ -67,15 +67,15 @@ func (w Weight) Bytes() []byte {
 
 func (w Weight) Add(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime + rhs.RefTime,
-		ProofSize: w.ProofSize + rhs.ProofSize,
+		RefTime:   w.RefTime.Add(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Add(rhs.ProofSize).(sc.U64),
 	}
 }
 
 func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime),
-		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize).(sc.U64),
 	}
 }
 
@@ -83,8 +83,8 @@ func (w Weight) SaturatingAdd(rhs Weight) Weight {
 // of all fields instead of overflowing.
 func (w Weight) SaturatingSub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime),
-		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize),
+		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize).(sc.U64),
 	}
 }
 
@@ -110,56 +110,56 @@ func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
 		return sc.NewOption[Weight](nil)
 	}
 
-	return sc.NewOption[Weight](Weight{refTime, proofSize})
+	return sc.NewOption[Weight](Weight{refTime.(sc.U64), proofSize.(sc.U64)})
 }
 
 func (w Weight) Sub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime - rhs.RefTime,
-		ProofSize: w.ProofSize - rhs.ProofSize,
+		RefTime:   w.RefTime.Sub(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Sub(rhs.ProofSize).(sc.U64),
 	}
 }
 
 func (w Weight) Mul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime * b,
-		ProofSize: w.ProofSize * b,
+		RefTime:   w.RefTime.Mul(b).(sc.U64),
+		ProofSize: w.ProofSize.Mul(b).(sc.U64),
 	}
 }
 
 func (w Weight) SaturatingMul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingMul(b),
-		ProofSize: w.ProofSize.SaturatingMul(b),
+		RefTime:   w.RefTime.SaturatingMul(b).(sc.U64),
+		ProofSize: w.ProofSize.SaturatingMul(b).(sc.U64),
 	}
 }
 
 // Min Get the conservative min of `self` and `other` weight.
 func (w Weight) Min(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Min(rhs.RefTime),
-		ProofSize: w.ProofSize.Min(rhs.ProofSize),
+		RefTime:   w.RefTime.Min(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Min(rhs.ProofSize).(sc.U64),
 	}
 }
 
 // Max Get the aggressive max of `self` and `other` weight.
 func (w Weight) Max(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Max(rhs.RefTime),
-		ProofSize: w.ProofSize.Max(rhs.ProofSize),
+		RefTime:   w.RefTime.Max(rhs.RefTime).(sc.U64),
+		ProofSize: w.ProofSize.Max(rhs.ProofSize).(sc.U64),
 	}
 }
 
 // AllGt Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AllGt(rhs Weight) sc.Bool {
-	return w.RefTime > rhs.RefTime && w.ProofSize > rhs.ProofSize
+	return sc.Bool(w.RefTime.Gt(rhs.RefTime) && w.ProofSize.Gt(rhs.ProofSize))
 }
 
 // AnyGt Returns true if any of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AnyGt(otherW Weight) sc.Bool {
-	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
+	return sc.Bool(w.RefTime.Gt(otherW.RefTime) || w.ProofSize.Gt(otherW.ProofSize))
 }
 
 // Construct [`Weight`] from weight parts, namely reference time and proof size weights.
