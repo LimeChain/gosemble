@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -13,22 +12,24 @@ import (
 // TransactionalLimit returns the maximum number of nested layers.
 const TransactionalLimit Layer = 255
 
+var transactionLevelKey = []byte(":transaction_level:")
+
 // Layer is the type that is being used to store the current number of active layers.
 type Layer = sc.U32
 
 // GetTransactionLevel returns the current number of nested transactional layers.
 func GetTransactionLevel() Layer {
-	return storage.GetDecode(constants.TransactionLevelKey, sc.DecodeU32)
+	return storage.GetDecode(transactionLevelKey, sc.DecodeU32)
 }
 
 // SetTransactionLevel Set the current number of nested transactional layers.
 func SetTransactionLevel(level Layer) {
-	storage.Set(constants.TransactionLevelKey, level.Bytes())
+	storage.Set(transactionLevelKey, level.Bytes())
 }
 
 // KillTransactionLevel kill the transactional layers storage.
 func KillTransactionLevel() {
-	storage.Clear(constants.TransactionLevelKey)
+	storage.Clear(transactionLevelKey)
 }
 
 // IncTransactionLevel increments the transaction level. Returns an error if levels go past the limit.

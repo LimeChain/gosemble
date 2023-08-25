@@ -2,8 +2,12 @@ package balances
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/support"
+)
+
+var (
+	keyBalances      = []byte("Balances")
+	keyTotalIssuance = []byte("TotalIssuance")
 )
 
 type storage struct {
@@ -13,7 +17,7 @@ type storage struct {
 
 func newStorage() *storage {
 	return &storage{
-		TotalIssuance: support.NewStorageValue(constants.KeyBalances, constants.KeyTotalIssuance, sc.DecodeU128),
+		TotalIssuance: support.NewStorageValue(keyBalances, keyTotalIssuance, sc.DecodeU128),
 		//InactiveIssuance: support.NewStorageValue(constants.KeyBalances, constants.KeyInactiveIssuance, sc.DecodeU128),
 	}
 }

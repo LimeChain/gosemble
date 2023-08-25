@@ -12,7 +12,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -28,24 +27,25 @@ const NODE_TEMPLATE_RUNTIME = "../build/node_template_runtime.wasm"
 const WASM_RUNTIME = "../build/runtime.wasm"
 
 var (
-	keySystemHash, _           = common.Twox128Hash(constants.KeySystem)
-	keyAccountHash, _          = common.Twox128Hash(constants.KeyAccount)
-	keyAllExtrinsicsLenHash, _ = common.Twox128Hash(constants.KeyAllExtrinsicsLen)
-	keyAuraHash, _             = common.Twox128Hash(constants.KeyAura)
-	keyAuthoritiesHash, _      = common.Twox128Hash(constants.KeyAuthorities)
-	keyBlockHash, _            = common.Twox128Hash(constants.KeyBlockHash)
-	keyCurrentSlotHash, _      = common.Twox128Hash(constants.KeyCurrentSlot)
-	keyDigestHash, _           = common.Twox128Hash(constants.KeyDigest)
-	keyExecutionPhaseHash, _   = common.Twox128Hash(constants.KeyExecutionPhase)
-	keyExtrinsicCountHash, _   = common.Twox128Hash(constants.KeyExtrinsicCount)
-	keyExtrinsicDataHash, _    = common.Twox128Hash(constants.KeyExtrinsicData)
-	keyLastRuntime, _          = common.Twox128Hash(constants.KeyLastRuntimeUpgrade)
-	keyNumberHash, _           = common.Twox128Hash(constants.KeyNumber)
-	keyParentHash, _           = common.Twox128Hash(constants.KeyParentHash)
-	keyTimestampHash, _        = common.Twox128Hash(constants.KeyTimestamp)
-	keyTimestampNowHash, _     = common.Twox128Hash(constants.KeyNow)
-	keyTimestampDidUpdate, _   = common.Twox128Hash(constants.KeyDidUpdate)
-	keyBlockWeight, _          = common.Twox128Hash(constants.KeyBlockWeight)
+	keySystemHash, _           = common.Twox128Hash([]byte("System"))
+	keyAccountHash, _          = common.Twox128Hash([]byte("Account"))
+	keyAllExtrinsicsLenHash, _ = common.Twox128Hash([]byte("AllExtrinsicsLen"))
+	keyAuraHash, _             = common.Twox128Hash([]byte("Aura"))
+	keyAuthoritiesHash, _      = common.Twox128Hash([]byte("Authorities"))
+	keyBlockHash, _            = common.Twox128Hash([]byte("BlockHash"))
+	keyCurrentSlotHash, _      = common.Twox128Hash([]byte("CurrentSlot"))
+	keyDigestHash, _           = common.Twox128Hash([]byte("Digest"))
+	keyExecutionPhaseHash, _   = common.Twox128Hash([]byte("ExecutionPhase"))
+	keyExtrinsicCountHash, _   = common.Twox128Hash([]byte("ExtrinsicCount"))
+	keyExtrinsicIndex          = []byte(":extrinsic_index")
+	keyExtrinsicDataHash, _    = common.Twox128Hash([]byte("ExtrinsicData"))
+	keyLastRuntime, _          = common.Twox128Hash([]byte("LastRuntimeUpgrade"))
+	keyNumberHash, _           = common.Twox128Hash([]byte("Number"))
+	keyParentHash, _           = common.Twox128Hash([]byte("ParentHash"))
+	keyTimestampHash, _        = common.Twox128Hash([]byte("Timestamp"))
+	keyTimestampNowHash, _     = common.Twox128Hash([]byte("Now"))
+	keyTimestampDidUpdate, _   = common.Twox128Hash([]byte("DidUpdate"))
+	keyBlockWeight, _          = common.Twox128Hash([]byte("BlockWeight"))
 )
 
 var (

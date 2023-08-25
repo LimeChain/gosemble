@@ -10,7 +10,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -75,7 +74,7 @@ func Test_Offchain_Worker(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, types.PhaseInitialization.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
-	assert.Equal(t, sc.U32(0).Bytes(), (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, sc.U32(0).Bytes(), (*storage).Get(keyExtrinsicIndex))
 	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 	assert.Equal(t, expectedStorageDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))

@@ -66,7 +66,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
-	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(keyExtrinsicIndex))
 
 	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
@@ -137,7 +137,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
 	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), (*storage).Get(keyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExtrinsicCountHash...)))
@@ -227,7 +227,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
 	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
-	assert.Equal(t, []byte(nil), (*storage).Get(constants.KeyExtrinsicIndex))
+	assert.Equal(t, []byte(nil), (*storage).Get(keyExtrinsicIndex))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyAllExtrinsicsLenHash...)))
 	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyExtrinsicCountHash...)))
