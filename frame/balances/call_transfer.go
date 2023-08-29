@@ -158,7 +158,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 					}),
 				}
 			}
-			fromAccount.Free = sc.NewU128FromBigInt(newFromAccountFree)
+			fromAccount.Free = sc.NewU128(newFromAccountFree)
 
 			newToAccountFree := toAccount.Free.Add(value)
 			toAccount.Free = newToAccountFree.(sc.U128)
@@ -218,7 +218,7 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 
 	liquid := accountData.Free.Sub(lockedOrFrozen).(sc.U128)
 	if liquid.Gt(accountData.Free) {
-		liquid = sc.NewU128FromUint64(0)
+		liquid = sc.NewU128(0)
 	}
 
 	if t.storedMap.CanDecProviders(who) && !keepAlive {
@@ -230,7 +230,7 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 
 	result := liquid.Sub(mustRemainToExist)
 	if result.Gt(liquid) {
-		return sc.NewU128FromUint64(0)
+		return sc.NewU128(0)
 	}
 
 	return result.(sc.U128)

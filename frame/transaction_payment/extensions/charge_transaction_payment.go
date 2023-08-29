@@ -137,9 +137,9 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 		maxTxPerBlock = maxTxPerBlockLength
 	}
 
-	bnTip := tip.Add(sc.NewU128FromUint64(1))
+	bnTip := tip.Add(sc.NewU128(1))
 
-	scaledTip := bnTip.Mul(sc.NewU128FromUint64(uint64(maxTxPerBlock))).(sc.U128)
+	scaledTip := bnTip.Mul(sc.NewU128(maxTxPerBlock)).(sc.U128)
 
 	if info.Class.Is(primitives.DispatchClassNormal) {
 		return sc.To[sc.U64](scaledTip)
@@ -147,7 +147,7 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 		return sc.To[sc.U64](scaledTip)
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
 		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
-		virtualTip := finalFee.Mul(sc.NewU128FromUint64(uint64(feeMultiplier)))
+		virtualTip := finalFee.Mul(sc.NewU128(feeMultiplier))
 		scaledVirtualTip := virtualTip.Mul(maxTxPerBlock)
 
 		sum := scaledTip.Add(scaledVirtualTip).(sc.U128)

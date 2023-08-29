@@ -12,5 +12,5 @@ const (
 )
 
 var (
-	Zero = sc.NewU128FromUint64(0)
+	Zero = sc.NewU128(0)
 )

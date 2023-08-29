@@ -147,7 +147,7 @@ func (m Module[N]) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primi
 		// It implements a decimal fixed point number, which is `1 / VALUE`
 		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
 		// FixedU64, VALUE is 1_000_000_000.
-		fixedU128Div := sc.NewU128FromUint64(uint64(1_000_000_000_000_000_000))
+		fixedU128Div := sc.NewU128(uint64(1_000_000_000_000_000_000))
 		bnAdjustedWeightFee := multiplier.Mul(unadjustedWeightFee)
 		adjustedWeightFee := bnAdjustedWeightFee.Div(fixedU128Div).(sc.U128) // TODO: Create FixedU128 type
 

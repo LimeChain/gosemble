@@ -62,7 +62,7 @@ var RuntimeVersion = &primitives.RuntimeVersion{
 
 var (
 	balancesExistentialDeposit = 1 * constants.Dollar
-	BalancesExistentialDeposit = sc.NewU128FromUint64(balancesExistentialDeposit)
+	BalancesExistentialDeposit = sc.NewU128(balancesExistentialDeposit)
 )
 
 var (

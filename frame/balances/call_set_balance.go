@@ -125,8 +125,8 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 	sum := newFree.Add(newReserved)
 
 	if sum.Lt(c.constants.ExistentialDeposit) {
-		newFree = sc.NewU128FromUint64(0)
-		newReserved = sc.NewU128FromUint64(0)
+		newFree = sc.NewU128(0)
+		newReserved = sc.NewU128(0)
 	}
 
 	result := c.accountMutator.tryMutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {

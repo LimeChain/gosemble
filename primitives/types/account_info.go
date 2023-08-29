@@ -51,5 +51,5 @@ func (ai AccountInfo) Frozen(reasons Reasons) sc.U128 {
 		return ai.Data.MiscFrozen
 	}
 
-	return sc.NewU128FromUint64(0)
+	return sc.NewU128(0)
 }

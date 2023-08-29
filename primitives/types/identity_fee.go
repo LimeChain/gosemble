@@ -8,5 +8,5 @@ type IdentityFee struct {
 }
 
 func (i IdentityFee) WeightToFee(weight Weight) Balance {
-	return sc.NewU128FromUint64(uint64(weight.RefTime))
+	return sc.NewU128(weight.RefTime)
 }

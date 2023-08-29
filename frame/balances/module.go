@@ -74,7 +74,7 @@ func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives
 // If `value` is 0, it does nothing.
 func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
-		return sc.NewU128FromUint64(0), nil
+		return sc.NewU128(0), nil
 	}
 
 	result := m.tryMutateAccount(who, func(from *primitives.AccountData, isNew bool) sc.Result[sc.Encodable] {
@@ -107,7 +107,7 @@ func (m Module[N]) DepositIntoExisting(who primitives.Address32, value sc.U128) 
 // Does not do anything if value is 0.
 func (m Module[N]) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
-		return sc.NewU128FromUint64(0), nil
+		return sc.NewU128(0), nil
 	}
 
 	result := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
