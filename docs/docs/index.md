@@ -6,8 +6,8 @@ permalink: /
 **Go implementation of Polkadot/Substrate compatible runtimes**
 
 The following project is based on [**previous research**](https://github.com/LimeChain/gosemble-research), funded by
-[**Web3 Foundation**](https://web3.foundation) **Grants**, and developed and maintained by [**LimeChain
-**](https://limechain.tech). The research provides conclusions if _Go_ is a suitable choice for writing Polkadot
+[**Web3 Foundation**](https://web3.foundation) **Grants**, and developed and maintained by [LimeChain](https://limechain.tech). 
+The research provides conclusions if _Go_ is a suitable choice for writing Polkadot
 Runtimes and further aids the development of a _Go_ toolchain, capable of producing compatible runtimes.
 
 While there are several implementations of Polkadot Hosts in [Rust](https://github.com/paritytech/substrate),
