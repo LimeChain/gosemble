@@ -3,27 +3,12 @@ CURRENT_DIR = $(shell pwd)
 SRC_DIR = /src/examples/wasm/gosemble
 BUILD_PATH = build/runtime.wasm
 IMAGE = polkawasm/tinygo
-TAG = 0.25.0
-BRANCH_CONSERVATIVE_GC = new-polkawasm-target-release-$(TAG)
-BRANCH_EXTALLOC_GC = new-polkawasm-target-extallocleak-gc-release-$(TAG)
+TAG = 0.29.0
 
-.PHONY: build
-build:
-	@if [[ "$(GC)" == "conservative" ]]; then \
-		cd tinygo; \
-		git checkout $(BRANCH_CONSERVATIVE_GC); \
-		cd ..; \
-		docker build --tag $(IMAGE):$(TAG) -f tinygo/Dockerfile.polkawasm tinygo; \
-		docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG) /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
-		echo "build - tinygo version: ${TAG}, gc: conservative"; \
-	else \
-		cd tinygo; \
-		git checkout $(BRANCH_EXTALLOC_GC); \
-		cd ..; \
-		docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
-		docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
-		echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
-	fi
+build-docker:
+	docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
+	docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
+	echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
 
 build-tinygo:
 	@cd tinygo; \
@@ -50,4 +35,4 @@ test-unit:
 
 # GOARCH=amd64 is required to run the integration tests in gossamer
 test-integration:
-	@GOARCH=amd64 go test --tags="nonwasmenv" -v ./runtime/...
+	go test --tags="nonwasmenv" -v ./runtime/...
