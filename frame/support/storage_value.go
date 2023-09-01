@@ -1,101 +1,15 @@
 package support
 
-import (
-	"bytes"
+import sc "github.com/LimeChain/goscale"
 
-	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/hashing"
-	"github.com/LimeChain/gosemble/primitives/storage"
-)
-
-type StorageValue[T sc.Encodable] struct {
-	prefix       []byte
-	name         []byte
-	decodeFunc   func(buffer *bytes.Buffer) T
-	defaultValue *T
-}
-
-func NewStorageValue[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T) *StorageValue[T] {
-	return &StorageValue[T]{
-		prefix:     prefix,
-		name:       name,
-		decodeFunc: decodeFunc,
-	}
-}
-
-func NewStorageValueWithDefault[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T, defaultValue *T) *StorageValue[T] {
-	return &StorageValue[T]{
-		prefix:       prefix,
-		name:         name,
-		decodeFunc:   decodeFunc,
-		defaultValue: defaultValue,
-	}
-}
-
-func (sv StorageValue[T]) Get() T {
-	if sv.defaultValue == nil {
-		return storage.GetDecode(sv.key(), sv.decodeFunc)
-	}
-
-	return storage.GetDecodeOnEmpty(sv.key(), sv.decodeFunc, *sv.defaultValue)
-}
-
-func (sv StorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
-	return storage.Get(sv.key())
-}
-
-func (sv StorageValue[T]) Exists() bool {
-	exists := storage.Exists(sv.key())
-
-	return exists != 0
-}
-
-func (sv StorageValue[T]) Put(value T) {
-	storage.Set(sv.key(), value.Bytes())
-}
-
-func (sv StorageValue[T]) Clear() {
-	storage.Clear(sv.key())
-}
-
-func (sv StorageValue[T]) Append(value T) {
-	storage.Append(sv.key(), value.Bytes())
-}
-
-func (sv StorageValue[T]) Take() T {
-	return storage.TakeDecode(sv.key(), sv.decodeFunc)
-}
-
-func (sv StorageValue[T]) TakeBytes() []byte {
-	return storage.TakeBytes(sv.key())
-}
-
-func (sv StorageValue[T]) DecodeLen() sc.Option[sc.U64] {
-	// `Compact<u32>` is 5 bytes in maximum.
-	data := [5]byte{}
-	option := storage.Read(sv.key(), data[:], 0)
-
-	if !option.HasValue {
-		return sc.NewOption[sc.U64](nil)
-	}
-
-	length := option.Value
-	if length.Gt(sc.U32(len(data))) {
-		length = sc.U32(len(data))
-	}
-
-	buffer := &bytes.Buffer{}
-	buffer.Write(data[:length])
-
-	compact := sc.DecodeCompact(buffer)
-	toLen := sc.U64(compact.ToBigInt().Uint64())
-
-	return sc.NewOption[sc.U64](toLen)
-}
-
-func (sv StorageValue[T]) key() []byte {
-	prefixHash := hashing.Twox128(sv.prefix)
-	nameHash := hashing.Twox128(sv.name)
-
-	return append(prefixHash, nameHash...)
+type StorageValue[T sc.Encodable] interface {
+	Get() T
+	GetBytes() sc.Option[sc.Sequence[sc.U8]]
+	Exists() bool
+	Put(value T)
+	Clear()
+	Append(value T)
+	TakeBytes() []byte
+	Take() T
+	DecodeLen() sc.Option[sc.U64]
 }

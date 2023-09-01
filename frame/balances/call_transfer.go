@@ -58,7 +58,7 @@ func (c transferCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ transferCall) BaseWeight(b ...any) types.Weight {
+func (_ transferCall) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -72,7 +72,7 @@ func (_ transferCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ transferCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ transferCall) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 

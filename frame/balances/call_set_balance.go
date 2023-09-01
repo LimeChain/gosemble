@@ -60,7 +60,7 @@ func (c setBalanceCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ setBalanceCall) BaseWeight(b ...any) types.Weight {
+func (_ setBalanceCall) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -78,7 +78,7 @@ func (_ setBalanceCall) IsInherent() bool {
 	return false
 }
 
-func (_ setBalanceCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ setBalanceCall) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 

@@ -68,7 +68,7 @@ func (c setCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ setCall) BaseWeight(b ...any) primitives.Weight {
+func (_ setCall) BaseWeight() primitives.Weight {
 	// Storage: Timestamp Now (r:1 w:1)
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	// Storage: Babe CurrentSlot (r:1 w:0)
@@ -83,7 +83,7 @@ func (_ setCall) BaseWeight(b ...any) primitives.Weight {
 	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ setCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+func (_ setCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 

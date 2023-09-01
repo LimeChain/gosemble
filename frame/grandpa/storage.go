@@ -10,7 +10,7 @@ var (
 )
 
 type storage struct {
-	Authorities *support.SimpleStorageValue[primitives.VersionedAuthorityList]
+	Authorities support.StorageValue[primitives.VersionedAuthorityList]
 }
 
 func newStorage() *storage {

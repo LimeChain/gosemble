@@ -12,13 +12,13 @@ var (
 )
 
 type storage struct {
-	Authorities *support.StorageValue[sc.Sequence[sc.U8]]
-	CurrentSlot *support.StorageValue[sc.U64]
+	Authorities support.StorageValue[sc.Sequence[sc.U8]]
+	CurrentSlot support.StorageValue[sc.U64]
 }
 
 func newStorage() *storage {
 	return &storage{
-		Authorities: support.NewStorageValue(keyAura, keyAuthorities, sc.DecodeSequence[sc.U8]),
-		CurrentSlot: support.NewStorageValue(keyAura, keyCurrentSlot, sc.DecodeU64),
+		Authorities: support.NewHashStorageValue(keyAura, keyAuthorities, sc.DecodeSequence[sc.U8]),
+		CurrentSlot: support.NewHashStorageValue(keyAura, keyCurrentSlot, sc.DecodeU64),
 	}
 }

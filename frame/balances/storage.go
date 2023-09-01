@@ -11,13 +11,13 @@ var (
 )
 
 type storage struct {
-	TotalIssuance *support.StorageValue[sc.U128]
+	TotalIssuance support.StorageValue[sc.U128]
 	//InactiveIssuance *support.StorageValue[sc.U128]
 }
 
 func newStorage() *storage {
 	return &storage{
-		TotalIssuance: support.NewStorageValue(keyBalances, keyTotalIssuance, sc.DecodeU128),
+		TotalIssuance: support.NewHashStorageValue(keyBalances, keyTotalIssuance, sc.DecodeU128),
 		//InactiveIssuance: support.NewStorageValue(constants.KeyBalances, constants.KeyInactiveIssuance, sc.DecodeU128),
 	}
 }

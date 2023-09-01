@@ -55,7 +55,7 @@ func (c forceFreeCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ forceFreeCall) BaseWeight(b ...any) types.Weight {
+func (_ forceFreeCall) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -69,7 +69,7 @@ func (_ forceFreeCall) BaseWeight(b ...any) types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ forceFreeCall) WeightInfo(baseWeight types.Weight) types.Weight {
+func (_ forceFreeCall) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 

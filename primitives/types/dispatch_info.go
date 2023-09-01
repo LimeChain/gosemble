@@ -60,13 +60,14 @@ func ExtractActualPaysFee(result *DispatchResultWithPostInfo[PostDispatchInfo], 
 	return pdi.Pays(info)
 }
 
+// GetDispatchInfo returns the DispatchInfo of the given call.
+// Uses call's BaseWeight to calculate all the information in DispatchInfo
 func GetDispatchInfo(call Call) DispatchInfo {
-	function := call
-	baseWeight := function.BaseWeight(call.Args())
+	baseWeight := call.BaseWeight()
 
 	return DispatchInfo{
-		Weight:  function.WeightInfo(baseWeight),
-		Class:   function.ClassifyDispatch(baseWeight),
-		PaysFee: function.PaysFee(baseWeight),
+		Weight:  call.WeighData(baseWeight),
+		Class:   call.ClassifyDispatch(baseWeight),
+		PaysFee: call.PaysFee(baseWeight),
 	}
 }
