@@ -7,6 +7,8 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+// remarkCall makes an on-chain remark.
+// Can be executed by any origin.
 type remarkCall struct {
 	primitives.Callable
 }
@@ -52,18 +54,22 @@ func (c remarkCall) Args() sc.VaryingData {
 // ## Complexity
 // - `O(1)`
 // The range of component `b` is `[0, 3932160]`.
-func (_ remarkCall) BaseWeight(args ...any) primitives.Weight {
+func (c remarkCall) BaseWeight() primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `0`
 	// Minimum execution time: 2_018 nanoseconds.
 	// Standard Error: 0
-	b := sc.Sequence[sc.U8]{} // should be args[0], but since it is empty, it should not be created, otherwise the verification will fail.
+	b := sc.Sequence[sc.U8]{}
+	if c.Arguments != nil {
+		b = c.Arguments[0].(sc.Sequence[sc.U8])
+	}
+
 	w := primitives.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b)))
 	return primitives.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
-func (_ remarkCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+func (_ remarkCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
@@ -97,16 +103,16 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 	}
 }
 
-// Ensure that the origin `o` represents either a signed extrinsic (i.e. transaction) or the root.
-// Returns `Ok` with the account that signed the extrinsic, `None` if it was root,  or an `Err`
-// otherwise.
-func EnsureSignedOrRoot(o primitives.RawOrigin) (ok sc.Option[primitives.Address32], err primitives.DispatchError) {
-	if o.IsRootOrigin() {
-		ok = sc.NewOption[primitives.Address32](nil)
-	} else if o.IsSignedOrigin() {
-		ok = sc.NewOption[primitives.Address32](o.VaryingData[1])
-	} else {
-		err = primitives.NewDispatchErrorBadOrigin()
+// EnsureSignedOrRoot ensures the origin represents either a signed extrinsic or the root.
+// Returns an empty Option if the origin is `Root`.
+// Returns an Option with the signer if the origin is signed.
+// Returns a `BadOrigin` error if neither of the above.
+func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.Address32], primitives.DispatchError) {
+	if origin.IsRootOrigin() {
+		return sc.NewOption[primitives.Address32](nil), nil
+	} else if origin.IsSignedOrigin() {
+		return sc.NewOption[primitives.Address32](origin.VaryingData[1]), nil
 	}
-	return ok, err
+
+	return sc.Option[primitives.Address32]{}, primitives.NewDispatchErrorBadOrigin()
 }

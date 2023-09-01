@@ -1,7 +1,7 @@
 package types
 
 const (
-	WithdrawReasonsTransactionPayment = 1 << iota
+	WithdrawReasonsTransactionPayment = iota
 	WithdrawReasonsTransfer
 	WithdrawReasonsReserve
 	WithdrawReasonsFee

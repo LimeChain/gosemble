@@ -13,10 +13,10 @@ type Call interface {
 	FunctionIndex() sc.U8
 	Args() sc.VaryingData
 	Dispatch(origin RuntimeOrigin, args sc.VaryingData) DispatchResultWithPostInfo[PostDispatchInfo]
-	BaseWeight(...any) Weight
+	BaseWeight() Weight
 	ClassifyDispatch(baseWeight Weight) DispatchClass
 	PaysFee(baseWeight Weight) Pays
-	WeightInfo(baseWeight Weight) Weight
+	WeighData(baseWeight Weight) Weight
 	DecodeArgs(buffer *bytes.Buffer) Call
 }
 

@@ -29,39 +29,39 @@ var (
 )
 
 type storage[N sc.Numeric] struct {
-	Account            *support.StorageMap[types.PublicKey, types.AccountInfo]
-	BlockWeight        *support.StorageValue[types.ConsumedWeight]
-	BlockHash          *support.StorageMap[N, types.Blake2bHash]
-	BlockNumber        *support.StorageValue[N]
-	AllExtrinsicsLen   *support.StorageValue[sc.U32]
-	ExtrinsicIndex     *support.SimpleStorageValue[sc.U32]
-	ExtrinsicData      *support.StorageMap[sc.U32, sc.Sequence[sc.U8]]
-	ExtrinsicCount     *support.StorageValue[sc.U32]
-	ParentHash         *support.StorageValue[types.Blake2bHash]
-	Digest             *support.StorageValue[types.Digest]
-	Events             *support.StorageValue[types.EventRecord] // This calls only Append and Kill
-	EventCount         *support.StorageValue[sc.U32]
-	EventTopics        *support.StorageMap[types.H256, sc.VaryingData]
-	LastRuntimeUpgrade *support.StorageValue[types.LastRuntimeUpgradeInfo]
-	ExecutionPhase     *support.StorageValue[types.ExtrinsicPhase]
+	Account            support.StorageMap[types.PublicKey, types.AccountInfo]
+	BlockWeight        support.StorageValue[types.ConsumedWeight]
+	BlockHash          support.StorageMap[N, types.Blake2bHash]
+	BlockNumber        support.StorageValue[N]
+	AllExtrinsicsLen   support.StorageValue[sc.U32]
+	ExtrinsicIndex     support.StorageValue[sc.U32]
+	ExtrinsicData      support.StorageMap[sc.U32, sc.Sequence[sc.U8]]
+	ExtrinsicCount     support.StorageValue[sc.U32]
+	ParentHash         support.StorageValue[types.Blake2bHash]
+	Digest             support.StorageValue[types.Digest]
+	Events             support.StorageValue[types.EventRecord] // This calls only Append and Kill
+	EventCount         support.StorageValue[sc.U32]
+	EventTopics        support.StorageMap[types.H256, sc.VaryingData]
+	LastRuntimeUpgrade support.StorageValue[types.LastRuntimeUpgradeInfo]
+	ExecutionPhase     support.StorageValue[types.ExtrinsicPhase]
 }
 
 func newStorage[N sc.Numeric]() *storage[N] {
 	return &storage[N]{
-		Account:            support.NewStorageMap[types.PublicKey, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
-		BlockWeight:        support.NewStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),
-		BlockHash:          support.NewStorageMap[N, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
-		BlockNumber:        support.NewStorageValue(keySystem, keyNumber, sc.DecodeNumeric[N]),
-		AllExtrinsicsLen:   support.NewStorageValue(keySystem, keyAllExtrinsicsLen, sc.DecodeU32),
+		Account:            support.NewHashStorageMap[types.PublicKey, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
+		BlockWeight:        support.NewHashStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),
+		BlockHash:          support.NewHashStorageMap[N, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
+		BlockNumber:        support.NewHashStorageValue(keySystem, keyNumber, sc.DecodeNumeric[N]),
+		AllExtrinsicsLen:   support.NewHashStorageValue(keySystem, keyAllExtrinsicsLen, sc.DecodeU32),
 		ExtrinsicIndex:     support.NewSimpleStorageValue(keyExtrinsicIndex, sc.DecodeU32),
-		ExtrinsicData:      support.NewStorageMap[sc.U32, sc.Sequence[sc.U8]](keySystem, keyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
-		ExtrinsicCount:     support.NewStorageValue(keySystem, keyExtrinsicCount, sc.DecodeU32),
-		ParentHash:         support.NewStorageValue(keySystem, keyParentHash, types.DecodeBlake2bHash),
-		Digest:             support.NewStorageValue(keySystem, keyDigest, types.DecodeDigest),
-		Events:             support.NewStorageValue(keySystem, keyEvents, types.DecodeEventRecord),
-		EventCount:         support.NewStorageValue(keySystem, keyEventCount, sc.DecodeU32),
-		EventTopics:        support.NewStorageMap[types.H256, sc.VaryingData](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) sc.VaryingData { return sc.NewVaryingData() }),
-		LastRuntimeUpgrade: support.NewStorageValue(keySystem, keyLastRuntimeUpgrade, types.DecodeLastRuntimeUpgradeInfo),
-		ExecutionPhase:     support.NewStorageValue(keySystem, keyExecutionPhase, types.DecodeExtrinsicPhase),
+		ExtrinsicData:      support.NewHashStorageMap[sc.U32, sc.Sequence[sc.U8]](keySystem, keyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
+		ExtrinsicCount:     support.NewHashStorageValue(keySystem, keyExtrinsicCount, sc.DecodeU32),
+		ParentHash:         support.NewHashStorageValue(keySystem, keyParentHash, types.DecodeBlake2bHash),
+		Digest:             support.NewHashStorageValue(keySystem, keyDigest, types.DecodeDigest),
+		Events:             support.NewHashStorageValue(keySystem, keyEvents, types.DecodeEventRecord),
+		EventCount:         support.NewHashStorageValue(keySystem, keyEventCount, sc.DecodeU32),
+		EventTopics:        support.NewHashStorageMap[types.H256, sc.VaryingData](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) sc.VaryingData { return sc.NewVaryingData() }),
+		LastRuntimeUpgrade: support.NewHashStorageValue(keySystem, keyLastRuntimeUpgrade, types.DecodeLastRuntimeUpgradeInfo),
+		ExecutionPhase:     support.NewHashStorageValue(keySystem, keyExecutionPhase, types.DecodeExtrinsicPhase),
 	}
 }

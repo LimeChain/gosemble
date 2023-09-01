@@ -12,13 +12,13 @@ var (
 )
 
 type storage struct {
-	Now       *support.StorageValue[sc.U64]
-	DidUpdate *support.StorageValue[sc.Bool]
+	Now       support.StorageValue[sc.U64]
+	DidUpdate support.StorageValue[sc.Bool]
 }
 
 func newStorage() *storage {
 	return &storage{
-		Now:       support.NewStorageValue(keyTimestamp, keyNow, sc.DecodeU64),
-		DidUpdate: support.NewStorageValue(keyTimestamp, keyDidUpdate, sc.DecodeBool),
+		Now:       support.NewHashStorageValue(keyTimestamp, keyNow, sc.DecodeU64),
+		DidUpdate: support.NewHashStorageValue(keyTimestamp, keyDidUpdate, sc.DecodeBool),
 	}
 }

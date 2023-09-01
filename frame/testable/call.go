@@ -49,11 +49,11 @@ func (c testCall) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ testCall) BaseWeight(args ...any) primitives.Weight {
+func (_ testCall) BaseWeight() primitives.Weight {
 	return primitives.WeightFromParts(1_000_000, 0)
 }
 
-func (_ testCall) WeightInfo(baseWeight primitives.Weight) primitives.Weight {
+func (_ testCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 

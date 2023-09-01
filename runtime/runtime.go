@@ -150,22 +150,22 @@ func getInstance[T types.Module[BlockNumberType]]() T {
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systeModule := getInstance[system.Module[BlockNumberType]]()
+	systemModule := getInstance[system.Module[BlockNumberType]]()
 	balancesModule := getInstance[balances.Module[BlockNumberType]]()
 	txPaymentModule := getInstance[transaction_payment.Module[BlockNumberType]]()
 
-	checkMortality := sysExtensions.NewCheckMortality(systeModule)
-	checkNonce := sysExtensions.NewCheckNonce(systeModule)
-	chargeTxPayment := txExtensions.NewChargeTransactionPayment(systeModule, txPaymentModule, balancesModule)
+	checkMortality := sysExtensions.NewCheckMortality(systemModule)
+	checkNonce := sysExtensions.NewCheckNonce(systemModule)
+	chargeTxPayment := txExtensions.NewChargeTransactionPayment(systemModule, txPaymentModule, balancesModule)
 
 	extras := []primitives.SignedExtension{
 		sysExtensions.NewCheckNonZeroAddress(),
-		sysExtensions.NewCheckSpecVersion(systeModule),
-		sysExtensions.NewCheckTxVersion(systeModule),
-		sysExtensions.NewCheckGenesis(systeModule),
+		sysExtensions.NewCheckSpecVersion(systemModule),
+		sysExtensions.NewCheckTxVersion(systemModule),
+		sysExtensions.NewCheckGenesis(systemModule),
 		&checkMortality,
 		&checkNonce,
-		sysExtensions.NewCheckWeight(systeModule),
+		sysExtensions.NewCheckWeight(systemModule),
 		&chargeTxPayment,
 	}
 	return primitives.NewSignedExtra(extras)

@@ -4,48 +4,55 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/storage"
 )
 
 // SimpleStorageValue takes a key upon initialisation and uses it in raw format to get storage values.
 type SimpleStorageValue[T sc.Encodable] struct {
-	key        []byte
-	decodeFunc func(buffer *bytes.Buffer) T
+	baseStorageValue[T]
+	key []byte
 }
 
-func NewSimpleStorageValue[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) *SimpleStorageValue[T] {
-	return &SimpleStorageValue[T]{
-		key,
-		decodeFunc,
+func NewSimpleStorageValue[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) StorageValue[T] {
+	return SimpleStorageValue[T]{
+		baseStorageValue: baseStorageValue[T]{
+			decodeFunc: decodeFunc,
+		},
+		key: key,
 	}
 }
 
 func (ssv SimpleStorageValue[T]) Get() T {
-	return storage.GetDecode(ssv.key, ssv.decodeFunc)
+	return ssv.baseStorageValue.get(ssv.key)
+}
+
+func (ssv SimpleStorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
+	return ssv.baseStorageValue.getBytes(ssv.key)
 }
 
 func (ssv SimpleStorageValue[T]) Exists() bool {
-	exists := storage.Exists(ssv.key)
-
-	return exists != 0
+	return ssv.baseStorageValue.exists(ssv.key)
 }
 
 func (ssv SimpleStorageValue[T]) Put(value T) {
-	storage.Set(ssv.key, value.Bytes())
+	ssv.baseStorageValue.put(ssv.key, value)
 }
 
 func (ssv SimpleStorageValue[T]) Clear() {
-	storage.Clear(ssv.key)
+	ssv.baseStorageValue.clear(ssv.key)
 }
 
 func (ssv SimpleStorageValue[T]) Append(value T) {
-	storage.Append(ssv.key, value.Bytes())
+	ssv.baseStorageValue.append(ssv.key, value)
 }
 
 func (ssv SimpleStorageValue[T]) TakeBytes() []byte {
-	return storage.TakeBytes(ssv.key)
+	return ssv.baseStorageValue.takeBytes(ssv.key)
 }
 
 func (ssv SimpleStorageValue[T]) Take() T {
-	return storage.TakeDecode(ssv.key, ssv.decodeFunc)
+	return ssv.baseStorageValue.take(ssv.key)
+}
+
+func (ssv SimpleStorageValue[T]) DecodeLen() sc.Option[sc.U64] {
+	return ssv.baseStorageValue.decodeLen(ssv.key)
 }

@@ -5,11 +5,10 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
-
-var ZeroAddress = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 type CheckNonZeroAddress struct{}
 
@@ -34,7 +33,7 @@ func (c CheckNonZeroAddress) Validate(who *primitives.Address32, _call *primitiv
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
-	if reflect.DeepEqual(who, ZeroAddress) {
+	if reflect.DeepEqual(who, constants.ZeroAddress) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
 
