@@ -162,8 +162,7 @@ func (m Module[N]) Finalize() primitives.Header[N] {
 	extrinsicsRoot := primitives.DecodeH256(buf)
 	buf.Reset()
 
-	// saturating_sub
-	v := sc.NewNumeric[N](m.Constants.BlockHashCount).Sub(sc.NewNumeric[N](1))
+	v := sc.NewNumeric[N](m.Constants.BlockHashCount).SaturatingSub(sc.NewNumeric[N](1))
 	toRemove := blockNumber.Sub(v)
 
 	if toRemove.Gt(blockNumber) {

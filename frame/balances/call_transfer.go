@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"math/big"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -146,9 +145,8 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 
 	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			newFromAccountFree := new(big.Int).Sub(fromAccount.Free.ToBigInt(), value.ToBigInt())
-
-			if newFromAccountFree.Cmp(constants.Zero.ToBigInt()) < 0 {
+			newFromAccountFree := fromAccount.Free.Sub(value)
+			if fromAccount.Free.Lt(value) { // newFromAccountFree.Lt(constants.Zero)
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -158,7 +156,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 					}),
 				}
 			}
-			fromAccount.Free = sc.NewU128(newFromAccountFree)
+			fromAccount.Free = newFromAccountFree.(sc.U128)
 
 			newToAccountFree := toAccount.Free.Add(value)
 			toAccount.Free = newToAccountFree.(sc.U128)

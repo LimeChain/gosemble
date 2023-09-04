@@ -65,7 +65,7 @@ func Test_Call_Set_NewSetCallWithArgs(t *testing.T) {
 
 func Test_Call_Set_DecodeArgs(t *testing.T) {
 	setUpCallSet()
-	compact := sc.ToCompact(sc.NewU8(5))
+	compact := sc.ToCompact(sc.U8(5))
 	buf := bytes.NewBuffer(compact.Bytes())
 
 	call := target.DecodeArgs(buf)
@@ -85,7 +85,7 @@ func Test_Call_Set_Encode(t *testing.T) {
 
 func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 	setUpCallSet()
-	compact := sc.ToCompact(sc.NewU8(5))
+	compact := sc.ToCompact(sc.U8(5))
 
 	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, compact.Bytes()...))
 

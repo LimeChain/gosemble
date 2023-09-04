@@ -68,7 +68,7 @@ func (bsv baseStorageValue[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 	buffer.Write(data[:length])
 
 	compact := sc.DecodeCompact(buffer)
-	toLen := sc.U64(compact.ToBigInt().Uint64())
+	toLen := sc.To[sc.U64](sc.U128(compact))
 
 	return sc.NewOption[sc.U64](toLen)
 }
