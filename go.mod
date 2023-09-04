@@ -70,7 +70,7 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/vedhavyas/go-subkey v1.0.4 // indirect
-	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
