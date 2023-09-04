@@ -12,14 +12,14 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type transferCall struct {
+type callTransfer struct {
 	primitives.Callable
 	transfer
 }
 
-func newTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts,
+func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts,
 	mutator accountMutator) primitives.Call {
-	call := transferCall{
+	call := callTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -30,7 +30,7 @@ func newTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 	return call
 }
 
-func (c transferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -38,33 +38,33 @@ func (c transferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c transferCall) Encode(buffer *bytes.Buffer) {
+func (c callTransfer) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c transferCall) Bytes() []byte {
+func (c callTransfer) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c transferCall) ModuleIndex() sc.U8 {
+func (c callTransfer) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c transferCall) FunctionIndex() sc.U8 {
+func (c callTransfer) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c transferCall) Args() sc.VaryingData {
+func (c callTransfer) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ transferCall) BaseWeight() types.Weight {
+func (c callTransfer) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
 	// Minimum execution time: 37_815 nanoseconds.
-	r := constants.DbWeight.Reads(1)
-	w := constants.DbWeight.Writes(1)
+	r := c.constants.DbWeight.Reads(1)
+	w := c.constants.DbWeight.Writes(1)
 	e := types.WeightFromParts(0, 3593)
 	return types.WeightFromParts(38_109_000, 0).
 		SaturatingAdd(e).
@@ -72,19 +72,19 @@ func (_ transferCall) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ transferCall) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callTransfer) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ transferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ transferCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c transferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)

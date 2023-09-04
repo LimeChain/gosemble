@@ -4,18 +4,17 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type forceTransferCall struct {
+type callForceTransfer struct {
 	primitives.Callable
 	transfer
 }
 
-func newForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := forceTransferCall{
+func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callForceTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -26,7 +25,7 @@ func newForceTransferCall(moduleId sc.U8, functionId sc.U8, storedMap primitives
 	return call
 }
 
-func (c forceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		types.DecodeMultiAddress(buffer),
@@ -35,33 +34,33 @@ func (c forceTransferCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c forceTransferCall) Encode(buffer *bytes.Buffer) {
+func (c callForceTransfer) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c forceTransferCall) Bytes() []byte {
+func (c callForceTransfer) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c forceTransferCall) ModuleIndex() sc.U8 {
+func (c callForceTransfer) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c forceTransferCall) FunctionIndex() sc.U8 {
+func (c callForceTransfer) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c forceTransferCall) Args() sc.VaryingData {
+func (c callForceTransfer) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ forceTransferCall) BaseWeight() types.Weight {
+func (c callForceTransfer) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `135`
 	//  Estimated: `6196`
 	// Minimum execution time: 39_713 nanoseconds.
-	r := constants.DbWeight.Reads(2)
-	w := constants.DbWeight.Writes(2)
+	r := c.constants.DbWeight.Reads(2)
+	w := c.constants.DbWeight.Writes(2)
 	e := types.WeightFromParts(0, 6196)
 	return types.WeightFromParts(40_360_000, 0).
 		SaturatingAdd(e).
@@ -69,19 +68,19 @@ func (_ forceTransferCall) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ forceTransferCall) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callForceTransfer) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ forceTransferCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ forceTransferCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c forceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[2].(sc.Compact))
 
 	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
@@ -102,7 +101,7 @@ func (c forceTransferCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func (c forceTransferCall) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

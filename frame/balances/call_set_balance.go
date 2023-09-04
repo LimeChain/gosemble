@@ -5,20 +5,19 @@ import (
 	"math/big"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type setBalanceCall struct {
+type callSetBalance struct {
 	primitives.Callable
 	constants      *consts
 	storedMap      primitives.StoredMap
 	accountMutator accountMutator
 }
 
-func newSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := setBalanceCall{
+func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callSetBalance{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -31,7 +30,7 @@ func newSetBalanceCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.St
 	return call
 }
 
-func (c setBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -40,33 +39,33 @@ func (c setBalanceCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c setBalanceCall) Encode(buffer *bytes.Buffer) {
+func (c callSetBalance) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c setBalanceCall) Bytes() []byte {
+func (c callSetBalance) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c setBalanceCall) ModuleIndex() sc.U8 {
+func (c callSetBalance) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c setBalanceCall) FunctionIndex() sc.U8 {
+func (c callSetBalance) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c setBalanceCall) Args() sc.VaryingData {
+func (c callSetBalance) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ setBalanceCall) BaseWeight() types.Weight {
+func (c callSetBalance) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
 	// Minimum execution time: 17_474 nanoseconds.
-	r := constants.DbWeight.Reads(1)
-	w := constants.DbWeight.Writes(1)
+	r := c.constants.DbWeight.Reads(1)
+	w := c.constants.DbWeight.Writes(1)
 	e := types.WeightFromParts(0, 3593)
 	return types.WeightFromParts(17_777_000, 0).
 		SaturatingAdd(e).
@@ -74,23 +73,23 @@ func (_ setBalanceCall) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ setBalanceCall) IsInherent() bool {
+func (_ callSetBalance) IsInherent() bool {
 	return false
 }
 
-func (_ setBalanceCall) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callSetBalance) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ setBalanceCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callSetBalance) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ setBalanceCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c setBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	newFree := sc.U128(args[1].(sc.Compact))
 	newReserved := sc.U128(args[2].(sc.Compact))
 
@@ -114,7 +113,7 @@ func (c setBalanceCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c setBalanceCall) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
+func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

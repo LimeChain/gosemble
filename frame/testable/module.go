@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	functionTestIndex = 255
+	functionTestIndex = iota
 )
 
 type Module[N sc.Numeric] struct {
@@ -20,7 +20,7 @@ type Module[N sc.Numeric] struct {
 
 func New[N sc.Numeric](index sc.U8) Module[N] {
 	functions := make(map[sc.U8]primitives.Call)
-	functions[functionTestIndex] = newTestCall(index, functionTestIndex)
+	functions[functionTestIndex] = newCallTest(index, functionTestIndex)
 
 	return Module[N]{
 		Index:     index,

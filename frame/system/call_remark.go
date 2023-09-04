@@ -7,14 +7,14 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// remarkCall makes an on-chain remark.
+// callRemark makes an on-chain remark.
 // Can be executed by any origin.
-type remarkCall struct {
+type callRemark struct {
 	primitives.Callable
 }
 
-func newRemarkCall(moduleId sc.U8, functionId sc.U8) primitives.Call {
-	call := remarkCall{
+func newCallRemark(moduleId sc.U8, functionId sc.U8) primitives.Call {
+	call := callRemark{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -24,28 +24,28 @@ func newRemarkCall(moduleId sc.U8, functionId sc.U8) primitives.Call {
 	return call
 }
 
-func (c remarkCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callRemark) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
 	return c
 }
 
-func (c remarkCall) Encode(buffer *bytes.Buffer) {
+func (c callRemark) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c remarkCall) Bytes() []byte {
+func (c callRemark) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c remarkCall) ModuleIndex() sc.U8 {
+func (c callRemark) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c remarkCall) FunctionIndex() sc.U8 {
+func (c callRemark) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c remarkCall) Args() sc.VaryingData {
+func (c callRemark) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
@@ -54,7 +54,7 @@ func (c remarkCall) Args() sc.VaryingData {
 // ## Complexity
 // - `O(1)`
 // The range of component `b` is `[0, 3932160]`.
-func (c remarkCall) BaseWeight() primitives.Weight {
+func (c callRemark) BaseWeight() primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `0`
@@ -69,19 +69,19 @@ func (c remarkCall) BaseWeight() primitives.Weight {
 	return primitives.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
 }
 
-func (_ remarkCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
+func (_ callRemark) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ remarkCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+func (_ callRemark) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
 	return primitives.NewDispatchClassNormal()
 }
 
-func (_ remarkCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+func (_ callRemark) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.NewPaysYes()
 }
 
-func (_ remarkCall) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	return remark(origin)
 }
 

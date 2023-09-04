@@ -81,8 +81,8 @@ var MaximumBlockWeight types.Weight = types.WeightFromParts(
 	math.MaxUint64,
 )
 
-// DbWeight for RocksDB, used throughout the runtime.
-var DbWeight types.RuntimeDbWeight = types.RuntimeDbWeight{
+// RocksDbWeight for RocksDB, used throughout the runtime.
+var RocksDbWeight = types.RuntimeDbWeight{
 	Read:  25_000 * WeightRefTimePerNanos,
 	Write: 100_000 * WeightRefTimePerNanos,
 }

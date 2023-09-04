@@ -9,14 +9,16 @@ type consts struct {
 	BlockHashCount sc.U32
 	BlockWeights   BlockWeights
 	BlockLength    BlockLength
+	DbWeight       types.RuntimeDbWeight
 	Version        types.RuntimeVersion
 }
 
-func newConstants(blockHashCount sc.U32, blockWeights BlockWeights, blockLength BlockLength, version types.RuntimeVersion) *consts {
+func newConstants(blockHashCount sc.U32, blockWeights BlockWeights, blockLength BlockLength, dbWeight types.RuntimeDbWeight, version types.RuntimeVersion) *consts {
 	return &consts{
 		blockHashCount,
 		blockWeights,
 		blockLength,
+		dbWeight,
 		version,
 	}
 }
