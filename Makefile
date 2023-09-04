@@ -9,8 +9,21 @@ build-docker:
 	docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
 	docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
 	echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
+	
+build-wasi-libc:
+	@cd tinygo && \
+	if [ ! -e lib/wasi-libc/Makefile ]; then \
+		echo "Submodules have not been downloaded. Please download them using:\n git submodule update --init"; \
+		exit 1; \
+	fi && \
+	if [ -e lib/wasi-libc/sysroot ]; then \
+		echo "wasi-libc is already built"; \
+	else \
+		echo "building wasi-libc"; \
+		cd lib/wasi-libc && make clean && make -j4 EXTRA_CFLAGS="-O2 -g -DNDEBUG" MALLOC_IMPL=none; \
+	fi
 
-build-tinygo:
+build-tinygo: build-wasi-libc
 	@cd tinygo; \
 		go install;
 	@tinygo version
@@ -34,4 +47,4 @@ test-unit:
 	@go test --tags "nonwasmenv" -v `go list ./... | grep -v runtime`
 
 test-integration:
-	go test --tags="nonwasmenv" -v ./runtime/...
+	@go test --tags="nonwasmenv" -v ./runtime/...

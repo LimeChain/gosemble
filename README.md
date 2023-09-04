@@ -11,7 +11,7 @@ the [Official Documentation](https://limechain.github.io/gosemble/)
 #### Prerequisites
 
 - [Git](https://git-scm.com/downloads)
-- [Go 1.19+](https://golang.org/doc/install)
+- [Go 1.21](https://golang.org/doc/install)
 - [Docker](https://docs.docker.com/install/)
 - [Rust](https://docs.substrate.io/install/)
 
