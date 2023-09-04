@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	functionRemarkIndex = 0
+	functionRemarkIndex = iota
 )
 
 type Module[N sc.Numeric] struct {
@@ -33,9 +33,9 @@ type Module[N sc.Numeric] struct {
 func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage[N]()
-	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.Version)
+	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
 
-	functions[functionRemarkIndex] = newRemarkCall(index, functionRemarkIndex)
+	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
 	// TODO: add more dispatchables
 
 	return Module[N]{
@@ -748,7 +748,7 @@ func (m Module[N]) metadataConstants() sc.Sequence[primitives.MetadataModuleCons
 		primitives.NewMetadataModuleConstant(
 			"DbWeight",
 			sc.ToCompact(metadata.TypesDbWeight),
-			sc.BytesToSequenceU8(constants.DbWeight.Bytes()),
+			sc.BytesToSequenceU8(m.Constants.DbWeight.Bytes()),
 			"The weight of runtime database operations the runtime can invoke.",
 		),
 		primitives.NewMetadataModuleConstant(

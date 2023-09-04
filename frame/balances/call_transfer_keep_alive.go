@@ -4,18 +4,17 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type transferKeepAliveCall struct {
+type callTransferKeepAlive struct {
 	primitives.Callable
 	transfer
 }
 
-func newTransferKeepAliveCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := transferKeepAliveCall{
+func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -26,7 +25,7 @@ func newTransferKeepAliveCall(moduleId sc.U8, functionId sc.U8, storedMap primit
 	return call
 }
 
-func (c transferKeepAliveCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -34,33 +33,33 @@ func (c transferKeepAliveCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call 
 	return c
 }
 
-func (c transferKeepAliveCall) Encode(buffer *bytes.Buffer) {
+func (c callTransferKeepAlive) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c transferKeepAliveCall) Bytes() []byte {
+func (c callTransferKeepAlive) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c transferKeepAliveCall) ModuleIndex() sc.U8 {
+func (c callTransferKeepAlive) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c transferKeepAliveCall) FunctionIndex() sc.U8 {
+func (c callTransferKeepAlive) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c transferKeepAliveCall) Args() sc.VaryingData {
+func (c callTransferKeepAlive) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ transferKeepAliveCall) BaseWeight() types.Weight {
+func (c callTransferKeepAlive) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
 	// Minimum execution time: 28_184 nanoseconds.
-	r := constants.DbWeight.Reads(1)
-	w := constants.DbWeight.Writes(1)
+	r := c.constants.DbWeight.Reads(1)
+	w := c.constants.DbWeight.Writes(1)
 	e := types.WeightFromParts(0, 3593)
 	return types.WeightFromParts(49_250_000, 0).
 		SaturatingAdd(e).
@@ -68,19 +67,19 @@ func (_ transferKeepAliveCall) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ transferKeepAliveCall) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callTransferKeepAlive) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ transferKeepAliveCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callTransferKeepAlive) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ transferKeepAliveCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c transferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
@@ -100,7 +99,7 @@ func (c transferKeepAliveCall) Dispatch(origin types.RuntimeOrigin, args sc.Vary
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func (c transferKeepAliveCall) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

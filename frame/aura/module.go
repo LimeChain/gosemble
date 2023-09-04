@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -28,7 +27,7 @@ type Module[N sc.Numeric] struct {
 
 func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	storage := newStorage()
-	constants := newConstants(config.MinimumPeriod)
+	constants := newConstants(config.DbWeight, config.MinimumPeriod)
 
 	return Module[N]{
 		Index:     index,
@@ -95,9 +94,9 @@ func (m Module[N]) OnInitialize(_ N) primitives.Weight {
 			*/
 		}
 
-		return constants.DbWeight.ReadsWrites(2, 1)
+		return m.Constants.DbWeight.ReadsWrites(2, 1)
 	} else {
-		return constants.DbWeight.Reads(1)
+		return m.Constants.DbWeight.Reads(1)
 	}
 }
 

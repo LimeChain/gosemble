@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	functionTransferIndex          = 0
-	functionSetBalanceIndex        = 1
-	functionForceTransferIndex     = 2
-	functionTransferKeepAliveIndex = 3
-	functionTransferAllIndex       = 4
-	functionForceFreeIndex         = 5
+	functionTransferIndex = iota
+	functionSetBalanceIndex
+	functionForceTransferIndex
+	functionTransferKeepAliveIndex
+	functionTransferAllIndex
+	functionForceFreeIndex
 )
 
 type Module[N sc.Numeric] struct {
@@ -31,7 +31,7 @@ type Module[N sc.Numeric] struct {
 }
 
 func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
-	constants := newConstants(config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
+	constants := newConstants(config.DbWeight, config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 
 	module := Module[N]{
 		Index:     index,
@@ -39,12 +39,12 @@ func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 		Constants: constants,
 	}
 	functions := make(map[sc.U8]primitives.Call)
-	functions[functionTransferIndex] = newTransferCall(index, functionTransferIndex, config.StoredMap, constants, module)
-	functions[functionSetBalanceIndex] = newSetBalanceCall(index, functionSetBalanceIndex, config.StoredMap, constants, module)
-	functions[functionForceTransferIndex] = newForceTransferCall(index, functionForceTransferIndex, config.StoredMap, constants, module)
-	functions[functionTransferKeepAliveIndex] = newTransferKeepAliveCall(index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
-	functions[functionTransferAllIndex] = newTransferAllCall(index, functionTransferAllIndex, config.StoredMap, constants, module)
-	functions[functionForceFreeIndex] = newForceFreeCall(index, functionForceFreeIndex, config.StoredMap)
+	functions[functionTransferIndex] = newCallTransfer(index, functionTransferIndex, config.StoredMap, constants, module)
+	functions[functionSetBalanceIndex] = newCallSetBalance(index, functionSetBalanceIndex, config.StoredMap, constants, module)
+	functions[functionForceTransferIndex] = newCallForceTransfer(index, functionForceTransferIndex, config.StoredMap, constants, module)
+	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive(index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
+	functions[functionTransferAllIndex] = newCallTransferAll(index, functionTransferAllIndex, config.StoredMap, constants, module)
+	functions[functionForceFreeIndex] = newCallForceFree(index, functionForceFreeIndex, config.DbWeight, config.StoredMap)
 
 	module.functions = functions
 

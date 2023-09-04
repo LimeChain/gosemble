@@ -4,21 +4,25 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type setCall struct {
+const (
+	errTimestampUpdatedOnce   = "Timestamp must be updated only once in the block"
+	errTimestampMinimumPeriod = "Timestamp must increment by at least <MinimumPeriod> between sequential blocks"
+)
+
+type callSet struct {
 	storage        *storage
 	onTimestampSet hooks.OnTimestampSet[sc.U64]
 	constants      *consts
 	primitives.Callable
 }
 
-func newSetCall(moduleId sc.U8, functionId sc.U8, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) primitives.Call {
-	call := setCall{
+func newCallSet(moduleId sc.U8, functionId sc.U8, storage *storage, constants *consts, onTimestampSet hooks.OnTimestampSet[sc.U64]) primitives.Call {
+	call := callSet{
 		storage:   storage,
 		constants: constants,
 		Callable: primitives.Callable{
@@ -31,8 +35,8 @@ func newSetCall(moduleId sc.U8, functionId sc.U8, storage *storage, constants *c
 	return call
 }
 
-func newSetCallWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) primitives.Call {
-	call := setCall{
+func newCallSetWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) primitives.Call {
+	call := callSet{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -43,32 +47,32 @@ func newSetCallWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) p
 	return call
 }
 
-func (c setCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callSet) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(sc.DecodeCompact(buffer))
 	return c
 }
 
-func (c setCall) Encode(buffer *bytes.Buffer) {
+func (c callSet) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c setCall) Bytes() []byte {
+func (c callSet) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c setCall) ModuleIndex() sc.U8 {
+func (c callSet) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c setCall) FunctionIndex() sc.U8 {
+func (c callSet) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c setCall) Args() sc.VaryingData {
+func (c callSet) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ setCall) BaseWeight() primitives.Weight {
+func (c callSet) BaseWeight() primitives.Weight {
 	// Storage: Timestamp Now (r:1 w:1)
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	// Storage: Babe CurrentSlot (r:1 w:0)
@@ -78,24 +82,24 @@ func (_ setCall) BaseWeight() primitives.Weight {
 	//  Measured:  `312`
 	//  Estimated: `1006`
 	// Minimum execution time: 9_106 nanoseconds.
-	r := constants.DbWeight.Reads(2)
-	w := constants.DbWeight.Writes(1)
+	r := c.constants.DbWeight.Reads(2)
+	w := c.constants.DbWeight.Writes(1)
 	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
 }
 
-func (_ setCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
+func (_ callSet) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ setCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+func (_ callSet) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
 	return primitives.NewDispatchClassMandatory()
 }
 
-func (_ setCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.NewPaysYes()
 }
 
-func (c setCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	compactTs := args[0].(sc.Compact)
 	return c.set(origin, sc.U64(compactTs.ToBigInt().Uint64()))
 }
@@ -115,7 +119,7 @@ func (c setCall) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func (c setCall) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	if !origin.IsNoneOrigin() {
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
@@ -127,13 +131,14 @@ func (c setCall) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	didUpdate := c.storage.DidUpdate.Exists()
 	if didUpdate {
-		log.Critical("Timestamp must be updated only once in the block")
+		log.Critical(errTimestampUpdatedOnce)
 	}
 
 	previousTimestamp := c.storage.Now.Get()
 
-	if !(previousTimestamp.Eq(sc.U64(0)) || now.Gte(previousTimestamp.Add(c.constants.MinimumPeriod))) {
-		log.Critical("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
+	if !(previousTimestamp.Eq(sc.U64(0)) ||
+		now.Gte(previousTimestamp.Add(c.constants.MinimumPeriod))) {
+		log.Critical(errTimestampMinimumPeriod)
 	}
 
 	c.storage.Now.Put(now)

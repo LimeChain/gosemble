@@ -69,6 +69,7 @@ var (
 var (
 	BlockWeights = system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
 	BlockLength  = system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
+	DbWeight     = constants.RocksDbWeight
 )
 
 var (
@@ -95,13 +96,14 @@ var modules = initializeModules()
 func initializeModules() map[sc.U8]types.Module[BlockNumberType] {
 	systemModule := system.New[BlockNumberType](
 		SystemIndex,
-		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, *RuntimeVersion),
+		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, DbWeight, *RuntimeVersion),
 	)
 
 	auraModule := aura.New[BlockNumberType](
 		AuraIndex,
 		aura.NewConfig(
 			primitives.PublicKeySr25519,
+			DbWeight,
 			TimestampMinimumPeriod,
 			AuraMaxAuthorites,
 			false,
@@ -111,14 +113,14 @@ func initializeModules() map[sc.U8]types.Module[BlockNumberType] {
 
 	timestampModule := timestamp.New[BlockNumberType](
 		TimestampIndex,
-		timestamp.NewConfig(auraModule, TimestampMinimumPeriod),
+		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
 	)
 
 	grandpaModule := grandpa.New[BlockNumberType](GrandpaIndex)
 
 	balancesModule := balances.New[BlockNumberType](
 		BalancesIndex,
-		balances.NewConfig(BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
+		balances.NewConfig(DbWeight, BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
 	)
 
 	tpmModule := transaction_payment.New[BlockNumberType](

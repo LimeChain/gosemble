@@ -10,24 +10,26 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type forceFreeCall struct {
+type callForceFree struct {
 	primitives.Callable
+	dbWeight  primitives.RuntimeDbWeight
 	storedMap primitives.StoredMap
 }
 
-func newForceFreeCall(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap) primitives.Call {
-	call := forceFreeCall{
+func newCallForceFree(moduleId sc.U8, functionId sc.U8, dbWeight primitives.RuntimeDbWeight, storedMap primitives.StoredMap) primitives.Call {
+	call := callForceFree{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
+		dbWeight:  dbWeight,
 		storedMap: storedMap,
 	}
 
 	return call
 }
 
-func (c forceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeU128(buffer),
@@ -35,33 +37,33 @@ func (c forceFreeCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	return c
 }
 
-func (c forceFreeCall) Encode(buffer *bytes.Buffer) {
+func (c callForceFree) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c forceFreeCall) Bytes() []byte {
+func (c callForceFree) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c forceFreeCall) ModuleIndex() sc.U8 {
+func (c callForceFree) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c forceFreeCall) FunctionIndex() sc.U8 {
+func (c callForceFree) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c forceFreeCall) Args() sc.VaryingData {
+func (c callForceFree) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ forceFreeCall) BaseWeight() types.Weight {
+func (c callForceFree) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
 	// Minimum execution time: 16_790 nanoseconds.
-	r := constants.DbWeight.Reads(1)
-	w := constants.DbWeight.Writes(1)
+	r := c.dbWeight.Reads(1)
+	w := c.dbWeight.Writes(1)
 	e := types.WeightFromParts(0, 3593)
 	return types.WeightFromParts(17_029_000, 0).
 		SaturatingAdd(e).
@@ -69,19 +71,19 @@ func (_ forceFreeCall) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ forceFreeCall) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callForceFree) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ forceFreeCall) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callForceFree) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ forceFreeCall) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c forceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
 	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
@@ -103,7 +105,7 @@ func (c forceFreeCall) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
+func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -122,7 +124,7 @@ func (c forceFreeCall) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees some funds, returning the amount that has not been freed.
-func (c forceFreeCall) force(who types.Address32, value sc.U128) sc.U128 {
+func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 	if value.Eq(sc.NewU128FromBigInt(constants.Zero)) {
 		return sc.NewU128FromBigInt(constants.Zero)
 	}

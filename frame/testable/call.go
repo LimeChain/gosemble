@@ -9,12 +9,12 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type testCall struct {
+type callTest struct {
 	primitives.Callable
 }
 
-func newTestCall(moduleId, functionId sc.U8) primitives.Call {
-	call := testCall{
+func newCallTest(moduleId, functionId sc.U8) primitives.Call {
+	call := callTest{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -24,48 +24,48 @@ func newTestCall(moduleId, functionId sc.U8) primitives.Call {
 	return call
 }
 
-func (c testCall) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTest) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
 	return c
 }
 
-func (c testCall) Encode(buffer *bytes.Buffer) {
+func (c callTest) Encode(buffer *bytes.Buffer) {
 	c.Callable.Encode(buffer)
 }
 
-func (c testCall) Bytes() []byte {
+func (c callTest) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c testCall) ModuleIndex() sc.U8 {
+func (c callTest) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c testCall) FunctionIndex() sc.U8 {
+func (c callTest) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c testCall) Args() sc.VaryingData {
+func (c callTest) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (_ testCall) BaseWeight() primitives.Weight {
+func (_ callTest) BaseWeight() primitives.Weight {
 	return primitives.WeightFromParts(1_000_000, 0)
 }
 
-func (_ testCall) WeighData(baseWeight primitives.Weight) primitives.Weight {
+func (_ callTest) WeighData(baseWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ testCall) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+func (_ callTest) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
 	return primitives.NewDispatchClassNormal()
 }
 
-func (_ testCall) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+func (_ callTest) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.NewPaysYes()
 }
 
-func (_ testCall) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	storage.Set([]byte("testvalue"), []byte{1})
 
 	support.WithStorageLayer(func() (ok primitives.PostDispatchInfo, err primitives.DispatchError) {

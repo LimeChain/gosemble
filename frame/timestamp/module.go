@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	functionSetIndex = 0
+	functionSetIndex = iota
 )
 
 var (
@@ -31,8 +31,8 @@ type Module[N sc.Numeric] struct {
 func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
-	constants := newConstants(config.MinimumPeriod)
-	functions[functionSetIndex] = newSetCall(index, functionSetIndex, storage, constants, config.OnTimestampSet)
+	constants := newConstants(config.DbWeight, config.MinimumPeriod)
+	functions[functionSetIndex] = newCallSet(index, functionSetIndex, storage, constants, config.OnTimestampSet)
 
 	return Module[N]{
 		Index:     index,
@@ -87,7 +87,7 @@ func (m Module[N]) CreateInherent(inherent primitives.InherentData) sc.Option[pr
 		nextTimestamp = ts
 	}
 
-	function := newSetCallWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
+	function := newCallSetWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
 
 	return sc.NewOption[primitives.Call](function)
 }
