@@ -4,6 +4,7 @@ Targets WebAssembly MVP
 package main
 
 import (
+	"bytes"
 	"math/big"
 	"reflect"
 
@@ -34,7 +35,9 @@ import (
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/storage"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -356,4 +359,44 @@ func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 		OffchainWorker(dataPtr, dataLen)
 
 	return 0
+}
+
+//go:export Set_key_in_storage
+func SetKeyInStorage(dataPtr int32, dataLen int32) int64 {
+
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	decoder := types.NewModuleDecoder[BlockNumberType](modules, newSignedExtra())
+
+	decoder.DecodeUncheckedExtrinsic(buffer)
+
+	log.Info("Setting a key in storage...")
+
+	storage.Set([]byte("Test"), []byte("Set"))
+
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
+}
+
+//go:export Clear_key_in_storage
+func ClearKeyInStorage(dataPtr int32, dataLen int32) int64 {
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	decoder := types.NewModuleDecoder[BlockNumberType](modules, newSignedExtra())
+
+	decoder.DecodeUncheckedExtrinsic(buffer)
+
+	log.Info("Setting a key in storage...")
+
+	key := []byte("Test")
+	v := []byte("Set")
+
+	storage.Set(key, v)
+
+	log.Info("Clearing storage key...")
+
+	storage.TakeBytes(key)
+
+	return utils.BytesToOffsetAndSize(buffer.Bytes())
 }
