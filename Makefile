@@ -6,6 +6,7 @@ IMAGE = polkawasm/tinygo
 TAG = 0.29.0
 
 build-docker:
+	set -e; \
 	docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
 	docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
 	echo "Build - tinygo version: ${TAG}, gc: extallocleak"
