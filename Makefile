@@ -8,25 +8,26 @@ TAG = 0.29.0
 build-docker:
 	docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
 	docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
-	echo "build - tinygo version: ${TAG}, gc: extallocleak"; \
+	echo "Build - tinygo version: ${TAG}, gc: extallocleak"
 	
 build-wasi-libc:
-	@cd tinygo && \
-	if [ ! -e lib/wasi-libc/Makefile ]; then \
+	@cd tinygo/lib/wasi-libc && \
+	if [ ! -e Makefile ]; then \
 		echo "Submodules have not been downloaded. Please download them using:\n git submodule update --init"; \
 		exit 1; \
 	fi && \
-	if [ -e lib/wasi-libc/sysroot ]; then \
-		echo "wasi-libc is already built"; \
-	else \
-		echo "building wasi-libc"; \
-		cd lib/wasi-libc && make clean && make -j4 EXTRA_CFLAGS="-O2 -g -DNDEBUG" MALLOC_IMPL=none; \
-	fi
+	echo "Building \"wasi-libc\""; \
+	make clean && make -j4 EXTRA_CFLAGS="-O2 -g -DNDEBUG" MALLOC_IMPL=none; \
 
-build-tinygo: build-wasi-libc
-	@cd tinygo; \
-		go install;
-	@tinygo version
+build-tinygo:
+	@cd tinygo && \
+	if [ -e lib/wasi-libc/sysroot ]; then \
+		go install; \
+		tinygo version; \
+	else \
+		echo "Need to build wasi-libc first. Please run: \"make build-wasi-libc\""; \
+		exit 1; \
+	fi
 
 build-release: build-tinygo
 	@tinygo build --no-debug -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
