@@ -8,5 +8,5 @@ By utilizing our [Toolchain](../../overview/toolchain), we have developed a cust
 which uses the externally provided allocator functions as per specification.
 
 ```bash
-make build-docker
+make build-docker-release
 ```

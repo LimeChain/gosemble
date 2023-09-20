@@ -1,16 +1,20 @@
-SHELL := /bin/bash
 CURRENT_DIR = $(shell pwd)
 SRC_DIR = /src/examples/wasm/gosemble
 BUILD_PATH = build/runtime.wasm
-IMAGE = polkawasm/tinygo
-TAG = 0.29.0
+TARGET = polkawasm
+GC = extallocleak
+VERSION = 0.29.0
+IMAGE = tinygo/${TARGET}
 
-build-docker:
-	set -e; \
-	docker build --tag $(IMAGE):$(TAG)-extallocleak -f tinygo/Dockerfile.polkawasm tinygo; \
-	docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(TAG)-extallocleak /bin/bash -c "tinygo build -target=polkawasm -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"; \
-	echo "Build - tinygo version: ${TAG}, gc: extallocleak"
-	
+DOCKER_BUILD_TINYGO = docker build --tag $(IMAGE):$(VERSION)-$(GC) -f tinygo/Dockerfile.$(TARGET) tinygo
+DOCKER_RUN_TINYGO = docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(VERSION)-$(GC) /bin/bash -c
+
+TINYGO_BUILD_COMMAND_NODEBUG = tinygo build --no-debug -target=$(TARGET)
+TINYGO_BUILD_COMMAND = tinygo build -target=$(TARGET)
+
+RUNTIME_BUILD_NODEBUG = "$(TINYGO_BUILD_COMMAND_NODEBUG) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
+RUNTIME_BUILD = "$(TINYGO_BUILD_COMMAND) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
+
 build-wasi-libc:
 	@cd tinygo/lib/wasi-libc && \
 	if [ ! -e Makefile ]; then \
@@ -30,11 +34,23 @@ build-tinygo:
 		exit 1; \
 	fi
 
+build-docker-release:
+	@set -e; \
+	$(DOCKER_BUILD_TINYGO); \
+	$(DOCKER_RUN_TINYGO) $(RUNTIME_BUILD_NODEBUG); \
+	echo "Build - tinygo version: ${VERSION}, gc: ${GC} (no debug)"
+	
+build-docker-dev:
+	@set -e; \
+	$(DOCKER_BUILD_TINYGO); \
+	$(DOCKER_RUN_TINYGO) $(RUNTIME_BUILD); \
+	echo "Build - tinygo version: ${VERSION}, gc: ${GC}"
+
 build-release: build-tinygo
-	@tinygo build --no-debug -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+	@$(TINYGO_BUILD_COMMAND_NODEBUG) -o=$(BUILD_PATH) runtime/runtime.go
 
 build-dev: build-tinygo
-	@tinygo build -target=polkawasm -o=$(BUILD_PATH) runtime/runtime.go
+	@$(TINYGO_BUILD_COMMAND) -o=$(BUILD_PATH) runtime/runtime.go
 
 start-network:
 	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
