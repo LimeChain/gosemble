@@ -19,8 +19,7 @@ cd tinygo
 
 Similar to the Dockerfile.
 
-## MacOS
-### Apple Silicon
+## MacOS (Apple Silicon)
 
 Install the necessary dependencies:
 
@@ -28,10 +27,12 @@ Install the necessary dependencies:
 brew install cmake ninja
 ```
 
-#### Build TinyGo by using a system-wide LLVM
+### Build TinyGo by using a system-wide LLVM
+
+#### Install LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.29.0, requires LLVM 15.
+For example, TinyGo 0.29.0, requires LLVM 15:
 
 ```sh
 brew install llvm@15
@@ -44,6 +45,28 @@ go env GOROOT # => /usr/local/go
 go env GOPATH # => ~/go
 go env GOARCH # => arm64
 ```
+
+#### Build Wasi-libc
+
+To be able to build `wasi-libc`, for example without bulk memory operations, make sure LLVM is in your `PATH` environment variable. Add the following line to your `.zshrc`, `.bashrc`, or `.bash_profile` file:
+
+```sh
+export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
+```
+
+```sh
+make build-wasi-libc
+```
+
+#### Build Binaryen
+
+Specific version of `binaryen(wasm-opt)` is required to target the Wasm MVP instruction set:
+
+```sh
+make build-binaryen
+```
+
+#### Build TinyGo
 
 Use the Go toolchain to build TinyGo. Do not use `make`, since the `Makefile` is intended to be used with a self-built LLVM.
 
@@ -64,13 +87,7 @@ Restart the shell and verify it's working:
 tinygo version
 ```
 
-Install `binaryen` which is required for the wasm tests:
-
-```sh
-brew install binaryen
-```
-
-Run the tests:
+#### Run Tests
 
 ```sh
 # standard library packages that pass tests on darwin, linux, wasi, and windows, but take over a minute in wasi
@@ -100,7 +117,7 @@ go test -v -count=1 ./tests/tinygotest
 go test -v -count=1 -v -timeout=20m -tags "osusergo" ./builder ./cgo ./compileopts ./compiler ./interp ./transform .
 ```
 
-#### Build TinyGo by using LLVM build from source
+### Build TinyGo by using LLVM build from source
 
 Use `make` with a self-built LLVM which has the benefit of already set up tests.
 
@@ -125,19 +142,4 @@ make test
 make smoketest
 make test-corpus-wasi
 make wasmtest
-```
-
-#### Env setup for building wasi-libc
-
-To be able to build `wasi-libc`, for example without bulk memory operations, make sure LLVM is in your `PATH` environment variable. Add the following line to your `.zshrc`, `.bashrc`, or `.bash_profile` file:
-
-```sh
-export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
-```
-
-Build wasi-libc:
-
-```sh
-cd tinygo/lib/wasi-libc
-make
 ```
