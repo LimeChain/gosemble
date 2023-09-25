@@ -22,10 +22,16 @@ Similar to the Dockerfile.
 ## MacOS
 ### Apple Silicon
 
+Install the necessary dependencies:
+
+```sh
+brew install cmake ninja
+```
+
 #### Build TinyGo by using a system-wide LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.28.0, requires LLVM 15.
+For example, TinyGo 0.29.0, requires LLVM 15.
 
 ```sh
 brew install llvm@15
@@ -97,12 +103,6 @@ go test -v -count=1 -v -timeout=20m -tags "osusergo" ./builder ./cgo ./compileop
 #### Build TinyGo by using LLVM build from source
 
 Use `make` with a self-built LLVM which has the benefit of already set up tests.
-
-Install the necessary dependencies:
-
-```sh
-brew install cmake ninja
-```
 
 Clone and build LLVM:
 
