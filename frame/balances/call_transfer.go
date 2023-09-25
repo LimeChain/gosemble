@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"math/big"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -140,16 +139,14 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
 func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
-	bnInt := value.ToBigInt()
-	if bnInt.Cmp(constants.Zero) == 0 || reflect.DeepEqual(from, to) {
+	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
 		return nil
 	}
 
 	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			newFromAccountFree := new(big.Int).Sub(fromAccount.Free.ToBigInt(), value.ToBigInt())
-
-			if newFromAccountFree.Cmp(constants.Zero) < 0 {
+			newFromAccountFree := fromAccount.Free.Sub(value)
+			if fromAccount.Free.Lt(value) { // newFromAccountFree.Lt(constants.Zero)
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -159,13 +156,12 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 					}),
 				}
 			}
-			fromAccount.Free = sc.NewU128FromBigInt(newFromAccountFree)
+			fromAccount.Free = newFromAccountFree.(sc.U128)
 
-			newToAccountFree := new(big.Int).Add(toAccount.Free.ToBigInt(), value.ToBigInt())
-			toAccount.Free = sc.NewU128FromBigInt(newToAccountFree)
+			newToAccountFree := toAccount.Free.Add(value)
+			toAccount.Free = newToAccountFree.(sc.U128)
 
-			existentialDeposit := sc.NewU128FromBigInt(t.constants.ExistentialDeposit)
-			if toAccount.Total().Lt(existentialDeposit) {
+			if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -176,7 +172,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 				}
 			}
 
-			err := t.accountMutator.ensureCanWithdraw(from, value.ToBigInt(), types.ReasonsAll, fromAccount.Free.ToBigInt())
+			err := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
 			if err != nil {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
@@ -187,7 +183,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 			allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
 			allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
 
-			if !(allowDeath || fromAccount.Total().Gt(existentialDeposit)) {
+			if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -214,27 +210,25 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 	accountData := t.storedMap.Get(who.FixedSequence).Data
 
 	lockedOrFrozen := accountData.FeeFrozen
-	if accountData.FeeFrozen.ToBigInt().Cmp(accountData.MiscFrozen.ToBigInt()) < 0 {
+	if accountData.FeeFrozen.Lt(accountData.MiscFrozen) {
 		lockedOrFrozen = accountData.MiscFrozen
 	}
 
 	liquid := accountData.Free.Sub(lockedOrFrozen).(sc.U128)
 	if liquid.Gt(accountData.Free) {
-		liquid = sc.NewU128FromBigInt(big.NewInt(0))
+		liquid = sc.NewU128(0)
 	}
 
 	if t.storedMap.CanDecProviders(who) && !keepAlive {
 		return liquid
 	}
 
-	existentialDeposit := sc.NewU128FromBigInt(t.constants.ExistentialDeposit)
 	diff := accountData.Total().Sub(liquid)
-
-	mustRemainToExist := existentialDeposit.Sub(diff)
+	mustRemainToExist := t.constants.ExistentialDeposit.Sub(diff)
 
 	result := liquid.Sub(mustRemainToExist)
 	if result.Gt(liquid) {
-		return sc.NewU128FromBigInt(big.NewInt(0))
+		return sc.NewU128(0)
 	}
 
 	return result.(sc.U128)

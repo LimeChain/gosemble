@@ -59,7 +59,7 @@ package types
 //	extra := types.SignedExtra{
 //		Era:   types.NewImmortalEra(),
 //		Nonce: 0,
-//		Fee:   sc.NewU128FromUint64(0),
+//		Fee:   sc.NewU128(0),
 //	}
 //
 //	var testExamples = []struct {
@@ -93,7 +93,7 @@ package types
 //	extra := types.SignedExtra{
 //		Era:   types.NewImmortalEra(),
 //		Nonce: 0,
-//		Fee:   sc.NewU128FromUint64(0),
+//		Fee:   sc.NewU128(0),
 //	}
 //
 //	var testExamples = []struct {

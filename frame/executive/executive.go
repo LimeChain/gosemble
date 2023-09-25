@@ -224,7 +224,7 @@ func (m Module[N]) initialChecks(block types.Block[N]) {
 func (m Module[N]) runtimeUpgrade() sc.Bool {
 	last := m.system.Storage.LastRuntimeUpgrade.Get()
 
-	if m.system.Constants.Version.SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Int64()) ||
+	if m.system.Constants.Version.SpecVersion.Gt(sc.To[sc.U32](sc.U128(last.SpecVersion))) ||
 		last.SpecName != m.system.Constants.Version.SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{

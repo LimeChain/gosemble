@@ -77,7 +77,7 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	if firstByte == 0 {
 		return NewImmortalEra()
 	} else {
-		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
+		encoded := sc.U64(firstByte).Add((sc.U64(sc.DecodeU8(buffer)) << 8)).(sc.U64)
 		period := sc.U64(2 << (encoded % (1 << 4)))
 		quantizeFactor := (period >> 12).Max(sc.U64(1))
 		phase := (encoded >> 4).Mul(quantizeFactor)
@@ -113,7 +113,7 @@ func (e Era) Death(current sc.U64) sc.U64 {
 	if e.IsImmortal {
 		return sc.U64(math.MaxUint64)
 	} else {
-		return e.Birth(current) + e.EraPeriod
+		return e.Birth(current).Add(e.EraPeriod).(sc.U64)
 	}
 }
 

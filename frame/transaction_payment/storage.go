@@ -10,7 +10,7 @@ var (
 	keyNextFeeMultiplier  = []byte("NextFeeMultiplier")
 )
 
-var defaultMultiplierValue = sc.NewU128FromUint64(1)
+var defaultMultiplierValue = sc.NewU128(1)
 
 type storage struct {
 	NextFeeMultiplier support.StorageValue[sc.U128]

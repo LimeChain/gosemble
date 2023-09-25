@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	DefaultTip = sc.NewU128FromUint64(0)
+	DefaultTip = sc.NewU128(0)
 )
 
 type Module[N sc.Numeric] struct {

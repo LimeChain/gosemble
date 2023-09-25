@@ -7,8 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO: add more test cases
-
 func Test_EncodeTransactionValidityError(t *testing.T) {
 	var testExamples = []struct {
 		label       string

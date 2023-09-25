@@ -72,7 +72,8 @@ func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {
 	rv.SpecVersion = sc.DecodeU32(buffer)
 	rv.ImplVersion = sc.DecodeU32(buffer)
 
-	apisLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	apisLength := sc.To[sc.U64](sc.U128(sc.DecodeCompact(buffer)))
+
 	if apisLength != 0 {
 		var apis []ApiItem
 		for i := 0; i < int(apisLength); i++ {

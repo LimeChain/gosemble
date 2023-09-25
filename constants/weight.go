@@ -51,7 +51,7 @@ var NormalDispatchRatio types.Perbill = types.Perbill{Percentage: 75}
 //	95th: 112_680
 //	75th: 110_858
 var ExtrinsicBaseWeight types.Weight = types.WeightFromParts(
-	WeightRefTimePerNanos.SaturatingMul(sc.NewNumeric[sc.U64](110_536)).(sc.U64),
+	WeightRefTimePerNanos.SaturatingMul(sc.U64(110_536)).(sc.U64),
 	0,
 )
 
@@ -71,18 +71,18 @@ var ExtrinsicBaseWeight types.Weight = types.WeightFromParts(
 //	95th: 445_111
 //	75th: 414_170
 var BlockExecutionWeight types.Weight = types.WeightFromParts(
-	WeightRefTimePerNanos.SaturatingMul(sc.NewNumeric[sc.U64](412_772)).(sc.U64),
+	WeightRefTimePerNanos.SaturatingMul(sc.U64(412_772)).(sc.U64),
 	0,
 )
 
 // MaximumBlockWeight is the maximum weight 2 seconds of compute with a 6 second average block time, with maximum proof size.
 var MaximumBlockWeight types.Weight = types.WeightFromParts(
-	WeightRefTimePerSecond.SaturatingMul(sc.NewNumeric[sc.U64](2)).(sc.U64),
+	WeightRefTimePerSecond.SaturatingMul(sc.U64(2)).(sc.U64),
 	math.MaxUint64,
 )
 
 // RocksDbWeight for RocksDB, used throughout the runtime.
 var RocksDbWeight = types.RuntimeDbWeight{
-	Read:  25_000 * WeightRefTimePerNanos,
-	Write: 100_000 * WeightRefTimePerNanos,
+	Read:  sc.U64(25_000).Mul(WeightRefTimePerNanos).(sc.U64),
+	Write: sc.U64(100_000).Mul(WeightRefTimePerNanos).(sc.U64),
 }

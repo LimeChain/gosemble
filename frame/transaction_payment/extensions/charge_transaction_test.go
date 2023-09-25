@@ -15,15 +15,15 @@ var (
 	target              chargeTransaction
 
 	who               = constants.ZeroAddress
-	fee               = sc.NewU128FromUint64(5)
-	imbalance         = sc.NewU128FromUint64(1)
+	fee               = sc.NewU128(5)
+	imbalance         = sc.NewU128(1)
 	expectedImbalance = sc.NewOption[sc.U128](imbalance)
-	tip               = sc.NewU128FromUint64(0)
+	tip               = sc.NewU128(0)
 	reasons           = sc.U8(primitives.WithdrawReasonsTransactionPayment)
 
-	correctedFee     = sc.NewU128FromUint64(10)
-	alreadyWithdrawn = sc.NewOption[sc.U128](sc.NewU128FromUint64(11))
-	refundAmount     = sc.NewU128FromUint64(1)
+	correctedFee     = sc.NewU128(10)
+	alreadyWithdrawn = sc.NewOption[sc.U128](sc.NewU128(11))
+	refundAmount     = sc.NewU128(1)
 
 	expectedError = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 )
@@ -110,7 +110,7 @@ func Test_ChargeTransaction_CorrectAndDepositFee_AlreadyWithdrawn_DepositIntoExi
 
 func Test_ChargeTransaction_CorrectAndDepositFee_AlreadyWithdrawn_Fail(t *testing.T) {
 	setUp()
-	positiveImbalance := sc.NewU128FromUint64(50)
+	positiveImbalance := sc.NewU128(50)
 	mockCurrencyAdapter.On("DepositIntoExisting", who, refundAmount).Return(positiveImbalance, nil)
 
 	result := target.CorrectAndDepositFee(&who, correctedFee, tip, alreadyWithdrawn)

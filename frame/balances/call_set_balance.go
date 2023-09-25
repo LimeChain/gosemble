@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -123,12 +122,11 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	existentialDeposit := sc.NewU128FromBigInt(c.constants.ExistentialDeposit)
 	sum := newFree.Add(newReserved)
 
-	if sum.Lt(existentialDeposit) {
-		newFree = sc.NewU128FromBigInt(big.NewInt(0))
-		newReserved = sc.NewU128FromBigInt(big.NewInt(0))
+	if sum.Lt(c.constants.ExistentialDeposit) {
+		newFree = sc.NewU128(0)
+		newReserved = sc.NewU128(0)
 	}
 
 	result := c.accountMutator.tryMutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {

@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	DefaultTip = sc.NewU128FromUint64(0)
+	DefaultTip = sc.NewU128(0)
 )
 
 type Module[N sc.Numeric] struct {
@@ -57,7 +57,7 @@ func (m Module[N]) QueryInfo(dataPtr int32, dataLen int32) int64 {
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function)
 
-	partialFee := sc.NewU128FromUint64(0)
+	partialFee := sc.NewU128(0)
 	if ext.IsSigned() {
 		partialFee = m.txPayments.ComputeFee(length, dispatchInfo, DefaultTip)
 	}
