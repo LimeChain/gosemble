@@ -15,7 +15,7 @@ jobs:
         with:
           submodules: recursive
       - name: Build Runtime using Docker
-        run: make build-docker
+        run: make build-docker-release
       - name: Setup GO env
         uses: actions/setup-go@v3
         with:
