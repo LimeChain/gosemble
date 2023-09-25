@@ -156,10 +156,10 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 					}),
 				}
 			}
-			fromAccount.Free = newFromAccountFree.(sc.U128)
+			fromAccount.Free = newFromAccountFree
 
 			newToAccountFree := toAccount.Free.Add(value)
-			toAccount.Free = newToAccountFree.(sc.U128)
+			toAccount.Free = newToAccountFree
 
 			if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
 				return sc.Result[sc.Encodable]{
@@ -214,7 +214,7 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 		lockedOrFrozen = accountData.MiscFrozen
 	}
 
-	liquid := accountData.Free.Sub(lockedOrFrozen).(sc.U128)
+	liquid := accountData.Free.Sub(lockedOrFrozen)
 	if liquid.Gt(accountData.Free) {
 		liquid = sc.NewU128(0)
 	}
@@ -231,5 +231,5 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 		return sc.NewU128(0)
 	}
 
-	return result.(sc.U128)
+	return result
 }

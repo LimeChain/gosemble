@@ -60,7 +60,7 @@ func (bsv baseStorageValue[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 	}
 
 	length := option.Value
-	if length.Gt(sc.U32(len(data))) {
+	if length > sc.U32(len(data)) {
 		length = sc.U32(len(data))
 	}
 
@@ -68,7 +68,7 @@ func (bsv baseStorageValue[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 	buffer.Write(data[:length])
 
 	compact := sc.DecodeCompact(buffer)
-	toLen := sc.To[sc.U64](sc.U128(compact))
+	toLen := sc.U64(compact.ToBigInt().Uint64())
 
 	return sc.NewOption[sc.U64](toLen)
 }

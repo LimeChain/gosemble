@@ -149,7 +149,7 @@ func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 		// FixedU64, VALUE is 1_000_000_000.
 		fixedU128Div := sc.NewU128(uint64(1_000_000_000_000_000_000))
 		bnAdjustedWeightFee := multiplier.Mul(unadjustedWeightFee)
-		adjustedWeightFee := bnAdjustedWeightFee.Div(fixedU128Div).(sc.U128) // TODO: Create FixedU128 type
+		adjustedWeightFee := bnAdjustedWeightFee.Div(fixedU128Div) // TODO: Create FixedU128 type
 
 		lenFee := m.lengthToFee(len)
 		baseFee := m.weightToFee(m.Config.BlockWeights.Get(class).BaseExtrinsic)

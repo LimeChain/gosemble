@@ -146,21 +146,21 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
-		diff := newFree.Sub(oldFree).(sc.U128)
+		diff := newFree.Sub(oldFree)
 
 		newPositiveImbalance(diff).Drop()
 	} else if newFree.Lt(oldFree) {
-		diff := oldFree.Sub(newFree).(sc.U128)
+		diff := oldFree.Sub(newFree)
 
 		newNegativeImbalance(diff).Drop()
 	}
 
 	if newReserved.Gt(oldReserved) {
-		diff := newReserved.Sub(oldReserved).(sc.U128)
+		diff := newReserved.Sub(oldReserved)
 
 		newPositiveImbalance(diff).Drop()
 	} else if newReserved.Lt(oldReserved) {
-		diff := oldReserved.Sub(newReserved).(sc.U128)
+		diff := oldReserved.Sub(newReserved)
 
 		newNegativeImbalance(diff).Drop()
 	}

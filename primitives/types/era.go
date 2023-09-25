@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"math"
+	"math/bits"
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
@@ -46,12 +47,12 @@ func NewMortalEra(period sc.U64, current sc.U64) Era {
 	// TODO:
 	// period = period.checked_next_power_of_two().unwrap_or(1<<16).clamp(4, 1<<16)
 	phase := current % period
-	quantizeFactor := (period >> 12).Max(sc.U64(1))
-	quantizeFactor = phase.Div(quantizeFactor).Mul(quantizeFactor)
+	quantizeFactor := sc.MaxU64(period>>12, 1)
+	quantizeFactor = phase / quantizeFactor * quantizeFactor
 	return Era{
 		IsImmortal: false,
 		EraPeriod:  period,
-		EraPhase:   quantizeFactor.(sc.U64),
+		EraPhase:   quantizeFactor,
 	}
 }
 
@@ -66,8 +67,8 @@ func (e Era) Encode(buffer *bytes.Buffer) {
 		return
 	}
 
-	quantizeFactor := (e.EraPeriod >> 12).Max(sc.U64(1))
-	encoded := sc.To[sc.U16](e.EraPeriod.TrailingZeros().Sub(sc.U64(1))).Clamp(sc.U16(1), sc.U16(15)).(sc.U16) | sc.U16((e.EraPhase.Div(quantizeFactor).(sc.U64))<<4)
+	quantizeFactor := sc.MaxU64(e.EraPeriod>>12, 1)
+	encoded := sc.U16(sc.Clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/quantizeFactor)<<4)
 	buffer.Write(encoded.Bytes())
 }
 
@@ -77,13 +78,13 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	if firstByte == 0 {
 		return NewImmortalEra()
 	} else {
-		encoded := sc.U64(firstByte).Add((sc.U64(sc.DecodeU8(buffer)) << 8)).(sc.U64)
+		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
-		quantizeFactor := (period >> 12).Max(sc.U64(1))
-		phase := (encoded >> 4).Mul(quantizeFactor)
+		quantizeFactor := sc.MaxU64(period>>12, 1)
+		phase := (encoded >> 4) * quantizeFactor
 
-		if period >= 4 && phase.Lt(period) {
-			return NewMortalEra(period, phase.(sc.U64))
+		if period >= 4 && phase < period {
+			return NewMortalEra(period, phase)
 		} else {
 			log.Critical("invalid period and phase")
 		}
@@ -104,7 +105,7 @@ func (e Era) Birth(current sc.U64) sc.U64 {
 	} else {
 		period := e.EraPeriod
 		phase := e.EraPhase
-		return (((current.Max(phase).Sub(phase)).Div(period)).Mul(period)).Add(phase).(sc.U64)
+		return ((((sc.MaxU64(current, phase)) - phase) / period) * period) + phase
 	}
 }
 
@@ -113,7 +114,7 @@ func (e Era) Death(current sc.U64) sc.U64 {
 	if e.IsImmortal {
 		return sc.U64(math.MaxUint64)
 	} else {
-		return e.Birth(current).Add(e.EraPeriod).(sc.U64)
+		return e.Birth(current) + e.EraPeriod
 	}
 }
 

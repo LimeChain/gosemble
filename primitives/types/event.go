@@ -17,7 +17,7 @@ func NewEvent(module sc.U8, event sc.U8, values ...sc.Encodable) Event {
 
 func DecodeEvents(buffer *bytes.Buffer) sc.Sequence[EventRecord] {
 	compactSize := sc.DecodeCompact(buffer)
-	size := int(sc.To[sc.U64](sc.U128(compactSize)))
+	size := int(compactSize.ToBigInt().Int64())
 
 	sequence := make(sc.Sequence[EventRecord], size)
 	for i := 0; i < size; i++ {

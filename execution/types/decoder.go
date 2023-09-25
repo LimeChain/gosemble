@@ -22,7 +22,7 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLength := int(sc.To[sc.U64](sc.U128(sc.DecodeCompact(buffer))))
+	expectedLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
@@ -42,7 +42,7 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 
 	afterLength := buffer.Len()
 
-	if expectedLength != beforeLength-afterLength {
+	if int(expectedLength) != beforeLength-afterLength {
 		log.Critical("invalid length prefix")
 	}
 
@@ -75,7 +75,7 @@ func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 func (md ModuleDecoder) DecodeBlock(buffer *bytes.Buffer) Block {
 	header := primitives.DecodeHeader(buffer)
 
-	length := sc.To[sc.U64](sc.U128(sc.DecodeCompact(buffer)))
+	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
 	extrinsics := make([]UncheckedExtrinsic, length)
 
 	for i := 0; i < len(extrinsics); i++ {

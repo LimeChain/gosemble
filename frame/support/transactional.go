@@ -41,16 +41,15 @@ func IncTransactionLevel() (ok sc.Empty, err error) {
 		return ok, errors.New("transactional error limit reached")
 	}
 	// Cannot overflow because of check above.
-	incrementedLevels := existingLevels.Add(sc.U32(1)).(sc.U32)
-	SetTransactionLevel(incrementedLevels)
+	SetTransactionLevel(existingLevels + 1)
 	return sc.Empty{}, err
 }
 
 func DecTransactionLevel() {
 	existingLevels := GetTransactionLevel()
-	if existingLevels.Eq(sc.U32(0)) {
+	if existingLevels == 0 {
 		log.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
-	} else if existingLevels.Eq(sc.U32(1)) {
+	} else if existingLevels == 1 {
 		// Don't leave any trace of this storage item.
 		KillTransactionLevel()
 	} else {

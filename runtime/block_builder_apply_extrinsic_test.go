@@ -34,7 +34,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(time).Div(slotDuration).(sc.U64)
+	slot := sc.U64(time) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,

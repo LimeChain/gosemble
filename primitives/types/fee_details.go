@@ -31,7 +31,7 @@ func (fd FeeDetails) FinalFee() Balance {
 
 	if fd.InclusionFee.HasValue {
 		inclusionFee := fd.InclusionFee.Value.InclusionFee()
-		sum = inclusionFee.Add(fd.Tip).(sc.U128)
+		sum = inclusionFee.Add(fd.Tip)
 	}
 
 	return sum

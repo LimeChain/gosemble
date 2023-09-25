@@ -123,15 +123,15 @@ func (m Module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		bn := m.Storage.BlockNumber.Get()
-		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(sc.To[sc.U64](bn))) + "): {}")
+		blockNum := m.Storage.BlockNumber.Get()
+		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
 	} else {
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
 
-	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get().Add(sc.U32(1)).(sc.U32)
+	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get() + 1
 	m.Storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
 	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
 }
@@ -165,7 +165,7 @@ func (m Module) Finalize() primitives.Header {
 	v := sc.U64(m.Constants.BlockHashCount - 1) // saturating_sub
 	toRemove := blockNumber - v
 
-	if toRemove.Gt(blockNumber) {
+	if toRemove > blockNumber {
 		toRemove = 0
 	}
 
@@ -206,7 +206,7 @@ func (m Module) Get(key primitives.PublicKey) primitives.AccountInfo {
 func (m Module) CanDecProviders(who primitives.Address32) bool {
 	acc := m.Get(who.FixedSequence)
 
-	return acc.Consumers.Eq(sc.U32(0)) || acc.Providers.Gt(sc.U32(1))
+	return acc.Consumers == 0 || acc.Providers > 1
 }
 
 // DepositEvent deposits an event into block's event record.
@@ -254,7 +254,7 @@ func (m Module) TryMutateExists(who primitives.Address32, f func(who *primitives
 				Value:    err,
 			}
 		}
-		if status.Eq(primitives.DecRefStatusExists) {
+		if status == primitives.DecRefStatusExists {
 			return result
 		}
 	} else if !wasProviding && !isProviding {
@@ -276,7 +276,7 @@ func (m Module) TryMutateExists(who primitives.Address32, f func(who *primitives
 
 func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	result := m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if a.Providers.Eq(sc.U32(0)) && a.Sufficients.Eq(sc.U32(0)) {
+		if a.Providers == 0 && a.Sufficients == 0 {
 			a.Providers = 1
 			m.onCreatedAccount(who)
 
@@ -285,9 +285,8 @@ func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 				Value:    primitives.IncRefStatusCreated,
 			}
 		} else {
-			// saturating_add
-			newProviders := a.Providers.Add(sc.U32(1)).(sc.U32)
-			if newProviders.Lt(a.Providers) {
+			newProviders := a.Providers + 1 // saturating_add2
+			if newProviders < a.Providers {
 				newProviders = math.MaxUint32
 			}
 
@@ -303,27 +302,27 @@ func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 
 func (m Module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
 	result := m.AccountTryMutateExists(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if account.Providers.Eq(sc.U32(0)) {
+		if account.Providers == 0 {
 			log.Warn("Logic error: Unexpected underflow in reducing provider")
 
 			account.Providers = 1
 		}
 
-		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Eq(sc.U32(0)) && account.Sufficients.Eq(sc.U32(0)) {
+		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
 			return sc.Result[sc.Encodable]{
 				HasError: false,
 				Value:    primitives.DecRefStatusReaped,
 			}
 		}
 
-		if account.Providers.Eq(sc.U32(1)) && account.Consumers.Gt(sc.U32(0)) {
+		if account.Providers == 1 && account.Consumers > 0 {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value:    primitives.NewDispatchErrorConsumerRemaining(),
 			}
 		}
 
-		account.Providers = account.Providers.Sub(sc.U32(1)).(sc.U32)
+		account.Providers = account.Providers - 1
 		return sc.Result[sc.Encodable]{
 			HasError: false,
 			Value:    primitives.DecRefStatusExists,
@@ -357,8 +356,8 @@ func (m Module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	}
 
 	oldEventCount := m.Storage.EventCount.Get()
-	newEventCount := oldEventCount.Add(sc.U32(1)).(sc.U32) // checked_add
-	if newEventCount.Lt(oldEventCount) {
+	newEventCount := oldEventCount + 1 // checked_add
+	if newEventCount < oldEventCount {
 		return
 	}
 

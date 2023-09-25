@@ -75,7 +75,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		who := preValue[1].(primitives.Address32)
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
-		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.To[sc.U32](sc.U128(length)), *info, *postInfo, tip)
+		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
 		err := ctp.onChargeTransaction.CorrectAndDepositFee(&who, actualFee, tip, imbalance)
 		if err != nil {
 			return err
@@ -114,7 +114,7 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	infoWeight := info.Weight.RefTime
 
 	// info_weight.clamp(1, max_block_weight);
-	boundedWeight := infoWeight
+	boundedWeight := infoWeight // TODO: clamp
 	if boundedWeight < 1 {
 		boundedWeight = 1
 	} else if boundedWeight > maxBlockWeight {
@@ -122,15 +122,15 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	}
 
 	// (len as u64).clamp(1, max_block_length);
-	boundedLength := sc.To[sc.U64](sc.U128(len))
+	boundedLength := sc.U64(len.ToBigInt().Uint64()) // TODO: clamp
 	if boundedLength < 1 {
 		boundedLength = 1
 	} else if boundedLength > maxBlockLength {
 		boundedLength = maxBlockLength
 	}
 
-	maxTxPerBlockWeight := maxBlockWeight.Div(boundedWeight).(sc.U64)
-	maxTxPerBlockLength := maxBlockLength.Div(boundedLength).(sc.U64)
+	maxTxPerBlockWeight := maxBlockWeight / boundedWeight
+	maxTxPerBlockLength := maxBlockLength / boundedLength
 
 	maxTxPerBlock := maxTxPerBlockWeight
 	if maxTxPerBlockWeight > maxTxPerBlockLength {
@@ -139,20 +139,20 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 	bnTip := tip.Add(sc.NewU128(1))
 
-	scaledTip := bnTip.Mul(sc.NewU128(maxTxPerBlock)).(sc.U128)
+	scaledTip := bnTip.Mul(sc.NewU128(maxTxPerBlock))
 
 	if info.Class.Is(primitives.DispatchClassNormal) {
-		return sc.To[sc.U64](scaledTip)
+		return sc.U64(scaledTip.ToBigInt().Uint64())
 	} else if info.Class.Is(primitives.DispatchClassMandatory) {
-		return sc.To[sc.U64](scaledTip)
+		return sc.U64(scaledTip.ToBigInt().Uint64())
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
 		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
 		virtualTip := finalFee.Mul(sc.NewU128(feeMultiplier))
-		scaledVirtualTip := virtualTip.Mul(maxTxPerBlock)
+		scaledVirtualTip := virtualTip.Mul(sc.NewU128(maxTxPerBlock))
 
-		sum := scaledTip.Add(scaledVirtualTip).(sc.U128)
+		sum := scaledTip.Add(scaledVirtualTip)
 
-		return sc.To[sc.U64](sum)
+		return sc.U64(sum.ToBigInt().Uint64())
 	}
 
 	return 0
@@ -160,7 +160,7 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 func (ctp ChargeTransactionPayment) withdrawFee(who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	tip := ctp.fee
-	fee := ctp.txPaymentModule.ComputeFee(sc.To[sc.U32](sc.U128(length)), *info, tip)
+	fee := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 
 	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, _call, info, fee, tip)
 	if err != nil {

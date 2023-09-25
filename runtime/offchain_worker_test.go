@@ -30,7 +30,7 @@ func Test_Offchain_Worker(t *testing.T) {
 	slotDuration := sc.DecodeU64(buffer)
 	buffer.Reset()
 
-	slot := sc.U64(time.UnixMilli()).Div(slotDuration).(sc.U64)
+	slot := sc.U64(time.UnixMilli()) / slotDuration
 
 	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
 		ConsensusEngineID: aura.EngineId,
