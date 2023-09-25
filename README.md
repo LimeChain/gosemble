@@ -33,7 +33,7 @@ git submodule update --init --recursive
 To build a runtime, execute: 
 
 ```bash
-make build-docker
+make build-docker-release
 ```
 
 #### Start a local network
