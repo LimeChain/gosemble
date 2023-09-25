@@ -28,11 +28,11 @@ var (
 	keyParentHash         = []byte("ParentHash")
 )
 
-type storage[N sc.Numeric] struct {
+type storage struct {
 	Account            support.StorageMap[types.PublicKey, types.AccountInfo]
 	BlockWeight        support.StorageValue[types.ConsumedWeight]
-	BlockHash          support.StorageMap[N, types.Blake2bHash]
-	BlockNumber        support.StorageValue[N]
+	BlockHash          support.StorageMap[sc.U64, types.Blake2bHash]
+	BlockNumber        support.StorageValue[sc.U64]
 	AllExtrinsicsLen   support.StorageValue[sc.U32]
 	ExtrinsicIndex     support.StorageValue[sc.U32]
 	ExtrinsicData      support.StorageMap[sc.U32, sc.Sequence[sc.U8]]
@@ -46,12 +46,12 @@ type storage[N sc.Numeric] struct {
 	ExecutionPhase     support.StorageValue[types.ExtrinsicPhase]
 }
 
-func newStorage[N sc.Numeric]() *storage[N] {
-	return &storage[N]{
+func newStorage() *storage {
+	return &storage{
 		Account:            support.NewHashStorageMap[types.PublicKey, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
 		BlockWeight:        support.NewHashStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),
-		BlockHash:          support.NewHashStorageMap[N, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
-		BlockNumber:        support.NewHashStorageValue(keySystem, keyNumber, sc.DecodeNumeric[N]),
+		BlockHash:          support.NewHashStorageMap[sc.U64, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
+		BlockNumber:        support.NewHashStorageValue(keySystem, keyNumber, sc.DecodeU64),
 		AllExtrinsicsLen:   support.NewHashStorageValue(keySystem, keyAllExtrinsicsLen, sc.DecodeU32),
 		ExtrinsicIndex:     support.NewSimpleStorageValue(keyExtrinsicIndex, sc.DecodeU32),
 		ExtrinsicData:      support.NewHashStorageMap[sc.U32, sc.Sequence[sc.U8]](keySystem, keyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),

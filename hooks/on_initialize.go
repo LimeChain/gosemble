@@ -5,6 +5,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type OnInitialize[N sc.Numeric] interface {
-	OnInitialize(N) primitives.Weight
+type OnInitialize interface {
+	OnInitialize(n sc.U64) primitives.Weight
 }

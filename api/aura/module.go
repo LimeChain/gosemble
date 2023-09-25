@@ -13,28 +13,28 @@ const (
 	apiVersion    = 1
 )
 
-type Module[N sc.Numeric] struct {
-	aura aura.Module[N]
+type Module struct {
+	aura aura.Module
 }
 
-func New[N sc.Numeric](aura aura.Module[N]) Module[N] {
-	return Module[N]{
+func New(aura aura.Module) Module {
+	return Module{
 		aura: aura,
 	}
 }
 
-func (m Module[N]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[N]) Item() primitives.ApiItem {
+func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Authorities returns current set of AuRa (Authority Round) authorities.
 // Returns a pointer-size of the SCALE-encoded set of authorities.
-func (m Module[N]) Authorities() int64 {
+func (m Module) Authorities() int64 {
 	authorities := m.aura.Storage.Authorities.GetBytes()
 
 	if !authorities.HasValue {
@@ -46,7 +46,7 @@ func (m Module[N]) Authorities() int64 {
 
 // SlotDuration returns the slot duration for AuRa.
 // Returns a pointer-size of the SCALE-encoded slot duration
-func (m Module[N]) SlotDuration() int64 {
+func (m Module) SlotDuration() int64 {
 	slotDuration := m.aura.SlotDuration()
 	return utils.BytesToOffsetAndSize(slotDuration.Bytes())
 }

@@ -16,20 +16,20 @@ var (
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
 )
 
-type Module[N sc.Numeric] struct {
+type Module struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[N]
+	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage
 	Constants *consts
 }
 
-func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
+func New(index sc.U8, config *Config) Module {
 	storage := newStorage()
 	constants := newConstants(config.DbWeight, config.MinimumPeriod)
 
-	return Module[N]{
+	return Module{
 		Index:     index,
 		Config:    config,
 		Storage:   storage,
@@ -37,35 +37,35 @@ func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	}
 }
 
-func (m Module[N]) GetIndex() sc.U8 {
+func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module[N]) name() sc.Str {
+func (m Module) name() sc.Str {
 	return "Aura"
 }
 
-func (m Module[N]) Functions() map[sc.U8]primitives.Call {
+func (m Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module[N]) KeyType() primitives.PublicKeyType {
+func (m Module) KeyType() primitives.PublicKeyType {
 	return m.Config.KeyType
 }
 
-func (m Module[N]) KeyTypeId() [4]byte {
+func (m Module) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module[N]) OnInitialize(_ N) primitives.Weight {
+func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 	slot := m.currentSlotFromDigests()
 
 	if slot.HasValue {
@@ -100,7 +100,7 @@ func (m Module[N]) OnInitialize(_ N) primitives.Weight {
 	}
 }
 
-func (m Module[N]) OnTimestampSet(now sc.U64) {
+func (m Module) OnTimestampSet(now sc.U64) {
 	slotDuration := m.SlotDuration()
 	if slotDuration.Eq(sc.U64(0)) {
 		log.Critical("Aura slot duration cannot be zero.")
@@ -114,7 +114,7 @@ func (m Module[N]) OnTimestampSet(now sc.U64) {
 	}
 }
 
-func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:      m.name(),
 		Storage:   m.metadataStorage(),
@@ -128,7 +128,7 @@ func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 	}
 }
 
-func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(
 			metadata.TypesAuraStorageAuthorities,
@@ -168,7 +168,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
 		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
@@ -186,7 +186,7 @@ func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage]
 	})
 }
 
-func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {
+func (m Module) currentSlotFromDigests() sc.Option[slot] {
 	digest := m.Config.SystemDigest()
 
 	for keyDigest, dig := range digest {
@@ -205,6 +205,6 @@ func (m Module[N]) currentSlotFromDigests() sc.Option[slot] {
 	return sc.NewOption[slot](nil)
 }
 
-func (m Module[N]) SlotDuration() sc.U64 {
+func (m Module) SlotDuration() sc.U64 {
 	return m.Constants.MinimumPeriod.Mul(sc.U64(2)).(sc.U64)
 }
