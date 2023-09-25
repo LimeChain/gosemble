@@ -32,10 +32,10 @@ brew install cmake ninja
 #### Install LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.29.0, requires LLVM 15:
+For example, TinyGo 0.30.0, requires LLVM 16:
 
 ```sh
-brew install llvm@15
+brew install llvm@16
 ```
 
 Make sure these environment variables are set correctly:
@@ -51,7 +51,7 @@ go env GOARCH # => arm64
 To be able to build `wasi-libc`, for example without bulk memory operations, make sure LLVM is in your `PATH` environment variable. Add the following line to your `.zshrc`, `.bashrc`, or `.bash_profile` file:
 
 ```sh
-export PATH="/opt/homebrew/opt/llvm@15/bin:$PATH"
+export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"
 ```
 
 ```sh
