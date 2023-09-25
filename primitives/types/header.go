@@ -6,15 +6,15 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type Header[N sc.Numeric] struct {
+type Header struct {
 	ParentHash     Blake2bHash
-	Number         N
+	Number         sc.U64
 	StateRoot      H256
 	ExtrinsicsRoot H256
 	Digest         Digest
 }
 
-func (h Header[N]) Encode(buffer *bytes.Buffer) {
+func (h Header) Encode(buffer *bytes.Buffer) {
 	h.ParentHash.Encode(buffer)
 	sc.ToCompact(h.Number).Encode(buffer)
 	h.StateRoot.Encode(buffer)
@@ -22,22 +22,22 @@ func (h Header[N]) Encode(buffer *bytes.Buffer) {
 	h.Digest.Encode(buffer)
 }
 
-func (h Header[N]) Bytes() []byte {
+func (h Header) Bytes() []byte {
 	buffer := &bytes.Buffer{}
 	h.Encode(buffer)
 	return buffer.Bytes()
 }
 
-func DecodeHeader[N sc.Numeric](buffer *bytes.Buffer) Header[N] {
+func DecodeHeader(buffer *bytes.Buffer) Header {
 	parentHash := DecodeBlake2bHash(buffer)
 	blockNumber := sc.DecodeCompact(buffer)
 	stateRoot := DecodeH256(buffer)
 	extrinsicRoot := DecodeH256(buffer)
 	digest := DecodeDigest(buffer)
 
-	return Header[N]{
+	return Header{
 		ParentHash:     parentHash,
-		Number:         sc.NewNumeric[N](sc.To[sc.U64](sc.U128(blockNumber))),
+		Number:         sc.U64(blockNumber.ToBigInt().Uint64()),
 		StateRoot:      stateRoot,
 		ExtrinsicsRoot: extrinsicRoot,
 		Digest:         digest,

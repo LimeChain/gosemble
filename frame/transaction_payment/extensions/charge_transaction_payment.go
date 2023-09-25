@@ -11,38 +11,38 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type ChargeTransactionPayment[N sc.Numeric] struct {
+type ChargeTransactionPayment struct {
 	fee                 primitives.Balance
-	systemModule        system.Module[N]
-	txPaymentModule     transaction_payment.Module[N]
+	systemModule        system.Module
+	txPaymentModule     transaction_payment.Module
 	onChargeTransaction hooks.OnChargeTransaction
 }
 
-func NewChargeTransactionPayment[N sc.Numeric](module system.Module[N], txPaymentModule transaction_payment.Module[N], currencyAdapter primitives.CurrencyAdapter) ChargeTransactionPayment[N] {
-	return ChargeTransactionPayment[N]{
+func NewChargeTransactionPayment(module system.Module, txPaymentModule transaction_payment.Module, currencyAdapter primitives.CurrencyAdapter) ChargeTransactionPayment {
+	return ChargeTransactionPayment{
 		systemModule:        module,
 		txPaymentModule:     txPaymentModule,
 		onChargeTransaction: newChargeTransaction(currencyAdapter),
 	}
 }
 
-func (ctp ChargeTransactionPayment[N]) Encode(buffer *bytes.Buffer) {
+func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) {
 	sc.Compact(ctp.fee).Encode(buffer)
 }
 
-func (ctp *ChargeTransactionPayment[N]) Decode(buffer *bytes.Buffer) {
+func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) {
 	ctp.fee = sc.U128(sc.DecodeCompact(buffer))
 }
 
-func (ctp ChargeTransactionPayment[N]) Bytes() []byte {
+func (ctp ChargeTransactionPayment) Bytes() []byte {
 	return sc.EncodedBytes(ctp)
 }
 
-func (ctp ChargeTransactionPayment[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	return sc.NewVaryingData(), nil
 }
 
-func (ctp ChargeTransactionPayment[N]) Validate(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) Validate(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	finalFee, _, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -55,11 +55,11 @@ func (ctp ChargeTransactionPayment[N]) Validate(who *primitives.Address32, call 
 	return validTransaction, nil
 }
 
-func (ctp ChargeTransactionPayment[N]) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctp ChargeTransactionPayment[N]) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, imbalance, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.Pre{}, err
@@ -67,7 +67,7 @@ func (ctp ChargeTransactionPayment[N]) PreDispatch(who *primitives.Address32, ca
 	return sc.NewVaryingData(ctp.fee, *who, imbalance), nil
 }
 
-func (ctp ChargeTransactionPayment[N]) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) primitives.TransactionValidityError {
 	if pre.HasValue {
 		preValue := pre.Value
 
@@ -86,12 +86,12 @@ func (ctp ChargeTransactionPayment[N]) PostDispatch(pre sc.Option[primitives.Pre
 	return nil
 }
 
-func (ctp ChargeTransactionPayment[N]) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := ctp.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (ctp ChargeTransactionPayment[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
 	return primitives.NewMetadataTypeWithParam(
 			metadata.ChargeTransactionPayment,
 			"ChargeTransactionPayment",
@@ -106,7 +106,7 @@ func (ctp ChargeTransactionPayment[N]) Metadata() (primitives.MetadataType, prim
 		primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple)
 }
 
-func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
+func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
 	maxBlockWeight := ctp.systemModule.Constants.BlockWeights.MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.Constants.BlockLength.Max
 	maxBlockLength := sc.U64(*maxDefaultBlockLength.Get(info.Class))
@@ -158,7 +158,7 @@ func (ctp ChargeTransactionPayment[N]) getPriority(info *primitives.DispatchInfo
 	return 0
 }
 
-func (ctp ChargeTransactionPayment[N]) withdrawFee(who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) withdrawFee(who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	tip := ctp.fee
 	fee := ctp.txPaymentModule.ComputeFee(sc.To[sc.U32](sc.U128(length)), *info, tip)
 

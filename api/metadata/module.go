@@ -14,19 +14,19 @@ const (
 	apiVersion    = 1
 )
 
-type Module[N sc.Numeric] struct {
-	runtimeExtrinsic extrinsic.RuntimeExtrinsic[N]
+type Module struct {
+	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 }
 
-func New[N sc.Numeric](runtimeExtrinsic extrinsic.RuntimeExtrinsic[N]) Module[N] {
-	return Module[N]{runtimeExtrinsic}
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic) Module {
+	return Module{runtimeExtrinsic}
 }
 
-func (m Module[N]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[N]) Item() primitives.ApiItem {
+func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
@@ -34,14 +34,14 @@ func (m Module[N]) Item() primitives.ApiItem {
 // Metadata returns the metadata of the runtime.
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
-func (m Module[N]) Metadata() int64 {
+func (m Module) Metadata() int64 {
 	metadata := m.buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
 
 	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func (m Module[N]) buildMetadata() primitives.Metadata {
+func (m Module) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
@@ -515,7 +515,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module[N]) runtimeTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) runtimeTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/big"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
@@ -43,7 +42,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	assert.NoError(t, digest.Add(sdi))
 	assert.NoError(t, expectedStorageDigest.Add(prdi))
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -64,9 +63,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	expectedExecutionPhase := types.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
-	assert.NoError(t, err)
-	encBlockNumber, err := scale.Marshal(bn)
+	encBlockNumber, err := scale.Marshal(blockNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
@@ -76,9 +73,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	bn, err = scale.NewUint128(big.NewInt(int64(blockNumber - 1)))
-	assert.NoError(t, err)
-	encPrevBlock, err := scale.Marshal(bn)
+	encPrevBlock, err := scale.Marshal(blockNumber - 1)
 	assert.NoError(t, err)
 	numHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)

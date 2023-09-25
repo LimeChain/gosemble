@@ -11,44 +11,44 @@ const (
 	functionTestIndex = iota
 )
 
-type Module[N sc.Numeric] struct {
+type Module struct {
 	primitives.DefaultProvideInherent
-	hooks.DefaultDispatchModule[N]
+	hooks.DefaultDispatchModule
 	Index     sc.U8
 	functions map[sc.U8]primitives.Call
 }
 
-func New[N sc.Numeric](index sc.U8) Module[N] {
+func New(index sc.U8) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	functions[functionTestIndex] = newCallTest(index, functionTestIndex)
 
-	return Module[N]{
+	return Module{
 		Index:     index,
 		functions: functions,
 	}
 }
 
-func (m Module[N]) GetIndex() sc.U8 {
+func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module[N]) name() sc.Str {
+func (m Module) name() sc.Str {
 	return "Testable"
 }
 
-func (m Module[N]) Functions() map[sc.U8]primitives.Call {
+func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},
@@ -70,7 +70,7 @@ func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 	}
 }
 
-func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(metadata.TestableCalls,
 			"Testable calls",

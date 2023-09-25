@@ -3,7 +3,6 @@ package account_nonce
 import (
 	"bytes"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -15,19 +14,19 @@ const (
 	apiVersion    = 1
 )
 
-type Module[N sc.Numeric] struct {
-	systemModule system.Module[N]
+type Module struct {
+	systemModule system.Module
 }
 
-func New[N sc.Numeric](systemModule system.Module[N]) Module[N] {
-	return Module[N]{systemModule}
+func New(systemModule system.Module) Module {
+	return Module{systemModule}
 }
 
-func (m Module[N]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[N]) Item() types.ApiItem {
+func (m Module) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
@@ -39,7 +38,7 @@ func (m Module[N]) Item() types.ApiItem {
 // which represent the SCALE-encoded AccountId.
 // Returns a pointer-size of the SCALE-encoded nonce of the AccountId.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-accountnonceapi-account-nonce)
-func (m Module[N]) AccountNonce(dataPtr int32, dataLen int32) int64 {
+func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 

@@ -3,7 +3,6 @@ package core
 import (
 	"bytes"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -22,32 +21,32 @@ type Core interface {
 	InitializeBlock(dataPtr int32, dataLen int32)
 }
 
-type Module[N sc.Numeric] struct {
-	executive      executive.Module[N]
-	decoder        types.ModuleDecoder[N]
+type Module struct {
+	executive      executive.Module
+	decoder        types.ModuleDecoder
 	runtimeVersion *primitives.RuntimeVersion
 }
 
-func New[N sc.Numeric](module executive.Module[N], decoder types.ModuleDecoder[N], runtimeVersion *primitives.RuntimeVersion) Module[N] {
-	return Module[N]{
+func New(module executive.Module, decoder types.ModuleDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
+	return Module{
 		module,
 		decoder,
 		runtimeVersion,
 	}
 }
 
-func (m Module[N]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[N]) Item() primitives.ApiItem {
+func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Version returns a pointer-size SCALE-encoded Runtime version.
 // [Specification](https://spec.polkadot.network/#defn-rt-core-version)
-func (m Module[N]) Version() int64 {
+func (m Module) Version() int64 {
 	buffer := &bytes.Buffer{}
 	m.runtimeVersion.Encode(buffer)
 
@@ -60,10 +59,10 @@ func (m Module[N]) Version() int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded header of the block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-initialize-block)
-func (m Module[N]) InitializeBlock(dataPtr int32, dataLen int32) {
+func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
-	header := primitives.DecodeHeader[N](buffer)
+	header := primitives.DecodeHeader(buffer)
 	m.executive.InitializeBlock(header)
 }
 
@@ -73,7 +72,7 @@ func (m Module[N]) InitializeBlock(dataPtr int32, dataLen int32) {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-execute-block)
-func (m Module[N]) ExecuteBlock(dataPtr int32, dataLen int32) {
+func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 	block := m.decoder.DecodeBlock(buffer)
