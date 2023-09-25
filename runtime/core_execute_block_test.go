@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"math/big"
 	"testing"
 	"time"
 
@@ -18,7 +17,7 @@ import (
 
 var (
 	dateTime    = time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC)
-	storageRoot = common.MustHexToHash("0xd7c45ad97556321e94eb91710f9363ae56a723c66e708604f754596f787a99a2") // Depends on date
+	storageRoot = common.MustHexToHash("0x9c97a3182e4bbaf283ce56ac21bb065fab520175980b88acf6fdb5e21fa321ad") // Depends on date
 )
 
 func Test_BlockExecution(t *testing.T) {
@@ -51,7 +50,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, digest.Add(preRuntimeDigest))
 	assert.NoError(t, expectedStorageDigest.Add(preRuntimeDigest))
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, uint(blockNumber), digest)
 
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
@@ -71,9 +70,7 @@ func Test_BlockExecution(t *testing.T) {
 	expectedExecutionPhase := primitives.NewExtrinsicPhaseApply(sc.U32(0))
 	assert.Equal(t, expectedExecutionPhase.Bytes(), (*storage).Get(append(keySystemHash, keyExecutionPhaseHash...)))
 
-	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
-	assert.NoError(t, err)
-	encBlockNumber, err := scale.Marshal(bn)
+	encBlockNumber, err := scale.Marshal(blockNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, encBlockNumber, (*storage).Get(append(keySystemHash, keyNumberHash...)))
 
@@ -84,9 +81,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	bn, err = scale.NewUint128(big.NewInt(int64(blockNumber - 1)))
-	assert.NoError(t, err)
-	encPrevBlock, err := scale.Marshal(bn)
+	encPrevBlock, err := scale.Marshal(blockNumber - 1)
 	assert.NoError(t, err)
 	numHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)
@@ -206,12 +201,10 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
-	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
-	assert.NoError(t, err)
-	encBlockNumber, err := scale.Marshal(bn)
+	encBlockNumber, err := scale.Marshal(blockNumber)
 	assert.NoError(t, err)
 
-	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, storageRoot, extrinsicsRoot, uint(blockNumber), digest)
 
 	block := gossamertypes.Block{
 		Header: *header,

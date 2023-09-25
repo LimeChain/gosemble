@@ -29,7 +29,7 @@ func Test_CheckInherents(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, inherentExt)
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, gossamertypes.NewDigest())
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), gossamertypes.NewDigest())
 
 	var exts [][]byte
 	err = scale.Unmarshal(inherentExt, &exts)

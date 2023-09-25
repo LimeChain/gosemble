@@ -84,10 +84,10 @@ func DefaultValidTransaction() ValidTransaction {
 // `provides` and `requires` tags, it will sum the priorities, take the minimum longevity and
 // the logic *And* of the propagate flags.
 func (vt ValidTransaction) CombineWith(otherVt ValidTransaction) ValidTransaction {
-	priority := vt.Priority.SaturatingAdd(otherVt.Priority).(sc.U64)
+	priority := vt.Priority + otherVt.Priority // saturating_add
 	requires := append(vt.Requires, otherVt.Requires...)
 	provides := append(vt.Provides, otherVt.Provides...)
-	longevity := vt.Longevity.Min(otherVt.Longevity).(sc.U64)
+	longevity := sc.U64(minUint64(uint64(vt.Longevity), uint64(otherVt.Longevity)))
 	propagate := vt.Propagate && otherVt.Propagate
 
 	return ValidTransaction{
@@ -97,4 +97,11 @@ func (vt ValidTransaction) CombineWith(otherVt ValidTransaction) ValidTransactio
 		Longevity: longevity,
 		Propagate: propagate,
 	}
+}
+
+func minUint64(a, b uint64) uint64 {
+	if a < b {
+		return a
+	}
+	return b
 }

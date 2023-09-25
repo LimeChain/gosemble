@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"math"
+	"math/bits"
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
@@ -46,12 +47,13 @@ func NewMortalEra(period sc.U64, current sc.U64) Era {
 	// TODO:
 	// period = period.checked_next_power_of_two().unwrap_or(1<<16).clamp(4, 1<<16)
 	phase := current % period
-	quantizeFactor := (period >> 12).Max(sc.U64(1))
-	quantizeFactor = phase.Div(quantizeFactor).Mul(quantizeFactor)
+
+	quantizeFactor := sc.U64(math.Max(float64(period>>12), 1))
+	quantizeFactor = (phase / quantizeFactor) * quantizeFactor
 	return Era{
 		IsImmortal: false,
 		EraPeriod:  period,
-		EraPhase:   quantizeFactor.(sc.U64),
+		EraPhase:   quantizeFactor,
 	}
 }
 
@@ -66,9 +68,28 @@ func (e Era) Encode(buffer *bytes.Buffer) {
 		return
 	}
 
-	quantizeFactor := (e.EraPeriod >> 12).Max(sc.U64(1))
-	encoded := sc.To[sc.U16](e.EraPeriod.TrailingZeros().Sub(sc.U64(1))).Clamp(sc.U16(1), sc.U16(15)).(sc.U16) | sc.U16((e.EraPhase.Div(quantizeFactor).(sc.U64))<<4)
+	quantizeFactor := maxUint64(uint64(e.EraPeriod>>12), 1)
+	encoded := sc.U16(clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/sc.U64(quantizeFactor))<<4)
+
 	buffer.Write(encoded.Bytes())
+}
+
+func clamp(value, min, max int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+
+	return value
+}
+
+func maxUint64(a, b uint64) uint64 {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func DecodeEra(buffer *bytes.Buffer) Era {
@@ -79,11 +100,11 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	} else {
 		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
-		quantizeFactor := (period >> 12).Max(sc.U64(1))
-		phase := (encoded >> 4).Mul(quantizeFactor)
+		quantizeFactor := math.Max(float64(period>>12), 1)
+		phase := (encoded >> 4) * sc.U64(quantizeFactor)
 
-		if period >= 4 && phase.Lt(period) {
-			return NewMortalEra(period, phase.(sc.U64))
+		if period >= 4 && phase < period {
+			return NewMortalEra(period, phase)
 		} else {
 			log.Critical("invalid period and phase")
 		}
@@ -104,7 +125,8 @@ func (e Era) Birth(current sc.U64) sc.U64 {
 	} else {
 		period := e.EraPeriod
 		phase := e.EraPhase
-		return (((current.Max(phase).Sub(phase)).Div(period)).Mul(period)).Add(phase).(sc.U64)
+
+		return (((sc.U64(maxUint64(uint64(current), uint64(phase))) - phase) / period) * period) + phase
 	}
 }
 
@@ -132,13 +154,13 @@ func EraTypeDefinition() sc.Sequence[MetadataDefinitionVariant] {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		result = append(result, NewMetadataDefinitionVariant(
 			// fmt.Sprintf("Mortal%d", i),
-			"Mortal "+strconv.Itoa(int(i)),
+			"Mortal "+strconv.Itoa(i),
 			sc.Sequence[MetadataTypeDefinitionField]{
 				NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
 			},
 			sc.U8(i),
 			// fmt.Sprintf("Era.Mortal%d", i),
-			"Era.Mortal "+strconv.Itoa(int(i)),
+			"Era.Mortal "+strconv.Itoa(i),
 		))
 	}
 

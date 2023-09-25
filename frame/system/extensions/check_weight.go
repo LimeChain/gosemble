@@ -10,47 +10,47 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type CheckWeight[N sc.Numeric] struct {
-	systemModule system.Module[N]
+type CheckWeight struct {
+	systemModule system.Module
 }
 
-func NewCheckWeight[N sc.Numeric](systemModule system.Module[N]) CheckWeight[N] {
-	return CheckWeight[N]{
+func NewCheckWeight(systemModule system.Module) CheckWeight {
+	return CheckWeight{
 		systemModule: systemModule,
 	}
 }
 
-func (cw CheckWeight[N]) Encode(*bytes.Buffer) {}
+func (cw CheckWeight) Encode(*bytes.Buffer) {}
 
-func (cw CheckWeight[N]) Decode(*bytes.Buffer) {}
+func (cw CheckWeight) Decode(*bytes.Buffer) {}
 
-func (cw CheckWeight[N]) Bytes() []byte {
+func (cw CheckWeight) Bytes() []byte {
 	return sc.EncodedBytes(cw)
 }
 
-func (cw CheckWeight[N]) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (cw CheckWeight[N]) Validate(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) Validate(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight[N]) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight[N]) PreDispatch(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cw CheckWeight) PreDispatch(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := cw.doPreDispatch(info, length)
 	return primitives.Pre{}, err
 }
 
-func (cw CheckWeight[N]) PreDispatchUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cw CheckWeight) PreDispatchUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := cw.doPreDispatch(info, length)
 	return err
 }
 
-func (cw CheckWeight[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight := cw.systemModule.Storage.BlockWeight.Get()
@@ -63,7 +63,7 @@ func (cw CheckWeight[N]) PostDispatch(_pre sc.Option[primitives.Pre], info *prim
 // Do the validate checks. This can be applied to both signed and unsigned.
 //
 // It only checks that the block weight and length limit will not exceed.
-func (cw CheckWeight[N]) doValidate(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// ignore the next length. If they return `Ok`, then it is below the limit.
 	_, err := cw.checkBlockLength(info, length)
 	if err != nil {
@@ -81,7 +81,7 @@ func (cw CheckWeight[N]) doValidate(info *primitives.DispatchInfo, length sc.Com
 	return primitives.DefaultValidTransaction(), err
 }
 
-func (cw CheckWeight[N]) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	nextLength, err := cw.checkBlockLength(info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -106,12 +106,12 @@ func (cw CheckWeight[N]) doPreDispatch(info *primitives.DispatchInfo, length sc.
 // Checks if the current extrinsic can fit into the block with respect to block length limits.
 //
 // Upon successes, it returns the new block length as a `Result`.
-func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
 	lengthLimit := cw.systemModule.Constants.BlockLength
 	currentLen := cw.systemModule.Storage.AllExtrinsicsLen.Get()
 	addedLen := sc.U32(sc.U128(length).ToBigInt().Uint64())
 
-	nextLen := currentLen.SaturatingAdd(addedLen)
+	nextLen := currentLen + addedLen // saturating_add
 
 	var maxLimit sc.U32
 	if info.Class.Is(primitives.DispatchClassNormal) {
@@ -124,7 +124,7 @@ func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length 
 		log.Critical("invalid DispatchClass type in CheckBlockLength()")
 	}
 
-	if nextLen.Gt(maxLimit) {
+	if nextLen > maxLimit {
 		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 
@@ -134,7 +134,7 @@ func (cw CheckWeight[N]) checkBlockLength(info *primitives.DispatchInfo, length 
 // Checks if the current extrinsic can fit into the block with respect to block weight limits.
 //
 // Upon successes, it returns the new block weight as a `Result`.
-func (cw CheckWeight[N]) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
 	maximumWeight := cw.systemModule.Constants.BlockWeights
 	allWeight := cw.systemModule.Storage.BlockWeight.Get()
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
@@ -142,7 +142,7 @@ func (cw CheckWeight[N]) checkBlockWeight(info *primitives.DispatchInfo) (primit
 
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
-func (cw CheckWeight[N]) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc.Empty, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc.Empty, primitives.TransactionValidityError) {
 	max := cw.systemModule.Constants.BlockWeights.Get(info.Class).MaxExtrinsic
 
 	if max.HasValue {
@@ -154,7 +154,7 @@ func (cw CheckWeight[N]) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc
 	return sc.Empty{}, nil
 }
 
-func (cw CheckWeight[N]) calculateConsumedWeight(maximumWeight system.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
+func (cw CheckWeight) calculateConsumedWeight(maximumWeight system.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
 	limitPerClass := maximumWeight.Get(info.Class)
 	extrinsicWeight := info.Weight.SaturatingAdd(limitPerClass.BaseExtrinsic)
 
@@ -198,7 +198,7 @@ func (cw CheckWeight[N]) calculateConsumedWeight(maximumWeight system.BlockWeigh
 	return allConsumedWeight, nil
 }
 
-func (cw CheckWeight[N]) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
 	return primitives.NewMetadataTypeWithPath(
 			metadata.CheckWeight,
 			"CheckWeight",

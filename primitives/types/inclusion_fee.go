@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -39,5 +40,9 @@ func DecodeInclusionFee(buffer *bytes.Buffer) InclusionFee {
 }
 
 func (i InclusionFee) InclusionFee() Balance {
-	return i.BaseFee.Add(i.LenFee).Add(i.AdjustedWeightFee).(Balance)
+	sum := new(big.Int).Add(i.BaseFee.ToBigInt(), i.LenFee.ToBigInt())
+
+	sum = sum.Add(sum, i.AdjustedWeightFee.ToBigInt())
+
+	return sc.NewU128FromBigInt(sum)
 }

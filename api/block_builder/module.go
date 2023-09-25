@@ -3,7 +3,6 @@ package blockbuilder
 import (
 	"bytes"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
@@ -25,25 +24,25 @@ type BlockBuilder interface {
 	CheckInherents(dataPtr int32, dataLen int32) int64
 }
 
-type Module[N sc.Numeric] struct {
-	runtimeExtrinsic extrinsic.RuntimeExtrinsic[N]
-	executive        executive.Module[N]
-	decoder          types.ModuleDecoder[N]
+type Module struct {
+	runtimeExtrinsic extrinsic.RuntimeExtrinsic
+	executive        executive.Module
+	decoder          types.ModuleDecoder
 }
 
-func New[N sc.Numeric](runtimeExtrinsic extrinsic.RuntimeExtrinsic[N], executive executive.Module[N], decoder types.ModuleDecoder[N]) Module[N] {
-	return Module[N]{
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.ModuleDecoder) Module {
+	return Module{
 		runtimeExtrinsic,
 		executive,
 		decoder,
 	}
 }
 
-func (m Module[N]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[N]) Item() primitives.ApiItem {
+func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
@@ -55,7 +54,7 @@ func (m Module[N]) Item() primitives.ApiItem {
 // which represent the SCALE-encoded unchecked extrinsic.
 // Returns a pointer-size of the SCALE-encoded result, which specifies if this extrinsic is included in this block or not.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic)
-func (m Module[N]) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
+func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -78,7 +77,7 @@ func (m Module[N]) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 // FinalizeBlock finalizes the state changes for the current block.
 // Returns a pointer-size of the SCALE-encoded header for this block.
 // [Specification](https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block)
-func (m Module[N]) FinalizeBlock() int64 {
+func (m Module) FinalizeBlock() int64 {
 	header := m.executive.FinalizeBlock()
 	encodedHeader := header.Bytes()
 
@@ -92,7 +91,7 @@ func (m Module[N]) FinalizeBlock() int64 {
 // which represent the SCALE-encoded inherent data.
 // Returns a pointer-size of the SCALE-encoded timestamp extrinsic.
 // [Specification](https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics)
-func (m Module[N]) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
+func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -113,7 +112,7 @@ func (m Module[N]) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded inherent data.
 // Returns a pointer-size of the SCALE-encoded result, specifying if all inherents are valid.
 // [Specification](https://spec.polkadot.network/#id-blockbuilder_check_inherents)
-func (m Module[N]) CheckInherents(dataPtr int32, dataLen int32) int64 {
+func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 

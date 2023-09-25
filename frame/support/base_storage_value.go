@@ -60,7 +60,7 @@ func (bsv baseStorageValue[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 	}
 
 	length := option.Value
-	if length.Gt(sc.U32(len(data))) {
+	if length > sc.U32(len(data)) {
 		length = sc.U32(len(data))
 	}
 

@@ -19,8 +19,8 @@ var (
 	inherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
 )
 
-type Module[N sc.Numeric] struct {
-	hooks.DefaultDispatchModule[N]
+type Module struct {
+	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config
 	Storage   *storage
@@ -28,13 +28,13 @@ type Module[N sc.Numeric] struct {
 	functions map[sc.U8]primitives.Call
 }
 
-func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
+func New(index sc.U8, config *Config) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
 	constants := newConstants(config.DbWeight, config.MinimumPeriod)
 	functions[functionSetIndex] = newCallSet(index, functionSetIndex, storage, constants, config.OnTimestampSet)
 
-	return Module[N]{
+	return Module{
 		Index:     index,
 		Config:    config,
 		Storage:   storage,
@@ -43,34 +43,34 @@ func New[N sc.Numeric](index sc.U8, config *Config) Module[N] {
 	}
 }
 
-func (m Module[N]) GetIndex() sc.U8 {
+func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module[N]) name() sc.Str {
+func (m Module) name() sc.Str {
 	return "Timestamp"
 }
 
-func (m Module[N]) Functions() map[sc.U8]primitives.Call {
+func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module[N]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module[N]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (m Module[N]) OnFinalize(_ N) {
+func (m Module) OnFinalize(_ sc.U64) {
 	value := m.Storage.DidUpdate.TakeBytes()
 	if value == nil {
 		log.Critical("Timestamp must be updated once in the block")
 	}
 }
 
-func (m Module[N]) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
+func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
 	inherentData := inherent.Data[inherentIdentifier]
 
 	if inherentData == nil {
@@ -82,8 +82,8 @@ func (m Module[N]) CreateInherent(inherent primitives.InherentData) sc.Option[pr
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 
-	nextTimestamp := m.Storage.Now.Get().Add(m.Constants.MinimumPeriod).(sc.U64)
-	if ts.Gt(nextTimestamp) {
+	nextTimestamp := m.Storage.Now.Get() + m.Constants.MinimumPeriod
+	if ts > nextTimestamp {
 		nextTimestamp = ts
 	}
 
@@ -92,7 +92,7 @@ func (m Module[N]) CreateInherent(inherent primitives.InherentData) sc.Option[pr
 	return sc.NewOption[primitives.Call](function)
 }
 
-func (m Module[N]) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
+func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
 	if !m.IsInherent(call) {
 		return errors.New("invalid inherent check for timestamp module")
 	}
@@ -115,25 +115,25 @@ func (m Module[N]) CheckInherent(call primitives.Call, inherent primitives.Inher
 
 	systemNow := m.Storage.Now.Get()
 
-	minimum := systemNow.Add(m.Constants.MinimumPeriod)
-	if t.Gt(ts.Add(maxTimestampDriftMillis)) {
+	minimum := systemNow + m.Constants.MinimumPeriod
+	if t > (ts + maxTimestampDriftMillis) {
 		return primitives.NewTimestampErrorTooFarInFuture()
-	} else if t.Lt(minimum) {
+	} else if t < minimum {
 		return primitives.NewTimestampErrorTooEarly()
 	}
 
 	return nil
 }
 
-func (m Module[N]) InherentIdentifier() [8]byte {
+func (m Module) InherentIdentifier() [8]byte {
 	return inherentIdentifier
 }
 
-func (m Module[N]) IsInherent(call primitives.Call) bool {
+func (m Module) IsInherent(call primitives.Call) bool {
 	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
-func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -162,7 +162,7 @@ func (m Module[N]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 	}
 }
 
-func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(metadata.TimestampCalls, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -177,7 +177,7 @@ func (m Module[N]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module[N]) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
 		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{

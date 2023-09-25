@@ -218,24 +218,24 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Ba
 		lockedOrFrozen = accountData.MiscFrozen
 	}
 
-	liquid := accountData.Free.Sub(lockedOrFrozen).(sc.U128)
-	if liquid.Gt(accountData.Free) {
-		liquid = sc.NewU128FromBigInt(big.NewInt(0))
+	liquid := new(big.Int).Sub(accountData.Free.ToBigInt(), lockedOrFrozen.ToBigInt())
+	if liquid.Cmp(accountData.Free.ToBigInt()) > 0 {
+		liquid = big.NewInt(0)
 	}
 
 	if t.storedMap.CanDecProviders(who) && !keepAlive {
-		return liquid
+		return sc.NewU128FromBigInt(liquid)
 	}
 
 	existentialDeposit := sc.NewU128FromBigInt(t.constants.ExistentialDeposit)
-	diff := accountData.Total().Sub(liquid)
+	diff := new(big.Int).Sub(accountData.Total().ToBigInt(), liquid)
 
-	mustRemainToExist := existentialDeposit.Sub(diff)
+	mustRemainToExist := new(big.Int).Sub(existentialDeposit.ToBigInt(), diff)
 
-	result := liquid.Sub(mustRemainToExist)
-	if result.Gt(liquid) {
+	result := new(big.Int).Sub(liquid, mustRemainToExist)
+	if result.Cmp(liquid) > 0 {
 		return sc.NewU128FromBigInt(big.NewInt(0))
 	}
 
-	return result.(sc.U128)
+	return sc.NewU128FromBigInt(result)
 }

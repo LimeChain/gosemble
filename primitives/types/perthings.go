@@ -28,11 +28,12 @@ func (p Perbill) Bytes() []byte {
 func (p Perbill) Mul(v sc.Encodable) sc.Encodable {
 	switch v := v.(type) {
 	case sc.U32:
-		return ((v.Div(sc.U32(100))).Mul(p.Percentage))
+
+		return (v / sc.U32(100)) * p.Percentage
 	case Weight:
 		return Weight{
-			RefTime:   (v.RefTime.Div(sc.U64(100))).Mul(sc.U64(p.Percentage)).(sc.U64),
-			ProofSize: (v.ProofSize.Div(sc.U64(100))).Mul(sc.U64(p.Percentage)).(sc.U64),
+			RefTime:   (v.RefTime / sc.U64(100)) * sc.U64(p.Percentage),
+			ProofSize: (v.ProofSize / sc.U64(100)) * sc.U64(p.Percentage),
 		}
 	default:
 		log.Critical("unsupported type")

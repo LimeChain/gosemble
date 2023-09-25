@@ -6,9 +6,9 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Module[N sc.Numeric] interface {
+type Module interface {
 	types.ProvideInherent
-	hooks.DispatchModule[N]
+	hooks.DispatchModule
 	GetIndex() sc.U8
 	Functions() map[sc.U8]types.Call
 	PreDispatch(call types.Call) (sc.Empty, types.TransactionValidityError)

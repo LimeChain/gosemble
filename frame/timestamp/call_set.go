@@ -136,8 +136,8 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	previousTimestamp := c.storage.Now.Get()
 
-	if !(previousTimestamp.Eq(sc.U64(0)) ||
-		now.Gte(previousTimestamp.Add(c.constants.MinimumPeriod))) {
+	if !(previousTimestamp == sc.U64(0) ||
+		now >= previousTimestamp+c.constants.MinimumPeriod) {
 		log.Critical(errTimestampMinimumPeriod)
 	}
 

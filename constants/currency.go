@@ -1,6 +1,8 @@
 package constants
 
-import "math/big"
+import (
+	"math/big"
+)
 
 const (
 	MilliCents        = Cents / 1000

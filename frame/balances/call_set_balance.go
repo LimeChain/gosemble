@@ -123,10 +123,10 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	existentialDeposit := sc.NewU128FromBigInt(c.constants.ExistentialDeposit)
-	sum := newFree.Add(newReserved)
+	existentialDeposit := c.constants.ExistentialDeposit
+	sum := new(big.Int).Add(newFree.ToBigInt(), newReserved.ToBigInt())
 
-	if sum.Lt(existentialDeposit) {
+	if sum.Cmp(existentialDeposit) < 0 {
 		newFree = sc.NewU128FromBigInt(big.NewInt(0))
 		newReserved = sc.NewU128FromBigInt(big.NewInt(0))
 	}
@@ -148,21 +148,21 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
-		diff := newFree.Sub(oldFree).(sc.U128)
+		diff := sc.NewU128FromBigInt(new(big.Int).Sub(newFree.ToBigInt(), oldFree.ToBigInt()))
 
 		newPositiveImbalance(diff).Drop()
 	} else if newFree.Lt(oldFree) {
-		diff := oldFree.Sub(newFree).(sc.U128)
+		diff := sc.NewU128FromBigInt(new(big.Int).Sub(oldFree.ToBigInt(), newFree.ToBigInt()))
 
 		newNegativeImbalance(diff).Drop()
 	}
 
 	if newReserved.Gt(oldReserved) {
-		diff := newReserved.Sub(oldReserved).(sc.U128)
+		diff := sc.NewU128FromBigInt(new(big.Int).Sub(newReserved.ToBigInt(), oldReserved.ToBigInt()))
 
 		newPositiveImbalance(diff).Drop()
 	} else if newReserved.Lt(oldReserved) {
-		diff := oldReserved.Sub(newReserved).(sc.U128)
+		diff := sc.NewU128FromBigInt(new(big.Int).Sub(oldReserved.ToBigInt(), newReserved.ToBigInt()))
 
 		newNegativeImbalance(diff).Drop()
 	}

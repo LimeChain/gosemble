@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -30,8 +31,10 @@ func (fd FeeDetails) FinalFee() Balance {
 	sum := fd.Tip
 
 	if fd.InclusionFee.HasValue {
-		inclusionFee := fd.InclusionFee.Value.InclusionFee()
-		sum = inclusionFee.Add(fd.Tip).(sc.U128)
+		inclusionFee := fd.InclusionFee.Value.InclusionFee().ToBigInt()
+		total := new(big.Int).Add(inclusionFee, fd.Tip.ToBigInt())
+
+		sum = sc.NewU128FromBigInt(total)
 	}
 
 	return sum

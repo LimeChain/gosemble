@@ -9,16 +9,16 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type ModuleDecoder[N sc.Numeric] struct {
-	modules map[sc.U8]Module[N]
+type ModuleDecoder struct {
+	modules map[sc.U8]Module
 	extra   primitives.SignedExtra
 }
 
-func NewModuleDecoder[N sc.Numeric](modules map[sc.U8]Module[N], extra primitives.SignedExtra) ModuleDecoder[N] {
-	return ModuleDecoder[N]{modules: modules, extra: extra}
+func NewModuleDecoder(modules map[sc.U8]Module, extra primitives.SignedExtra) ModuleDecoder {
+	return ModuleDecoder{modules: modules, extra: extra}
 }
 
-func (md ModuleDecoder[N]) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
+func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
@@ -49,7 +49,7 @@ func (md ModuleDecoder[N]) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchec
 	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, md.extra)
 }
 
-func (md ModuleDecoder[N]) DecodeCall(buffer *bytes.Buffer) primitives.Call {
+func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	moduleIndex := sc.DecodeU8(buffer)
 	functionIndex := sc.DecodeU8(buffer)
 
@@ -72,8 +72,8 @@ func (md ModuleDecoder[N]) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	return function
 }
 
-func (md ModuleDecoder[N]) DecodeBlock(buffer *bytes.Buffer) Block[N] {
-	header := primitives.DecodeHeader[N](buffer)
+func (md ModuleDecoder) DecodeBlock(buffer *bytes.Buffer) Block {
+	header := primitives.DecodeHeader(buffer)
 
 	size := sc.DecodeCompact(buffer)
 	length := size.ToBigInt()
@@ -83,7 +83,7 @@ func (md ModuleDecoder[N]) DecodeBlock(buffer *bytes.Buffer) Block[N] {
 		extrinsics[i] = md.DecodeUncheckedExtrinsic(buffer)
 	}
 
-	return Block[N]{
+	return Block{
 		Header:     header,
 		Extrinsics: extrinsics,
 	}

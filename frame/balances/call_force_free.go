@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"math/big"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -140,12 +141,12 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 			actual = value
 		}
 
-		newReserved := accountData.Data.Reserved.Sub(actual)
-		accountData.Data.Reserved = newReserved.(sc.U128)
+		newReserved := new(big.Int).Sub(accountData.Data.Reserved.ToBigInt(), actual.ToBigInt())
+		accountData.Data.Reserved = sc.NewU128FromBigInt(newReserved)
 
 		// TODO: defensive_saturating_add
-		newFree := accountData.Data.Free.Add(actual)
-		accountData.Data.Free = newFree.(sc.U128)
+		newFree := new(big.Int).Add(accountData.Data.Free.ToBigInt(), actual.ToBigInt())
+		accountData.Data.Free = sc.NewU128FromBigInt(newFree)
 
 		return sc.Result[sc.Encodable]{
 			HasError: false,
@@ -161,5 +162,5 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
-	return value.Sub(actual).(sc.U128)
+	return sc.NewU128FromBigInt(new(big.Int).Sub(value.ToBigInt(), actual.ToBigInt()))
 }

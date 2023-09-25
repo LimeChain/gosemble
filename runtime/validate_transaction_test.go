@@ -32,7 +32,7 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -89,7 +89,7 @@ func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -145,7 +145,7 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -210,7 +210,7 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -290,9 +290,7 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 	assert.NoError(t, err)
 
 	// set the block number
-	bn, err := scale.NewUint128(big.NewInt(16))
-	assert.NoError(t, err)
-	blockNumberBytes, err := scale.Marshal(bn)
+	blockNumberBytes, err := scale.Marshal(uint64(16))
 	assert.NoError(t, err)
 	err = (*storage).Put(append(keySystemHash, keyNumberHash...), blockNumberBytes)
 	assert.NoError(t, err)

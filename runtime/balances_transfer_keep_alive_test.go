@@ -59,7 +59,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 	err = ext.Encode(*encoder)
 	assert.NoError(t, err)
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, gossamertypes.NewDigest())
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), gossamertypes.NewDigest())
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 

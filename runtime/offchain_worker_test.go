@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"math/big"
 	"testing"
 	"time"
 
@@ -44,18 +43,14 @@ func Test_Offchain_Worker(t *testing.T) {
 	expectedStorageDigest, err := scale.Marshal(digest)
 	assert.NoError(t, err)
 
-	bn, err := scale.NewUint128(big.NewInt(int64(blockNumber)))
-	assert.NoError(t, err)
-	encBlockNumber, err := scale.Marshal(bn)
+	encBlockNumber, err := scale.Marshal(blockNumber)
 	assert.NoError(t, err)
 
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
 	blockHashKey := append(keySystemHash, keyBlockHash...)
-	bn, err = scale.NewUint128(big.NewInt(int64(blockNumber - 1)))
-	assert.NoError(t, err)
-	encPrevBlock, err := scale.Marshal(bn)
+	encPrevBlock, err := scale.Marshal(blockNumber - 1)
 	assert.NoError(t, err)
 	prevBlockNumHash, err := common.Twox64(encPrevBlock)
 	assert.NoError(t, err)

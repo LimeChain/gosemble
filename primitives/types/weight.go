@@ -35,15 +35,15 @@ func (w Weight) Bytes() []byte {
 
 func (w Weight) Add(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Add(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.Add(rhs.ProofSize).(sc.U64),
+		RefTime:   w.RefTime + rhs.RefTime,
+		ProofSize: w.ProofSize + rhs.ProofSize,
 	}
 }
 
 func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingAdd(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.SaturatingAdd(rhs.ProofSize).(sc.U64),
+		RefTime:   w.RefTime + rhs.RefTime,     // saturating_add
+		ProofSize: w.ProofSize + rhs.ProofSize, // saturating_add
 	}
 }
 
@@ -51,8 +51,8 @@ func (w Weight) SaturatingAdd(rhs Weight) Weight {
 // of all fields instead of overflowing.
 func (w Weight) SaturatingSub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingSub(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.SaturatingSub(rhs.ProofSize).(sc.U64),
+		RefTime:   w.RefTime - rhs.RefTime,     // saturating_sub
+		ProofSize: w.ProofSize - rhs.ProofSize, // saturating_sub
 	}
 }
 
@@ -68,66 +68,59 @@ func (w *Weight) SaturatingReduce(amount Weight) {
 
 // Checked [`Weight`] addition. Computes `self + rhs`, returning `None` if overflow occurred.
 func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
-	refTime, err := w.RefTime.CheckedAdd(rhs.RefTime)
-	if err != nil {
-		return sc.NewOption[Weight](nil)
-	}
+	refTime := w.RefTime + rhs.RefTime       // checked_add
+	proofSize := w.ProofSize + rhs.ProofSize // checked_адд
 
-	proofSize, err := w.ProofSize.CheckedAdd(rhs.ProofSize)
-	if err != nil {
-		return sc.NewOption[Weight](nil)
-	}
-
-	return sc.NewOption[Weight](Weight{refTime.(sc.U64), proofSize.(sc.U64)})
+	return sc.NewOption[Weight](Weight{refTime, proofSize})
 }
 
 func (w Weight) Sub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Sub(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.Sub(rhs.ProofSize).(sc.U64),
+		RefTime:   w.RefTime - rhs.RefTime,
+		ProofSize: w.ProofSize - rhs.ProofSize,
 	}
 }
 
 func (w Weight) Mul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Mul(b).(sc.U64),
-		ProofSize: w.ProofSize.Mul(b).(sc.U64),
+		RefTime:   w.RefTime * b,
+		ProofSize: w.ProofSize * b,
 	}
 }
 
 func (w Weight) SaturatingMul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime.SaturatingMul(b).(sc.U64),
-		ProofSize: w.ProofSize.SaturatingMul(b).(sc.U64),
+		RefTime:   w.RefTime * b,   // saturating_mul
+		ProofSize: w.ProofSize * b, // saturating_mul
 	}
 }
 
 // Min Get the conservative min of `self` and `other` weight.
 func (w Weight) Min(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Min(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.Min(rhs.ProofSize).(sc.U64),
+		RefTime:   sc.U64(minUint64(uint64(w.RefTime), uint64(rhs.RefTime))),     // min
+		ProofSize: sc.U64(minUint64(uint64(w.ProofSize), uint64(rhs.ProofSize))), // min
 	}
 }
 
 // Max Get the aggressive max of `self` and `other` weight.
 func (w Weight) Max(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime.Max(rhs.RefTime).(sc.U64),
-		ProofSize: w.ProofSize.Max(rhs.ProofSize).(sc.U64),
+		RefTime:   sc.U64(maxUint64(uint64(w.RefTime), uint64(rhs.RefTime))),     // max
+		ProofSize: sc.U64(maxUint64(uint64(w.ProofSize), uint64(rhs.ProofSize))), // max
 	}
 }
 
 // AllGt Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AllGt(rhs Weight) sc.Bool {
-	return sc.Bool(w.RefTime.Gt(rhs.RefTime) && w.ProofSize.Gt(rhs.ProofSize))
+	return w.RefTime > rhs.RefTime && w.ProofSize > rhs.ProofSize
 }
 
 // AnyGt Returns true if any of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
 func (w Weight) AnyGt(otherW Weight) sc.Bool {
-	return sc.Bool(w.RefTime.Gt(otherW.RefTime) || w.ProofSize.Gt(otherW.ProofSize))
+	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
 }
 
 // Construct [`Weight`] from weight parts, namely reference time and proof size weights.

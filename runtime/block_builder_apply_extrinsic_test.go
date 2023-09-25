@@ -44,7 +44,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	digest := gossamertypes.NewDigest()
 	assert.NoError(t, digest.Add(preRuntimeDigest))
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -88,7 +88,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -181,7 +181,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -238,7 +238,7 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 
@@ -299,7 +299,7 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 
 	digest := gossamertypes.NewDigest()
 
-	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, blockNumber, digest)
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
 	encodedHeader, err := scale.Marshal(*header)
 	assert.NoError(t, err)
 

@@ -5,28 +5,28 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type DispatchModule[N sc.Numeric] interface {
-	OnInitialize[N]
+type DispatchModule interface {
+	OnInitialize
 	OnRuntimeUpgrade
-	OnFinalize(n N)
-	OnIdle(n N, remainingWeight primitives.Weight) primitives.Weight
-	OffchainWorker(n N)
+	OnFinalize(n sc.U64)
+	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
+	OffchainWorker(n sc.U64)
 }
 
-type DefaultDispatchModule[N sc.Numeric] struct{}
+type DefaultDispatchModule struct{}
 
-func (dmh DefaultDispatchModule[N]) OnInitialize(n N) primitives.Weight {
+func (dmh DefaultDispatchModule) OnInitialize(n sc.U64) primitives.Weight {
 	return primitives.WeightZero()
 }
 
-func (dmh DefaultDispatchModule[N]) OnRuntimeUpgrade() primitives.Weight {
+func (dmh DefaultDispatchModule) OnRuntimeUpgrade() primitives.Weight {
 	return primitives.WeightZero()
 }
 
-func (dmh DefaultDispatchModule[N]) OnFinalize(n N) {}
+func (dmh DefaultDispatchModule) OnFinalize(n sc.U64) {}
 
-func (dmh DefaultDispatchModule[N]) OnIdle(n N, remainingWeight primitives.Weight) primitives.Weight {
+func (dmh DefaultDispatchModule) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {
 	return primitives.WeightZero()
 }
 
-func (dmh DefaultDispatchModule[N]) OffchainWorker(n N) {}
+func (dmh DefaultDispatchModule) OffchainWorker(n sc.U64) {}
