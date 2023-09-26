@@ -145,8 +145,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 
 	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			newFromAccountFree := fromAccount.Free.Sub(value)
-			if fromAccount.Free.Lt(value) { // newFromAccountFree.Lt(constants.Zero)
+			if fromAccount.Free.Lt(value) {
 				return sc.Result[sc.Encodable]{
 					HasError: true,
 					Value: types.NewDispatchErrorModule(types.CustomModuleError{
@@ -156,8 +155,8 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 					}),
 				}
 			}
-			fromAccount.Free = newFromAccountFree
 
+			fromAccount.Free = fromAccount.Free.Sub(value)
 			newToAccountFree := toAccount.Free.Add(value)
 			toAccount.Free = newToAccountFree
 

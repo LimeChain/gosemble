@@ -162,8 +162,8 @@ func (m Module) Finalize() primitives.Header {
 	extrinsicsRoot := primitives.DecodeH256(buf)
 	buf.Reset()
 
-	v := sc.U64(m.Constants.BlockHashCount - 1) // saturating_sub
-	toRemove := blockNumber - v
+	toRemove := sc.SaturatingSubU64(blockNumber, m.Constants.BlockHashCount)
+	toRemove = sc.SaturatingSubU64(toRemove, 1)
 
 	if toRemove > blockNumber {
 		toRemove = 0
@@ -285,7 +285,7 @@ func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 				Value:    primitives.IncRefStatusCreated,
 			}
 		} else {
-			newProviders := a.Providers + 1 // saturating_add2
+			newProviders := sc.SaturatingAddU32(a.Providers, 1)
 			if newProviders < a.Providers {
 				newProviders = math.MaxUint32
 			}
@@ -356,8 +356,8 @@ func (m Module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	}
 
 	oldEventCount := m.Storage.EventCount.Get()
-	newEventCount := oldEventCount + 1 // checked_add
-	if newEventCount < oldEventCount {
+	newEventCount, err := sc.CheckedAddU32(oldEventCount, 1)
+	if err != nil {
 		return
 	}
 

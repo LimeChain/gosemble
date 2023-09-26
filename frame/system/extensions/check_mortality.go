@@ -50,7 +50,7 @@ func (cm CheckMortality) Validate(_who *primitives.Address32, _call *primitives.
 	validTill := cm.era.Death(currentBlockNum)
 
 	ok := primitives.DefaultValidTransaction()
-	ok.Longevity = validTill - currentBlockNum // saturating_sub
+	ok.Longevity = sc.SaturatingSubU64(validTill, currentBlockNum)
 
 	return ok, nil
 }

@@ -42,8 +42,8 @@ func (w Weight) Add(rhs Weight) Weight {
 
 func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime + rhs.RefTime,     // saturating_add
-		ProofSize: w.ProofSize + rhs.ProofSize, // saturating_add
+		RefTime:   sc.SaturatingAddU64(w.RefTime, rhs.RefTime),
+		ProofSize: sc.SaturatingAddU64(w.ProofSize, rhs.ProofSize),
 	}
 }
 
@@ -51,8 +51,8 @@ func (w Weight) SaturatingAdd(rhs Weight) Weight {
 // of all fields instead of overflowing.
 func (w Weight) SaturatingSub(rhs Weight) Weight {
 	return Weight{
-		RefTime:   w.RefTime - rhs.RefTime,     // saturating_sub
-		ProofSize: w.ProofSize - rhs.ProofSize, // saturating_sub
+		RefTime:   sc.SaturatingSubU64(w.RefTime, rhs.RefTime),
+		ProofSize: sc.SaturatingSubU64(w.ProofSize, rhs.ProofSize),
 	}
 }
 
@@ -68,8 +68,15 @@ func (w *Weight) SaturatingReduce(amount Weight) {
 
 // Checked [`Weight`] addition. Computes `self + rhs`, returning `None` if overflow occurred.
 func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
-	refTime := w.RefTime + rhs.RefTime       // checked_add
-	proofSize := w.ProofSize + rhs.ProofSize // checked_add
+	refTime, err := sc.CheckedAddU64(w.RefTime, rhs.RefTime)
+	if err != nil {
+		return sc.NewOption[Weight](nil)
+	}
+
+	proofSize, err := sc.CheckedAddU64(w.ProofSize, rhs.ProofSize)
+	if err != nil {
+		return sc.NewOption[Weight](nil)
+	}
 
 	return sc.NewOption[Weight](Weight{refTime, proofSize})
 }
@@ -90,8 +97,8 @@ func (w Weight) Mul(b sc.U64) Weight {
 
 func (w Weight) SaturatingMul(b sc.U64) Weight {
 	return Weight{
-		RefTime:   w.RefTime * b,   // saturating_mul
-		ProofSize: w.ProofSize * b, // saturating_mul
+		RefTime:   sc.SaturatingMulU64(w.RefTime, b),
+		ProofSize: sc.SaturatingMulU64(w.ProofSize, b),
 	}
 }
 

@@ -111,7 +111,7 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 	currentLen := cw.systemModule.Storage.AllExtrinsicsLen.Get()
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
-	nextLen := currentLen + addedLen // saturating_add
+	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
 
 	var maxLimit sc.U32
 	if info.Class.Is(primitives.DispatchClassNormal) {
