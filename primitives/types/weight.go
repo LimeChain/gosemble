@@ -113,8 +113,8 @@ func (w Weight) Min(rhs Weight) Weight {
 // Max Get the aggressive max of `self` and `other` weight.
 func (w Weight) Max(rhs Weight) Weight {
 	return Weight{
-		RefTime:   sc.MaxU64(w.RefTime, rhs.RefTime),
-		ProofSize: sc.MaxU64(w.ProofSize, rhs.ProofSize),
+		RefTime:   sc.Max64(w.RefTime, rhs.RefTime),
+		ProofSize: sc.Max64(w.ProofSize, rhs.ProofSize),
 	}
 }
 

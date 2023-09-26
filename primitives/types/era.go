@@ -47,7 +47,7 @@ func NewMortalEra(period sc.U64, current sc.U64) Era {
 	// TODO:
 	// period = period.checked_next_power_of_two().unwrap_or(1<<16).clamp(4, 1<<16)
 	phase := current % period
-	quantizeFactor := sc.MaxU64(period>>12, 1)
+	quantizeFactor := sc.Max64(period>>12, 1)
 	quantizeFactor = phase / quantizeFactor * quantizeFactor
 	return Era{
 		IsImmortal: false,
@@ -67,7 +67,7 @@ func (e Era) Encode(buffer *bytes.Buffer) {
 		return
 	}
 
-	quantizeFactor := sc.MaxU64(e.EraPeriod>>12, 1)
+	quantizeFactor := sc.Max64(e.EraPeriod>>12, 1)
 	encoded := sc.U16(sc.Clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/quantizeFactor)<<4)
 	buffer.Write(encoded.Bytes())
 }
@@ -80,7 +80,7 @@ func DecodeEra(buffer *bytes.Buffer) Era {
 	} else {
 		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
-		quantizeFactor := sc.MaxU64(period>>12, 1)
+		quantizeFactor := sc.Max64(period>>12, 1)
 		phase := (encoded >> 4) * quantizeFactor
 
 		if period >= 4 && phase < period {
@@ -105,7 +105,7 @@ func (e Era) Birth(current sc.U64) sc.U64 {
 	} else {
 		period := e.EraPeriod
 		phase := e.EraPhase
-		return ((((sc.MaxU64(current, phase)) - phase) / period) * period) + phase
+		return ((((sc.Max64(current, phase)) - phase) / period) * period) + phase
 	}
 }
 
