@@ -87,7 +87,7 @@ func (vt ValidTransaction) CombineWith(otherVt ValidTransaction) ValidTransactio
 	priority := sc.SaturatingAddU64(vt.Priority, otherVt.Priority)
 	requires := append(vt.Requires, otherVt.Requires...)
 	provides := append(vt.Provides, otherVt.Provides...)
-	longevity := sc.MinU64(vt.Longevity, otherVt.Longevity)
+	longevity := sc.Min64(vt.Longevity, otherVt.Longevity)
 	propagate := vt.Propagate && otherVt.Propagate
 
 	return ValidTransaction{

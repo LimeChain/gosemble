@@ -105,8 +105,8 @@ func (w Weight) SaturatingMul(b sc.U64) Weight {
 // Min Get the conservative min of `self` and `other` weight.
 func (w Weight) Min(rhs Weight) Weight {
 	return Weight{
-		RefTime:   sc.MinU64(w.RefTime, rhs.RefTime),
-		ProofSize: sc.MinU64(w.ProofSize, rhs.ProofSize),
+		RefTime:   sc.Min64(w.RefTime, rhs.RefTime),
+		ProofSize: sc.Min64(w.ProofSize, rhs.ProofSize),
 	}
 }
 
