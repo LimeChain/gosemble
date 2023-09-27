@@ -11,6 +11,12 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	errSlotMustIncrease      = "Slot must increase"
+	errSlotDurationZero      = "Aura slot duration cannot be zero."
+	errTimestampSlotMismatch = "Timestamp slot must match `CurrentSlot`"
+)
+
 var (
 	EngineId  = [4]byte{'a', 'u', 'r', 'a'}
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
@@ -74,7 +80,7 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 		currentSlot := m.Storage.CurrentSlot.Get()
 
 		if currentSlot >= newSlot {
-			log.Critical("Slot must increase")
+			log.Critical(errSlotMustIncrease)
 		}
 
 		m.Storage.CurrentSlot.Put(newSlot)
@@ -103,14 +109,14 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 func (m Module) OnTimestampSet(now sc.U64) {
 	slotDuration := m.SlotDuration()
 	if slotDuration == 0 {
-		log.Critical("Aura slot duration cannot be zero.")
+		log.Critical(errSlotDurationZero)
 	}
 
 	timestampSlot := now / slotDuration
 
 	currentSlot := m.Storage.CurrentSlot.Get()
 	if currentSlot != timestampSlot {
-		log.Critical("Timestamp slot must match `CurrentSlot`")
+		log.Critical(errTimestampSlotMismatch)
 	}
 }
 
