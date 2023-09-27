@@ -25,12 +25,12 @@ func (ni negativeImbalance) Drop() {
 	st := newStorage() // TODO: revise
 	issuance := st.TotalIssuance.Get()
 
-	sub := issuance.Sub(ni)
+	sub := issuance.Sub(ni.Balance)
 	if sub.Gt(issuance) {
 		sub = issuance
 	}
 
-	st.TotalIssuance.Put(sub.(sc.U128))
+	st.TotalIssuance.Put(sub)
 }
 
 type positiveImbalance struct {
@@ -45,12 +45,12 @@ func (pi positiveImbalance) Drop() {
 	st := newStorage() // TODO: revise
 	issuance := st.TotalIssuance.Get()
 
-	add := issuance.Add(pi)
+	add := issuance.Add(pi.Balance)
 	if add.Lt(issuance) {
 		add = issuance
 	}
 
-	st.TotalIssuance.Put(add.(sc.U128))
+	st.TotalIssuance.Put(add)
 }
 
 type dustCleanerValue struct {

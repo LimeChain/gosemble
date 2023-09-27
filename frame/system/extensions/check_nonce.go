@@ -25,7 +25,7 @@ func (cn CheckNonce) Encode(buffer *bytes.Buffer) {
 
 func (cn *CheckNonce) Decode(buffer *bytes.Buffer) {
 	compactNonce := sc.DecodeCompact(buffer)
-	cn.nonce = sc.To[sc.U32](sc.U128(compactNonce))
+	cn.nonce = sc.U32(compactNonce.ToBigInt().Uint64())
 }
 
 func (cn CheckNonce) Bytes() []byte {
@@ -48,9 +48,9 @@ func (cn CheckNonce) Validate(who *primitives.Address32, _call *primitives.Call,
 	provides := sc.Sequence[primitives.TransactionTag]{sc.BytesToSequenceU8(encoded)}
 
 	var requires sc.Sequence[primitives.TransactionTag]
-	if account.Nonce.Lt(cn.nonce) {
+	if account.Nonce < cn.nonce {
 		encoded := (*who).Bytes()
-		encoded = append(encoded, sc.ToCompact(cn.nonce.Sub(sc.U32(1))).Bytes()...)
+		encoded = append(encoded, sc.ToCompact(cn.nonce-1).Bytes()...)
 		requires = sc.Sequence[primitives.TransactionTag]{sc.BytesToSequenceU8(encoded)}
 	} else {
 		requires = sc.Sequence[primitives.TransactionTag]{}
@@ -74,7 +74,7 @@ func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Cal
 
 	if cn.nonce != account.Nonce {
 		var err primitives.TransactionValidityError
-		if cn.nonce.Lt(account.Nonce) {
+		if cn.nonce < account.Nonce {
 			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 		} else {
 			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
@@ -82,7 +82,7 @@ func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Cal
 		return primitives.Pre{}, err
 	}
 
-	account.Nonce = account.Nonce.Add(sc.U32(1)).(sc.U32)
+	account.Nonce = account.Nonce + 1
 	cn.systemModule.Storage.Account.Put(who.FixedSequence, account)
 
 	return primitives.Pre{}, nil

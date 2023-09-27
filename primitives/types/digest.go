@@ -17,7 +17,7 @@ type Digest = sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
 
 func DecodeDigest(buffer *bytes.Buffer) Digest {
 	compactSize := sc.DecodeCompact(buffer)
-	size := int(sc.To[sc.U64](sc.U128(compactSize)))
+	size := int(compactSize.ToBigInt().Int64())
 
 	decoder := sc.Decoder{Reader: buffer}
 

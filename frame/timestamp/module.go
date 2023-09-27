@@ -82,8 +82,8 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 
-	nextTimestamp := m.Storage.Now.Get().Add(m.Constants.MinimumPeriod).(sc.U64)
-	if ts.Gt(nextTimestamp) {
+	nextTimestamp := m.Storage.Now.Get() + m.Constants.MinimumPeriod
+	if ts > nextTimestamp {
 		nextTimestamp = ts
 	}
 
@@ -100,7 +100,7 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	maxTimestampDriftMillis := sc.U64(30 * 1000)
 
 	compactTs := call.Args()[0].(sc.Compact)
-	t := sc.To[sc.U64](sc.U128(compactTs))
+	t := sc.U64(compactTs.ToBigInt().Uint64())
 
 	inherentData := inherent.Data[inherentIdentifier]
 
@@ -115,10 +115,10 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 
 	systemNow := m.Storage.Now.Get()
 
-	minimum := systemNow.Add(m.Constants.MinimumPeriod)
-	if t.Gt(ts.Add(maxTimestampDriftMillis)) {
+	minimum := systemNow + m.Constants.MinimumPeriod
+	if t > ts+maxTimestampDriftMillis {
 		return primitives.NewTimestampErrorTooFarInFuture()
-	} else if t.Lt(minimum) {
+	} else if t < minimum {
 		return primitives.NewTimestampErrorTooEarly()
 	}
 
@@ -130,7 +130,7 @@ func (m Module) InherentIdentifier() [8]byte {
 }
 
 func (m Module) IsInherent(call primitives.Call) bool {
-	return call.ModuleIndex().Eq(m.Index) && call.FunctionIndex().Eq(sc.U8(functionSetIndex))
+	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

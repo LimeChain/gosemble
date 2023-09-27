@@ -141,11 +141,11 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 		}
 
 		newReserved := accountData.Data.Reserved.Sub(actual)
-		accountData.Data.Reserved = newReserved.(sc.U128)
+		accountData.Data.Reserved = newReserved
 
 		// TODO: defensive_saturating_add
 		newFree := accountData.Data.Free.Add(actual)
-		accountData.Data.Free = newFree.(sc.U128)
+		accountData.Data.Free = newFree
 
 		return sc.Result[sc.Encodable]{
 			HasError: false,
@@ -161,5 +161,5 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
-	return value.Sub(actual).(sc.U128)
+	return value.Sub(actual)
 }

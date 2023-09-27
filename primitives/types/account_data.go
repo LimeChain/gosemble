@@ -36,5 +36,5 @@ func DecodeAccountData(buffer *bytes.Buffer) AccountData {
 }
 
 func (ad AccountData) Total() sc.U128 {
-	return ad.Free.Add(ad.Reserved).(sc.U128)
+	return ad.Free.Add(ad.Reserved)
 }

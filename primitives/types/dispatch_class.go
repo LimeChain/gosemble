@@ -174,8 +174,8 @@ func (cw ConsumedWeight) Total() Weight {
 // SaturatingAdd Increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
 	weightForClass := cw.Get(class)
-	weightForClass.RefTime = weightForClass.RefTime.SaturatingAdd(weight.RefTime).(sc.U64)
-	weightForClass.ProofSize = weightForClass.ProofSize.SaturatingAdd(weight.ProofSize).(sc.U64)
+	weightForClass.RefTime = sc.SaturatingAddU64(weightForClass.RefTime, weight.RefTime)
+	weightForClass.ProofSize = sc.SaturatingAddU64(weightForClass.ProofSize, weight.ProofSize)
 }
 
 // Accrue Increase the weight of the given class. Saturates at the numeric bounds.
@@ -185,21 +185,23 @@ func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
 }
 
 // CheckedAccrue Try to increase the weight of the given class. Saturates at the numeric bounds.
-func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (ok sc.Empty, err error) {
+func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (sc.Empty, error) {
 	weightForClass := cw.Get(class)
-	refTime, err := weightForClass.RefTime.CheckedAdd(weight.RefTime)
+	refTime, err := sc.CheckedAddU64(weightForClass.RefTime, weight.RefTime)
 	if err != nil {
-		return ok, err
+		return sc.Empty{}, err
 	}
-	weightForClass.RefTime = refTime.(sc.U64)
 
-	proofSize, err := weightForClass.ProofSize.CheckedAdd(weight.ProofSize)
+	weightForClass.RefTime = refTime
+
+	proofSize, err := sc.CheckedAddU64(weightForClass.ProofSize, weight.ProofSize)
 	if err != nil {
-		return ok, err
+		return sc.Empty{}, err
 	}
-	weightForClass.ProofSize = proofSize.(sc.U64)
 
-	return ok, err
+	weightForClass.ProofSize = proofSize
+
+	return sc.Empty{}, nil
 }
 
 // Reduce the weight of the given class. Saturates at the numeric bounds.

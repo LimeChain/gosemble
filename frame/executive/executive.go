@@ -53,7 +53,7 @@ func (m Module) InitializeBlock(header primitives.Header) {
 func (m Module) ExecuteBlock(block types.Block) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
-	log.Trace("execute_block " + strconv.Itoa(int(sc.To[sc.U64](block.Header.Number))))
+	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number)))
 
 	m.InitializeBlock(block.Header)
 
@@ -224,7 +224,7 @@ func (m Module) initialChecks(block types.Block) {
 func (m Module) runtimeUpgrade() sc.Bool {
 	last := m.system.Storage.LastRuntimeUpgrade.Get()
 
-	if m.system.Constants.Version.SpecVersion.Gt(sc.To[sc.U32](sc.U128(last.SpecVersion))) ||
+	if m.system.Constants.Version.SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
 		last.SpecName != m.system.Constants.Version.SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{

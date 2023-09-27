@@ -104,7 +104,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 		return NewMultiAddressId(DecodeAccountId(buffer))
 	case MultiAddressIndex:
 		compact := sc.DecodeCompact(buffer)
-		index := sc.To[sc.U32](sc.U128(compact))
+		index := sc.U32(compact.ToBigInt().Uint64())
 		return NewMultiAddressIndex(index)
 	case MultiAddressRaw:
 		return NewMultiAddressRaw(DecodeAccountRaw(buffer))
@@ -151,7 +151,7 @@ func (a MultiAddress) AsAccountIndex() AccountIndex {
 	if a.IsAccountIndex() {
 		compact := a.VaryingData[1].(sc.Compact)
 
-		return sc.To[sc.U32](sc.U128(compact))
+		return sc.U32(compact.ToBigInt().Uint64())
 	} else {
 		log.Critical("not an AccountIndex type")
 	}

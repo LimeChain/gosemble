@@ -39,5 +39,5 @@ func DecodeInclusionFee(buffer *bytes.Buffer) InclusionFee {
 }
 
 func (i InclusionFee) InclusionFee() Balance {
-	return i.BaseFee.Add(i.LenFee).Add(i.AdjustedWeightFee).(Balance)
+	return i.BaseFee.Add(i.LenFee).Add(i.AdjustedWeightFee)
 }

@@ -89,7 +89,7 @@ func (m Module) DepositIntoExisting(who primitives.Address32, value sc.U128) (pr
 			}
 		}
 
-		from.Free = from.Free.Add(value).(sc.U128)
+		from.Free = from.Free.Add(value)
 
 		m.Config.StoredMap.DepositEvent(newEventDeposit(m.Index, who.FixedSequence, value))
 
@@ -142,7 +142,7 @@ func (m Module) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8,
 			}
 		}
 
-		err := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFromAccountFree.(sc.U128))
+		err := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFromAccountFree)
 		if err != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
@@ -150,7 +150,7 @@ func (m Module) Withdraw(who primitives.Address32, value sc.U128, reasons sc.U8,
 			}
 		}
 
-		account.Free = newFromAccountFree.(sc.U128)
+		account.Free = newFromAccountFree
 
 		m.Config.StoredMap.DepositEvent(newEventWithdraw(m.Index, who.FixedSequence, value))
 

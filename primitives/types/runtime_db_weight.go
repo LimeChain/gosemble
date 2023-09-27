@@ -25,15 +25,15 @@ func (dbw RuntimeDbWeight) Bytes() []byte {
 }
 
 func (dbw RuntimeDbWeight) Reads(r sc.U64) Weight {
-	return WeightFromParts(dbw.Read.SaturatingMul(r).(sc.U64), 0)
+	return WeightFromParts(sc.SaturatingMulU64(dbw.Read, r), 0)
 }
 
 func (dbw RuntimeDbWeight) Writes(w sc.U64) Weight {
-	return WeightFromParts(dbw.Write.SaturatingMul(w).(sc.U64), 0)
+	return WeightFromParts(sc.SaturatingMulU64(dbw.Write, w), 0)
 }
 
 func (dbw RuntimeDbWeight) ReadsWrites(r, w sc.U64) Weight {
-	readWeight := dbw.Read.SaturatingMul(r)
-	writeWeight := dbw.Write.SaturatingMul(w)
-	return WeightFromParts(readWeight.SaturatingAdd(writeWeight).(sc.U64), 0)
+	readWeight := sc.SaturatingMulU64(dbw.Read, r)
+	writeWeight := sc.SaturatingMulU64(dbw.Write, w)
+	return WeightFromParts(sc.SaturatingAddU64(readWeight, writeWeight), 0)
 }

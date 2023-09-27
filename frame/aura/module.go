@@ -73,7 +73,7 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 
 		currentSlot := m.Storage.CurrentSlot.Get()
 
-		if currentSlot.Gte(newSlot) {
+		if currentSlot >= newSlot {
 			log.Critical("Slot must increase")
 		}
 
@@ -102,14 +102,14 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 
 func (m Module) OnTimestampSet(now sc.U64) {
 	slotDuration := m.SlotDuration()
-	if slotDuration.Eq(sc.U64(0)) {
+	if slotDuration == 0 {
 		log.Critical("Aura slot duration cannot be zero.")
 	}
 
-	timestampSlot := now.Div(slotDuration)
+	timestampSlot := now / slotDuration
 
 	currentSlot := m.Storage.CurrentSlot.Get()
-	if currentSlot.Ne(timestampSlot) {
+	if currentSlot != timestampSlot {
 		log.Critical("Timestamp slot must match `CurrentSlot`")
 	}
 }
@@ -206,5 +206,5 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 }
 
 func (m Module) SlotDuration() sc.U64 {
-	return m.Constants.MinimumPeriod.Mul(sc.U64(2)).(sc.U64)
+	return m.Constants.MinimumPeriod * 2
 }

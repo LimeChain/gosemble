@@ -101,7 +101,7 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	valueTs := sc.U128(args[0].(sc.Compact))
-	return c.set(origin, sc.To[sc.U64](valueTs))
+	return c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }
 
 // set sets the current time.
@@ -136,8 +136,8 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	previousTimestamp := c.storage.Now.Get()
 
-	if !(previousTimestamp.Eq(sc.U64(0)) ||
-		now.Gte(previousTimestamp.Add(c.constants.MinimumPeriod))) {
+	if !(previousTimestamp == 0 ||
+		now >= previousTimestamp+c.constants.MinimumPeriod) {
 		log.Critical(errTimestampMinimumPeriod)
 	}
 
