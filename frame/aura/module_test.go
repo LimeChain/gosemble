@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -28,6 +29,72 @@ var (
 	mockStorageDigest      *mocks.MockStorageValue[types.Digest]
 	mockStorageCurrentSlot *mocks.MockStorageValue[sc.U64]
 	mockStorageAuthorities *mocks.MockStorageValue[sc.Sequence[sc.U8]]
+)
+
+var (
+	expectedMetadataTypes = sc.Sequence[types.MetadataType]{
+		types.NewMetadataTypeWithParams(
+			metadata.TypesAuraStorageAuthorities,
+			"BoundedVec<T::AuthorityId, T::MaxAuthorities>",
+			sc.Sequence[sc.Str]{"bounded_collection", "bounded_vec", "BoundedVec"},
+			types.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[types.MetadataTypeDefinitionField]{
+					types.NewMetadataTypeDefinitionField(metadata.TypesSequencePubKeys),
+				}), sc.Sequence[types.MetadataTypeParameter]{
+				types.NewMetadataTypeParameter(metadata.TypesAuthorityId, "T"),
+				types.NewMetadataEmptyTypeParameter("S"),
+			}),
+
+		types.NewMetadataTypeWithPath(metadata.TypesAuthorityId,
+			"sp_consensus_aura sr25519 app_sr25519 Public",
+			sc.Sequence[sc.Str]{"sp_consensus_aura", "sr25519", "app_sr25519", "Public"},
+			types.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[types.MetadataTypeDefinitionField]{types.NewMetadataTypeDefinitionField(metadata.TypesSr25519PubKey)})),
+
+		types.NewMetadataTypeWithPath(metadata.TypesSr25519PubKey,
+			"sp_core sr25519 Public",
+			sc.Sequence[sc.Str]{"sp_core", "sr25519", "Public"},
+			types.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[types.MetadataTypeDefinitionField]{types.NewMetadataTypeDefinitionField(metadata.TypesFixedSequence32U8)})),
+
+		types.NewMetadataType(metadata.TypesSequencePubKeys,
+			"[]PublicKey",
+			types.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesAuthorityId))),
+
+		types.NewMetadataTypeWithPath(metadata.TypesAuraSlot,
+			"sp_consensus_slots Slot",
+			sc.Sequence[sc.Str]{"sp_consensus_slots", "Slot"},
+			types.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[types.MetadataTypeDefinitionField]{
+					types.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
+				})),
+	}
+
+	expectedMetadataModule = types.MetadataModule{
+		Name: "Aura",
+		Storage: sc.NewOption[types.MetadataModuleStorage](types.MetadataModuleStorage{
+			Prefix: "Aura",
+			Items: sc.Sequence[types.MetadataModuleStorageEntry]{
+				types.NewMetadataModuleStorageEntry(
+					"Authorities",
+					types.MetadataModuleStorageEntryModifierDefault,
+					types.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraStorageAuthorities)),
+					"The current authority set."),
+				types.NewMetadataModuleStorageEntry(
+					"CurrentSlot",
+					types.MetadataModuleStorageEntryModifierDefault,
+					types.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesAuraSlot)),
+					"The current slot of this block.   This will be set in `on_initialize`."),
+			},
+		}),
+		Call:      sc.NewOption[sc.Compact](nil),
+		CallDef:   sc.NewOption[types.MetadataDefinitionVariant](nil),
+		Event:     sc.NewOption[sc.Compact](nil),
+		EventDef:  sc.NewOption[types.MetadataDefinitionVariant](nil),
+		Constants: sc.Sequence[types.MetadataModuleConstant]{},
+		Error:     sc.NewOption[sc.Compact](nil),
+		Index:     sc.U8(13),
+	}
 )
 
 func setup(minimumPeriod sc.U64) {
@@ -64,10 +131,30 @@ func Test_Aura_GetIndex(t *testing.T) {
 	assert.Equal(t, sc.U8(13), module.GetIndex())
 }
 
+func Test_Aura_Functions(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	assert.Equal(t, map[sc.U8]types.Call{}, module.Functions())
+}
+
 func Test_Aura_KeyType(t *testing.T) {
 	setup(timestampMinimumPeriod)
 
 	assert.Equal(t, keyType, module.KeyType())
+}
+
+func Test_Aura_KeyTypeId(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	assert.Equal(t, [4]byte{'a', 'u', 'r', 'a'}, module.KeyTypeId())
+}
+
+func Test_Aura_Metadata(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	metadataTypes, metadataModule := module.Metadata()
+	assert.Equal(t, expectedMetadataTypes, metadataTypes)
+	assert.Equal(t, expectedMetadataModule, metadataModule)
 }
 
 func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
