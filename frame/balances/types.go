@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -15,70 +16,64 @@ type accountMutator interface {
 
 type negativeImbalance struct {
 	types.Balance
+	totalIssuance support.StorageValue[sc.U128]
 }
 
-func newNegativeImbalance(balance types.Balance) negativeImbalance {
-	return negativeImbalance{balance}
+func newNegativeImbalance(balance types.Balance, totalIssuance support.StorageValue[sc.U128]) negativeImbalance {
+	return negativeImbalance{balance, totalIssuance}
 }
 
 func (ni negativeImbalance) Drop() {
-	st := newStorage() // TODO: revise
-	issuance := st.TotalIssuance.Get()
+	issuance := ni.totalIssuance.Get()
+	sub := sc.SaturatingSubU128(issuance, ni.Balance)
 
-	sub := issuance.Sub(ni.Balance)
-	if sub.Gt(issuance) {
-		sub = issuance
-	}
-
-	st.TotalIssuance.Put(sub)
+	ni.totalIssuance.Put(sub)
 }
 
 type positiveImbalance struct {
 	types.Balance
+	totalIssuance support.StorageValue[sc.U128]
 }
 
-func newPositiveImbalance(balance types.Balance) positiveImbalance {
-	return positiveImbalance{balance}
+func newPositiveImbalance(balance types.Balance, totalIssuance support.StorageValue[sc.U128]) positiveImbalance {
+	return positiveImbalance{balance, totalIssuance}
 }
 
 func (pi positiveImbalance) Drop() {
-	st := newStorage() // TODO: revise
-	issuance := st.TotalIssuance.Get()
+	issuance := pi.totalIssuance.Get()
+	add := sc.SaturatingAddU128(issuance, pi.Balance)
 
-	add := issuance.Add(pi.Balance)
-	if add.Lt(issuance) {
-		add = issuance
-	}
-
-	st.TotalIssuance.Put(add)
+	pi.totalIssuance.Put(add)
 }
 
-type dustCleanerValue struct {
+type dustCleaner struct {
 	moduleIndex       sc.U8
-	AccountId         types.Address32
-	NegativeImbalance negativeImbalance
+	accountId         types.Address32
+	negativeImbalance sc.Option[negativeImbalance]
 	eventDepositor    types.EventDepositor
 }
 
-func newDustCleanerValue(moduleId sc.U8, accountId types.Address32, negativeImbalance negativeImbalance, eventDepositor types.EventDepositor) dustCleanerValue {
-	return dustCleanerValue{
+func newDustCleaner(moduleId sc.U8, accountId types.Address32, negativeImbalance sc.Option[negativeImbalance], eventDepositor types.EventDepositor) dustCleaner {
+	return dustCleaner{
 		moduleIndex:       moduleId,
-		AccountId:         accountId,
-		NegativeImbalance: negativeImbalance,
+		accountId:         accountId,
+		negativeImbalance: negativeImbalance,
 		eventDepositor:    eventDepositor,
 	}
 }
 
-func (dcv dustCleanerValue) Encode(buffer *bytes.Buffer) {
-	dcv.AccountId.Encode(buffer)
-	dcv.NegativeImbalance.Encode(buffer)
+func (dcv dustCleaner) Encode(buffer *bytes.Buffer) {
+	dcv.accountId.Encode(buffer)
+	dcv.negativeImbalance.Encode(buffer)
 }
 
-func (dcv dustCleanerValue) Bytes() []byte {
+func (dcv dustCleaner) Bytes() []byte {
 	return sc.EncodedBytes(dcv)
 }
 
-func (dcv dustCleanerValue) Drop() {
-	dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.AccountId.FixedSequence, dcv.NegativeImbalance.Balance))
-	dcv.NegativeImbalance.Drop()
+func (dcv dustCleaner) Drop() {
+	if dcv.negativeImbalance.HasValue {
+		dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.accountId.FixedSequence, dcv.negativeImbalance.Value.Balance))
+		dcv.negativeImbalance.Value.Drop()
+	}
 }

@@ -242,7 +242,7 @@ func (m Module) TryMutateExists(who primitives.Address32, f func(who *primitives
 		return result
 	}
 
-	isProviding := !reflect.DeepEqual(someData, primitives.AccountData{})
+	isProviding := !reflect.DeepEqual(*someData, primitives.AccountData{})
 
 	if !wasProviding && isProviding {
 		m.incProviders(who)

@@ -123,7 +123,7 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 	return nil
 }
 
-// forceFree frees some funds, returning the amount that has not been freed.
+// forceFree frees funds, returning the amount that has not been freed.
 func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 	if value.Eq(constants.Zero) {
 		return constants.Zero
@@ -134,32 +134,33 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 		return value
 	}
 
-	result := c.storedMap.Mutate(who, func(accountData *types.AccountInfo) sc.Result[sc.Encodable] {
-		actual := accountData.Data.Reserved
-		if value.Lt(actual) {
-			actual = value
-		}
-
-		newReserved := accountData.Data.Reserved.Sub(actual)
-		accountData.Data.Reserved = newReserved
-
-		// TODO: defensive_saturating_add
-		newFree := accountData.Data.Free.Add(actual)
-		accountData.Data.Free = newFree
-
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    actual,
-		}
-	})
-
-	actual := result.Value.(sc.U128)
+	result := c.storedMap.Mutate(
+		who,
+		func(account *types.AccountInfo) sc.Result[sc.Encodable] {
+			return removeReserveAndFree(account, value)
+		},
+	)
 
 	if result.HasError {
 		return value
 	}
 
+	actual := result.Value.(sc.U128)
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
 	return value.Sub(actual)
+}
+
+// removeReserveAndFree frees reserved value from the account.
+func removeReserveAndFree(account *types.AccountInfo, value sc.U128) sc.Result[sc.Encodable] {
+	actual := sc.Min128(account.Data.Reserved, value)
+	account.Data.Reserved = account.Data.Reserved.Sub(actual)
+
+	// TODO: defensive_saturating_add
+	account.Data.Free = account.Data.Free.Add(actual)
+
+	return sc.Result[sc.Encodable]{
+		HasError: false,
+		Value:    actual,
+	}
 }
