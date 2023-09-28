@@ -9,7 +9,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/balances/errors"
+	"github.com/LimeChain/gosemble/frame/balances"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
@@ -103,7 +103,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 	expectedAliceAccountInfo := gossamertypes.AccountInfo{
 		Nonce:       1,
 		Consumers:   0,
-		Producers:   0,
+		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
 			Free:       scale.MustNewUint128(big.NewInt(0)),
@@ -178,7 +178,7 @@ func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 				primitives.NewDispatchErrorModule(
 					primitives.CustomModuleError{
 						Index: BalancesIndex,
-						Error: sc.U32(errors.ErrorKeepAlive),
+						Error: sc.U32(balances.ErrorKeepAlive),
 					})))
 
 	assert.Equal(t,
