@@ -54,14 +54,14 @@ func (m Module) buildMetadata() primitives.Metadata {
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
 
-	runtimeV14Metadata := primitives.RuntimeMetadataV14{
+	runtimeV15Metadata := primitives.RuntimeMetadataV15{
 		Types:     metadataTypes,
 		Modules:   modules,
 		Extrinsic: extrinsic,
 		Type:      sc.ToCompact(metadata.Runtime),
 	}
 
-	return primitives.NewMetadata(runtimeV14Metadata)
+	return primitives.NewMetadataV15(runtimeV15Metadata)
 }
 
 // primitiveTypes returns all primitive types

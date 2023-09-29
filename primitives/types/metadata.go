@@ -3,28 +3,44 @@ package types
 import (
 	"bytes"
 	"errors"
-	"strconv"
-
+	"fmt"
 	sc "github.com/LimeChain/goscale"
+	"strconv"
 )
 
 const (
-	MetadataReserved sc.U32 = 0x6174656d // "meta"
-	MetadataVersion  sc.U8  = 14
+	MetadataReserved  sc.U32 = 0x6174656d // "meta"
+	MetadataVersion14 sc.U8  = 14
+	MetadataVersion15 sc.U8  = 15
 )
 
 type Metadata struct {
-	Data RuntimeMetadataV14
+	Version sc.U8
+	DataV14 RuntimeMetadataV14
+	DataV15 RuntimeMetadataV15
 }
 
-func NewMetadata(data RuntimeMetadataV14) Metadata {
-	return Metadata{Data: data}
+func NewMetadataV14(data RuntimeMetadataV14) Metadata {
+	return Metadata{Version: MetadataVersion14, DataV14: data}
+}
+
+func NewMetadataV15(data RuntimeMetadataV15) Metadata {
+	return Metadata{Version: MetadataVersion15, DataV15: data}
 }
 
 func (m Metadata) Encode(buffer *bytes.Buffer) {
 	MetadataReserved.Encode(buffer)
-	MetadataVersion.Encode(buffer)
-	m.Data.Encode(buffer)
+
+	switch m.Version { // TODO: Is this a good idea ?
+	case MetadataVersion14:
+		MetadataVersion14.Encode(buffer)
+		m.DataV14.Encode(buffer)
+	case MetadataVersion15:
+		MetadataVersion15.Encode(buffer)
+		m.DataV15.Encode(buffer)
+	default:
+		_ = fmt.Errorf("unsupported version")
+	}
 }
 
 func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
@@ -36,45 +52,19 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 	}
 
 	version := sc.DecodeU8(buffer)
-	if version != MetadataVersion {
-		// return Metadata{}, errors.New(fmt.Sprintf("metadata version mismatch: expect [%d], actual [%d]", MetadataVersion, version))
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion)) + "], actual [" + strconv.Itoa(int(version)) + "]")
-	}
 
-	return Metadata{
-		Data: DecodeRuntimeMetadataV14(buffer),
-	}, nil
+	switch version {
+	case MetadataVersion14:
+		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}, nil
+	case MetadataVersion15:
+		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}, nil
+	default:
+		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+	}
 }
 
 func (m Metadata) Bytes() []byte {
 	return sc.EncodedBytes(m)
-}
-
-type RuntimeMetadataV14 struct {
-	Types     sc.Sequence[MetadataType]
-	Modules   sc.Sequence[MetadataModule]
-	Extrinsic MetadataExtrinsic
-	Type      sc.Compact
-}
-
-func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) {
-	rm.Types.Encode(buffer)
-	rm.Modules.Encode(buffer)
-	rm.Extrinsic.Encode(buffer)
-	rm.Type.Encode(buffer)
-}
-
-func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) RuntimeMetadataV14 {
-	return RuntimeMetadataV14{
-		Types:     sc.DecodeSequenceWith(buffer, DecodeMetadataType),
-		Modules:   sc.DecodeSequenceWith(buffer, DecodeMetadataModule),
-		Extrinsic: DecodeMetadataExtrinsic(buffer),
-		Type:      sc.DecodeCompact(buffer),
-	}
-}
-
-func (rm RuntimeMetadataV14) Bytes() []byte {
-	return sc.EncodedBytes(rm)
 }
 
 type MetadataType struct {

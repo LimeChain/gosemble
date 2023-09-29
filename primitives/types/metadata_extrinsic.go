@@ -30,6 +30,39 @@ func (me MetadataExtrinsic) Bytes() []byte {
 	return sc.EncodedBytes(me)
 }
 
+type MetadataExtrinsicV15 struct {
+	Version          sc.U8
+	Address          sc.Compact
+	Call             sc.Compact
+	Signature        sc.Compact
+	Extra            sc.Compact
+	SignedExtensions sc.Sequence[MetadataSignedExtension]
+}
+
+func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) {
+	me.Version.Encode(buffer)
+	me.Address.Encode(buffer)
+	me.Call.Encode(buffer)
+	me.Signature.Encode(buffer)
+	me.Extra.Encode(buffer)
+	me.SignedExtensions.Encode(buffer)
+}
+
+func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) MetadataExtrinsicV15 {
+	return MetadataExtrinsicV15{
+		Version:          sc.DecodeU8(buffer),
+		Address:          sc.DecodeCompact(buffer),
+		Call:             sc.DecodeCompact(buffer),
+		Signature:        sc.DecodeCompact(buffer),
+		Extra:            sc.DecodeCompact(buffer),
+		SignedExtensions: sc.DecodeSequenceWith(buffer, DecodeMetadataSignedExtension),
+	}
+}
+
+func (me MetadataExtrinsicV15) Bytes() []byte {
+	return sc.EncodedBytes(me)
+}
+
 type MetadataSignedExtension struct {
 	Identifier       sc.Str
 	Type             sc.Compact
