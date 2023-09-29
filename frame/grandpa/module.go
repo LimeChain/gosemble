@@ -10,6 +10,10 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	name = sc.Str("Grandpa")
+)
+
 var (
 	AuthorityVersion sc.U8 = 1
 	EngineId               = [4]byte{'f', 'r', 'n', 'k'}
@@ -43,7 +47,7 @@ func (m Module) GetIndex() sc.U8 {
 }
 
 func (m Module) name() sc.Str {
-	return "Grandpa"
+	return name
 }
 
 func (m Module) Functions() map[sc.U8]primitives.Call {
