@@ -1,6 +1,7 @@
 package balances
 
 import (
+	"github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"

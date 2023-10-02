@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	sc "github.com/LimeChain/goscale"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Call interface {
@@ -18,7 +17,7 @@ type Call interface {
 	PaysFee(baseWeight Weight) Pays
 	WeighData(baseWeight Weight) Weight
 	DecodeArgs(buffer *bytes.Buffer) Call
-	Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata]
+	Metadata() sc.Sequence[RuntimeApiMethodParamMetadata]
 }
 
 type Callable struct {
