@@ -117,3 +117,24 @@ func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.Mu
 
 	return c.transfer.trans(sourceAddress, destinationAddress, value, types.ExistenceRequirementAllowDeath)
 }
+
+func (c callForceTransfer) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Origin",
+			Type: sc.ToCompact(types.RawOrigin{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Source",
+			Type: sc.ToCompact(types.MultiAddress{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Destination",
+			Type: sc.ToCompact(types.MultiAddress{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Value",
+			Type: sc.ToCompact(sc.U128{}),
+		},
+	}
+}

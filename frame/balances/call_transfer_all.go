@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/constants/metadata"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -125,4 +126,21 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 	}
 
 	return c.transfer.trans(transactor, to, reducibleBalance, keep)
+}
+
+func (c callTransferAll) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Origin",
+			Type: sc.ToCompact(types.RawOrigin{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Destination",
+			Type: sc.ToCompact(types.MultiAddress{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "KeepAlive",
+			Type: sc.ToCompact(metadata.PrimitiveTypesBool),
+		},
+	}
 }

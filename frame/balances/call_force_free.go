@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -121,6 +120,24 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 	return nil
 }
 
+func (c callForceFree) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Origin",
+			Type: sc.ToCompact(types.RawOrigin{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Who",
+			Type: sc.ToCompact(types.MultiAddress{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Amount",
+			Type: sc.ToCompact(sc.U128{}),
+		},
+	}
+}
+
+// forceFree frees some funds, returning the amount that has not been freed.
 // forceFree frees funds, returning the amount that has not been freed.
 func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 	if value.Eq(constants.Zero) {

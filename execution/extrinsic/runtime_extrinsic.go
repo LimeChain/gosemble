@@ -169,22 +169,37 @@ func (re runtimeExtrinsic) OffchainWorker(n sc.U64) {
 	}
 }
 
-func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic) {
+func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsicV15, sc.Sequence[primitives.RuntimeApiMetadata], primitives.OuterEnums, primitives.CustomMetadata) {
 	metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModule]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
+	apis := sc.Sequence[primitives.RuntimeApiMetadata]{}
+
+	outerenums := primitives.OuterEnums{}
+
+	custom := primitives.CustomMetadata{}
+
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
-		mTypes, mModule := module.Metadata()
+		mTypes, mModule, apiMethodsMd := module.Metadata()
 
 		metadataTypes = append(metadataTypes, mTypes...)
 		modules = append(modules, mModule)
 
 		callVariants = append(callVariants, mModule.CallDef)
 		eventVariants = append(eventVariants, mModule.EventDef)
+
+		api := primitives.RuntimeApiMetadata{
+			Name:    mModule.Name,
+			Methods: apiMethodsMd,
+			Docs:    sc.Sequence[sc.Str]{}, // TODO: Add docs
+		}
+
+		apis = append(apis, api)
+
 	}
 
 	// append runtime event
@@ -201,31 +216,40 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	metadataTypes = append(metadataTypes, runtimeCall)
 
 	// create the unchecked extrinsic type using runtime call id
-	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-		primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-			}),
-		sc.Sequence[primitives.MetadataTypeParameter]{
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
-			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
-			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
-		},
-	)
+	//uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
+	//	sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
+	//	primitives.NewMetadataTypeDefinitionComposite(
+	//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//			primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+	//		}),
+	//	sc.Sequence[primitives.MetadataTypeParameter]{
+	//		primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
+	//		primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
+	//		primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
+	//		primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
+	//	},
+	//)
 
 	// append it to all types
-	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
+	// metadataTypes = append(metadataTypes, uncheckedExtrinsicType) TODO: Should this be commented ?
 
 	// create the metadata extrinsic, which uses the id of the unchecked extrinsic and signed extra extensions
-	extrinsic := primitives.MetadataExtrinsic{
-		Type:             uncheckedExtrinsicType.Id,
-		Version:          types.ExtrinsicFormatVersion,
+	//extrinsic := primitives.MetadataExtrinsic{
+	//	Type:             uncheckedExtrinsicType.Id,
+	//	Version:          types.ExtrinsicFormatVersion,
+	//	SignedExtensions: signedExtensions,
+	//}
+
+	extrinsicV15 := primitives.MetadataExtrinsicV15{
+		Version:          primitives.MetadataVersion15,
+		Address:          sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address")),
+		Call:             sc.ToCompact(primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call")),
+		Signature:        sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature")),
+		Extra:            sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra")),
 		SignedExtensions: signedExtensions,
 	}
 
-	return metadataTypes, modules, extrinsic
+	return metadataTypes, modules, extrinsicV15, apis, outerenums, custom
 }
 
 func (re runtimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {

@@ -2,7 +2,6 @@ package system
 
 import (
 	"bytes"
-
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -100,6 +99,15 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
 		Ok:       primitives.PostDispatchInfo{},
+	}
+}
+
+func (c callRemark) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: "Origin",
+			Type: sc.ToCompact(primitives.RuntimeOrigin{}),
+		},
 	}
 }
 

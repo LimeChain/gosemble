@@ -44,24 +44,27 @@ func (m Module) Metadata() int64 {
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func (m Module) buildMetadata() primitives.Metadata {
+func (m Module) buildMetadata() primitives.RuntimeMetadataV15 {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic := m.runtimeExtrinsic.Metadata()
+	types, modules, extrinsic, apis, outerEnums, custom := m.runtimeExtrinsic.Metadata()
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
 
 	runtimeV15Metadata := primitives.RuntimeMetadataV15{
-		Types:     metadataTypes,
-		Modules:   modules,
-		Extrinsic: extrinsic,
-		Type:      sc.ToCompact(metadata.Runtime),
+		Types:      metadataTypes,
+		Modules:    modules,
+		Extrinsic:  extrinsic,
+		Type:       sc.ToCompact(metadata.Runtime),
+		Apis:       apis,
+		OuterEnums: outerEnums,
+		Custom:     custom,
 	}
 
-	return primitives.NewMetadataV15(runtimeV15Metadata)
+	return primitives.NewMetadataV15(runtimeV15Metadata).DataV15
 }
 
 // primitiveTypes returns all primitive types

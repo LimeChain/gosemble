@@ -298,7 +298,7 @@ func (m Module) deposit(who primitives.Address32, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -325,7 +325,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		Index:     m.Index,
-	}
+	}, m.apiMethods()
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -584,4 +584,59 @@ func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 			"The maximum number of named reserves that can exist on an account.",
 		),
 	} // TODO: add more
+}
+
+func (m Module) apiMethods() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
+	apiFunctions := m.Functions()
+
+	transferMd := apiFunctions[functionTransferIndex].Metadata()
+
+	setBalanceMd := apiFunctions[functionSetBalanceIndex].Metadata()
+
+	forceTransferMd := apiFunctions[functionForceTransferIndex].Metadata()
+
+	transferKeepAliveMd := apiFunctions[functionTransferKeepAliveIndex].Metadata()
+
+	transferAllMd := apiFunctions[functionTransferAllIndex].Metadata()
+
+	forceFreeMd := apiFunctions[functionForceFreeIndex].Metadata()
+
+	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "Transfer",
+			Inputs: transferMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "SetBalance",
+			Inputs: setBalanceMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "ForceTransfer",
+			Inputs: forceTransferMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "TransferKeepAlive",
+			Inputs: transferKeepAliveMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "TransferAll",
+			Inputs: transferAllMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "ForceFreeCall",
+			Inputs: forceFreeMd,
+			Output: sc.ToCompact(primitives.DispatchError{}),
+			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+		},
+	}
 }

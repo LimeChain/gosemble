@@ -2,6 +2,7 @@ package timestamp
 
 import (
 	"bytes"
+	"github.com/LimeChain/gosemble/constants/metadata"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/hooks"
@@ -149,5 +150,18 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
 		Ok:       primitives.PostDispatchInfo{},
+	}
+}
+
+func (c callSet) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: sc.Str("Origin"),
+			Type: sc.ToCompact(primitives.RuntimeOrigin{}),
+		},
+		primitives.RuntimeApiMethodParamMetadata{
+			Name: sc.Str("Now"),
+			Type: sc.ToCompact(metadata.PrimitiveTypesU64), // TODO: Is this correct ?
+		},
 	}
 }
