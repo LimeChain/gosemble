@@ -84,7 +84,7 @@ func (m Module) Authorities() sc.Sequence[primitives.Authority] {
 	return authorities
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -95,7 +95,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
-	}
+	}, m.apiMethods()
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -108,4 +108,8 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 	}
+}
+
+func (m Module) apiMethods() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
+	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{}
 }
