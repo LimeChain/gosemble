@@ -26,9 +26,9 @@ var (
 		Write: 7 * weightRefTimePerNanos,
 	}
 	module                 Module
-	mockStorageDigest      *mocks.MockStorageValue[types.Digest]
-	mockStorageCurrentSlot *mocks.MockStorageValue[sc.U64]
-	mockStorageAuthorities *mocks.MockStorageValue[sc.Sequence[sc.U8]]
+	mockStorageDigest      *mocks.StorageValue[types.Digest]
+	mockStorageCurrentSlot *mocks.StorageValue[sc.U64]
+	mockStorageAuthorities *mocks.StorageValue[sc.Sequence[sc.U8]]
 )
 
 var (
@@ -98,9 +98,9 @@ var (
 )
 
 func setup(minimumPeriod sc.U64) {
-	mockStorageDigest = new(mocks.MockStorageValue[types.Digest])
-	mockStorageCurrentSlot = new(mocks.MockStorageValue[sc.U64])
-	mockStorageAuthorities = new(mocks.MockStorageValue[sc.Sequence[sc.U8]])
+	mockStorageDigest = new(mocks.StorageValue[types.Digest])
+	mockStorageCurrentSlot = new(mocks.StorageValue[sc.U64])
+	mockStorageAuthorities = new(mocks.StorageValue[sc.Sequence[sc.U8]])
 
 	config := NewConfig(
 		keyType,

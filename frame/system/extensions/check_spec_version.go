@@ -28,7 +28,7 @@ func (csv CheckSpecVersion) Bytes() []byte {
 }
 
 func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	return sc.NewVaryingData(csv.systemModule.Constants.Version.SpecVersion), nil
+	return sc.NewVaryingData(csv.systemModule.Version().SpecVersion), nil
 }
 
 func (_ CheckSpecVersion) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {

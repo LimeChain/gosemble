@@ -33,19 +33,19 @@ func (cm CheckMortality) Bytes() []byte {
 }
 
 func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	current := cm.systemModule.Storage.BlockNumber.Get() // TODO: impl saturated_into::<u64>()
-	n := cm.era.Birth(current)                           // TODO: impl saturated_into::<T::BlockNumber>()
+	current := cm.systemModule.StorageBlockNumber().Get() // TODO: impl saturated_into::<u64>()
+	n := cm.era.Birth(current)                            // TODO: impl saturated_into::<T::BlockNumber>()
 
-	if !cm.systemModule.Storage.BlockHash.Exists(n) {
+	if !cm.systemModule.StorageBlockHash().Exists(n) {
 		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 	}
 
-	blockHash := cm.systemModule.Storage.BlockHash.Get(n)
+	blockHash := cm.systemModule.StorageBlockHash().Get(n)
 	return sc.NewVaryingData(primitives.NewH256(blockHash.FixedSequence...)), nil
 }
 
 func (cm CheckMortality) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNum := cm.systemModule.Storage.BlockNumber.Get() // TODO: per module implementation
+	currentBlockNum := cm.systemModule.StorageBlockNumber().Get() // TODO: per module implementation
 
 	validTill := cm.era.Death(currentBlockNum)
 
