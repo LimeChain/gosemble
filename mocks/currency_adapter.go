@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockCurrencyAdapter struct {
+type CurrencyAdapter struct {
 	mock.Mock
 }
 
-func (m *MockCurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.U128) (types.Balance, types.DispatchError) {
+func (m *CurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.U128) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value)
 
 	if args[1] != nil {
@@ -20,7 +20,7 @@ func (m *MockCurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.
 	return args[0].(types.Balance), nil
 }
 
-func (m *MockCurrencyAdapter) Withdraw(who types.Address32, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
+func (m *CurrencyAdapter) Withdraw(who types.Address32, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value, reasons, liveness)
 
 	if args[1] != nil {

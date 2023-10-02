@@ -8,21 +8,37 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type RuntimeExtrinsic struct {
+type RuntimeExtrinsic interface {
+	Module(index sc.U8) (module types.Module, isFound bool)
+	CreateInherents(inherentData primitives.InherentData) []byte
+	CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult
+	EnsureInherentsAreFirst(block types.Block) int
+	OnInitialize(n sc.U64) primitives.Weight
+	OnRuntimeUpgrade() primitives.Weight
+	OnFinalize(n sc.U64)
+	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
+	OffchainWorker(n sc.U64)
+	Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic)
+}
+
+type runtimeExtrinsic struct {
 	modules map[sc.U8]types.Module
 	extra   primitives.SignedExtra
 }
 
 func New(modules map[sc.U8]types.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
-	return RuntimeExtrinsic{modules: modules, extra: extra}
+	return runtimeExtrinsic{
+		modules: modules,
+		extra:   extra,
+	}
 }
 
-func (re RuntimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
+func (re runtimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
 	m, ok := re.modules[index]
 	return m, ok
 }
 
-func (re RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
+func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
 	i := 0
 	var result []byte
 
@@ -43,7 +59,7 @@ func (re RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData)
 	return append(sc.ToCompact(i).Bytes(), result...)
 }
 
-func (re RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
+func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
 	result := primitives.NewCheckInherentsResult()
 
 	for _, extrinsic := range block.Extrinsics {
@@ -87,7 +103,7 @@ func (re RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block ty
 }
 
 // EnsureInherentsAreFirst checks if the inherents are before non-inherents.
-func (re RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
+func (re runtimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 	signedExtrinsicFound := false
 
 	for i, extrinsic := range block.Extrinsics {
@@ -113,7 +129,7 @@ func (re RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 	return -1
 }
 
-func (re RuntimeExtrinsic) OnInitialize(n sc.U64) primitives.Weight {
+func (re runtimeExtrinsic) OnInitialize(n sc.U64) primitives.Weight {
 	weight := primitives.Weight{}
 	for _, m := range re.modules {
 		weight = weight.Add(m.OnInitialize(n))
@@ -122,7 +138,7 @@ func (re RuntimeExtrinsic) OnInitialize(n sc.U64) primitives.Weight {
 	return weight
 }
 
-func (re RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
+func (re runtimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 	weight := primitives.Weight{}
 	for _, m := range re.modules {
 		weight = weight.Add(m.OnRuntimeUpgrade())
@@ -131,13 +147,13 @@ func (re RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 	return weight
 }
 
-func (re RuntimeExtrinsic) OnFinalize(n sc.U64) {
+func (re runtimeExtrinsic) OnFinalize(n sc.U64) {
 	for _, m := range re.modules {
 		m.OnFinalize(n)
 	}
 }
 
-func (re RuntimeExtrinsic) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {
+func (re runtimeExtrinsic) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {
 	weight := primitives.WeightZero()
 	for _, m := range re.modules {
 		adjustedRemainingWeight := remainingWeight.SaturatingSub(weight)
@@ -147,13 +163,13 @@ func (re RuntimeExtrinsic) OnIdle(n sc.U64, remainingWeight primitives.Weight) p
 	return weight
 }
 
-func (re RuntimeExtrinsic) OffchainWorker(n sc.U64) {
+func (re runtimeExtrinsic) OffchainWorker(n sc.U64) {
 	for _, m := range re.modules {
 		m.OffchainWorker(n)
 	}
 }
 
-func (re RuntimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic) {
+func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic) {
 	metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModule]{}
 
@@ -212,7 +228,7 @@ func (re RuntimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	return metadataTypes, modules, extrinsic
 }
 
-func (re RuntimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
+func (re runtimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
 	return re.runtimeType(
 		variants,
 		metadata.RuntimeCall,
@@ -221,7 +237,7 @@ func (re RuntimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives
 	)
 }
 
-func (re RuntimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
+func (re runtimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
 	return re.runtimeType(
 		variants,
 		metadata.TypesRuntimeEvent,
@@ -230,7 +246,7 @@ func (re RuntimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitive
 	)
 }
 
-func (re RuntimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
+func (re runtimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
 	subTypes := sc.Sequence[primitives.MetadataDefinitionVariant]{}
 
 	for _, v := range variants {

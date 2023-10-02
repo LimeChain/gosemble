@@ -53,9 +53,9 @@ func (cw CheckWeight) PreDispatchUnsigned(_call *primitives.Call, info *primitiv
 func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
-		currentWeight := cw.systemModule.Storage.BlockWeight.Get()
+		currentWeight := cw.systemModule.StorageBlockWeight().Get()
 		currentWeight.Reduce(unspent, info.Class)
-		cw.systemModule.Storage.BlockWeight.Put(currentWeight)
+		cw.systemModule.StorageBlockWeight().Put(currentWeight)
 	}
 	return nil
 }
@@ -97,8 +97,8 @@ func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Com
 		return primitives.ValidTransaction{}, err
 	}
 
-	cw.systemModule.Storage.AllExtrinsicsLen.Put(nextLength)
-	cw.systemModule.Storage.BlockWeight.Put(nextWeight)
+	cw.systemModule.StorageAllExtrinsicsLen().Put(nextLength)
+	cw.systemModule.StorageBlockWeight().Put(nextWeight)
 
 	return primitives.ValidTransaction{}, err
 }
@@ -107,8 +107,8 @@ func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Com
 //
 // Upon successes, it returns the new block length as a `Result`.
 func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
-	lengthLimit := cw.systemModule.Constants.BlockLength
-	currentLen := cw.systemModule.Storage.AllExtrinsicsLen.Get()
+	lengthLimit := cw.systemModule.BlockLength()
+	currentLen := cw.systemModule.StorageAllExtrinsicsLen().Get()
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
 	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
@@ -135,15 +135,15 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 //
 // Upon successes, it returns the new block weight as a `Result`.
 func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
-	maximumWeight := cw.systemModule.Constants.BlockWeights
-	allWeight := cw.systemModule.Storage.BlockWeight.Get()
+	maximumWeight := cw.systemModule.BlockWeights()
+	allWeight := cw.systemModule.StorageBlockWeight().Get()
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
 }
 
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
 func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc.Empty, primitives.TransactionValidityError) {
-	max := cw.systemModule.Constants.BlockWeights.Get(info.Class).MaxExtrinsic
+	max := cw.systemModule.BlockWeights().Get(info.Class).MaxExtrinsic
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {

@@ -5,10 +5,10 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockOnTimestampSet struct {
+type OnTimestampSet struct {
 	mock.Mock
 }
 
-func (m *MockOnTimestampSet) OnTimestampSet(n sc.U64) {
+func (m *OnTimestampSet) OnTimestampSet(n sc.U64) {
 	m.Called(n)
 }

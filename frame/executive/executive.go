@@ -43,7 +43,7 @@ func (m Module) InitializeBlock(header primitives.Header) {
 	m.system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
 	weight = weight.SaturatingAdd(m.runtimeExtrinsic.OnInitialize(header.Number))
-	weight = weight.SaturatingAdd(m.system.Constants.BlockWeights.BaseBlock)
+	weight = weight.SaturatingAdd(m.system.BlockWeights().BaseBlock)
 	// use in case of dynamic weight calculation
 	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
 
@@ -121,7 +121,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 func (m Module) FinalizeBlock() primitives.Header {
 	log.Trace("finalize_block")
 	m.system.NoteFinishedExtrinsics()
-	blockNumber := m.system.Storage.BlockNumber.Get()
+	blockNumber := m.system.StorageBlockNumber().Get()
 
 	m.idleAndFinalizeHook(blockNumber)
 
@@ -134,7 +134,7 @@ func (m Module) FinalizeBlock() primitives.Header {
 //
 // Changes made to storage should be discarded.
 func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNumber := m.system.Storage.BlockNumber.Get()
+	currentBlockNumber := m.system.StorageBlockNumber().Get()
 	blockNumber := currentBlockNumber + 1
 	m.system.Initialize(blockNumber, blockHash, primitives.Digest{})
 
@@ -167,15 +167,15 @@ func (m Module) OffchainWorker(header primitives.Header) {
 	hash := hashing.Blake256(header.Bytes())
 	blockHash := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
 
-	m.system.Storage.BlockHash.Put(header.Number, blockHash)
+	m.system.StorageBlockHash().Put(header.Number, blockHash)
 
 	m.runtimeExtrinsic.OffchainWorker(header.Number)
 }
 
 func (m Module) idleAndFinalizeHook(blockNumber sc.U64) {
-	weight := m.system.Storage.BlockWeight.Get()
+	weight := m.system.StorageBlockWeight().Get()
 
-	maxWeight := m.system.Constants.BlockWeights.MaxBlock
+	maxWeight := m.system.BlockWeights().MaxBlock
 	remainingWeight := maxWeight.SaturatingSub(weight.Total())
 
 	if remainingWeight.AllGt(primitives.WeightZero()) {
@@ -206,7 +206,7 @@ func (m Module) initialChecks(block types.Block) {
 	blockNumber := header.Number
 
 	if blockNumber > 0 {
-		storageParentHash := m.system.Storage.BlockHash.Get(blockNumber - 1)
+		storageParentHash := m.system.StorageBlockHash().Get(blockNumber - 1)
 
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")
@@ -222,16 +222,16 @@ func (m Module) initialChecks(block types.Block) {
 }
 
 func (m Module) runtimeUpgrade() sc.Bool {
-	last := m.system.Storage.LastRuntimeUpgrade.Get()
+	last := m.system.StorageLastRuntimeUpgrade().Get()
 
-	if m.system.Constants.Version.SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
-		last.SpecName != m.system.Constants.Version.SpecName {
+	if m.system.Version().SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
+		last.SpecName != m.system.Version().SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{
-			SpecVersion: sc.ToCompact(m.system.Constants.Version.SpecVersion),
-			SpecName:    m.system.Constants.Version.SpecName,
+			SpecVersion: sc.ToCompact(m.system.Version().SpecVersion),
+			SpecName:    m.system.Version().SpecName,
 		}
-		m.system.Storage.LastRuntimeUpgrade.Put(current)
+		m.system.StorageLastRuntimeUpgrade().Put(current)
 
 		return true
 	}

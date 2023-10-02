@@ -24,7 +24,7 @@ const (
 )
 
 type Module struct {
-	primitives.DefaultProvideInherent
+	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config

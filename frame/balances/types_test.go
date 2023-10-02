@@ -21,7 +21,7 @@ var (
 	}
 	issuanceBalance = sc.NewU128(123)
 
-	mockStorageTotalIssuance *mocks.MockStorageValue[sc.U128]
+	mockStorageTotalIssuance *mocks.StorageValue[sc.U128]
 	mockEventDepositor       *mocks.MockEventDepositor
 )
 
@@ -104,12 +104,12 @@ func Test_DustCleanerValue_Drop(t *testing.T) {
 }
 
 func setupNegativeImbalance() negativeImbalance {
-	mockStorageTotalIssuance = new(mocks.MockStorageValue[sc.U128])
+	mockStorageTotalIssuance = new(mocks.StorageValue[sc.U128])
 	return newNegativeImbalance(issuanceBalance, mockStorageTotalIssuance)
 }
 
 func setupPositiveImbalance() positiveImbalance {
-	mockStorageTotalIssuance = new(mocks.MockStorageValue[sc.U128])
+	mockStorageTotalIssuance = new(mocks.StorageValue[sc.U128])
 	return newPositiveImbalance(issuanceBalance, mockStorageTotalIssuance)
 }
 

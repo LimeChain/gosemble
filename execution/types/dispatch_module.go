@@ -7,7 +7,7 @@ import (
 )
 
 type Module interface {
-	types.ProvideInherent
+	types.InherentProvider
 	hooks.DispatchModule
 	GetIndex() sc.U8
 	Functions() map[sc.U8]types.Call

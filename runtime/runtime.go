@@ -4,8 +4,6 @@ Targets WebAssembly MVP
 package main
 
 import (
-	"reflect"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/api/account_nonce"
 	apiAura "github.com/LimeChain/gosemble/api/aura"
@@ -32,7 +30,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -104,7 +101,7 @@ func initializeModules() map[sc.U8]types.Module {
 			TimestampMinimumPeriod,
 			AuraMaxAuthorites,
 			false,
-			systemModule.Storage.Digest.Get,
+			systemModule.StorageDigest().Get,
 		),
 	)
 
@@ -138,20 +135,10 @@ func initializeModules() map[sc.U8]types.Module {
 	}
 }
 
-func getInstance[T types.Module]() T {
-	for _, module := range modules {
-		if reflect.TypeOf(module) == reflect.TypeOf(*new(T)) {
-			return modules[module.GetIndex()].(T)
-		}
-	}
-	log.Critical("unknown type T for module instance")
-	panic("unreachable")
-}
-
 func newSignedExtra() primitives.SignedExtra {
-	systemModule := getInstance[system.Module]()
-	balancesModule := getInstance[balances.Module]()
-	txPaymentModule := getInstance[transaction_payment.Module]()
+	systemModule := modules[SystemIndex].(system.Module)
+	balancesModule := modules[BalancesIndex].(balances.Module)
+	txPaymentModule := modules[TxPaymentsIndex].(transaction_payment.Module)
 
 	checkMortality := sysExtensions.NewCheckMortality(systemModule)
 	checkNonce := sysExtensions.NewCheckNonce(systemModule)
@@ -174,12 +161,12 @@ func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
 	decoder := types.NewModuleDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
-	auraModule := getInstance[aura.Module]()
-	grandpaModule := getInstance[grandpa.Module]()
-	txPaymentsModule := getInstance[transaction_payment.Module]()
+	auraModule := modules[AuraIndex].(aura.Module)
+	grandpaModule := modules[GrandpaIndex].(grandpa.Module)
+	txPaymentsModule := modules[TxPaymentsIndex].(transaction_payment.Module)
 
 	executiveModule := executive.New(
-		getInstance[system.Module](),
+		modules[SystemIndex].(system.Module),
 		runtimeExtrinsic,
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
@@ -196,7 +183,7 @@ func runtimeApi() types.RuntimeApi {
 		metadata.New(runtimeExtrinsic),
 		apiAura.New(auraModule),
 		apiGrandpa.New(grandpaModule),
-		account_nonce.New(getInstance[system.Module]()),
+		account_nonce.New(modules[SystemIndex].(system.Module)),
 		apiTxPayments.New(decoder, txPaymentsModule),
 		apiTxPaymentsCall.NewCallApi(decoder, txPaymentsModule),
 		session_keys.New(sessions),

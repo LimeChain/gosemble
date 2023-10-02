@@ -15,7 +15,7 @@ import (
 const moduleId = sc.U8(3)
 
 var (
-	mockStorageAuthorities *mocks.MockStorageValue[primitives.VersionedAuthorityList]
+	mockStorageAuthorities *mocks.StorageValue[primitives.VersionedAuthorityList]
 	target                 Module
 )
 
@@ -23,9 +23,9 @@ func Test_Module_New(t *testing.T) {
 	setup()
 
 	assert.Equal(t, Module{
-		DefaultProvideInherent: primitives.DefaultProvideInherent{},
-		DefaultDispatchModule:  hooks.DefaultDispatchModule{},
-		Index:                  moduleId,
+		DefaultInherentProvider: primitives.DefaultInherentProvider{},
+		DefaultDispatchModule:   hooks.DefaultDispatchModule{},
+		Index:                   moduleId,
 		storage: &storage{
 			mockStorageAuthorities,
 		},
@@ -128,7 +128,7 @@ func Test_Module_Metadata(t *testing.T) {
 }
 
 func setup() {
-	mockStorageAuthorities = new(mocks.MockStorageValue[primitives.VersionedAuthorityList])
+	mockStorageAuthorities = new(mocks.StorageValue[primitives.VersionedAuthorityList])
 	target = New(moduleId)
 
 	target.storage.Authorities = mockStorageAuthorities

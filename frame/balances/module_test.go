@@ -46,7 +46,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 
 func Test_Module_DepositIntoExisting_Success(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
 	tryMutateResult := sc.Result[sc.Encodable]{
@@ -95,7 +95,7 @@ func Test_Module_DepositIntoExisting_TryMutateAccount_Fails(t *testing.T) {
 
 func Test_Module_Withdraw_Success(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
 	tryMutateResult := sc.Result[sc.Encodable]{
@@ -185,7 +185,7 @@ func Test_Module_ensureCanWithdraw_LiquidityRestrictions(t *testing.T) {
 
 func Test_Module_tryMutateAccount_Success(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
 	tryMutateResult := sc.Result[sc.Encodable]{
@@ -219,7 +219,7 @@ func Test_Module_tryMutateAccount_TryMutateAccountWithDust_Fails(t *testing.T) {
 
 func Test_Module_tryMutateAccountWithDust_Success(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
 	tryMutateResult := sc.Result[sc.Encodable]{
@@ -239,7 +239,7 @@ func Test_Module_tryMutateAccountWithDust_Success(t *testing.T) {
 
 func Test_Module_tryMutateAccountWithDust_Success_Endowed(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
 	tryMutateResult := sc.Result[sc.Encodable]{
@@ -277,7 +277,7 @@ func Test_Module_tryMutateAccountWithDust_TryMutateExists_Fail(t *testing.T) {
 
 func Test_Module_mutateAccount_Success(t *testing.T) {
 	target := setupModule()
-	target.storage.TotalIssuance = new(mocks.MockStorageValue[sc.U128])
+	target.storage.TotalIssuance = new(mocks.StorageValue[sc.U128])
 	maybeAccount := &primitives.AccountData{}
 	expected := sc.Result[sc.Encodable]{
 		HasError: false,
@@ -297,7 +297,7 @@ func Test_Module_mutateAccount_Success(t *testing.T) {
 
 func Test_Module_mutateAccount_f_result(t *testing.T) {
 	target := setupModule()
-	target.storage.TotalIssuance = new(mocks.MockStorageValue[sc.U128])
+	target.storage.TotalIssuance = new(mocks.StorageValue[sc.U128])
 	maybeAccount := &primitives.AccountData{
 		Free: sc.NewU128(2),
 	}
@@ -323,7 +323,7 @@ func Test_Module_mutateAccount_f_result(t *testing.T) {
 
 func Test_Module_mutateAccount_Success_NotNewAccount(t *testing.T) {
 	target := setupModule()
-	target.storage.TotalIssuance = new(mocks.MockStorageValue[sc.U128])
+	target.storage.TotalIssuance = new(mocks.StorageValue[sc.U128])
 	maybeAccount := &primitives.AccountData{
 		Free: sc.NewU128(2),
 	}
@@ -365,7 +365,7 @@ func Test_Module_postMutation_ZeroTotal(t *testing.T) {
 
 func Test_Module_postMutation_LessExistentialDeposit(t *testing.T) {
 	target := setupModule()
-	mockTotalIssuance := new(mocks.MockStorageValue[sc.U128])
+	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 	target.Constants.ExistentialDeposit = sc.NewU128(6)
 

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	mockCurrencyAdapter *mocks.MockCurrencyAdapter
+	mockCurrencyAdapter *mocks.CurrencyAdapter
 	target              chargeTransaction
 
 	who               = constants.ZeroAddress
@@ -120,6 +120,6 @@ func Test_ChargeTransaction_CorrectAndDepositFee_AlreadyWithdrawn_Fail(t *testin
 }
 
 func setUp() {
-	mockCurrencyAdapter = new(mocks.MockCurrencyAdapter)
+	mockCurrencyAdapter = new(mocks.CurrencyAdapter)
 	target = newChargeTransaction(mockCurrencyAdapter)
 }

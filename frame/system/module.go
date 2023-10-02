@@ -9,10 +9,12 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	storage_root "github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/trie"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -20,13 +22,52 @@ const (
 	functionRemarkIndex = iota
 )
 
-type Module struct {
-	primitives.DefaultProvideInherent
+type Module interface {
+	types.InherentProvider
+	hooks.DispatchModule
+
+	GetIndex() sc.U8
+	Functions() map[sc.U8]primitives.Call
+	PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError)
+	ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError)
+	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
+	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass)
+	NoteFinishedInitialize()
+	NoteExtrinsic(encodedExt []byte)
+	NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo)
+	Finalize() primitives.Header
+	NoteFinishedExtrinsics()
+	ResetEvents()
+	Get(key primitives.PublicKey) primitives.AccountInfo
+	CanDecProviders(who primitives.Address32) bool
+	DepositEvent(event primitives.Event)
+	Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
+
+	BlockWeights() BlockWeights
+	BlockLength() BlockLength
+	Version() types.RuntimeVersion
+	DbWeight() types.RuntimeDbWeight
+	BlockHashCount() sc.U64
+
+	StorageDigest() support.StorageValue[types.Digest]
+	StorageBlockWeight() support.StorageValue[primitives.ConsumedWeight]
+	StorageBlockHash() support.StorageMap[sc.U64, types.Blake2bHash]
+	StorageBlockNumber() support.StorageValue[sc.U64]
+	StorageLastRuntimeUpgrade() support.StorageValue[types.LastRuntimeUpgradeInfo]
+	StorageAccount() support.StorageMap[types.PublicKey, types.AccountInfo]
+	StorageAllExtrinsicsLen() support.StorageValue[sc.U32]
+}
+
+type module struct {
+	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config
-	Storage   *storage
-	Constants *consts
+	storage   *storage
+	constants *consts
 	functions map[sc.U8]primitives.Call
 }
 
@@ -38,43 +79,43 @@ func New(index sc.U8, config *Config) Module {
 	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
 	// TODO: add more dispatchables
 
-	return Module{
+	return module{
 		Index:     index,
 		Config:    config,
-		Storage:   storage,
-		Constants: constants,
+		storage:   storage,
+		constants: constants,
 		functions: functions,
 	}
 }
 
-func (m Module) name() sc.Str {
+func (m module) name() sc.Str {
 	return "System"
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m module) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {
-	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseInitialization())
-	m.Storage.ExtrinsicIndex.Put(sc.U32(0))
-	m.Storage.BlockNumber.Put(blockNumber)
-	m.Storage.Digest.Put(digest)
-	m.Storage.ParentHash.Put(parentHash)
-	m.Storage.BlockHash.Put(blockNumber-1, parentHash)
-	m.Storage.BlockWeight.Clear()
+func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {
+	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseInitialization())
+	m.storage.ExtrinsicIndex.Put(sc.U32(0))
+	m.StorageBlockNumber().Put(blockNumber)
+	m.storage.Digest.Put(digest)
+	m.storage.ParentHash.Put(parentHash)
+	m.StorageBlockHash().Put(blockNumber-1, parentHash)
+	m.StorageBlockWeight().Clear()
 }
 
 // RegisterExtraWeightUnchecked - Inform the system pallet of some additional weight that should be accounted for, in the
@@ -92,23 +133,23 @@ func (m Module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash
 // of block weight is more than the block weight limit. This is what the _unchecked_.
 //
 // Another potential use-case could be for the `on_initialize` and `on_finalize` hooks.
-func (m Module) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
-	currentWeight := m.Storage.BlockWeight.Get()
+func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
+	currentWeight := m.StorageBlockWeight().Get()
 	currentWeight.Accrue(weight, class)
-	m.Storage.BlockWeight.Put(currentWeight)
+	m.StorageBlockWeight().Put(currentWeight)
 }
 
-func (m Module) NoteFinishedInitialize() {
-	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(sc.U32(0)))
+func (m module) NoteFinishedInitialize() {
+	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(sc.U32(0)))
 }
 
 // NoteExtrinsic - what the extrinsic data of the current extrinsic index is.
 //
 // This is required to be called before applying an extrinsic. The data will used
 // in [`finalize`] to calculate the correct extrinsics root.
-func (m Module) NoteExtrinsic(encodedExt []byte) {
-	extrinsicIndex := m.Storage.ExtrinsicIndex.Get()
-	m.Storage.ExtrinsicData.Put(extrinsicIndex, sc.BytesToSequenceU8(encodedExt))
+func (m module) NoteExtrinsic(encodedExt []byte) {
+	extrinsicIndex := m.storage.ExtrinsicIndex.Get()
+	m.storage.ExtrinsicData.Put(extrinsicIndex, sc.BytesToSequenceU8(encodedExt))
 }
 
 // NoteAppliedExtrinsic - To be called immediately after an extrinsic has been applied.
@@ -116,14 +157,14 @@ func (m Module) NoteExtrinsic(encodedExt []byte) {
 // Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
-func (m Module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
-	baseWeight := m.Constants.BlockWeights.Get(info.Class).BaseExtrinsic
+func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
+	baseWeight := m.BlockWeights().Get(info.Class).BaseExtrinsic
 	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		blockNum := m.Storage.BlockNumber.Get()
+		blockNum := m.StorageBlockNumber().Get()
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
@@ -131,26 +172,26 @@ func (m Module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
 
-	nextExtrinsicIndex := m.Storage.ExtrinsicIndex.Get() + 1
-	m.Storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
-	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
+	nextExtrinsicIndex := m.storage.ExtrinsicIndex.Get() + 1
+	m.storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
+	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
 }
 
-func (m Module) Finalize() primitives.Header {
-	m.Storage.ExecutionPhase.Clear()
-	m.Storage.AllExtrinsicsLen.Clear()
+func (m module) Finalize() primitives.Header {
+	m.storage.ExecutionPhase.Clear()
+	m.storage.AllExtrinsicsLen.Clear()
 
-	blockNumber := m.Storage.BlockNumber.Get()
-	parentHash := m.Storage.ParentHash.Get()
-	digest := m.Storage.Digest.Get()
-	extrinsicCount := m.Storage.ExtrinsicCount.Take()
+	blockNumber := m.StorageBlockNumber().Get()
+	parentHash := m.storage.ParentHash.Get()
+	digest := m.StorageDigest().Get()
+	extrinsicCount := m.storage.ExtrinsicCount.Take()
 
 	var extrinsics []byte
 
 	for i := 0; i < int(extrinsicCount); i++ {
 		sci := sc.U32(i)
 
-		extrinsic := m.Storage.ExtrinsicData.TakeBytes(sci)
+		extrinsic := m.storage.ExtrinsicData.TakeBytes(sci)
 		extrinsics = append(extrinsics, extrinsic...)
 	}
 
@@ -162,7 +203,7 @@ func (m Module) Finalize() primitives.Header {
 	extrinsicsRoot := primitives.DecodeH256(buf)
 	buf.Reset()
 
-	toRemove := sc.SaturatingSubU64(blockNumber, m.Constants.BlockHashCount)
+	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
 
 	if toRemove > blockNumber {
@@ -170,10 +211,10 @@ func (m Module) Finalize() primitives.Header {
 	}
 
 	if toRemove != 0 {
-		m.Storage.BlockHash.Remove(toRemove)
+		m.StorageBlockHash().Remove(toRemove)
 	}
 
-	storageRootBytes := storage_root.Root(int32(m.Constants.Version.StateVersion))
+	storageRootBytes := storage_root.Root(int32(m.constants.Version.StateVersion))
 	buf.Write(storageRootBytes)
 	storageRoot := primitives.DecodeH256(buf)
 	buf.Reset()
@@ -187,45 +228,45 @@ func (m Module) Finalize() primitives.Header {
 	}
 }
 
-func (m Module) NoteFinishedExtrinsics() {
-	extrinsicIndex := m.Storage.ExtrinsicIndex.Take()
-	m.Storage.ExtrinsicCount.Put(extrinsicIndex)
-	m.Storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseFinalization())
+func (m module) NoteFinishedExtrinsics() {
+	extrinsicIndex := m.storage.ExtrinsicIndex.Take()
+	m.storage.ExtrinsicCount.Put(extrinsicIndex)
+	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseFinalization())
 }
 
-func (m Module) ResetEvents() {
-	m.Storage.Events.Clear()
-	m.Storage.EventCount.Clear()
-	m.Storage.EventTopics.Clear(sc.U32(math.MaxUint32))
+func (m module) ResetEvents() {
+	m.storage.Events.Clear()
+	m.storage.EventCount.Clear()
+	m.storage.EventTopics.Clear(sc.U32(math.MaxUint32))
 }
 
-func (m Module) Get(key primitives.PublicKey) primitives.AccountInfo {
-	return m.Storage.Account.Get(key)
+func (m module) Get(key primitives.PublicKey) primitives.AccountInfo {
+	return m.storage.Account.Get(key)
 }
 
-func (m Module) CanDecProviders(who primitives.Address32) bool {
+func (m module) CanDecProviders(who primitives.Address32) bool {
 	acc := m.Get(who.FixedSequence)
 
 	return acc.Consumers == 0 || acc.Providers > 1
 }
 
 // DepositEvent deposits an event into block's event record.
-func (m Module) DepositEvent(event primitives.Event) {
+func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m Module) Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m module) Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	accountInfo := m.Get(who.FixedSequence)
 
 	result := f(&accountInfo)
 	if !result.HasError {
-		m.Storage.Account.Put(who.FixedSequence, accountInfo)
+		m.storage.Account.Put(who.FixedSequence, accountInfo)
 	}
 
 	return result
 }
 
-func (m Module) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m module) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	account := m.Get(who.FixedSequence)
 	wasProviding := false
 	if !reflect.DeepEqual(account.Data, primitives.AccountData{}) {
@@ -274,7 +315,7 @@ func (m Module) TryMutateExists(who primitives.Address32, f func(who *primitives
 	return result
 }
 
-func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
+func (m module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	result := m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		if a.Providers == 0 && a.Sufficients == 0 {
 			a.Providers = 1
@@ -300,7 +341,7 @@ func (m Module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	return result.Value.(primitives.IncRefStatus)
 }
 
-func (m Module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
+func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
 	result := m.AccountTryMutateExists(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		if account.Providers == 0 {
 			log.Warn("Logic error: Unexpected underflow in reducing provider")
@@ -343,58 +384,58 @@ func (m Module) decProviders(who primitives.Address32) (primitives.DecRefStatus,
 // It is expected that light-clients could subscribe to this topics.
 //
 // NOTE: Events not registered at the genesis block and quietly omitted.
-func (m Module) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
-	blockNumber := m.Storage.BlockNumber.Get()
+func (m module) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
+	blockNumber := m.StorageBlockNumber().Get()
 	if blockNumber == 0 {
 		return
 	}
 
 	eventRecord := primitives.EventRecord{
-		Phase:  m.Storage.ExecutionPhase.Get(),
+		Phase:  m.storage.ExecutionPhase.Get(),
 		Event:  event,
 		Topics: topics,
 	}
 
-	oldEventCount := m.Storage.EventCount.Get()
+	oldEventCount := m.storage.EventCount.Get()
 	newEventCount, err := sc.CheckedAddU32(oldEventCount, 1)
 	if err != nil {
 		return
 	}
 
-	m.Storage.EventCount.Put(newEventCount)
+	m.storage.EventCount.Put(newEventCount)
 
-	m.Storage.Events.Append(eventRecord)
+	m.storage.Events.Append(eventRecord)
 
 	topicValue := sc.NewVaryingData(blockNumber, oldEventCount)
 	for _, topic := range topics {
-		m.Storage.EventTopics.Append(topic, topicValue)
+		m.storage.EventTopics.Append(topic, topicValue)
 	}
 }
 
-func (m Module) onCreatedAccount(who primitives.Address32) {
+func (m module) onCreatedAccount(who primitives.Address32) {
 	// hook on creating new account, currently not used in Substrate
 	//T::OnNewAccount::on_new_account(&who);
 	m.DepositEvent(newEventNewAccount(m.Index, who.FixedSequence))
 }
 
-func (m Module) onKilledAccount(who primitives.Address32) {
+func (m module) onKilledAccount(who primitives.Address32) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who.FixedSequence))
 }
 
 // TODO: Check difference with TryMutateExists
-func (m Module) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m module) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	account := m.Get(who.FixedSequence)
 
 	result := f(&account)
 
 	if !result.HasError {
-		m.Storage.Account.Put(who.FixedSequence, account)
+		m.storage.Account.Put(who.FixedSequence, account)
 	}
 
 	return result
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	metadataModule := primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -426,7 +467,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	return m.metadataTypes(), metadataModule
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesPhase,
 			"frame_system Phase",
@@ -627,7 +668,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
 		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
@@ -723,37 +764,85 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
+func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
 	return sc.Sequence[primitives.MetadataModuleConstant]{
 		primitives.NewMetadataModuleConstant(
 			"BlockWeights",
 			sc.ToCompact(metadata.TypesBlockWeights),
-			sc.BytesToSequenceU8(m.Constants.BlockWeights.Bytes()),
+			sc.BytesToSequenceU8(m.BlockWeights().Bytes()),
 			"Block & extrinsics weights: base values and limits.",
 		),
 		primitives.NewMetadataModuleConstant(
 			"BlockLength",
 			sc.ToCompact(metadata.TypesBlockLength),
-			sc.BytesToSequenceU8(m.Constants.BlockLength.Bytes()),
+			sc.BytesToSequenceU8(m.BlockLength().Bytes()),
 			"The maximum length of a block (in bytes).",
 		),
 		primitives.NewMetadataModuleConstant(
 			"BlockHashCount",
 			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.Constants.BlockHashCount.Bytes()),
+			sc.BytesToSequenceU8(m.BlockHashCount().Bytes()),
 			"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
 		),
 		primitives.NewMetadataModuleConstant(
 			"DbWeight",
 			sc.ToCompact(metadata.TypesDbWeight),
-			sc.BytesToSequenceU8(m.Constants.DbWeight.Bytes()),
+			sc.BytesToSequenceU8(m.DbWeight().Bytes()),
 			"The weight of runtime database operations the runtime can invoke.",
 		),
 		primitives.NewMetadataModuleConstant(
 			"Version",
 			sc.ToCompact(metadata.TypesRuntimeVersion),
-			sc.BytesToSequenceU8(m.Constants.Version.Bytes()),
+			sc.BytesToSequenceU8(m.Version().Bytes()),
 			"Get the chain's current version.",
 		),
 	}
+}
+
+func (m module) BlockWeights() BlockWeights {
+	return m.constants.BlockWeights
+}
+
+func (m module) BlockLength() BlockLength {
+	return m.constants.BlockLength
+}
+
+func (m module) Version() types.RuntimeVersion {
+	return m.constants.Version
+}
+
+func (m module) BlockHashCount() sc.U64 {
+	return m.constants.BlockHashCount
+}
+
+func (m module) DbWeight() types.RuntimeDbWeight {
+	return m.constants.DbWeight
+}
+
+func (m module) StorageDigest() support.StorageValue[types.Digest] {
+	return m.storage.Digest
+}
+
+func (m module) StorageBlockWeight() support.StorageValue[primitives.ConsumedWeight] {
+	return m.storage.BlockWeight
+}
+
+func (m module) StorageBlockHash() support.StorageMap[sc.U64, types.Blake2bHash] {
+	return m.storage.BlockHash
+}
+
+func (m module) StorageBlockNumber() support.StorageValue[sc.U64] {
+	return m.storage.BlockNumber
+}
+
+func (m module) StorageLastRuntimeUpgrade() support.StorageValue[types.LastRuntimeUpgradeInfo] {
+	return m.storage.LastRuntimeUpgrade
+}
+
+func (m module) StorageAccount() support.StorageMap[types.PublicKey, types.AccountInfo] {
+	return m.storage.Account
+}
+
+func (m module) StorageAllExtrinsicsLen() support.StorageValue[sc.U32] {
+	return m.storage.AllExtrinsicsLen
 }
