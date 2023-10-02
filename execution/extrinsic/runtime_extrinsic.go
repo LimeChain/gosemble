@@ -18,7 +18,7 @@ type RuntimeExtrinsic interface {
 	OnFinalize(n sc.U64)
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
-	Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsic)
+	Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModule], primitives.MetadataExtrinsicV15, sc.Sequence[primitives.RuntimeApiMetadata], primitives.OuterEnums, primitives.CustomMetadata)
 }
 
 type runtimeExtrinsic struct {
