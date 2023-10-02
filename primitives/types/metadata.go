@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"strconv"
 )
 
@@ -31,7 +31,7 @@ func NewMetadataV15(data RuntimeMetadataV15) Metadata {
 func (m Metadata) Encode(buffer *bytes.Buffer) {
 	MetadataReserved.Encode(buffer)
 
-	switch m.Version { // TODO: Is this a good idea ?
+	switch m.Version {
 	case MetadataVersion14:
 		MetadataVersion14.Encode(buffer)
 		m.DataV14.Encode(buffer)
@@ -39,7 +39,7 @@ func (m Metadata) Encode(buffer *bytes.Buffer) {
 		MetadataVersion15.Encode(buffer)
 		m.DataV15.Encode(buffer)
 	default:
-		_ = fmt.Errorf("unsupported version")
+		log.Critical("Unsupported metadata version")
 	}
 }
 
