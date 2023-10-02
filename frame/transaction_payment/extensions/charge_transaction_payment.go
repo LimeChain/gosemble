@@ -107,8 +107,8 @@ func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primiti
 }
 
 func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
-	maxBlockWeight := ctp.systemModule.Constants.BlockWeights.MaxBlock.RefTime
-	maxDefaultBlockLength := ctp.systemModule.Constants.BlockLength.Max
+	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
+	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max
 	maxBlockLength := sc.U64(*maxDefaultBlockLength.Get(info.Class))
 
 	infoWeight := info.Weight.RefTime

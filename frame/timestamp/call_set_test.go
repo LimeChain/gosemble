@@ -22,9 +22,9 @@ var (
 	origin     = primitives.NewRawOriginNone()
 	now        = sc.U64(time.Unix(1, 0).UnixMilli())
 
-	mockOnTimestampSet   *mocks.MockOnTimestampSet
-	mockStorageNow       *mocks.MockStorageValue[sc.U64]
-	mockStorageDidUpdate *mocks.MockStorageValue[sc.Bool]
+	mockOnTimestampSet   *mocks.OnTimestampSet
+	mockStorageNow       *mocks.StorageValue[sc.U64]
+	mockStorageDidUpdate *mocks.StorageValue[sc.Bool]
 	mockStorage          *storage
 
 	target callSet
@@ -280,9 +280,9 @@ func Test_Call_Set_set_InvalidLessThanMinPeriod(t *testing.T) {
 }
 
 func setUpCallSet() {
-	mockOnTimestampSet = new(mocks.MockOnTimestampSet)
-	mockStorageNow = new(mocks.MockStorageValue[sc.U64])
-	mockStorageDidUpdate = new(mocks.MockStorageValue[sc.Bool])
+	mockOnTimestampSet = new(mocks.OnTimestampSet)
+	mockStorageNow = new(mocks.StorageValue[sc.U64])
+	mockStorageDidUpdate = new(mocks.StorageValue[sc.Bool])
 	mockStorage = &storage{
 		Now:       mockStorageNow,
 		DidUpdate: mockStorageDidUpdate,

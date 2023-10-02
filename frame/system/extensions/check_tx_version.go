@@ -28,7 +28,7 @@ func (ctv CheckTxVersion) Bytes() []byte {
 }
 
 func (ctv CheckTxVersion) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	return sc.NewVaryingData(ctv.systemModule.Constants.Version.TransactionVersion), nil
+	return sc.NewVaryingData(ctv.systemModule.Version().TransactionVersion), nil
 }
 
 func (_ CheckTxVersion) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {

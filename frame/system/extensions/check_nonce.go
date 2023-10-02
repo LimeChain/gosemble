@@ -37,7 +37,7 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives
 }
 
 func (cn CheckNonce) Validate(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	account := cn.systemModule.Storage.Account.Get((*who).FixedSequence)
+	account := cn.systemModule.StorageAccount().Get((*who).FixedSequence)
 
 	if cn.nonce < account.Nonce {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
@@ -70,7 +70,7 @@ func (cn CheckNonce) ValidateUnsigned(_call *primitives.Call, info *primitives.D
 }
 
 func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
-	account := cn.systemModule.Storage.Account.Get(who.FixedSequence)
+	account := cn.systemModule.StorageAccount().Get(who.FixedSequence)
 
 	if cn.nonce != account.Nonce {
 		var err primitives.TransactionValidityError
@@ -83,7 +83,7 @@ func (cn CheckNonce) PreDispatch(who *primitives.Address32, call *primitives.Cal
 	}
 
 	account.Nonce = account.Nonce + 1
-	cn.systemModule.Storage.Account.Put(who.FixedSequence, account)
+	cn.systemModule.StorageAccount().Put(who.FixedSequence, account)
 
 	return primitives.Pre{}, nil
 }

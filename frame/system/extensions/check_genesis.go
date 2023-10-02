@@ -28,7 +28,7 @@ func (cg CheckGenesis) Bytes() []byte {
 }
 
 func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	hash := cg.module.Storage.BlockHash.Get(0)
+	hash := cg.module.StorageBlockHash().Get(0)
 
 	return sc.NewVaryingData(primitives.H256(hash)), nil
 }
