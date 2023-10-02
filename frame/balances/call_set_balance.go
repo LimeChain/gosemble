@@ -4,32 +4,34 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/types"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type callSetBalance struct {
-	primitives.Callable
+	types.Callable
 	constants      *consts
-	storedMap      primitives.StoredMap
+	storedMap      types.StoredMap
 	accountMutator accountMutator
+	issuance       support.StorageValue[sc.U128]
 }
 
-func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredMap, constants *consts, mutator accountMutator, issuance support.StorageValue[sc.U128]) types.Call {
 	call := callSetBalance{
-		Callable: primitives.Callable{
+		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
 		constants:      constants,
 		storedMap:      storedMap,
 		accountMutator: mutator,
+		issuance:       issuance,
 	}
 
 	return call
 }
 
-func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) types.Call {
 	c.Arguments = sc.NewVaryingData(
 		types.DecodeMultiAddress(buffer),
 		sc.DecodeCompact(buffer),
@@ -129,40 +131,34 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		newReserved = sc.NewU128(0)
 	}
 
-	result := c.accountMutator.tryMutateAccount(address, func(acc *types.AccountData, bool bool) sc.Result[sc.Encodable] {
-		oldFree := acc.Free
-		oldReserved := acc.Reserved
+	result := c.accountMutator.tryMutateAccount(
+		address,
+		func(account *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+			return updateAccount(account, newFree, newReserved)
+		},
+	)
+	if result.HasError {
+		return result.Value.(types.DispatchError)
+	}
 
-		acc.Free = newFree
-		acc.Reserved = newReserved
-
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    sc.NewVaryingData(oldFree, oldReserved),
-		}
-	})
 	parsedResult := result.Value.(sc.VaryingData)
 	oldFree := parsedResult[0].(types.Balance)
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
-		diff := newFree.Sub(oldFree)
-
-		newPositiveImbalance(diff).Drop()
+		newPositiveImbalance(newFree.Sub(oldFree), c.issuance).
+			Drop()
 	} else if newFree.Lt(oldFree) {
-		diff := oldFree.Sub(newFree)
-
-		newNegativeImbalance(diff).Drop()
+		newNegativeImbalance(oldFree.Sub(newFree), c.issuance).
+			Drop()
 	}
 
 	if newReserved.Gt(oldReserved) {
-		diff := newReserved.Sub(oldReserved)
-
-		newPositiveImbalance(diff).Drop()
+		newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).
+			Drop()
 	} else if newReserved.Lt(oldReserved) {
-		diff := oldReserved.Sub(newReserved)
-
-		newNegativeImbalance(diff).Drop()
+		newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).
+			Drop()
 	}
 
 	c.storedMap.DepositEvent(
@@ -174,4 +170,18 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		),
 	)
 	return nil
+}
+
+// updateAccount updates the reserved and free amounts and returns the old amounts
+func updateAccount(account *types.AccountData, newFree, newReserved sc.U128) sc.Result[sc.Encodable] {
+	oldFree := account.Free
+	oldReserved := account.Reserved
+
+	account.Free = newFree
+	account.Reserved = newReserved
+
+	return sc.Result[sc.Encodable]{
+		HasError: false,
+		Value:    sc.NewVaryingData(oldFree, oldReserved),
+	}
 }

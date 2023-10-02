@@ -33,7 +33,7 @@ func (c CheckNonZeroAddress) Validate(who *primitives.Address32, _call *primitiv
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
-	if reflect.DeepEqual(who, constants.ZeroAddress) {
+	if reflect.DeepEqual(*who, constants.ZeroAddress) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
 

@@ -1,4 +1,4 @@
-package errors
+package balances
 
 import sc "github.com/LimeChain/goscale"
 

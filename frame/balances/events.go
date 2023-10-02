@@ -22,6 +22,11 @@ const (
 	EventSlashed
 )
 
+const (
+	errInvalidEventModule = "invalid balances.Event module"
+	errInvalidEventType   = "invalid balances.Event type"
+)
+
 func newEventEndowed(moduleIndex sc.U8, account types.PublicKey, freeBalance types.Balance) types.Event {
 	return types.NewEvent(moduleIndex, EventEndowed, account, freeBalance)
 }
@@ -65,7 +70,7 @@ func newEventSlashed(moduleIndex sc.U8, account types.PublicKey, amount types.Ba
 func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
 	decodedModuleIndex := sc.DecodeU8(buffer)
 	if decodedModuleIndex != moduleIndex {
-		log.Critical("invalid balances.Event module")
+		log.Critical(errInvalidEventModule)
 	}
 
 	b := sc.DecodeU8(buffer)
@@ -116,7 +121,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
 		amount := sc.DecodeU128(buffer)
 		return newEventSlashed(moduleIndex, account, amount)
 	default:
-		log.Critical("invalid balances.Event type")
+		log.Critical(errInvalidEventType)
 	}
 
 	panic("unreachable")

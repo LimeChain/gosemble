@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/balances/errors"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -126,8 +125,8 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 		return types.NewDispatchErrorBadOrigin()
 	}
 
-	to, e := types.DefaultAccountIdLookup().Lookup(dest)
-	if e != nil {
+	to, err := types.DefaultAccountIdLookup().Lookup(dest)
+	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}
 
@@ -145,58 +144,9 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 
 	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			if fromAccount.Free.Lt(value) {
-				return sc.Result[sc.Encodable]{
-					HasError: true,
-					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   t.moduleId,
-						Error:   sc.U32(errors.ErrorInsufficientBalance),
-						Message: sc.NewOption[sc.Str](nil),
-					}),
-				}
-			}
-
-			fromAccount.Free = fromAccount.Free.Sub(value)
-			newToAccountFree := toAccount.Free.Add(value)
-			toAccount.Free = newToAccountFree
-
-			if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
-				return sc.Result[sc.Encodable]{
-					HasError: true,
-					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   t.moduleId,
-						Error:   sc.U32(errors.ErrorExistentialDeposit),
-						Message: sc.NewOption[sc.Str](nil),
-					}),
-				}
-			}
-
-			err := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-			if err != nil {
-				return sc.Result[sc.Encodable]{
-					HasError: true,
-					Value:    err,
-				}
-			}
-
-			allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
-			allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
-
-			if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
-				return sc.Result[sc.Encodable]{
-					HasError: true,
-					Value: types.NewDispatchErrorModule(types.CustomModuleError{
-						Index:   t.moduleId,
-						Error:   sc.U32(errors.ErrorKeepAlive),
-						Message: sc.NewOption[sc.Str](nil),
-					}),
-				}
-			}
-
-			return sc.Result[sc.Encodable]{}
+			return t.sanityChecks(from, fromAccount, toAccount, value, existenceRequirement)
 		})
 	})
-
 	if result.HasError {
 		return result.Value.(types.DispatchError)
 	}
@@ -205,30 +155,80 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 	return nil
 }
 
+// sanityChecks checks the following:
+// `fromAccount` has sufficient balance
+// `toAccount` balance does not overflow
+// `toAccount` total balance is more than the existential deposit
+// `fromAccount` can withdraw `value`
+// the existence requirements for `fromAccount`
+// Updates the balances of `fromAccount` and `toAccount`.
+func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+	fromFree, err := sc.CheckedSubU128(fromAccount.Free, value)
+	if err != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+				Index:   t.moduleId,
+				Error:   sc.U32(ErrorInsufficientBalance),
+				Message: sc.NewOption[sc.Str](nil),
+			}),
+		}
+	}
+	fromAccount.Free = fromFree
+
+	toFree, err := sc.CheckedAddU128(toAccount.Free, value)
+	if err != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value:    types.NewDispatchErrorArithmetic(types.NewArithmeticErrorOverflow()),
+		}
+	}
+	toAccount.Free = toFree
+
+	if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+				Index:   t.moduleId,
+				Error:   sc.U32(ErrorExistentialDeposit),
+				Message: sc.NewOption[sc.Str](nil),
+			}),
+		}
+	}
+
+	e := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
+	if e != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value:    e,
+		}
+	}
+
+	allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
+	allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
+
+	if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+				Index:   t.moduleId,
+				Error:   sc.U32(ErrorKeepAlive),
+				Message: sc.NewOption[sc.Str](nil),
+			}),
+		}
+	}
+
+	return sc.Result[sc.Encodable]{}
+}
+
 func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
 	accountData := t.storedMap.Get(who.FixedSequence).Data
 
-	lockedOrFrozen := accountData.FeeFrozen
-	if accountData.FeeFrozen.Lt(accountData.MiscFrozen) {
-		lockedOrFrozen = accountData.MiscFrozen
-	}
-
-	liquid := accountData.Free.Sub(lockedOrFrozen)
-	if liquid.Gt(accountData.Free) {
-		liquid = sc.NewU128(0)
-	}
-
+	liquid := sc.SaturatingSubU128(accountData.Free, sc.Max128(accountData.FeeFrozen, accountData.MiscFrozen))
 	if t.storedMap.CanDecProviders(who) && !keepAlive {
 		return liquid
 	}
 
-	diff := accountData.Total().Sub(liquid)
-	mustRemainToExist := t.constants.ExistentialDeposit.Sub(diff)
-
-	result := liquid.Sub(mustRemainToExist)
-	if result.Gt(liquid) {
-		return sc.NewU128(0)
-	}
-
-	return result
+	mustRemainToExist := sc.SaturatingSubU128(t.constants.ExistentialDeposit, accountData.Total().Sub(liquid))
+	return sc.SaturatingSubU128(liquid, mustRemainToExist)
 }
