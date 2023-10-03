@@ -154,7 +154,7 @@ func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc.Em
 	return sc.Empty{}, nil
 }
 
-func (cw CheckWeight) calculateConsumedWeight(maximumWeight system.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
+func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
 	limitPerClass := maximumWeight.Get(info.Class)
 	extrinsicWeight := info.Weight.SaturatingAdd(limitPerClass.BaseExtrinsic)
 

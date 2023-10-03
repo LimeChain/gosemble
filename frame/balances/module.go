@@ -49,7 +49,7 @@ func New(index sc.U8, config *Config) Module {
 	functions[functionForceTransferIndex] = newCallForceTransfer(index, functionForceTransferIndex, config.StoredMap, constants, module)
 	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive(index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
 	functions[functionTransferAllIndex] = newCallTransferAll(index, functionTransferAllIndex, config.StoredMap, constants, module)
-	functions[functionForceFreeIndex] = newCallForceFree(index, functionForceFreeIndex, config.DbWeight, config.StoredMap)
+	functions[functionForceFreeIndex] = newCallForceFree(index, functionForceFreeIndex, config.StoredMap, constants, module)
 
 	module.functions = functions
 

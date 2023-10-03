@@ -232,7 +232,7 @@ func Test_Call_TransferAll_transferAll_AllowDeath(t *testing.T) {
 }
 
 func setupCallTransferAll() callTransferAll {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
 	return newCallTransferAll(moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator).(callTransferAll)

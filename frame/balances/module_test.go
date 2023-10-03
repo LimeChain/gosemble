@@ -785,7 +785,7 @@ func Test_Module_Metadata(t *testing.T) {
 }
 
 func setupModule() Module {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	config := NewConfig(dbWeight, maxLocks, maxReserves, existentialDeposit, mockStoredMap)
 
 	fromAccountData = &primitives.AccountData{

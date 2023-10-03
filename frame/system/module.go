@@ -22,6 +22,10 @@ const (
 	functionRemarkIndex = iota
 )
 
+const (
+	name = sc.Str("System")
+)
+
 type Module interface {
 	types.InherentProvider
 	hooks.DispatchModule
@@ -41,13 +45,11 @@ type Module interface {
 	Get(key primitives.PublicKey) primitives.AccountInfo
 	CanDecProviders(who primitives.Address32) bool
 	DepositEvent(event primitives.Event)
-	Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
-	BlockWeights() BlockWeights
-	BlockLength() BlockLength
+	BlockWeights() types.BlockWeights
+	BlockLength() types.BlockLength
 	Version() types.RuntimeVersion
 	DbWeight() types.RuntimeDbWeight
 	BlockHashCount() sc.U64
@@ -89,7 +91,7 @@ func New(index sc.U8, config *Config) Module {
 }
 
 func (m module) name() sc.Str {
-	return "System"
+	return name
 }
 
 func (m module) GetIndex() sc.U8 {
@@ -205,11 +207,6 @@ func (m module) Finalize() primitives.Header {
 
 	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
-
-	if toRemove > blockNumber {
-		toRemove = 0
-	}
-
 	if toRemove != 0 {
 		m.StorageBlockHash().Remove(toRemove)
 	}
@@ -255,18 +252,7 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m module) Mutate(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	accountInfo := m.Get(who.FixedSequence)
-
-	result := f(&accountInfo)
-	if !result.HasError {
-		m.storage.Account.Put(who.FixedSequence, accountInfo)
-	}
-
-	return result
-}
-
-func (m module) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	account := m.Get(who.FixedSequence)
 	wasProviding := false
 	if !reflect.DeepEqual(account.Data, primitives.AccountData{}) {
@@ -302,72 +288,43 @@ func (m module) TryMutateExists(who primitives.Address32, f func(who *primitives
 		return result
 	}
 
-	m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if someData != nil {
-			a.Data = *someData
-		} else {
-			a.Data = primitives.AccountData{}
-		}
-
-		return sc.Result[sc.Encodable]{}
+	m.storage.Account.Mutate(who.FixedSequence, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
+		return mutateAccount(a, someData)
 	})
 
 	return result
 }
 
 func (m module) incProviders(who primitives.Address32) primitives.IncRefStatus {
-	result := m.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if a.Providers == 0 && a.Sufficients == 0 {
-			a.Providers = 1
-			m.onCreatedAccount(who)
-
-			return sc.Result[sc.Encodable]{
-				HasError: false,
-				Value:    primitives.IncRefStatusCreated,
-			}
-		} else {
-			newProviders := sc.SaturatingAddU32(a.Providers, 1)
-			if newProviders < a.Providers {
-				newProviders = math.MaxUint32
-			}
-
-			return sc.Result[sc.Encodable]{
-				HasError: false,
-				Value:    primitives.IncRefStatusExisted,
-			}
-		}
+	result := m.storage.Account.Mutate(who.FixedSequence, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+		return m.incrementProviders(who, account)
 	})
 
 	return result.Value.(primitives.IncRefStatus)
 }
 
-func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
-	result := m.AccountTryMutateExists(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		if account.Providers == 0 {
-			log.Warn("Logic error: Unexpected underflow in reducing provider")
+func (m module) incrementProviders(who primitives.Address32, account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+	if account.Providers == 0 && account.Sufficients == 0 {
+		account.Providers = 1
+		m.onCreatedAccount(who)
 
-			account.Providers = 1
-		}
-
-		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
-			return sc.Result[sc.Encodable]{
-				HasError: false,
-				Value:    primitives.DecRefStatusReaped,
-			}
-		}
-
-		if account.Providers == 1 && account.Consumers > 0 {
-			return sc.Result[sc.Encodable]{
-				HasError: true,
-				Value:    primitives.NewDispatchErrorConsumerRemaining(),
-			}
-		}
-
-		account.Providers = account.Providers - 1
 		return sc.Result[sc.Encodable]{
 			HasError: false,
-			Value:    primitives.DecRefStatusExists,
+			Value:    primitives.IncRefStatusCreated,
 		}
+	} else {
+		account.Providers = sc.SaturatingAddU32(account.Providers, 1)
+
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.IncRefStatusExisted,
+		}
+	}
+}
+
+func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
+	result := m.storage.Account.TryMutateExists(who.FixedSequence, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+		return decrementProviders(maybeAccount)
 	})
 
 	if result.HasError {
@@ -420,19 +377,6 @@ func (m module) onCreatedAccount(who primitives.Address32) {
 
 func (m module) onKilledAccount(who primitives.Address32) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who.FixedSequence))
-}
-
-// TODO: Check difference with TryMutateExists
-func (m module) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	account := m.Get(who.FixedSequence)
-
-	result := f(&account)
-
-	if !result.HasError {
-		m.storage.Account.Put(who.FixedSequence, account)
-	}
-
-	return result
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -620,32 +564,32 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataDefinitionVariant(
 						"InvalidSpecName",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						0,
+						ErrorInvalidSpecName,
 						"The name of specification does not match between the current runtime and the new runtime."),
 					primitives.NewMetadataDefinitionVariant(
 						"SpecVersionNeedsToIncrease",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						1,
+						ErrorSpecVersionNeedsToIncrease,
 						"The specification version is not allowed to decrease between the current runtime and the new runtime."),
 					primitives.NewMetadataDefinitionVariant(
 						"FailedToExtractRuntimeVersion",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						2,
+						ErrorFailedToExtractRuntimeVersion,
 						"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
 					primitives.NewMetadataDefinitionVariant(
 						"NonDefaultComposite",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						3,
+						ErrorNonDefaultComposite,
 						"Suicide called when the account has non-default composite data."),
 					primitives.NewMetadataDefinitionVariant(
 						"NonZeroRefCount",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						4,
+						ErrorNonZeroRefCount,
 						"There is a non-zero reference count preventing the account from being purged."),
 					primitives.NewMetadataDefinitionVariant(
 						"CallFiltered",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						5,
+						ErrorCallFiltered,
 						"The origin filter prevent the call to be dispatched."),
 				})),
 
@@ -799,11 +743,11 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 	}
 }
 
-func (m module) BlockWeights() BlockWeights {
+func (m module) BlockWeights() types.BlockWeights {
 	return m.constants.BlockWeights
 }
 
-func (m module) BlockLength() BlockLength {
+func (m module) BlockLength() types.BlockLength {
 	return m.constants.BlockLength
 }
 
@@ -845,4 +789,53 @@ func (m module) StorageAccount() support.StorageMap[types.PublicKey, types.Accou
 
 func (m module) StorageAllExtrinsicsLen() support.StorageValue[sc.U32] {
 	return m.storage.AllExtrinsicsLen
+}
+
+func decrementProviders(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+	if maybeAccount.HasValue {
+		account := &maybeAccount.Value
+
+		if account.Providers == 0 {
+			log.Warn("Logic error: Unexpected underflow in reducing provider")
+			account.Providers = 1
+		}
+
+		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+			// No providers left (and no consumers) and no sufficients. Account dead.
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    primitives.DecRefStatusReaped,
+			}
+		}
+		if account.Providers == 1 && account.Consumers > 0 {
+			// Cannot remove last provider if there are consumers.
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    primitives.NewDispatchErrorConsumerRemaining(),
+			}
+		}
+		// Account will continue to exist as there is either > 1 provider or
+		// > 0 sufficients.
+		account.Providers = account.Providers - 1
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.DecRefStatusExists,
+		}
+	} else {
+		log.Warn("Logic error: Account already dead when reducing provider")
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.DecRefStatusReaped,
+		}
+	}
+}
+
+func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {
+	if data != nil {
+		account.Data = *data
+	} else {
+		account.Data = primitives.AccountData{}
+	}
+
+	return sc.Result[sc.Encodable]{}
 }

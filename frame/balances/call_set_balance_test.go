@@ -344,7 +344,7 @@ func Test_Call_SetBalance_updateAccount(t *testing.T) {
 }
 
 func setupCallSetBalance() callSetBalance {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 	mockStorageTotalIssuance = new(mocks.StorageValue[sc.U128])
 

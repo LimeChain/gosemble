@@ -61,5 +61,4 @@ func (csv CheckSpecVersion) Metadata() (primitives.MetadataType, primitives.Meta
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
 		),
 		primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32)
-
 }
