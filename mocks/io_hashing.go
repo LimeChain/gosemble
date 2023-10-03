@@ -8,26 +8,22 @@ type IoHashing struct {
 	mock.Mock
 }
 
-func (m *IoHashing) Blake128(value []byte) []byte {
-	args := m.Called(value)
-
-	return args[0].([]byte)
+func (h *IoHashing) Twox128(value []byte) []byte {
+	args := h.Called(value)
+	return args.Get(0).([]byte)
 }
 
-func (m *IoHashing) Blake256(value []byte) []byte {
-	args := m.Called(value)
-
-	return args[0].([]byte)
+func (h *IoHashing) Twox64(value []byte) []byte {
+	args := h.Called(value)
+	return args.Get(0).([]byte)
 }
 
-func (m *IoHashing) Twox128(value []byte) []byte {
-	args := m.Called(value)
-
-	return args[0].([]byte)
+func (h *IoHashing) Blake128(value []byte) []byte {
+	args := h.Called(value)
+	return args.Get(0).([]byte)
 }
 
-func (m *IoHashing) Twox64(value []byte) []byte {
-	args := m.Called(value)
-
-	return args[0].([]byte)
+func (h *IoHashing) Blake256(value []byte) []byte {
+	args := h.Called(value)
+	return args.Get(0).([]byte)
 }

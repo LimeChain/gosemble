@@ -132,11 +132,10 @@ func (m Module) FinalizeBlock() primitives.Header {
 //
 // Changes made to storage should be discarded.
 func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNumber := m.system.StorageBlockNumber()
-	blockNumber := currentBlockNumber + 1
-	m.system.Initialize(blockNumber, blockHash, primitives.Digest{})
-
 	log.Trace("validate_transaction")
+	currentBlockNumber := m.system.StorageBlockNumber()
+
+	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
 
 	log.Trace("using_encoded")
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
