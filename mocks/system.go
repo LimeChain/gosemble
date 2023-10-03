@@ -3,7 +3,6 @@ package mocks
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
-	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
@@ -148,14 +147,14 @@ func (m *SystemModule) RuntimeUpgrade() bool {
 	return args.Get(0).(bool)
 }
 
-func (m *SystemModule) BlockWeights() system.BlockWeights {
+func (m *SystemModule) BlockWeights() types.BlockWeights {
 	args := m.Called()
-	return args.Get(0).(system.BlockWeights)
+	return args.Get(0).(types.BlockWeights)
 }
 
-func (m *SystemModule) BlockLength() system.BlockLength {
+func (m *SystemModule) BlockLength() types.BlockLength {
 	args := m.Called()
-	return args.Get(0).(system.BlockLength)
+	return args.Get(0).(types.BlockLength)
 }
 
 func (m *SystemModule) Version() types.RuntimeVersion {

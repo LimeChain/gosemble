@@ -58,6 +58,38 @@ func (hsm HashStorageMap[K, V]) Clear(limit sc.U32) {
 	storage.ClearPrefix(append(prefixHash, nameHash...), sc.NewOption[sc.U32](limit).Bytes())
 }
 
+func (hsm HashStorageMap[K, V]) Mutate(k K, f func(*V) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	v := hsm.Get(k)
+
+	result := f(&v)
+	if !result.HasError {
+		hsm.Put(k, v)
+	}
+
+	return result
+}
+
+func (hsm HashStorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+	// TODO: This should get the storage value and try to decode it. It should return an Option<value>
+	// If it cannot decode it, return Empty Option.
+	// If it can decode it, return Option with the value.
+	v := hsm.Get(k)
+	option := sc.NewOption[V](v)
+
+	result := f(&option)
+	if !result.HasError {
+		if option.HasValue {
+			hsm.Put(k, option.Value)
+		}
+		// }
+		// else {
+		// hsm.Remove(k)
+		// }
+	}
+
+	return result
+}
+
 func (hsm HashStorageMap[K, V]) key(key K) []byte {
 	prefixHash := hashing.Twox128(hsm.prefix)
 	nameHash := hashing.Twox128(hsm.name)

@@ -188,7 +188,7 @@ func Test_Call_TransferKeepAlive_transferKeepAlive_Lookup(t *testing.T) {
 }
 
 func setupCallTransferKeepAlive() callTransferKeepAlive {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
 	return newCallTransferKeepAlive(moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator).(callTransferKeepAlive)

@@ -22,7 +22,7 @@ var (
 	issuanceBalance = sc.NewU128(123)
 
 	mockStorageTotalIssuance *mocks.StorageValue[sc.U128]
-	mockEventDepositor       *mocks.MockEventDepositor
+	mockEventDepositor       *mocks.EventDepositor
 )
 
 func Test_NegativeImbalance_New(t *testing.T) {
@@ -114,6 +114,6 @@ func setupPositiveImbalance() positiveImbalance {
 }
 
 func setupDustCleanerValue() dustCleaner {
-	mockEventDepositor = new(mocks.MockEventDepositor)
+	mockEventDepositor = new(mocks.EventDepositor)
 	return newDustCleaner(moduleId, dustCleanerAccount, sc.NewOption[negativeImbalance](setupNegativeImbalance()), mockEventDepositor)
 }

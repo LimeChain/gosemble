@@ -4,7 +4,9 @@ package storage
 
 import (
 	"bytes"
+	"encoding/binary"
 
+	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -49,7 +51,15 @@ func Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
 }
 
 func Root(key int32) []byte {
-	panic("not implemented")
+	bytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bytes, uint32(key))
+
+	result, err := common.Twox256(bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	return result.ToBytes()
 }
 
 func Set(key []byte, value []byte) {

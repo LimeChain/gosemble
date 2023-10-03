@@ -204,7 +204,7 @@ func Test_Call_ForceTransfer_forceTransfer_Dest_Lookup(t *testing.T) {
 }
 
 func setupCallForceTransfer() callForceTransfer {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
 	return newCallForceTransfer(moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator).(callForceTransfer)

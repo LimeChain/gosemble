@@ -12,18 +12,16 @@ import (
 
 type callForceFree struct {
 	primitives.Callable
-	dbWeight  primitives.RuntimeDbWeight
-	storedMap primitives.StoredMap
+	transfer
 }
 
-func newCallForceFree(moduleId sc.U8, functionId sc.U8, dbWeight primitives.RuntimeDbWeight, storedMap primitives.StoredMap) primitives.Call {
+func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
 	call := callForceFree{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
-		dbWeight:  dbWeight,
-		storedMap: storedMap,
+		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
 
 	return call
@@ -62,8 +60,8 @@ func (c callForceFree) BaseWeight() types.Weight {
 	//  Measured:  `206`
 	//  Estimated: `3593`
 	// Minimum execution time: 16_790 nanoseconds.
-	r := c.dbWeight.Reads(1)
-	w := c.dbWeight.Writes(1)
+	r := c.constants.DbWeight.Reads(1)
+	w := c.constants.DbWeight.Writes(1)
 	e := types.WeightFromParts(0, 3593)
 	return types.WeightFromParts(17_029_000, 0).
 		SaturatingAdd(e).
@@ -134,9 +132,9 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 		return value
 	}
 
-	result := c.storedMap.Mutate(
+	result := c.accountMutator.tryMutateAccount(
 		who,
-		func(account *types.AccountInfo) sc.Result[sc.Encodable] {
+		func(account *types.AccountData, _ bool) sc.Result[sc.Encodable] {
 			return removeReserveAndFree(account, value)
 		},
 	)
@@ -152,12 +150,12 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 }
 
 // removeReserveAndFree frees reserved value from the account.
-func removeReserveAndFree(account *types.AccountInfo, value sc.U128) sc.Result[sc.Encodable] {
-	actual := sc.Min128(account.Data.Reserved, value)
-	account.Data.Reserved = account.Data.Reserved.Sub(actual)
+func removeReserveAndFree(account *types.AccountData, value sc.U128) sc.Result[sc.Encodable] {
+	actual := sc.Min128(account.Reserved, value)
+	account.Reserved = account.Reserved.Sub(actual)
 
 	// TODO: defensive_saturating_add
-	account.Data.Free = account.Data.Free.Add(actual)
+	account.Free = account.Free.Add(actual)
 
 	return sc.Result[sc.Encodable]{
 		HasError: false,

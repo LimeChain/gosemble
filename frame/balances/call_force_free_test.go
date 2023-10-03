@@ -32,7 +32,7 @@ var (
 	baseWeight    = primitives.WeightFromParts(124, 123)
 	targetAddress = primitives.NewMultiAddress32(constants.ZeroAddress)
 	targetValue   = sc.NewU128(5)
-	mockStoredMap *mocks.MockStoredMap
+	mockStoredMap *mocks.StoredMap
 )
 
 func Test_Call_ForceFree_new(t *testing.T) {
@@ -42,8 +42,12 @@ func Test_Call_ForceFree_new(t *testing.T) {
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
 		},
-		dbWeight:  dbWeight,
-		storedMap: mockStoredMap,
+		transfer: transfer{
+			moduleId:       moduleId,
+			storedMap:      mockStoredMap,
+			constants:      testConstants,
+			accountMutator: mockMutator,
+		},
 	}
 
 	assert.Equal(t, expected, target)
@@ -135,10 +139,9 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
 
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("Mutate",
-		targetAddress.
-			AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+	mockMutator.On("tryMutateAccount",
+		targetAddress.AsAddress32(),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
 		Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -146,10 +149,10 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 
 	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertCalled(t,
-		"Mutate",
+	mockMutator.AssertCalled(t,
+		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	)
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
@@ -167,7 +170,7 @@ func Test_Call_ForceFree_Dispatch_Fails(t *testing.T) {
 
 	assert.Equal(t, expected, result)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "Mutate", mock.Anything, mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -178,10 +181,10 @@ func Test_Call_ForceFree_forceFree_Success(t *testing.T) {
 	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
 
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On(
-		"Mutate",
+	mockMutator.On(
+		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	).Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -189,10 +192,10 @@ func Test_Call_ForceFree_forceFree_Success(t *testing.T) {
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertCalled(t,
-		"Mutate",
+	mockMutator.AssertCalled(t,
+		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	)
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
@@ -204,7 +207,7 @@ func Test_Call_ForceFree_forceFree_InvalidOrigin(t *testing.T) {
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), result)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertNotCalled(t, "Mutate", mock.Anything, mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -215,7 +218,7 @@ func Test_Call_ForceFree_forceFree_InvalidLookup(t *testing.T) {
 
 	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertNotCalled(t, "Mutate", mock.Anything, mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -227,10 +230,10 @@ func Test_Call_ForceFree_force_Success(t *testing.T) {
 	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
 
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On(
-		"Mutate",
+	mockMutator.On(
+		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	).Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -238,9 +241,9 @@ func Test_Call_ForceFree_force_Success(t *testing.T) {
 
 	assert.Equal(t, expectedResult, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertCalled(t, "Mutate",
+	mockMutator.AssertCalled(t, "tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
 
@@ -251,7 +254,7 @@ func Test_Call_ForceFree_force_ZeroBalance(t *testing.T) {
 
 	assert.Equal(t, constants.Zero, result)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertNotCalled(t, "Mutate", mock.Anything, mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -265,7 +268,7 @@ func Test_Call_ForceFree_force_FullBalance(t *testing.T) {
 
 	assert.Equal(t, targetValue, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertNotCalled(t, "Mutate", mock.Anything, mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -274,41 +277,41 @@ func Test_Call_ForceFree_force_Mutate_Fails(t *testing.T) {
 	mutateResult := sc.Result[sc.Encodable]{HasError: true}
 
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("Mutate",
+	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	).Return(mutateResult)
 
 	result := target.force(targetAddress.AsAddress32(), targetValue)
 
 	assert.Equal(t, targetValue, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertCalled(t,
-		"Mutate",
+	mockMutator.AssertCalled(t,
+		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
 	)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
 func Test_removeReserveAndFree(t *testing.T) {
 	value := sc.NewU128(4)
-	accountInfo := &primitives.AccountInfo{
-		Data: primitives.AccountData{
-			Free:     sc.NewU128(1),
-			Reserved: sc.NewU128(10),
-		},
+	accountData := &primitives.AccountData{
+		Free:     sc.NewU128(1),
+		Reserved: sc.NewU128(10),
 	}
 	expectedResult := sc.Result[sc.Encodable]{HasError: false, Value: value}
 
-	result := removeReserveAndFree(accountInfo, value)
+	result := removeReserveAndFree(accountData, value)
 
 	assert.Equal(t, expectedResult, result)
-	assert.Equal(t, sc.NewU128(6), accountInfo.Data.Reserved)
-	assert.Equal(t, sc.NewU128(5), accountInfo.Data.Free)
+	assert.Equal(t, sc.NewU128(6), accountData.Reserved)
+	assert.Equal(t, sc.NewU128(5), accountData.Free)
 }
 
 func setupCallForceFree() callForceFree {
-	mockStoredMap = new(mocks.MockStoredMap)
-	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), dbWeight, mockStoredMap).(callForceFree)
+	mockStoredMap = new(mocks.StoredMap)
+	mockMutator = new(mockAccountMutator)
+
+	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator).(callForceFree)
 }

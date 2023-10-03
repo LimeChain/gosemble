@@ -168,15 +168,6 @@ func Test_Balances_DecodeEvent_Slashed(t *testing.T) {
 	)
 }
 
-func Test_Balances_DecodeEvent_Panics(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(0)
-
-	assert.PanicsWithValue(t, errInvalidEventModule, func() {
-		DecodeEvent(moduleId, buffer)
-	})
-}
-
 func Test_Balances_DecodeEvent_InvalidModule_Panics(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)

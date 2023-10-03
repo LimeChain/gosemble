@@ -18,6 +18,11 @@ const (
 	EventRemarked
 )
 
+const (
+	errInvalidEventModule = "invalid system.Event module"
+	errInvalidEventType   = "invalid system.Event type"
+)
+
 func newEventExtrinsicSuccess(moduleIndex sc.U8, dispatchInfo types.DispatchInfo) types.Event {
 	return types.NewEvent(moduleIndex, EventExtrinsicSuccess, dispatchInfo)
 }
@@ -45,7 +50,7 @@ func newEventRemarked(moduleIndex sc.U8, sender types.PublicKey, hash types.H256
 func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
 	decodedModuleIndex := sc.DecodeU8(buffer)
 	if decodedModuleIndex != moduleIndex {
-		log.Critical("invalid system.Event")
+		log.Critical(errInvalidEventModule)
 	}
 
 	b := sc.DecodeU8(buffer)
@@ -71,7 +76,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
 		hash := types.DecodeH256(buffer)
 		return newEventRemarked(moduleIndex, account, hash)
 	default:
-		log.Critical("invalid system.Event type")
+		log.Critical(errInvalidEventType)
 	}
 
 	panic("unreachable")

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -22,11 +23,9 @@ var (
 	toAccountData   *primitives.AccountData
 
 	fromAddress = primitives.
-			NewMultiAddress32(primitives.
-				NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))
+			NewMultiAddress32(constants.OneAddress)
 	toAddress = primitives.
-			NewMultiAddress32(primitives.
-				NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2))
+			NewMultiAddress32(constants.TwoAddress)
 )
 
 func Test_Call_Transfer_New(t *testing.T) {
@@ -383,7 +382,7 @@ func Test_transfer_reducibleBalance_KeepAlive(t *testing.T) {
 }
 
 func setupCallTransfer() callTransfer {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
 	fromAccountData = &primitives.AccountData{
@@ -398,7 +397,7 @@ func setupCallTransfer() callTransfer {
 }
 
 func setupTransfer() transfer {
-	mockStoredMap = new(mocks.MockStoredMap)
+	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
 	fromAccountData = &primitives.AccountData{

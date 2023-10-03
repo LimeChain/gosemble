@@ -85,5 +85,4 @@ func (cm CheckMortality) Metadata() (primitives.MetadataType, primitives.Metadat
 			),
 		),
 		primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
-
 }

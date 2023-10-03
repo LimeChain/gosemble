@@ -5,10 +5,10 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockEventDepositor struct {
+type EventDepositor struct {
 	mock.Mock
 }
 
-func (m *MockEventDepositor) DepositEvent(event types.Event) {
+func (m *EventDepositor) DepositEvent(event types.Event) {
 	_ = m.Called(event)
 }
