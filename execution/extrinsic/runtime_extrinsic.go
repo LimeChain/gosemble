@@ -178,7 +178,11 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 	apis := sc.Sequence[primitives.RuntimeApiMetadata]{}
 
-	outerenums := primitives.OuterEnums{}
+	outerenums := primitives.OuterEnums{
+		CallEnumType:  sc.ToCompact(metadata.RuntimeCall),
+		EventEnumType: sc.ToCompact(metadata.TypesRuntimeEvent),
+		ErrorEnumType: sc.ToCompact(metadata.TypesModuleError), // TODO: Find a proper type
+	}
 
 	custom := primitives.CustomMetadata{}
 
@@ -241,7 +245,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	//}
 
 	extrinsicV15 := primitives.MetadataExtrinsicV15{
-		Version:          primitives.MetadataVersion15,
+		Version:          types.ExtrinsicFormatVersion,
 		Address:          sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address")),
 		Call:             sc.ToCompact(primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call")),
 		Signature:        sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature")),

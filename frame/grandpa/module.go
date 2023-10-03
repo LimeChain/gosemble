@@ -95,7 +95,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
-	}, m.apiMethods()
+	}, m.apiMethodsMd()
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -110,6 +110,6 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) apiMethods() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
+func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
 	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{}
 }

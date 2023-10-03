@@ -325,7 +325,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		Index:     m.Index,
-	}, m.apiMethods()
+	}, m.apiMethodsMd()
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -586,55 +586,55 @@ func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 	} // TODO: add more
 }
 
-func (m Module) apiMethods() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
+func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
 	apiFunctions := m.Functions()
 
-	transferMd := apiFunctions[functionTransferIndex].Metadata()
+	transferInputsMd := apiFunctions[functionTransferIndex].Metadata()
 
-	setBalanceMd := apiFunctions[functionSetBalanceIndex].Metadata()
+	setBalanceInputsMd := apiFunctions[functionSetBalanceIndex].Metadata()
 
-	forceTransferMd := apiFunctions[functionForceTransferIndex].Metadata()
+	forceTransferInputsMd := apiFunctions[functionForceTransferIndex].Metadata()
 
-	transferKeepAliveMd := apiFunctions[functionTransferKeepAliveIndex].Metadata()
+	transferKeepAliveInputsMd := apiFunctions[functionTransferKeepAliveIndex].Metadata()
 
-	transferAllMd := apiFunctions[functionTransferAllIndex].Metadata()
+	transferAllInputsMd := apiFunctions[functionTransferAllIndex].Metadata()
 
-	forceFreeMd := apiFunctions[functionForceFreeIndex].Metadata()
+	forceFreeInputsMd := apiFunctions[functionForceFreeIndex].Metadata()
 
 	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "Transfer",
-			Inputs: transferMd,
+			Inputs: transferInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "SetBalance",
-			Inputs: setBalanceMd,
+			Inputs: setBalanceInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "ForceTransfer",
-			Inputs: forceTransferMd,
+			Inputs: forceTransferInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "TransferKeepAlive",
-			Inputs: transferKeepAliveMd,
+			Inputs: transferKeepAliveInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "TransferAll",
-			Inputs: transferAllMd,
+			Inputs: transferAllInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "ForceFreeCall",
-			Inputs: forceFreeMd,
+			Inputs: forceFreeInputsMd,
 			Output: sc.ToCompact(primitives.DispatchError{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},

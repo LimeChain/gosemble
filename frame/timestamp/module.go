@@ -163,7 +163,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		},
 		Error: sc.NewOption[sc.Compact](nil),
 		Index: m.Index,
-	}, m.apiMethods()
+	}, m.apiMethodsMd()
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -199,15 +199,15 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m Module) apiMethods() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
+func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
 	apiFunctions := m.Functions()
 
-	setMd := apiFunctions[functionSetIndex].Metadata()
+	setInputsMd := apiFunctions[functionSetIndex].Metadata()
 
 	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "Set",
-			Inputs: setMd,
+			Inputs: setInputsMd,
 			Output: sc.ToCompact(primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}),
 			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
 		},

@@ -14,6 +14,18 @@ const (
 	MetadataVersion15 sc.U8  = 15
 )
 
+type Metadata15 struct {
+	Data RuntimeMetadataV15
+}
+
+func (m Metadata15) Bytes() []byte {
+	return sc.EncodedBytes(m)
+}
+
+func (m Metadata15) Encode(buffer *bytes.Buffer) {
+	m.Data.Encode(buffer)
+}
+
 type Metadata struct {
 	Version sc.U8
 	DataV14 RuntimeMetadataV14

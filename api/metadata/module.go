@@ -44,7 +44,7 @@ func (m Module) Metadata() int64 {
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func (m Module) buildMetadata() primitives.RuntimeMetadataV15 {
+func (m Module) buildMetadata() primitives.Metadata15 {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
@@ -64,7 +64,9 @@ func (m Module) buildMetadata() primitives.RuntimeMetadataV15 {
 		Custom:     custom,
 	}
 
-	return primitives.NewMetadataV15(runtimeV15Metadata).DataV15
+	return primitives.Metadata15{
+		Data: runtimeV15Metadata,
+	}
 }
 
 // primitiveTypes returns all primitive types
