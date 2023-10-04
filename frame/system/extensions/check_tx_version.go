@@ -31,20 +31,20 @@ func (ctv CheckTxVersion) AdditionalSigned() (primitives.AdditionalSigned, primi
 	return sc.NewVaryingData(ctv.systemModule.Version().TransactionVersion), nil
 }
 
-func (_ CheckTxVersion) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckTxVersion) Validate(_who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctv CheckTxVersion) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctv CheckTxVersion) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctv CheckTxVersion) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (ctv CheckTxVersion) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := ctv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (ctv CheckTxVersion) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (ctv CheckTxVersion) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := ctv.ValidateUnsigned(call, info, length)
 	return err
 }

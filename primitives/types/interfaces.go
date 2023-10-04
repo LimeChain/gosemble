@@ -45,12 +45,12 @@ type SignedExtension interface {
 	// that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch` function.
-	Validate(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
 
 	// Do any pre-flight stuff for a signed transaction.
 	//
 	// Make sure to perform the same checks as in [`Self::validate`].
-	PreDispatch(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError)
+	PreDispatch(who Address32, call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError)
 
 	// Validate an unsigned transaction for the transaction queue.
 	//
@@ -60,7 +60,7 @@ type SignedExtension interface {
 	// and quickly eliminate ones that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch_unsigned` function.
-	ValidateUnsigned(call *Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
 
 	// Do any pre-flight stuff for a unsigned transaction.
 	//
@@ -70,7 +70,7 @@ type SignedExtension interface {
 	//
 	// If you ever override this function, you need to make sure to always
 	// perform the same validation as in `validate_unsigned`.
-	PreDispatchUnsigned(call *Call, info *DispatchInfo, length sc.Compact) TransactionValidityError
+	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError
 
 	// Do any post-flight stuff for an extrinsic.
 	//

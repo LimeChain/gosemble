@@ -42,7 +42,7 @@ func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSig
 	return sc.NewVaryingData(), nil
 }
 
-func (ctp ChargeTransactionPayment) Validate(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) Validate(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	finalFee, _, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -55,16 +55,16 @@ func (ctp ChargeTransactionPayment) Validate(who *primitives.Address32, call *pr
 	return validTransaction, nil
 }
 
-func (ctp ChargeTransactionPayment) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, imbalance, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.Pre{}, err
 	}
-	return sc.NewVaryingData(ctp.fee, *who, imbalance), nil
+	return sc.NewVaryingData(ctp.fee, who, imbalance), nil
 }
 
 func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) primitives.TransactionValidityError {
@@ -76,7 +76,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
 		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
-		err := ctp.onChargeTransaction.CorrectAndDepositFee(&who, actualFee, tip, imbalance)
+		err := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 	return nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := ctp.ValidateUnsigned(call, info, length)
 	return err
 }
@@ -158,11 +158,11 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	return 0
 }
 
-func (ctp ChargeTransactionPayment) withdrawFee(who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) withdrawFee(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	tip := ctp.fee
 	fee := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 
-	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, _call, info, fee, tip)
+	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)
 	if err != nil {
 		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), err
 	}

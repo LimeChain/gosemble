@@ -95,7 +95,7 @@ func Test_CheckNonce_Validate_WithRequires_Success(t *testing.T) {
 	mockModule.On("StorageAccount").Return(mockStorageAccount)
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 
-	result, err := target.Validate(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
@@ -124,7 +124,7 @@ func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
 	mockModule.On("StorageAccount").Return(mockStorageAccount)
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 
-	result, err := target.Validate(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
@@ -145,7 +145,7 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	mockModule.On("StorageAccount").Return(mockStorageAccount)
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 
-	result, err := target.Validate(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
@@ -178,7 +178,7 @@ func Test_CheckNonce_PreDispatch_Success(t *testing.T) {
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 	mockStorageAccount.On("Put", oneAddress.FixedSequence, expectAccountInfo).Return()
 
-	result, err := target.PreDispatch(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -201,7 +201,7 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 	mockModule.On("StorageAccount").Return(mockStorageAccount)
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 
-	result, err := target.PreDispatch(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -224,7 +224,7 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 	mockModule.On("StorageAccount").Return(mockStorageAccount)
 	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
 
-	result, err := target.PreDispatch(&oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.Pre{}, result)

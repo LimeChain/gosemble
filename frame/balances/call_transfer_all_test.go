@@ -103,11 +103,17 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
 	mockMutator.On("tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free.Sub(sc.NewU128(1))),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().
+				FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free.Sub(sc.NewU128(1)),
+		),
 	).
 		Return()
 
@@ -118,10 +124,17 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAddress32())
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		toAddress.AsAddress32(),
+		mockTypeMutateAccountDataBool,
+	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free.Sub(sc.NewU128(1))),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free.Sub(sc.NewU128(1)),
+		),
 	)
 }
 
@@ -151,11 +164,16 @@ func Test_Call_TransferAll_transferAll_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free.Sub(sc.NewU128(1))),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free.Sub(sc.NewU128(1)),
+		),
 	).Return()
 
 	result := target.transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, true)
@@ -165,11 +183,17 @@ func Test_Call_TransferAll_transferAll_Success(t *testing.T) {
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAddress32())
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		toAddress.AsAddress32(),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free.Sub(sc.NewU128(1))),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free.Sub(sc.NewU128(1)),
+		),
 	)
 }
 
@@ -191,7 +215,8 @@ func Test_Call_TransferAll_transferAll_InvalidLookup(t *testing.T) {
 	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
 	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
 
-	result := target.transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), primitives.NewMultiAddress20(primitives.Address20{}), true)
+	result := target.
+		transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), primitives.NewMultiAddress20(primitives.Address20{}), true)
 
 	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAddress32().FixedSequence)
@@ -208,11 +233,16 @@ func Test_Call_TransferAll_transferAll_AllowDeath(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free,
+		),
 	).Return()
 
 	result := target.transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, false)
@@ -223,11 +253,16 @@ func Test_Call_TransferAll_transferAll_AllowDeath(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, accountInfo.Data.Free),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			accountInfo.Data.Free,
+		),
 	)
 }
 

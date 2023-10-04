@@ -179,7 +179,7 @@ func Test_transfer_trans_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
@@ -192,7 +192,7 @@ func Test_transfer_trans_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
@@ -230,7 +230,8 @@ func Test_transfer_trans_MutateAccountWithDust_Fails(t *testing.T) {
 
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		toAddress.AsAddress32(),
+		mockTypeMutateAccountDataBool,
 	).Return(error)
 
 	result := target.trans(fromAddress.AsAddress32(), toAddress.AsAddress32(), targetValue, primitives.ExistenceRequirementKeepAlive)
@@ -239,7 +240,7 @@ func Test_transfer_trans_MutateAccountWithDust_Fails(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
