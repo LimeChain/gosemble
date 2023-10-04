@@ -121,7 +121,7 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).
 		Return(mockResult)
 	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddress.AsAddress32().FixedSequence, newFree, newReserved))
@@ -134,7 +134,7 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
@@ -171,11 +171,13 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1))                                            // positive imbalance
-	mockStorageTotalIssuance.On("Put", newFree.Sub(oldFree).Add(sc.NewU128(1))).Return().Once()         // newFree positive imbalance
-	mockStorageTotalIssuance.On("Put", newReserved.Sub(oldReserved).Add(sc.NewU128(1))).Return().Once() // newReserved positive imbalance
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1)) // positive imbalance
+	mockStorageTotalIssuance.On("Put", newFree.Sub(oldFree).Add(sc.NewU128(1))).
+		Return().Once() // newFree positive imbalance
+	mockStorageTotalIssuance.On("Put", newReserved.Sub(oldReserved).Add(sc.NewU128(1))).
+		Return().Once() // newReserved positive imbalance
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventBalanceSet(moduleId, targetAddress.AsAddress32().FixedSequence, newFree, newReserved))
@@ -186,7 +188,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Put", 2)
@@ -209,7 +211,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 	mockStoredMap.On(
 		"DepositEvent",
@@ -223,7 +225,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
@@ -241,7 +243,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 
 	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 	mockStorageTotalIssuance.On("Get").Return(oldReserved.Add(oldFree)).Once() // newFree negative imbalance
 	mockStorageTotalIssuance.On("Put", oldFree).Return().Once()                // newFree negative imbalance
@@ -255,7 +257,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Put", 2)
@@ -302,7 +304,7 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, targetValue, targetValue)
@@ -311,7 +313,7 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)

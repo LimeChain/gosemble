@@ -123,7 +123,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
 	mockStorageBlockNumber.On("Get").Return(blockNumber)
 
-	result, err := target.Validate(&constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
@@ -147,7 +147,7 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
 	mockStorageBlockNumber.On("Get").Return(blockNumber)
 
-	result, err := target.PreDispatch(&constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

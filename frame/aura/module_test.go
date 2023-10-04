@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
@@ -163,7 +164,7 @@ func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
 
 	assert.Equal(t, types.WeightFromParts(3000, 0), module.OnInitialize(blockNumber))
 	mockStorageDigest.AssertCalled(t, "Get")
-	mockStorageCurrentSlot.AssertNotCalled(t, "Put")
+	mockStorageCurrentSlot.AssertNotCalled(t, "Put", mock.Anything)
 }
 
 func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
@@ -175,7 +176,7 @@ func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 		module.OnInitialize(blockNumber)
 	})
 	mockStorageDigest.AssertCalled(t, "Get")
-	mockStorageCurrentSlot.AssertNotCalled(t, "Put")
+	mockStorageCurrentSlot.AssertNotCalled(t, "Put", mock.Anything)
 }
 
 func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {

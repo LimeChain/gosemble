@@ -14,7 +14,7 @@ func newChargeTransaction(currencyAdapter primitives.CurrencyAdapter) chargeTran
 	return chargeTransaction{currencyAdapter: currencyAdapter}
 }
 
-func (ct chargeTransaction) WithdrawFee(who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, fee primitives.Balance, tip primitives.Balance) (sc.Option[primitives.Balance], primitives.TransactionValidityError) {
+func (ct chargeTransaction) WithdrawFee(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, fee primitives.Balance, tip primitives.Balance) (sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	if fee.Eq(constants.Zero) {
 		return sc.NewOption[primitives.Balance](nil), nil
 	}
@@ -26,7 +26,7 @@ func (ct chargeTransaction) WithdrawFee(who *primitives.Address32, _call *primit
 		withdrawReasons = primitives.WithdrawReasonsTransactionPayment | primitives.WithdrawReasonsTip
 	}
 
-	imbalance, err := ct.currencyAdapter.Withdraw(*who, fee, sc.U8(withdrawReasons), primitives.ExistenceRequirementKeepAlive)
+	imbalance, err := ct.currencyAdapter.Withdraw(who, fee, sc.U8(withdrawReasons), primitives.ExistenceRequirementKeepAlive)
 	if err != nil {
 		return sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 	}
@@ -34,12 +34,12 @@ func (ct chargeTransaction) WithdrawFee(who *primitives.Address32, _call *primit
 	return sc.NewOption[primitives.Balance](imbalance), nil
 }
 
-func (ct chargeTransaction) CorrectAndDepositFee(who *primitives.Address32, correctedFee primitives.Balance, tip primitives.Balance, alreadyWithdrawn sc.Option[primitives.Balance]) primitives.TransactionValidityError {
+func (ct chargeTransaction) CorrectAndDepositFee(who primitives.Address32, correctedFee primitives.Balance, tip primitives.Balance, alreadyWithdrawn sc.Option[primitives.Balance]) primitives.TransactionValidityError {
 	if alreadyWithdrawn.HasValue {
 		alreadyPaidNegativeImbalance := alreadyWithdrawn.Value
 		refundAmount := sc.SaturatingSubU128(alreadyPaidNegativeImbalance, correctedFee)
 
-		refundPositiveImbalance, err := ct.currencyAdapter.DepositIntoExisting(*who, refundAmount)
+		refundPositiveImbalance, err := ct.currencyAdapter.DepositIntoExisting(who, refundAmount)
 		if err != nil {
 			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 		}

@@ -59,7 +59,7 @@ func Test_CheckTxVersion_Bytes(t *testing.T) {
 func Test_CheckTxVersion_Validate(t *testing.T) {
 	target := setupCheckTxVersion()
 
-	result, err := target.Validate(&constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -77,7 +77,7 @@ func Test_CheckTxVersion_ValidateUnsigned(t *testing.T) {
 func Test_CheckTxVersion_PreDispatch(t *testing.T) {
 	target := setupCheckTxVersion()
 
-	result, err := target.PreDispatch(&constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

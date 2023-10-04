@@ -92,6 +92,9 @@ var (
 	mockStorageEventTopics        *mocks.StorageMap[primitives.H256, sc.VaryingData]
 	mockStorageLastRuntimeUpgrade *mocks.StorageValue[primitives.LastRuntimeUpgradeInfo]
 	mockStorageExecutionPhase     *mocks.StorageValue[primitives.ExtrinsicPhase]
+
+	mockTypeMutateAccountInfo       = mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	mockTypeMutateOptionAccountInfo = mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -482,7 +485,7 @@ func Test_Module_TryMutateExists_Error(t *testing.T) {
 	mockStorageAccount.AssertNotCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
@@ -506,7 +509,7 @@ func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
 	mockStorageAccount.AssertNotCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Success(t *testing.T) {
@@ -533,7 +536,7 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Suc
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+			mockTypeMutateOptionAccountInfo).
 		Return(mockResult)
 
 	result := target.TryMutateExists(targetAccount, f)
@@ -545,11 +548,11 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Suc
 		AssertCalled(t,
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+			mockTypeMutateOptionAccountInfo)
 	mockStorageAccount.AssertNotCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing.T) {
@@ -579,7 +582,7 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+			mockTypeMutateOptionAccountInfo).
 		Return(mockResult)
 
 	result := target.TryMutateExists(targetAccount, f)
@@ -591,11 +594,11 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing
 		AssertCalled(t,
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+			mockTypeMutateOptionAccountInfo)
 	mockStorageAccount.AssertNotCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
@@ -616,12 +619,12 @@ func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+		mockTypeMutateAccountInfo).
 		Return(sc.Result[sc.Encodable]{Value: primitives.IncRefStatusExisted}).Once()
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+		mockTypeMutateAccountInfo).
 		Return(sc.Result[sc.Encodable]{Value: sc.NewU128(2)}).Once()
 
 	result := target.TryMutateExists(targetAccount, f)
@@ -633,7 +636,7 @@ func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 	mockStorageAccount.AssertCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) {
@@ -655,7 +658,7 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+		mockTypeMutateAccountInfo).
 		Return(sc.Result[sc.Encodable]{})
 
 	result := target.TryMutateExists(targetAccount, f)
@@ -667,7 +670,7 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 	mockStorageAccount.AssertCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_incProviders(t *testing.T) {
@@ -681,7 +684,7 @@ func Test_Module_incProviders(t *testing.T) {
 		On(
 			"Mutate",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+			mockTypeMutateAccountInfo).
 		Return(mockResult)
 
 	result := target.incProviders(targetAccount)
@@ -691,7 +694,7 @@ func Test_Module_incProviders(t *testing.T) {
 	mockStorageAccount.AssertCalled(t,
 		"Mutate",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountInfo)
 }
 
 func Test_Module_incrementProviders_RefStatusCreated(t *testing.T) {
@@ -751,7 +754,7 @@ func Test_Module_decProviders_Success(t *testing.T) {
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+			mockTypeMutateOptionAccountInfo).
 		Return(mockResult)
 
 	result, err := target.decProviders(targetAccount)
@@ -762,7 +765,7 @@ func Test_Module_decProviders_Success(t *testing.T) {
 	mockStorageAccount.AssertCalled(t,
 		"TryMutateExists",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateOptionAccountInfo)
 }
 
 func Test_Module_decProviders_Error(t *testing.T) {
@@ -777,7 +780,7 @@ func Test_Module_decProviders_Error(t *testing.T) {
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
-			mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+			mockTypeMutateOptionAccountInfo).
 		Return(mockResult)
 
 	result, err := target.decProviders(targetAccount)
@@ -788,7 +791,7 @@ func Test_Module_decProviders_Error(t *testing.T) {
 	mockStorageAccount.AssertCalled(t,
 		"TryMutateExists",
 		targetAccount.FixedSequence,
-		mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateOptionAccountInfo)
 }
 
 func Test_Module_depositEventIndexed_Success(t *testing.T) {

@@ -33,20 +33,20 @@ func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitiv
 	return sc.NewVaryingData(primitives.H256(hash)), nil
 }
 
-func (_ CheckGenesis) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckGenesis) Validate(_who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cg CheckGenesis) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cg CheckGenesis) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cg CheckGenesis) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cg CheckGenesis) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := cg.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (cg CheckGenesis) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cg CheckGenesis) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := cg.ValidateUnsigned(call, info, length)
 	return err
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	mockTypeMutateAccountData = mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+)
+
 func Test_Module_GetIndex(t *testing.T) {
 	assert.Equal(t, sc.U8(moduleId), setupModule().GetIndex())
 }
@@ -53,13 +57,13 @@ func Test_Module_DepositIntoExisting_Success(t *testing.T) {
 		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{Value: targetValue}),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(tryMutateResult)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(tryMutateResult)
 
 	result, err := target.DepositIntoExisting(fromAddress.AsAddress32(), targetValue)
 
 	assert.Equal(t, targetValue, result)
 	assert.Nil(t, err)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockTotalIssuance.AssertNotCalled(t, "Get")
 	mockTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 }
@@ -83,13 +87,13 @@ func Test_Module_DepositIntoExisting_TryMutateAccount_Fails(t *testing.T) {
 		Value:    expectError,
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(mockReturn)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(mockReturn)
 
 	result, err := target.DepositIntoExisting(fromAddress.AsAddress32(), targetValue)
 
 	assert.Equal(t, sc.U128{}, result)
 	assert.Equal(t, expectError, err)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -102,13 +106,13 @@ func Test_Module_Withdraw_Success(t *testing.T) {
 		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(tryMutateResult)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(tryMutateResult)
 
 	result, err := target.Withdraw(fromAddress.AsAddress32(), targetValue, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, targetValue, result)
 	assert.Nil(t, err)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockTotalIssuance.AssertNotCalled(t, "Get")
 	mockTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 }
@@ -132,13 +136,13 @@ func Test_Module_Withdraw_TryMutateAccount_Fails(t *testing.T) {
 		Value:    expectError,
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(mockReturn)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(mockReturn)
 
 	result, err := target.Withdraw(fromAddress.AsAddress32(), targetValue, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, sc.U128{}, result)
 	assert.Equal(t, expectError, err)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -193,12 +197,12 @@ func Test_Module_tryMutateAccount_Success(t *testing.T) {
 	}
 	expected := sc.Result[sc.Encodable]{}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(tryMutateResult)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(tryMutateResult)
 
 	result := target.tryMutateAccount(fromAddress.AsAddress32(), func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
 
 	assert.Equal(t, expected, result)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 }
 
 func Test_Module_tryMutateAccount_TryMutateAccountWithDust_Fails(t *testing.T) {
@@ -208,12 +212,12 @@ func Test_Module_tryMutateAccount_TryMutateAccountWithDust_Fails(t *testing.T) {
 		Value:    primitives.NewDispatchErrorCannotLookup(),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(expected)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(expected)
 
 	result := target.tryMutateAccount(fromAddress.AsAddress32(), func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
 
 	assert.Equal(t, expected, result)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
@@ -229,12 +233,12 @@ func Test_Module_tryMutateAccountWithDust_Success(t *testing.T) {
 		Value: sc.NewVaryingData(sc.Result[sc.Encodable]{}, newDustCleaner(moduleId, fromAddress.AsAddress32(), sc.NewOption[negativeImbalance](nil), mockStoredMap)),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(tryMutateResult)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(tryMutateResult)
 
 	result := target.tryMutateAccountWithDust(fromAddress.AsAddress32(), func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
 
 	assert.Equal(t, expected, result)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 }
 
 func Test_Module_tryMutateAccountWithDust_Success_Endowed(t *testing.T) {
@@ -249,13 +253,13 @@ func Test_Module_tryMutateAccountWithDust_Success_Endowed(t *testing.T) {
 		Value: sc.NewVaryingData(sc.Result[sc.Encodable]{}, newDustCleaner(moduleId, fromAddress.AsAddress32(), sc.NewOption[negativeImbalance](nil), mockStoredMap)),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(tryMutateResult)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(tryMutateResult)
 	mockStoredMap.On("DepositEvent", newEventEndowed(moduleId, fromAddress.AsAddress32().FixedSequence, targetValue))
 
 	result := target.tryMutateAccountWithDust(fromAddress.AsAddress32(), func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
 
 	assert.Equal(t, expected, result)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockStoredMap.AssertCalled(t, "DepositEvent", newEventEndowed(moduleId, fromAddress.AsAddress32().FixedSequence, targetValue))
 }
 
@@ -266,12 +270,12 @@ func Test_Module_tryMutateAccountWithDust_TryMutateExists_Fail(t *testing.T) {
 		Value:    primitives.NewDispatchErrorCannotLookup(),
 	}
 
-	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")).Return(expected)
+	mockStoredMap.On("TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData).Return(expected)
 
 	result := target.tryMutateAccountWithDust(fromAddress.AsAddress32(), func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
 
 	assert.Equal(t, expected, result)
-	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddress.AsAddress32(), mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
