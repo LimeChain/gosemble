@@ -19,7 +19,7 @@ func (s Ed25519) Verify(msg sc.Sequence[sc.U8], signer Address32) sc.Bool {
 	sig := sc.FixedSequenceU8ToBytes(s.H512.FixedSequence)
 	message := sc.SequenceU8ToBytes(msg)
 	key := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
-	return sc.Bool(crypto.ExtCryptoEd25519VerifyVersion1(sig, message, key))
+	return sc.Bool(crypto.NewEd25519().VerifyVersion1(sig, message, key))
 }
 
 func (s Ed25519) Encode(buffer *bytes.Buffer) {
@@ -48,7 +48,7 @@ func (s Sr25519) Verify(msg sc.Sequence[sc.U8], signer Address32) sc.Bool {
 	sig := sc.FixedSequenceU8ToBytes(s.H512.FixedSequence)
 	message := sc.SequenceU8ToBytes(msg)
 	key := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
-	return sc.Bool(crypto.ExtCryptoSr25519VerifyVersion2(sig, message, key))
+	return sc.Bool(crypto.NewSr25519().VerifyVersion2(sig, message, key))
 }
 
 func (s Sr25519) Encode(buffer *bytes.Buffer) {

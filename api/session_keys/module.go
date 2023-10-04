@@ -17,11 +17,19 @@ const (
 )
 
 type Module struct {
-	sessions []types.Session
+	sessions      []types.Session
+	cryptoEd25519 crypto.Ed25519
+	cryptoSr25519 crypto.Sr25519
+	cryptoEcdsa   crypto.Ecdsa
 }
 
 func New(sessions []types.Session) Module {
-	return Module{sessions: sessions}
+	return Module{
+		sessions:      sessions,
+		cryptoEd25519: crypto.NewEd25519(),
+		cryptoSr25519: crypto.NewSr25519(),
+		cryptoEcdsa:   crypto.NewEcdsa(),
+	}
 }
 
 func (m Module) Name() string {
@@ -49,7 +57,7 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 	var publicKeys []byte
 	for _, session := range m.sessions {
-		keyGenerationFunc := getKeyFunction(session.KeyType())
+		keyGenerationFunc := getKeyFunction(m, session.KeyType())
 		keyTypeId := session.KeyTypeId()
 
 		publicKey := keyGenerationFunc(keyTypeId[:], seed.Bytes())
@@ -84,14 +92,14 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return utils.BytesToOffsetAndSize(result.Bytes())
 }
 
-func getKeyFunction(keyType types.PublicKeyType) func([]byte, []byte) []byte {
+func getKeyFunction(m Module, keyType types.PublicKeyType) func([]byte, []byte) []byte {
 	switch keyType {
 	case types.PublicKeyEd25519:
-		return crypto.ExtCryptoEd25519GenerateVersion1
+		return m.cryptoEd25519.GenerateVersion1
 	case types.PublicKeySr25519:
-		return crypto.ExtCryptoSr25519GenerateVersion1
+		return m.cryptoSr25519.GenerateVersion1
 	case types.PublicKeyEcdsa:
-		return crypto.ExtCryptoEcdsaGenerateVersion1
+		return m.cryptoEcdsa.GenerateVersion1
 	default:
 		log.Critical("invalid public key type")
 	}

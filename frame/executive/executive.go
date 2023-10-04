@@ -19,6 +19,7 @@ type Module struct {
 	system           system.Module
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	onRuntimeUpgrade hooks.OnRuntimeUpgrade
+	signatureBatcher crypto.SignatureBatcher
 }
 
 func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
@@ -26,6 +27,7 @@ func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic
 		system:           systemModule,
 		runtimeExtrinsic: runtimeExtrinsic,
 		onRuntimeUpgrade: onRuntimeUpgrade,
+		signatureBatcher: crypto.NewSignatureBatcher(),
 	}
 }
 
@@ -59,9 +61,9 @@ func (m Module) ExecuteBlock(block types.Block) {
 
 	m.initialChecks(block)
 
-	crypto.ExtCryptoStartBatchVerify()
+	m.signatureBatcher.StartBatchVerify()
 	m.executeExtrinsicsWithBookKeeping(block)
-	if crypto.ExtCryptoFinishBatchVerify() != 1 {
+	if m.signatureBatcher.FinishBatchVerify() != 1 {
 		log.Critical("Signature verification failed")
 	}
 
