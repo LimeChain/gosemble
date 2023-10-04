@@ -132,7 +132,7 @@ func coreMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 			Name:   coreMethodVersionName,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
 			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Docs:   sc.Sequence[sc.Str]{},
 		},
 	}
 }
