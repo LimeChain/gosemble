@@ -298,7 +298,7 @@ func (m Module) deposit(who primitives.Address32, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -325,7 +325,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		Index:     m.Index,
-	}, m.apiMethodsMd()
+	}
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {

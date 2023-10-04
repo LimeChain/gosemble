@@ -25,6 +25,7 @@ const (
 	TypesFixedSequence65U8
 
 	TypesSequenceU8
+	TypesSequenceU32
 	TypesFixedU128
 
 	TypesCompactU32
@@ -128,4 +129,13 @@ const (
 
 	TypesTransactionSource
 	TypesOffChainWorker
+	TypesOpaqueMetadata
+	TypesResult
+	TypesEmptyResult
+	TypesResultOk
+	TypesResultErr
+	TypesInherentData
+
+	TypesSequenceUncheckedExtrinsics
+	CheckInherentsResult
 )
