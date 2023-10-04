@@ -24,10 +24,6 @@ func newCallTest(moduleId, functionId sc.U8) primitives.Call {
 	return call
 }
 
-func (c callTest) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{}
-}
-
 func (c callTest) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
 	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
 	return c

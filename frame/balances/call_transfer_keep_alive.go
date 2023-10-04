@@ -112,20 +112,3 @@ func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest ty
 
 	return c.transfer.trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
 }
-
-func (c callTransferKeepAlive) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Origin",
-			Type: sc.ToCompact(types.RawOrigin{}),
-		},
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Destination",
-			Type: sc.ToCompact(types.MultiAddress{}),
-		},
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Value",
-			Type: sc.ToCompact(sc.U128{}),
-		},
-	}
-}

@@ -185,24 +185,3 @@ func updateAccount(account *types.AccountData, newFree, newReserved sc.U128) sc.
 		Value:    sc.NewVaryingData(oldFree, oldReserved),
 	}
 }
-
-func (c callSetBalance) Metadata() sc.Sequence[types.RuntimeApiMethodParamMetadata] {
-	return sc.Sequence[types.RuntimeApiMethodParamMetadata]{
-		types.RuntimeApiMethodParamMetadata{
-			Name: "Origin",
-			Type: sc.ToCompact(types.RawOrigin{}),
-		},
-		types.RuntimeApiMethodParamMetadata{
-			Name: "Destination",
-			Type: sc.ToCompact(types.MultiAddress{}),
-		},
-		types.RuntimeApiMethodParamMetadata{
-			Name: "NewFree",
-			Type: sc.ToCompact(sc.U128{}),
-		},
-		types.RuntimeApiMethodParamMetadata{
-			Name: "NewReserved",
-			Type: sc.ToCompact(sc.U128{}),
-		},
-	}
-}

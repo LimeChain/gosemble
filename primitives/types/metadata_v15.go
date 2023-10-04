@@ -144,27 +144,3 @@ func DecodeRuntimeApiMethodMetadata(buffer *bytes.Buffer) RuntimeApiMethodMetada
 func (ramm RuntimeApiMethodMetadata) Bytes() []byte {
 	return sc.EncodedBytes(ramm)
 }
-
-type RuntimeApiMetadata struct {
-	Name    sc.Str
-	Methods sc.Sequence[RuntimeApiMethodMetadata]
-	Docs    sc.Sequence[sc.Str]
-}
-
-func (ram RuntimeApiMetadata) Encode(buffer *bytes.Buffer) {
-	ram.Name.Encode(buffer)
-	ram.Methods.Encode(buffer)
-	ram.Docs.Encode(buffer)
-}
-
-func DecodeRuntimeApiMetadata(buffer *bytes.Buffer) RuntimeApiMetadata {
-	return RuntimeApiMetadata{
-		Name:    sc.DecodeStr(buffer),
-		Methods: sc.DecodeSequenceWith(buffer, DecodeRuntimeApiMethodMetadata),
-		Docs:    sc.DecodeSequence[sc.Str](buffer),
-	}
-}
-
-func (ram RuntimeApiMetadata) Bytes() []byte {
-	return sc.EncodedBytes(ram)
-}

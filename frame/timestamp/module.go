@@ -137,7 +137,7 @@ func (m Module) IsInherent(call primitives.Call) bool {
 	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -163,7 +163,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		},
 		Error: sc.NewOption[sc.Compact](nil),
 		Index: m.Index,
-	}, m.apiMethodsMd()
+	}
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -197,19 +197,4 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"Did the timestamp get updated in this block?"),
 		},
 	})
-}
-
-func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
-	apiFunctions := m.Functions()
-
-	setInputsMd := apiFunctions[functionSetIndex].Metadata()
-
-	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{
-		primitives.RuntimeApiMethodMetadata{
-			Name:   "Set",
-			Inputs: setInputsMd,
-			Output: sc.ToCompact(primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
-		},
-	}
 }

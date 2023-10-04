@@ -48,7 +48,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},
@@ -67,7 +67,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
-	}, m.apiMethodsMd()
+	}
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
@@ -87,8 +87,4 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				}),
 			primitives.NewMetadataEmptyTypeParameter("T")),
 	}
-}
-
-func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{}
 }

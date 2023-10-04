@@ -102,15 +102,6 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 	}
 }
 
-func (c callRemark) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Origin",
-			Type: sc.ToCompact(primitives.RuntimeOrigin{}),
-		},
-	}
-}
-
 // EnsureSignedOrRoot ensures the origin represents either a signed extrinsic or the root.
 // Returns an empty Option if the origin is `Root`.
 // Returns an Option with the signer if the origin is signed.

@@ -176,7 +176,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
-	apis := sc.Sequence[primitives.RuntimeApiMetadata]{}
+	apis := primitives.ApiMetadata()
 
 	outerenums := primitives.OuterEnums{
 		CallEnumType:  sc.ToCompact(metadata.RuntimeCall),
@@ -188,22 +188,13 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
-		mTypes, mModule, apiMethodsMd := module.Metadata()
+		mTypes, mModule := module.Metadata()
 
 		metadataTypes = append(metadataTypes, mTypes...)
 		modules = append(modules, mModule)
 
 		callVariants = append(callVariants, mModule.CallDef)
 		eventVariants = append(eventVariants, mModule.EventDef)
-
-		api := primitives.RuntimeApiMetadata{
-			Name:    mModule.Name,
-			Methods: apiMethodsMd,
-			Docs:    sc.Sequence[sc.Str]{}, // TODO: Add docs
-		}
-
-		apis = append(apis, api)
-
 	}
 
 	// append runtime event

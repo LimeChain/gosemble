@@ -17,7 +17,6 @@ type Call interface {
 	PaysFee(baseWeight Weight) Pays
 	WeighData(baseWeight Weight) Weight
 	DecodeArgs(buffer *bytes.Buffer) Call
-	Metadata() sc.Sequence[RuntimeApiMethodParamMetadata]
 }
 
 type Callable struct {

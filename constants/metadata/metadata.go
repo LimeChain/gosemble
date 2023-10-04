@@ -123,4 +123,9 @@ const (
 	ChargeTransactionPayment
 
 	Runtime
+
+	Header
+
+	TypesTransactionSource
+	TypesOffChainWorker
 )

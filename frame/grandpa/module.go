@@ -84,20 +84,6 @@ func (m Module) Authorities() sc.Sequence[primitives.Authority] {
 	return authorities
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule, sc.Sequence[primitives.RuntimeApiMethodMetadata]) {
-	return m.metadataTypes(), primitives.MetadataModule{
-		Name:      m.name(),
-		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
-		Call:      sc.NewOption[sc.Compact](nil),
-		CallDef:   sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:     sc.NewOption[sc.Compact](nil),
-		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     m.Index,
-	}, m.apiMethodsMd()
-}
-
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
@@ -108,8 +94,4 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 	}
-}
-
-func (m Module) apiMethodsMd() sc.Sequence[primitives.RuntimeApiMethodMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodMetadata]{}
 }

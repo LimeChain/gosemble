@@ -135,23 +135,6 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 	return t.trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
 }
 
-func (c callTransfer) Metadata() sc.Sequence[primitives.RuntimeApiMethodParamMetadata] {
-	return sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Origin",
-			Type: sc.ToCompact(types.RawOrigin{}),
-		},
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Destination",
-			Type: sc.ToCompact(types.MultiAddress{}),
-		},
-		primitives.RuntimeApiMethodParamMetadata{
-			Name: "Value",
-			Type: sc.ToCompact(sc.U128{}),
-		},
-	}
-}
-
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
 func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
