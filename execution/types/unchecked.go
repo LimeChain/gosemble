@@ -30,7 +30,6 @@ type UncheckedExtrinsic interface {
 }
 
 type uncheckedExtrinsic struct {
-	version sc.U8
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
@@ -42,7 +41,6 @@ type uncheckedExtrinsic struct {
 // NewSignedUncheckedExtrinsic returns a new instance of a signed extrinsic.
 func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) uncheckedExtrinsic {
 	return uncheckedExtrinsic{
-		version:   version,
 		signature: signature,
 		function:  function,
 		extra:     extra,
@@ -52,7 +50,6 @@ func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.Extrins
 // NewUnsignedUncheckedExtrinsic returns a new instance of an unsigned extrinsic.
 func NewUnsignedUncheckedExtrinsic(function primitives.Call) uncheckedExtrinsic {
 	return uncheckedExtrinsic{
-		version:   sc.U8(ExtrinsicFormatVersion),
 		signature: sc.NewOption[primitives.ExtrinsicSignature](nil),
 		function:  function,
 	}
