@@ -9,8 +9,6 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
-	storage_root "github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/trie"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -92,6 +90,9 @@ var (
 	mockStorageEventTopics        *mocks.StorageMap[primitives.H256, sc.VaryingData]
 	mockStorageLastRuntimeUpgrade *mocks.StorageValue[primitives.LastRuntimeUpgradeInfo]
 	mockStorageExecutionPhase     *mocks.StorageValue[primitives.ExtrinsicPhase]
+
+	mockIoStorage *mocks.IoStorage
+	mockIoTrie    *mocks.IoTrie
 
 	mockTypeMutateAccountInfo       = mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 	mockTypeMutateOptionAccountInfo = mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")
@@ -313,11 +314,11 @@ func Test_Module_Finalize_RemovePreviousHash(t *testing.T) {
 
 	extrinsicCount := sc.U32(1)
 	extrinsicDataBytes := []byte("extrinsicDataBytes")
-	extrinsicRoot := trie.Blake2256OrderedRoot(append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsicDataBytes...),
-		constants.StorageVersion)
+	extrinsicRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355a").ToBytes()
 	expectExtrinsicRoot := primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicRoot)}
-	storageRoot := storage_root.Root(int32(version.StateVersion))
+	storageRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355b").ToBytes()
 	expectStorageRoot := primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(storageRoot)}
+	blakeArgs := append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsicDataBytes...)
 
 	expectResult := primitives.Header{
 		ParentHash:     parentHash,
@@ -335,7 +336,9 @@ func Test_Module_Finalize_RemovePreviousHash(t *testing.T) {
 	mockStorageDigest.On("Get").Return(digest)
 	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount)
 	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes)
+	mockIoTrie.On("Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion)).Return(extrinsicRoot)
 	mockStorageBlockHash.On("Remove", sc.U64(1)).Return()
+	mockIoStorage.On("Root", int32(version.StateVersion)).Return(storageRoot)
 
 	result := target.Finalize()
 
@@ -349,18 +352,20 @@ func Test_Module_Finalize_RemovePreviousHash(t *testing.T) {
 	mockStorageDigest.AssertCalled(t, "Get")
 	mockStorageExtrinsicCount.AssertCalled(t, "Take")
 	mockStorageExtrinsicData.AssertCalled(t, "TakeBytes", sc.U32(0))
+	mockIoTrie.AssertCalled(t, "Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion))
 	mockStorageBlockHash.AssertCalled(t, "Remove", sc.U64(1))
+	mockIoStorage.AssertCalled(t, "Root", int32(version.StateVersion))
 }
 
 func Test_Module_Finalize_Success(t *testing.T) {
 	target := setupModule()
 	extrinsicCount := sc.U32(1)
 	extrinsicDataBytes := []byte("extrinsicDataBytes")
-	extrinsicRoot := trie.Blake2256OrderedRoot(append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsicDataBytes...),
-		constants.StorageVersion)
+	extrinsicRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355a").ToBytes()
 	expectExtrinsicRoot := primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicRoot)}
-	storageRoot := storage_root.Root(int32(version.StateVersion))
+	storageRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355b").ToBytes()
 	expectStorageRoot := primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(storageRoot)}
+	blakeArgs := append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsicDataBytes...)
 
 	expectResult := primitives.Header{
 		ParentHash:     parentHash,
@@ -378,6 +383,8 @@ func Test_Module_Finalize_Success(t *testing.T) {
 	mockStorageDigest.On("Get").Return(digest)
 	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount)
 	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes)
+	mockIoTrie.On("Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion)).Return(extrinsicRoot)
+	mockIoStorage.On("Root", int32(version.StateVersion)).Return(storageRoot)
 
 	result := target.Finalize()
 
@@ -391,6 +398,9 @@ func Test_Module_Finalize_Success(t *testing.T) {
 	mockStorageDigest.AssertCalled(t, "Get")
 	mockStorageExtrinsicCount.AssertCalled(t, "Take")
 	mockStorageExtrinsicData.AssertCalled(t, "TakeBytes", sc.U32(0))
+	mockIoTrie.AssertCalled(t, "Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion))
+	mockStorageBlockHash.AssertNotCalled(t, "Remove", mock.Anything)
+	mockIoStorage.AssertCalled(t, "Root", int32(version.StateVersion))
 }
 
 func Test_Module_NoteFinishedExtrinsics(t *testing.T) {
@@ -1404,6 +1414,9 @@ func setupModule() module {
 	target.storage.LastRuntimeUpgrade = mockStorageLastRuntimeUpgrade
 	target.storage.ExecutionPhase = mockStorageExecutionPhase
 
+	target.ioStorage = mockIoStorage
+	target.trie = mockIoTrie
+
 	return target
 }
 
@@ -1423,4 +1436,7 @@ func initMockStorage() {
 	mockStorageEventTopics = new(mocks.StorageMap[primitives.H256, sc.VaryingData])
 	mockStorageLastRuntimeUpgrade = new(mocks.StorageValue[primitives.LastRuntimeUpgradeInfo])
 	mockStorageExecutionPhase = new(mocks.StorageValue[primitives.ExtrinsicPhase])
+
+	mockIoStorage = new(mocks.IoStorage)
+	mockIoTrie = new(mocks.IoTrie)
 }

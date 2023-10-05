@@ -102,25 +102,3 @@ func DecodeMultiSignature(buffer *bytes.Buffer) MultiSignature {
 
 	panic("unreachable")
 }
-
-func (s MultiSignature) Verify(msg sc.Sequence[sc.U8], signer Address32) sc.Bool {
-	if s.IsEd25519() {
-		return s.AsEd25519().Verify(msg, signer)
-	} else if s.IsSr25519() {
-		return s.AsSr25519().Verify(msg, signer)
-	} else if s.IsEcdsa() {
-		// TODO:
-		return true
-		// let m = sp_io::hashing::blake2_256(msg.get());
-		// match sp_io::crypto::secp256k1_ecdsa_recover_compressed(sig.as_ref(), &m) {
-		// 	Ok(pubkey) =>
-		// 		&sp_io::hashing::blake2_256(pubkey.as_ref()) ==
-		// 			<dyn AsRef<[u8; 32]>>::as_ref(who),
-		// 	_ => false,
-		// }
-	} else {
-		log.Critical("invalid MultiSignature type in Verify")
-	}
-
-	panic("unreachable")
-}

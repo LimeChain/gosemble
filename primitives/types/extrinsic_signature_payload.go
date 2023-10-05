@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/io"
 )
 
 // SignedPayload A payload that has been signed for an unchecked extrinsics.
@@ -16,9 +16,26 @@ import (
 // TODO: make it generic
 // generic::SignedPayload<RuntimeCall, SignedExtra>;
 type SignedPayload struct {
-	Call  Call
-	Extra SignedExtra
+	Call    Call
+	Extra   SignedExtra
+	hashing io.Hashing
 	AdditionalSigned
+}
+
+// NewSignedPayload creates a new `SignedPayload`.
+// It may fail if `additional_signed` of `Extra` is not available.
+func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, TransactionValidityError) {
+	additionalSigned, err := extra.AdditionalSigned()
+	if err != nil {
+		return SignedPayload{}, err
+	}
+
+	return SignedPayload{
+		Call:             call,
+		Extra:            extra,
+		AdditionalSigned: additionalSigned,
+		hashing:          io.NewHashing(),
+	}, nil
 }
 
 type AdditionalSigned = sc.VaryingData
@@ -37,7 +54,7 @@ func (sp SignedPayload) UsingEncoded() sc.Sequence[sc.U8] {
 	enc := sp.Bytes()
 
 	if len(enc) > 256 {
-		return sc.BytesToSequenceU8(hashing.Blake256(enc))
+		return sc.BytesToSequenceU8(sp.hashing.Blake256(enc))
 	} else {
 		return sc.BytesToSequenceU8(enc)
 	}

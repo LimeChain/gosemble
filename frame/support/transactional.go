@@ -4,57 +4,73 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/storage"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
-
-// TransactionalLimit returns the maximum number of nested layers.
-const TransactionalLimit Layer = 255
-
-var transactionLevelKey = []byte(":transaction_level:")
 
 // Layer is the type that is being used to store the current number of active layers.
 type Layer = sc.U32
 
+// TransactionalLimit returns the maximum number of nested layers.
+const TransactionalLimit Layer = 255
+
+var keyTransactionLevel = []byte(":transaction_level:")
+
+type Transactional[T sc.Encodable, E types.DispatchError] interface {
+	WithStorageLayer(fn func() (T, types.DispatchError)) (T, E)
+}
+
+type transactional[T sc.Encodable, E types.DispatchError] struct {
+	storage           StorageValue[sc.U32]
+	transactionBroker io.TransactionBroker
+}
+
+func NewTransactional[T sc.Encodable, E types.DispatchError]() Transactional[T, E] {
+	return transactional[T, E]{
+		storage:           NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32),
+		transactionBroker: io.NewTransactionBroker(),
+	}
+}
+
 // GetTransactionLevel returns the current number of nested transactional layers.
-func GetTransactionLevel() Layer {
-	return storage.GetDecode(transactionLevelKey, sc.DecodeU32)
+func (t transactional[T, E]) GetTransactionLevel() Layer {
+	return t.storage.Get()
 }
 
 // SetTransactionLevel Set the current number of nested transactional layers.
-func SetTransactionLevel(level Layer) {
-	storage.Set(transactionLevelKey, level.Bytes())
+func (t transactional[T, E]) SetTransactionLevel(level Layer) {
+	t.storage.Put(level)
 }
 
 // KillTransactionLevel kill the transactional layers storage.
-func KillTransactionLevel() {
-	storage.Clear(transactionLevelKey)
+func (t transactional[T, E]) KillTransactionLevel() {
+	t.storage.Clear()
 }
 
 // IncTransactionLevel increments the transaction level. Returns an error if levels go past the limit.
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
-func IncTransactionLevel() (ok sc.Empty, err error) {
-	existingLevels := GetTransactionLevel()
+func (t transactional[T, E]) IncTransactionLevel() (ok sc.Empty, err error) {
+	existingLevels := t.GetTransactionLevel()
 	if existingLevels >= TransactionalLimit {
 		return ok, errors.New("transactional error limit reached")
 	}
 	// Cannot overflow because of check above.
-	SetTransactionLevel(existingLevels + 1)
+	t.SetTransactionLevel(existingLevels + 1)
 	return sc.Empty{}, err
 }
 
-func DecTransactionLevel() {
-	existingLevels := GetTransactionLevel()
+func (t transactional[T, E]) DecTransactionLevel() {
+	existingLevels := t.GetTransactionLevel()
 	if existingLevels == 0 {
 		log.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
 	} else if existingLevels == 1 {
 		// Don't leave any trace of this storage item.
-		KillTransactionLevel()
+		t.KillTransactionLevel()
 	} else {
 		// Cannot underflow because of checks above.
-		SetTransactionLevel(existingLevels - 1)
+		t.SetTransactionLevel(existingLevels - 1)
 	}
 }
 
@@ -67,27 +83,27 @@ func DecTransactionLevel() {
 // error.
 //
 // Commits happen to the parent transaction.
-func WithTransaction[T sc.Encodable, E types.DispatchError](fn func() types.TransactionOutcome) (ok T, err E) {
+func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome) (ok T, err E) {
 	// This needs to happen before `start_transaction` below.
 	// Otherwise we may rollback the increase, then decrease as the guard goes out of scope
 	// and then end in some bad state.
-	_, e := IncTransactionLevel()
+	_, e := t.IncTransactionLevel()
 	if e != nil {
 		return ok, E(types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached()))
 	}
 
-	storage.StartTransaction()
+	t.transactionBroker.Start()
 
 	res := fn()
 
 	switch res[0] {
 	case types.TransactionOutcomeCommit:
-		storage.CommitTransaction()
-		DecTransactionLevel()
+		t.transactionBroker.Commit()
+		t.DecTransactionLevel()
 		return res[1].(T), err
 	case types.TransactionOutcomeRollback:
-		storage.RollbackTransaction()
-		DecTransactionLevel()
+		t.transactionBroker.Rollback()
+		t.DecTransactionLevel()
 		return ok, res[1].(E)
 	default:
 		log.Critical("invalid transaction outcome")
@@ -100,8 +116,8 @@ func WithTransaction[T sc.Encodable, E types.DispatchError](fn func() types.Tran
 // This is the same as `with_transaction`, but assuming that any function returning an `Err` should
 // rollback, and any function returning `Ok` should commit. This provides a cleaner API to the
 // developer who wants this behavior.
-func WithStorageLayer[T sc.Encodable, E types.DispatchError](fn func() (T, types.DispatchError)) (T, E) {
-	return WithTransaction[T, E](
+func (t transactional[T, E]) WithStorageLayer(fn func() (T, types.DispatchError)) (T, E) {
+	return t.WithTransaction(
 		func() types.TransactionOutcome {
 			ok, err := fn()
 

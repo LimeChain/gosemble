@@ -26,13 +26,13 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
-	isSigned := version&ExtrinsicBitSigned != 0
 
 	if version&ExtrinsicUnmaskVersion != ExtrinsicFormatVersion {
 		log.Critical("invalid Extrinsic version")
 	}
 
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
+	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
 		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(md.extra, buffer))
 	}
