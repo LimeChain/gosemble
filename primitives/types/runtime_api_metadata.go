@@ -297,7 +297,7 @@ func inherentExtrinsicsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 func checkInherentsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	inherentType := NewMetadataTypeWithPath(mdconstants.TypesRuntimeVersion, "sp_inherents InherentData", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, NewMetadataTypeDefinitionComposite(
 		sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // data TODO: Encode the BTreeMap
+			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // TODO: Encode the BTreeMap
 		}))
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
