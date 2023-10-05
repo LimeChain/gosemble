@@ -70,13 +70,13 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block ty
 		}
 
 		isInherent := false
-		call := extrinsic.Function
+		call := extrinsic.Function()
 
 		for _, module := range re.modules {
 			if module.IsInherent(call) {
 				isInherent = true
 
-				err := module.CheckInherent(extrinsic.Function, data)
+				err := module.CheckInherent(extrinsic.Function(), data)
 				if err != nil {
 					e := err.(primitives.IsFatalError)
 					err := result.PutError(module.InherentIdentifier(), e)
@@ -112,7 +112,7 @@ func (re runtimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 		if extrinsic.IsSigned() {
 			signedExtrinsicFound = true
 		} else {
-			call := extrinsic.Function
+			call := extrinsic.Function()
 
 			for _, module := range re.modules {
 				if module.IsInherent(call) {

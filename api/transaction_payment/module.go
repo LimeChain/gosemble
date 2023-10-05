@@ -55,7 +55,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	length := sc.DecodeU32(buffer)
 
-	dispatchInfo := primitives.GetDispatchInfo(ext.Function)
+	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
 	partialFee := sc.NewU128(0)
 	if ext.IsSigned() {
@@ -85,7 +85,7 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	length := sc.DecodeU32(buffer)
 
-	dispatchInfo := primitives.GetDispatchInfo(ext.Function)
+	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
 	var feeDetails primitives.FeeDetails
 	if ext.IsSigned() {

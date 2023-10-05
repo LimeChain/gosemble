@@ -1,17 +1,9 @@
-package extrinsic
+package types
 
 import (
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
-
-type Applyable interface {
-	Apply(validator UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], err primitives.TransactionValidityError)
-}
-
-type Validatable interface {
-	Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (ok primitives.ValidTransaction, err primitives.TransactionValidityError)
-}
 
 // UnsignedValidator provides validation for unsigned extrinsics.
 //

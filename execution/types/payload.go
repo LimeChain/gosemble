@@ -1,4 +1,4 @@
-package extrinsic
+package types
 
 import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
