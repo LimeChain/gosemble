@@ -547,7 +547,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // digest
 				}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU64, "Number"), // TODO: Is this correct ?
+				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU64, "Number"),
 				primitives.NewMetadataTypeParameter(metadata.TypesH256, "Hash"),
 			},
 		),
