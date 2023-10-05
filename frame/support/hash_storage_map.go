@@ -4,58 +4,59 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/hashing"
-	"github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/io"
 )
 
 // HashStorageMap is a key-value storage map, which takes `prefix` and `name` that are hashed using hashing.Twox128 and appended before each key value.
 type HashStorageMap[K, V sc.Encodable] struct {
+	baseStorage[V]
 	prefix      []byte
 	name        []byte
 	keyHashFunc func([]byte) []byte
 	decodeFunc  func(buffer *bytes.Buffer) V
+	hashing     io.Hashing
 }
 
 func NewHashStorageMap[K, V sc.Encodable](prefix []byte, name []byte, keyHashFunc func([]byte) []byte, decodeFunc func(buffer *bytes.Buffer) V) StorageMap[K, V] {
 	return HashStorageMap[K, V]{
+		newBaseStorage[V](decodeFunc, nil),
 		prefix,
 		name,
 		keyHashFunc,
 		decodeFunc,
+		io.NewHashing(),
 	}
 }
 
 func (hsm HashStorageMap[K, V]) Get(k K) V {
-	return storage.GetDecode(hsm.key(k), hsm.decodeFunc)
+	return hsm.baseStorage.getDecode(hsm.key(k), hsm.decodeFunc)
 }
 
 func (hsm HashStorageMap[K, V]) Exists(k K) bool {
-	exists := storage.Exists(hsm.key(k))
-
-	return exists != 0
+	return hsm.baseStorage.exists(hsm.key(k))
 }
 
 func (hsm HashStorageMap[K, V]) Put(k K, value V) {
-	storage.Set(hsm.key(k), value.Bytes())
+	hsm.baseStorage.put(hsm.key(k), value)
 }
 
 func (hsm HashStorageMap[K, V]) Append(k K, value V) {
-	storage.Append(hsm.key(k), value.Bytes())
+	hsm.baseStorage.append(hsm.key(k), value)
 }
 
 func (hsm HashStorageMap[K, V]) TakeBytes(k K) []byte {
-	return storage.TakeBytes(hsm.key(k))
+	return hsm.baseStorage.takeBytes(hsm.key(k))
 }
 
 func (hsm HashStorageMap[K, V]) Remove(k K) {
-	storage.Clear(hsm.key(k))
+	hsm.baseStorage.clear(hsm.key(k))
 }
 
 func (hsm HashStorageMap[K, V]) Clear(limit sc.U32) {
-	prefixHash := hashing.Twox128(hsm.prefix)
-	nameHash := hashing.Twox128(hsm.name)
+	prefixHash := hsm.hashing.Twox128(hsm.prefix)
+	nameHash := hsm.hashing.Twox128(hsm.name)
 
-	storage.ClearPrefix(append(prefixHash, nameHash...), sc.NewOption[sc.U32](limit).Bytes())
+	hsm.baseStorage.storage.ClearPrefix(append(prefixHash, nameHash...), sc.NewOption[sc.U32](limit).Bytes())
 }
 
 func (hsm HashStorageMap[K, V]) Mutate(k K, f func(*V) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
@@ -91,8 +92,8 @@ func (hsm HashStorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]
 }
 
 func (hsm HashStorageMap[K, V]) key(key K) []byte {
-	prefixHash := hashing.Twox128(hsm.prefix)
-	nameHash := hashing.Twox128(hsm.name)
+	prefixHash := hsm.hashing.Twox128(hsm.prefix)
+	nameHash := hsm.hashing.Twox128(hsm.name)
 
 	keyBytes := key.Bytes()
 	keyHash := hsm.keyHashFunc(keyBytes)

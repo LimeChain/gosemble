@@ -4,8 +4,8 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/crypto"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -17,18 +17,14 @@ const (
 )
 
 type Module struct {
-	sessions      []types.Session
-	cryptoEd25519 crypto.Ed25519
-	cryptoSr25519 crypto.Sr25519
-	cryptoEcdsa   crypto.Ecdsa
+	sessions []types.Session
+	crypto   io.Crypto
 }
 
 func New(sessions []types.Session) Module {
 	return Module{
-		sessions:      sessions,
-		cryptoEd25519: crypto.NewEd25519(),
-		cryptoSr25519: crypto.NewSr25519(),
-		cryptoEcdsa:   crypto.NewEcdsa(),
+		sessions: sessions,
+		crypto:   io.NewCrypto(),
 	}
 }
 
@@ -95,11 +91,11 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 func getKeyFunction(m Module, keyType types.PublicKeyType) func([]byte, []byte) []byte {
 	switch keyType {
 	case types.PublicKeyEd25519:
-		return m.cryptoEd25519.GenerateVersion1
+		return m.crypto.Ed25519Generate
 	case types.PublicKeySr25519:
-		return m.cryptoSr25519.GenerateVersion1
+		return m.crypto.Sr25519Generate
 	case types.PublicKeyEcdsa:
-		return m.cryptoEcdsa.GenerateVersion1
+		return m.crypto.EcdsaGenerate
 	default:
 		log.Critical("invalid public key type")
 	}

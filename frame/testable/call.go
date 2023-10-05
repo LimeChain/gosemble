@@ -5,7 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
-	"github.com/LimeChain/gosemble/primitives/storage"
+	"github.com/LimeChain/gosemble/primitives/io"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -66,11 +66,13 @@ func (_ callTest) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+	storage := io.NewStorage()
 	storage.Set([]byte("testvalue"), []byte{1})
 
-	support.WithStorageLayer(func() (ok primitives.PostDispatchInfo, err primitives.DispatchError) {
+	transactional := support.NewTransactional[primitives.PostDispatchInfo]()
+	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, primitives.DispatchError) {
 		storage.Set([]byte("testvalue"), []byte{2})
-		return ok, primitives.NewDispatchErrorOther("revert")
+		return primitives.PostDispatchInfo{}, primitives.NewDispatchErrorOther("revert")
 	})
 
 	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{Ok: primitives.PostDispatchInfo{}}

@@ -9,8 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/crypto"
-	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -19,7 +18,7 @@ type Module struct {
 	system           system.Module
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	onRuntimeUpgrade hooks.OnRuntimeUpgrade
-	signatureBatcher crypto.SignatureBatcher
+	hashing          io.Hashing
 }
 
 func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
@@ -27,7 +26,7 @@ func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic
 		system:           systemModule,
 		runtimeExtrinsic: runtimeExtrinsic,
 		onRuntimeUpgrade: onRuntimeUpgrade,
-		signatureBatcher: crypto.NewSignatureBatcher(),
+		hashing:          io.NewHashing(),
 	}
 }
 
@@ -61,11 +60,7 @@ func (m Module) ExecuteBlock(block types.Block) {
 
 	m.initialChecks(block)
 
-	m.signatureBatcher.StartBatchVerify()
 	m.executeExtrinsicsWithBookKeeping(block)
-	if m.signatureBatcher.FinishBatchVerify() != 1 {
-		log.Critical("Signature verification failed")
-	}
 
 	m.finalChecks(&block.Header)
 }
@@ -81,7 +76,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	xt, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -94,11 +89,11 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
 	// Decode parameters and dispatch
-	dispatchInfo := primitives.GetDispatchInfo(xt.Function())
+	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
 
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
-	res, err := xt.Apply(unsignedValidator, &dispatchInfo, encodedLen)
+	res, err := checked.Apply(unsignedValidator, &dispatchInfo, encodedLen)
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -146,13 +141,13 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	xt, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
 
 	log.Trace("dispatch_info")
-	dispatchInfo := primitives.GetDispatchInfo(xt.Function())
+	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 
 	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
@@ -160,13 +155,13 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 
 	log.Trace("validate")
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
-	return xt.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
+	return checked.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
 func (m Module) OffchainWorker(header primitives.Header) {
 	m.system.Initialize(header.Number, header.ParentHash, header.Digest)
 
-	hash := hashing.Blake256(header.Bytes())
+	hash := m.hashing.Blake256(header.Bytes())
 	blockHash := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
 
 	m.system.StorageBlockHash().Put(header.Number, blockHash)

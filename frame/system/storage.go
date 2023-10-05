@@ -5,7 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
-	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -47,6 +47,8 @@ type storage struct {
 }
 
 func newStorage() *storage {
+	hashing := io.NewHashing()
+
 	return &storage{
 		Account:            support.NewHashStorageMap[types.PublicKey, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
 		BlockWeight:        support.NewHashStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),

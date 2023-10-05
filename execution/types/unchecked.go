@@ -4,6 +4,8 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/io"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -30,46 +32,44 @@ type UncheckedExtrinsic interface {
 }
 
 type uncheckedExtrinsic struct {
+	version sc.U8
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
 	signature sc.Option[primitives.ExtrinsicSignature]
 	function  primitives.Call
 	extra     primitives.SignedExtra
+	crypto    io.Crypto
 }
 
-// NewSignedUncheckedExtrinsic returns a new instance of a signed extrinsic.
+// NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
 func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) uncheckedExtrinsic {
 	return uncheckedExtrinsic{
+		version:   version,
 		signature: signature,
 		function:  function,
 		extra:     extra,
+		crypto:    io.NewCrypto(),
 	}
 }
 
 // NewUnsignedUncheckedExtrinsic returns a new instance of an unsigned extrinsic.
-func NewUnsignedUncheckedExtrinsic(function primitives.Call) uncheckedExtrinsic {
+func NewUnsignedUncheckedExtrinsic(function primitives.Call) UncheckedExtrinsic {
 	return uncheckedExtrinsic{
+		version:   ExtrinsicFormatVersion,
 		signature: sc.NewOption[primitives.ExtrinsicSignature](nil),
 		function:  function,
+		crypto:    io.NewCrypto(),
 	}
 }
-
-func (uxt uncheckedExtrinsic) IsSigned() sc.Bool {
-	return uxt.signature.HasValue
-}
-
 func (uxt uncheckedExtrinsic) Encode(buffer *bytes.Buffer) {
 	tempBuffer := &bytes.Buffer{}
 
-	if uxt.Signature().HasValue {
-		sc.U8(ExtrinsicFormatVersion | ExtrinsicBitSigned).Encode(tempBuffer)
-		uxt.Signature().Value.Encode(tempBuffer)
-	} else {
-		sc.U8(ExtrinsicFormatVersion & ExtrinsicUnmaskVersion).Encode(tempBuffer)
+	uxt.version.Encode(tempBuffer)
+	if uxt.signature.HasValue {
+		uxt.signature.Value.Encode(tempBuffer)
 	}
-
-	uxt.Function().Encode(tempBuffer)
+	uxt.function.Encode(tempBuffer)
 
 	encodedLen := sc.ToCompact(uint64(tempBuffer.Len()))
 	encodedLen.Encode(buffer)
@@ -92,23 +92,26 @@ func (uxt uncheckedExtrinsic) Extra() primitives.SignedExtra {
 	return uxt.extra
 }
 
+func (uxt uncheckedExtrinsic) IsSigned() sc.Bool {
+	return uxt.signature.HasValue
+}
+
 func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (CheckedExtrinsic, primitives.TransactionValidityError) {
-	if uxt.Signature().HasValue {
-		signer, signature, extra := uxt.Signature().Value.Signer, uxt.Signature().Value.Signature, uxt.Signature().Value.Extra
+	if uxt.signature.HasValue {
+		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
 		signedAddress, err := lookup.Lookup(signer)
 		if err != nil {
-			return checkedExtrinsic{}, err
+			return nil, err
 		}
 
-		rawPayload, err := NewSignedPayload(uxt.Function(), extra)
+		rawPayload, err := primitives.NewSignedPayload(uxt.function, extra)
 		if err != nil {
-			return checkedExtrinsic{}, err
+			return nil, err
 		}
 
-		if !signature.Verify(rawPayload.UsingEncoded(), signedAddress) {
-			err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-			return checkedExtrinsic{}, err
+		if !uxt.verify(signature, rawPayload.UsingEncoded(), signedAddress) {
+			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
 		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
@@ -116,5 +119,30 @@ func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (CheckedE
 		return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signedAddress), function, extra), nil
 	}
 
-	return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.Function(), uxt.Extra()), nil
+	return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.function, uxt.extra), nil
+}
+
+func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.Address32) bool {
+	msgBytes := sc.SequenceU8ToBytes(msg)
+	signerBytes := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
+
+	if signature.IsEd25519() {
+		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsEd25519().H512.FixedSequence)
+		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes)
+	} else if signature.IsSr25519() {
+		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsSr25519().H512.FixedSequence)
+		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes)
+	} else if signature.IsEcdsa() {
+		// TODO:
+		return true
+		// let m = sp_io::hashing::blake2_256(msg.get());
+		// match sp_io::crypto::secp256k1_ecdsa_recover_compressed(sig.as_ref(), &m) {
+		// 	Ok(pubkey) =>
+		// 		&sp_io::hashing::blake2_256(pubkey.as_ref()) ==
+		// 			<dyn AsRef<[u8; 32]>>::as_ref(who),
+		// 	_ => false,
+		// }
+	}
+	log.Critical("invalid MultiSignature type in Verify")
+	panic("unreachable")
 }

@@ -11,9 +11,8 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/hooks"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
-	storage_root "github.com/LimeChain/gosemble/primitives/storage"
-	"github.com/LimeChain/gosemble/primitives/trie"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -71,11 +70,12 @@ type module struct {
 	storage   *storage
 	constants *consts
 	functions map[sc.U8]primitives.Call
+	trie      io.Trie
+	ioStorage io.Storage
 }
 
 func New(index sc.U8, config *Config) Module {
 	functions := make(map[sc.U8]primitives.Call)
-	storage := newStorage()
 	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
 
 	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
@@ -84,9 +84,11 @@ func New(index sc.U8, config *Config) Module {
 	return module{
 		Index:     index,
 		Config:    config,
-		storage:   storage,
+		storage:   newStorage(),
 		constants: constants,
 		functions: functions,
+		trie:      io.NewTrie(),
+		ioStorage: io.NewStorage(),
 	}
 }
 
@@ -198,7 +200,7 @@ func (m module) Finalize() primitives.Header {
 	}
 
 	buf := &bytes.Buffer{}
-	extrinsicsRootBytes := trie.Blake2256OrderedRoot(
+	extrinsicsRootBytes := m.trie.Blake2256OrderedRoot(
 		append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsics...),
 		constants.StorageVersion)
 	buf.Write(extrinsicsRootBytes)
@@ -211,7 +213,7 @@ func (m module) Finalize() primitives.Header {
 		m.StorageBlockHash().Remove(toRemove)
 	}
 
-	storageRootBytes := storage_root.Root(int32(m.constants.Version.StateVersion))
+	storageRootBytes := m.ioStorage.Root(int32(m.constants.Version.StateVersion))
 	buf.Write(storageRootBytes)
 	storageRoot := primitives.DecodeH256(buf)
 	buf.Reset()
