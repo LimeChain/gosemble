@@ -178,13 +178,15 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 	apis := primitives.ApiMetadata()
 
-	outerenums := primitives.OuterEnums{
+	outerEnums := primitives.OuterEnums{
 		CallEnumType:  sc.ToCompact(metadata.RuntimeCall),
 		EventEnumType: sc.ToCompact(metadata.TypesRuntimeEvent),
-		ErrorEnumType: sc.ToCompact(metadata.TypesModuleError), // TODO: Find a proper type
+		ErrorEnumType: sc.ToCompact(metadata.TypesRuntimeError),
 	}
 
-	custom := primitives.CustomMetadata{}
+	custom := primitives.CustomMetadata{
+		Map: sc.Dictionary[sc.Str, primitives.CustomValueMetadata]{},
+	}
 
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
@@ -209,6 +211,10 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	runtimeCall := re.runtimeCall(callVariants)
 	// append runtime call to all types
 	metadataTypes = append(metadataTypes, runtimeCall)
+
+	runtimeError := re.runtimeError()
+
+	metadataTypes = append(metadataTypes, runtimeError)
 
 	// create the unchecked extrinsic type using runtime call id
 	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
@@ -244,7 +250,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 		SignedExtensions: signedExtensions,
 	}
 
-	return metadataTypes, modules, extrinsicV15, apis, outerenums, custom
+	return metadataTypes, modules, extrinsicV15, apis, outerEnums, custom
 }
 
 func (re runtimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
@@ -263,6 +269,33 @@ func (re runtimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitive
 		"node_template_runtime RuntimeEvent",
 		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeEvent"},
 	)
+}
+
+func (re runtimeExtrinsic) runtimeError() primitives.MetadataType {
+	return primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeError, "", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"}, primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"System",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+				},
+				0,
+				""),
+			primitives.NewMetadataDefinitionVariant(
+				"Balances",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+				},
+				1,
+				""),
+			primitives.NewMetadataDefinitionVariant(
+				"Balances",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
+				},
+				2,
+				""),
+		}))
 }
 
 func (re runtimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {

@@ -59,6 +59,7 @@ const (
 	TypesBlockLength
 	TypesPerDispatchClassU32
 	TypesDbWeight
+	TypesGrandpaErrors
 
 	TypesRuntimeApis
 	TypesRuntimeVecApis
@@ -110,6 +111,7 @@ const (
 	TypesRuntimeEvent
 	TypesRuntimeVersion
 	RuntimeCall
+	TypesRuntimeError
 
 	SystemCalls
 	TimestampCalls
