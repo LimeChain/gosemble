@@ -14,6 +14,11 @@ const (
 	apiVersion    = 1
 )
 
+const (
+	ResultOk sc.U8 = iota
+	ResultErr
+)
+
 type Module struct {
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	memUtils         utils.WasmMemoryTranslator
@@ -93,6 +98,7 @@ func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 func basicTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesFixedSequence4U8, "[4]byte", primitives.NewMetadataTypeDefinitionFixedSequence(4, sc.ToCompact(metadata.PrimitiveTypesU8))),
+		primitives.NewMetadataType(metadata.TypesFixedSequence8U8, "[8]byte", primitives.NewMetadataTypeDefinitionFixedSequence(8, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesFixedSequence20U8, "[20]byte", primitives.NewMetadataTypeDefinitionFixedSequence(20, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesFixedSequence32U8, "[32]byte", primitives.NewMetadataTypeDefinitionFixedSequence(32, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesFixedSequence64U8, "[64]byte", primitives.NewMetadataTypeDefinitionFixedSequence(64, sc.ToCompact(metadata.PrimitiveTypesU8))),
@@ -577,20 +583,72 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Ok",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesEmptyResult),
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesEmptyTuple),
 					},
-					metadata.TypesEmptyTuple,
+					ResultOk,
 					""),
 				primitives.NewMetadataDefinitionVariant(
 					"Err",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionalError),
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchError),
 					},
-					metadata.TypesDispatchError, ""),
+					ResultErr, ""),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.TypesEmptyTuple, "T"),
 				primitives.NewMetadataTypeParameter(metadata.TypesDispatchError, "E")}),
+
+		// type 869
+		primitives.NewMetadataTypeWithParams(metadata.TypesResult, "Result", sc.Sequence[sc.Str]{"Result"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"Ok",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesResultEmptyTuple),
+					},
+					metadata.TypesResultOk,
+					""),
+				primitives.NewMetadataDefinitionVariant(
+					"Err",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
+					},
+					metadata.TypesResultErr, ""),
+			}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.TypesResultEmptyTuple, "T"),
+				primitives.NewMetadataTypeParameter(metadata.TypesTransactionValidityError, "E"),
+			}),
+		primitives.NewMetadataType(metadata.TypesSequenceUncheckedExtrinsics, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.UncheckedExtrinsic))),
+		//type 876
+		primitives.NewMetadataType(metadata.TypesTuple8U8SequenceU8, "([8]bytes, []byte])",
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesFixedSequence8U8), sc.ToCompact(metadata.TypesSequenceU8)})),
+		// type 875
+		primitives.NewMetadataType(metadata.TypesSequenceTuple8U8SequenceU8, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTuple8U8SequenceU8))),
+		// type 874
+		primitives.NewMetadataTypeWithParams(metadata.TypesBTreeMap, "BTreeMap",
+			sc.Sequence[sc.Str]{"BTreeMap"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceTuple8U8SequenceU8),
+				}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.TypesFixedSequence8U8, "K"),
+				primitives.NewMetadataTypeParameter(metadata.TypesSequenceU8, "V"),
+			},
+		),
+		primitives.NewMetadataTypeWithPath(metadata.TypesInherentData, "sp_inherents InherentData", sc.Sequence[sc.Str]{"sp_version", "InherentData"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesBTreeMap, "BTreeMap<InherentIdentifier, Vec<u8>>"),
+			})),
+
+		primitives.NewMetadataTypeWithPath(metadata.CheckInherentsResult, "sp_inherents CheckInherentsResult", sc.Sequence[sc.Str]{"sp_inherents", "CheckInherentsResult"},
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesInherentData, "inherentData"),
+			},
+			)),
 	}
 }
 

@@ -19,6 +19,7 @@ const (
 	PrimitiveTypesI256
 
 	TypesFixedSequence4U8
+	TypesFixedSequence8U8
 	TypesFixedSequence20U8
 	TypesFixedSequence32U8
 	TypesFixedSequence64U8
@@ -81,6 +82,7 @@ const (
 	TypesEmptyTuple
 	TypesTupleU32U32
 	TypesTupleApiIdU32
+	TypesTuple8U8SequenceU8
 
 	TypesAddress32
 	TypesMultiAddress
@@ -162,4 +164,7 @@ const (
 	TypesTupleSequenceU8KeyTypeId
 
 	TypesKeyTypeId
+
+	TypesBTreeMap
+	TypesSequenceTuple8U8SequenceU8
 )

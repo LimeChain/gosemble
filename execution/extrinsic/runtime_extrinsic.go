@@ -211,22 +211,22 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	metadataTypes = append(metadataTypes, runtimeCall)
 
 	// create the unchecked extrinsic type using runtime call id
-	//uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
-	//	sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-	//	primitives.NewMetadataTypeDefinitionComposite(
-	//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
-	//			primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-	//		}),
-	//	sc.Sequence[primitives.MetadataTypeParameter]{
-	//		primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
-	//		primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
-	//		primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
-	//		primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
-	//	},
-	//)
+	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
+		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
+		primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+			}),
+		sc.Sequence[primitives.MetadataTypeParameter]{
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
+			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
+			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
+		},
+	)
 
 	// append it to all types
-	// metadataTypes = append(metadataTypes, uncheckedExtrinsicType) TODO: Should this be commented ?
+	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
 
 	// create the metadata extrinsic, which uses the id of the unchecked extrinsic and signed extra extensions
 	//extrinsic := primitives.MetadataExtrinsic{

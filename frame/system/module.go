@@ -912,7 +912,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataDefinitionVariant(
 						"Unknown",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction)
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction),
 						},
 						UnknownTransactionIndex,
 						""),

@@ -210,42 +210,11 @@ func metadataAtVersionsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 }
 
 func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	applyExtrinsicOutput_869 := NewMetadataTypeWithParams(mdconstants.TypesResult, "Result", sc.Sequence[sc.Str]{"Result"}, NewMetadataTypeDefinitionVariant(
-		sc.Sequence[MetadataDefinitionVariant]{
-			NewMetadataDefinitionVariant(
-				"Ok",
-				sc.Sequence[MetadataTypeDefinitionField]{
-					NewMetadataTypeDefinitionField(mdconstants.TypesEmptyResult),
-				},
-				mdconstants.TypesResultOk,
-				""),
-			NewMetadataDefinitionVariant(
-				"Err",
-				sc.Sequence[MetadataTypeDefinitionField]{
-					NewMetadataTypeDefinitionField(mdconstants.TypesTransactionalError), // TODO: Is this the correct constant ?
-				},
-				mdconstants.TypesResultErr, ""),
-		}),
-		sc.Sequence[MetadataTypeParameter]{
-			NewMetadataTypeParameter(mdconstants.TypesEmptyResult, "T"),
-			NewMetadataTypeParameter(mdconstants.TypesTransactionalError, "E"), // TODO: Is this the correct constant ?
-		})
-
-	inherentExtrinsicsOutput := NewMetadataType(mdconstants.TypesSequenceUncheckedExtrinsics, "[]byte", NewMetadataTypeDefinitionSequence(sc.ToCompact(mdconstants.UncheckedExtrinsic)))
-
-	checkInherentsOutput := NewMetadataTypeWithPath(mdconstants.CheckInherentsResult, "sp_inherents CheckInherentsResult", sc.Sequence[sc.Str]{"sp_inherents", "CheckInherentsResult"},
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionFieldWithName(mdconstants.TypesResultOk, "bool"),
-			NewMetadataTypeDefinitionFieldWithName(mdconstants.TypesResultErr, "bool"),
-			NewMetadataTypeDefinitionFieldWithName(mdconstants.TypesInherentData, "inherentData"),
-		},
-		))
-
 	return sc.Sequence[RuntimeApiMethodMetadata]{
 		RuntimeApiMethodMetadata{
 			Name:   applyExtrinsicMethod,
 			Inputs: applyExtrinsicInputsMd(),
-			Output: sc.ToCompact(applyExtrinsicOutput.Id),
+			Output: sc.ToCompact(mdconstants.TypesResult),
 			Docs: sc.Sequence[sc.Str]{" Apply the given extrinsic.",
 				"",
 				" Returns an inclusion outcome which specifies if this extrinsic is included in",
@@ -260,13 +229,13 @@ func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   inherentExtrinsicsMethod,
 			Inputs: inherentExtrinsicsInputsMd(),
-			Output: sc.ToCompact(inherentExtrinsicsOutput.Id),
+			Output: sc.ToCompact(mdconstants.TypesSequenceUncheckedExtrinsics),
 			Docs:   sc.Sequence[sc.Str]{" Generate inherent extrinsics. The inherent data will vary from chain to chain."},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   checkInherentsMethod,
 			Inputs: checkInherentsInputsMd(),
-			Output: sc.ToCompact(checkInherentsOutput.Id),
+			Output: sc.ToCompact(mdconstants.CheckInherentsResult),
 			Docs:   sc.Sequence[sc.Str]{" Check that the inherents are valid. The inherent data will vary from chain to chain."},
 		},
 	}
@@ -295,10 +264,6 @@ func inherentExtrinsicsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 }
 
 func checkInherentsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	inherentType := NewMetadataTypeWithPath(mdconstants.TypesRuntimeVersion, "sp_inherents InherentData", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, NewMetadataTypeDefinitionComposite(
-		sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // TODO: Encode the BTreeMap
-		}))
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "block",
@@ -306,7 +271,7 @@ func checkInherentsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "data",
-			Type: sc.ToCompact(inherentType.Id),
+			Type: sc.ToCompact(mdconstants.TypesInherentData),
 		},
 	}
 }
