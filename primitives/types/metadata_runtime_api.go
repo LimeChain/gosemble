@@ -66,7 +66,7 @@ func (ram RuntimeApiMetadata) Bytes() []byte {
 func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 	coreMethodsMd := coreMethodsMd()
 	metadataMethodsMd := metadataMethodsMd()
-	blockbuilderMethodsMd := blockBuilderMethodsMd()
+	blockBuilderMethodsMd := blockBuilderMethodsMd()
 	taggedTransactionQueueMethodsMd := taggedTransactionQueueMethodsMd()
 	offChainWorkerMethodsMd := offChainWorkerMethodsMd()
 	grandpaMethodsMd := grandpaMethodsMd()
@@ -88,7 +88,7 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 		},
 		RuntimeApiMetadata{
 			Name:    blockbuilder.ApiModuleName,
-			Methods: blockbuilderMethodsMd,
+			Methods: blockBuilderMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `BlockBuilder` api trait that provides the required functionality for building a block."},
 		},
 		RuntimeApiMetadata{
@@ -163,7 +163,7 @@ func coreMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{
 				RuntimeApiMethodParamMetadata{
 					Name: "header",
-					Type: sc.ToCompact(mdconstants.Header), // TODO: Is this correct?
+					Type: sc.ToCompact(mdconstants.Header),
 				},
 			},
 			Output: sc.ToCompact(mdconstants.TypesEmptyTuple),
@@ -251,14 +251,10 @@ func applyExtrinsicInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 }
 
 func inherentExtrinsicsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	inherentType := NewMetadataTypeWithPath(mdconstants.TypesRuntimeVersion, "sp_inherents InherentData", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, NewMetadataTypeDefinitionComposite(
-		sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // data TODO: Encode the BTreeMap
-		}))
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "inherent",
-			Type: sc.ToCompact(inherentType.Id),
+			Type: sc.ToCompact(mdconstants.TypesInherentData),
 		},
 	}
 }
@@ -431,76 +427,27 @@ func transactionPaymentCallMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 }
 
 func queryCallInfoInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	// TODO: A MetadataType with 61 variants ?
-	callType := NewMetadataTypeWithPath(mdconstants.RuntimeCall, "RuntimeCall", sc.Sequence[sc.Str]{"kitchensink_runtime", "RuntimeCall"}, NewMetadataTypeDefinitionVariant(
-		sc.Sequence[MetadataDefinitionVariant]{
-			NewMetadataDefinitionVariant(
-				"System",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorOther,
-				"DispatchError.Other"),
-			NewMetadataDefinitionVariant(
-				"Utility",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorCannotLookup,
-				"DispatchError.Cannotlookup"),
-			NewMetadataDefinitionVariant(
-				"Babe",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorBadOrigin,
-				"DispatchError.BadOrigin"),
-		}))
-	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "call",
-			Type: sc.ToCompact(callType.Id),
+			Type: sc.ToCompact(mdconstants.RuntimeCall),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type.Id),
+			Type: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 		},
 	}
 }
 
 func queryCallFeeDetailsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
-
-	callType := NewMetadataTypeWithPath(mdconstants.RuntimeCall, "RuntimeCall", sc.Sequence[sc.Str]{"kitchensink_runtime", "RuntimeCall"}, NewMetadataTypeDefinitionVariant(
-		sc.Sequence[MetadataDefinitionVariant]{
-			NewMetadataDefinitionVariant(
-				"System",
-				sc.Sequence[MetadataTypeDefinitionField]{
-					NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8),
-				},
-				DispatchErrorOther,
-				""),
-			NewMetadataDefinitionVariant(
-				"Timestamp",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorBadOrigin,
-				""),
-			NewMetadataDefinitionVariant(
-				"Balances",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorBadOrigin,
-				""),
-			NewMetadataDefinitionVariant(
-				"Grandpa",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorBadOrigin,
-				""),
-		}))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "call",
-			Type: sc.ToCompact(callType.Id),
+			Type: sc.ToCompact(mdconstants.RuntimeCall),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type.Id),
+			Type: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 		},
 	}
 }
@@ -562,12 +509,10 @@ func generateSessionKeysInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 }
 
 func decodeSessionKeysInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	encodedType := NewMetadataType(mdconstants.TypesSequenceU8, "[]byte", NewMetadataTypeDefinitionSequence(sc.ToCompact(mdconstants.PrimitiveTypesU8)))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "encoded",
-			Type: sc.ToCompact(encodedType.Id),
+			Type: sc.ToCompact(mdconstants.TypesSequenceU8),
 		},
 	}
 }
