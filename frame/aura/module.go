@@ -180,6 +180,31 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
 				})),
+
+		// type 924
+		primitives.NewMetadataType(metadata.TypesTupleSequenceU8KeyTypeId, "(Seq<U8>, KeyTypeId)",
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
+
+		// type 923
+		primitives.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TypesTupleSequenceU8KeyTypeId", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),
+
+		// type 922
+		primitives.NewMetadataTypeWithParam(metadata.TypesOptionTupleSequenceU8KeyTypeId, "Option<TupleSequenceU8KeyTypeId>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant( // TODO: Verify it's correct (the indices)
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"None",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					""),
+				primitives.NewMetadataDefinitionVariant(
+					"Some",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceTupleSequenceU8KeyTypeId),
+					},
+					1,
+					""),
+			}),
+			primitives.NewMetadataTypeParameter(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "T")),
 	}
 }
 

@@ -25,6 +25,8 @@ const (
 	metadataAtVersionMethod   = "metadata_at_version"
 	metadataVersionsMethod    = "metadata_versions"
 	coreVersionMethod         = "version"
+	coreExecuteBlockMethod    = "execute_block"
+	coreInitializeBlockMethod = "initialize_block"
 	validateTransactionMethod = "validate_transaction"
 	offChainWorkerMethod      = "offchain_worker"
 	grandpaAuthoritiesMethod  = "grandpa_authorities"
@@ -72,6 +74,7 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 	transactionPaymentMethodsMd := transactionPaymentMethodsMd()
 	transactionPaymentCallMethodsMd := transactionPaymentCallMethodsMd()
 	sessionKeysMethodsMd := sessionKeysMethodsMd()
+
 	return sc.Sequence[RuntimeApiMetadata]{
 		RuntimeApiMetadata{
 			Name:    core.ApiModuleName,
@@ -137,69 +140,50 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 }
 
 func coreMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	versionOutput := NewMetadataTypeWithPath(mdconstants.TypesRuntimeVersion, "sp_version RuntimeVersion", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, NewMetadataTypeDefinitionComposite(
-		sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // spec_name
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // impl_name
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesU32),    // authoring_version
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesU32),    // spec_version
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesU32),    // impl_version
-			NewMetadataTypeDefinitionField(mdconstants.TypesRuntimeApis),     // apis
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesU32),    // transaction_version
-			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesU8),     // state_version
-		}))
 	return sc.Sequence[RuntimeApiMethodMetadata]{
 		RuntimeApiMethodMetadata{
 			Name:   coreVersionMethod,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(versionOutput),
+			Output: sc.ToCompact(mdconstants.TypesRuntimeVersion),
 			Docs:   sc.Sequence[sc.Str]{" Returns the version of the runtime."},
+		},
+		RuntimeApiMethodMetadata{
+			Name: coreExecuteBlockMethod,
+			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{
+				RuntimeApiMethodParamMetadata{
+					Name: "block",
+					Type: sc.ToCompact(mdconstants.TypesBlock),
+				},
+			},
+			Output: sc.ToCompact(mdconstants.TypesEmptyTuple),
+			Docs:   sc.Sequence[sc.Str]{" Execute the given block."},
+		},
+		RuntimeApiMethodMetadata{
+			Name: coreInitializeBlockMethod,
+			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{
+				RuntimeApiMethodParamMetadata{
+					Name: "header",
+					Type: sc.ToCompact(mdconstants.Header), // TODO: Is this correct?
+				},
+			},
+			Output: sc.ToCompact(mdconstants.TypesEmptyTuple),
+			Docs:   sc.Sequence[sc.Str]{" Initialize a block with the given header."},
 		},
 	}
 }
 
 func metadataMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	metadataOutput := NewMetadataTypeWithPath(mdconstants.TypesOpaqueMetadata, // TODO: Verify it's correct
-		"sp_core OpaqueMetadata",
-		sc.Sequence[sc.Str]{"sp_core", "OpaqueMetadata"},
-		NewMetadataTypeDefinitionComposite(
-			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(mdconstants.TypesSequenceU8, "Vec<u8>"),
-			}))
-
-	metadataDocs := sc.Str(" Returns the metadata of a runtime.")
-
-	metadataAtVersionOutput := NewMetadataTypeWithParam(mdconstants.TypesOptionWeight, "Option", sc.Sequence[sc.Str]{"Option"}, NewMetadataTypeDefinitionVariant(
-		sc.Sequence[MetadataDefinitionVariant]{
-			NewMetadataDefinitionVariant(
-				"None",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				0,
-				""),
-			NewMetadataDefinitionVariant(
-				"Some",
-				sc.Sequence[MetadataTypeDefinitionField]{
-					NewMetadataTypeDefinitionField(mdconstants.TypesOpaqueMetadata),
-				},
-				1,
-				""),
-		}),
-		NewMetadataTypeParameter(mdconstants.TypesOpaqueMetadata, "T"),
-	)
-
-	metadataVersionsOutput := NewMetadataType(mdconstants.TypesSequenceU32, "[]byte", NewMetadataTypeDefinitionSequence(sc.ToCompact(mdconstants.PrimitiveTypesU32)))
-
 	return sc.Sequence[RuntimeApiMethodMetadata]{
 		RuntimeApiMethodMetadata{
 			Name:   metadataMethod,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(metadataOutput),
-			Docs:   sc.Sequence[sc.Str]{metadataDocs},
+			Output: sc.ToCompact(mdconstants.TypesOpaqueMetadata),
+			Docs:   sc.Sequence[sc.Str]{" Returns the metadata of a runtime."},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   metadataAtVersionMethod,
 			Inputs: metadataAtVersionsInputsMd(),
-			Output: sc.ToCompact(metadataAtVersionOutput),
+			Output: sc.ToCompact(mdconstants.TypeOption),
 			Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
 				"",
 				" If the given `version` isn't supported, this will return `None`.",
@@ -208,7 +192,7 @@ func metadataMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   metadataVersionsMethod,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(metadataVersionsOutput),
+			Output: sc.ToCompact(mdconstants.TypesSequenceU32),
 			Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
 				"",
 				" This can be used to call `metadata_at_version`."},
@@ -220,13 +204,13 @@ func metadataAtVersionsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "version",
-			Type: sc.ToCompact(NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))),
+			Type: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 		},
 	}
 }
 
 func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	applyExtrinsicOutput := NewMetadataTypeWithParams(mdconstants.TypesResult, "Result", sc.Sequence[sc.Str]{"Result"}, NewMetadataTypeDefinitionVariant(
+	applyExtrinsicOutput_869 := NewMetadataTypeWithParams(mdconstants.TypesResult, "Result", sc.Sequence[sc.Str]{"Result"}, NewMetadataTypeDefinitionVariant(
 		sc.Sequence[MetadataDefinitionVariant]{
 			NewMetadataDefinitionVariant(
 				"Ok",
@@ -247,8 +231,6 @@ func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 			NewMetadataTypeParameter(mdconstants.TypesTransactionalError, "E"), // TODO: Is this the correct constant ?
 		})
 
-	finalizeBlockOutput := getHeaderType()
-
 	inherentExtrinsicsOutput := NewMetadataType(mdconstants.TypesSequenceUncheckedExtrinsics, "[]byte", NewMetadataTypeDefinitionSequence(sc.ToCompact(mdconstants.UncheckedExtrinsic)))
 
 	checkInherentsOutput := NewMetadataTypeWithPath(mdconstants.CheckInherentsResult, "sp_inherents CheckInherentsResult", sc.Sequence[sc.Str]{"sp_inherents", "CheckInherentsResult"},
@@ -263,7 +245,7 @@ func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   applyExtrinsicMethod,
 			Inputs: applyExtrinsicInputsMd(),
-			Output: sc.ToCompact(applyExtrinsicOutput),
+			Output: sc.ToCompact(applyExtrinsicOutput.Id),
 			Docs: sc.Sequence[sc.Str]{" Apply the given extrinsic.",
 				"",
 				" Returns an inclusion outcome which specifies if this extrinsic is included in",
@@ -272,30 +254,29 @@ func blockBuilderMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   finalizeBlockMethod,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(finalizeBlockOutput),
+			Output: sc.ToCompact(mdconstants.Header),
 			Docs:   sc.Sequence[sc.Str]{" Finish the current block."},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   inherentExtrinsicsMethod,
 			Inputs: inherentExtrinsicsInputsMd(),
-			Output: sc.ToCompact(inherentExtrinsicsOutput),
+			Output: sc.ToCompact(inherentExtrinsicsOutput.Id),
 			Docs:   sc.Sequence[sc.Str]{" Generate inherent extrinsics. The inherent data will vary from chain to chain."},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   checkInherentsMethod,
 			Inputs: checkInherentsInputsMd(),
-			Output: sc.ToCompact(checkInherentsOutput),
+			Output: sc.ToCompact(checkInherentsOutput.Id),
 			Docs:   sc.Sequence[sc.Str]{" Check that the inherents are valid. The inherent data will vary from chain to chain."},
 		},
 	}
 }
 
 func applyExtrinsicInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	uncheckedExtrinsicType := getUncheckedExtrinsicType()
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "Extrinsic",
-			Type: sc.ToCompact(uncheckedExtrinsicType),
+			Type: sc.ToCompact(mdconstants.UncheckedExtrinsic),
 		},
 	}
 }
@@ -308,33 +289,12 @@ func inherentExtrinsicsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "inherent",
-			Type: sc.ToCompact(inherentType),
+			Type: sc.ToCompact(inherentType.Id),
 		},
 	}
 }
 
 func checkInherentsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-
-	//t := NewMetadataTypeWithPath(mdconstants.TypesH256, "primitives H256", sc.Sequence[sc.Str]{"primitive_types", "H256"},
-	//	NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-	//		NewMetadataTypeDefinitionField(mdconstants.TypesFixedSequence32U8)}))
-
-	blockType := NewMetadataTypeWithParams(mdconstants.UncheckedExtrinsic, "UncheckedExtrinsic",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
-		NewMetadataTypeDefinitionComposite(
-			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionField(mdconstants.TypesH256),       // parent_hash
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // number
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // state_root
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // extrinsics_root
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // digest
-			}),
-		sc.Sequence[MetadataTypeParameter]{
-			NewMetadataTypeParameter(mdconstants.Header, "Header"), // TODO: Is this correct ?
-			NewMetadataTypeParameter(mdconstants.RuntimeCall, "Extrinsic"),
-		},
-	)
-
 	inherentType := NewMetadataTypeWithPath(mdconstants.TypesRuntimeVersion, "sp_inherents InherentData", sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, NewMetadataTypeDefinitionComposite(
 		sc.Sequence[MetadataTypeDefinitionField]{
 			NewMetadataTypeDefinitionField(mdconstants.PrimitiveTypesString), // data TODO: Encode the BTreeMap
@@ -342,11 +302,11 @@ func checkInherentsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "block",
-			Type: sc.ToCompact(blockType),
+			Type: sc.ToCompact(mdconstants.TypesBlock),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "data",
-			Type: sc.ToCompact(inherentType),
+			Type: sc.ToCompact(inherentType.Id),
 		},
 	}
 }
@@ -356,7 +316,7 @@ func taggedTransactionQueueMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   validateTransactionMethod,
 			Inputs: validateTransactionInputsMd(),
-			Output: sc.ToCompact(5), // TODO
+			Output: sc.ToCompact(mdconstants.TypesResultValidityTransaction),
 			Docs: sc.Sequence[sc.Str]{" Validate the transaction.",
 				"",
 				" This method is invoked by the transaction pool to learn details about given transaction.",
@@ -371,71 +331,38 @@ func taggedTransactionQueueMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 }
 
 func validateTransactionInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	sourceType := NewMetadataTypeWithPath(mdconstants.TypesTransactionSource, "TransactionSource", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"},
-		NewMetadataTypeDefinitionVariant(
-			sc.Sequence[MetadataDefinitionVariant]{
-				NewMetadataDefinitionVariant(
-					"InBlock",
-					sc.Sequence[MetadataTypeDefinitionField]{},
-					TransactionSourceInBlock,
-					"TransactionSourceInBlock"),
-				NewMetadataDefinitionVariant(
-					"Local",
-					sc.Sequence[MetadataTypeDefinitionField]{},
-					TransactionSourceLocal,
-					"TransactionSourceLocal"),
-				NewMetadataDefinitionVariant(
-					"External",
-					sc.Sequence[MetadataTypeDefinitionField]{},
-					TransactionSourceExternal,
-					"TransactionSourceExternal"),
-			}))
-	uncheckedExtrinsicType := getUncheckedExtrinsicType()
-
-	blockHashType := NewMetadataTypeWithPath(mdconstants.TypesH256, "primitives H256", sc.Sequence[sc.Str]{"primitive_types", "H256"},
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionField(mdconstants.TypesFixedSequence32U8)}))
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "source",
-			Type: sc.ToCompact(sourceType),
+			Type: sc.ToCompact(mdconstants.TypesTransactionSource),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "tx",
-			Type: sc.ToCompact(uncheckedExtrinsicType),
+			Type: sc.ToCompact(mdconstants.UncheckedExtrinsic),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "block_hash",
-			Type: sc.ToCompact(blockHashType),
+			Type: sc.ToCompact(mdconstants.TypesH256),
 		},
 	}
 }
 
 func offChainWorkerMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	emptyTupleType := NewMetadataType(mdconstants.TypesEmptyTuple, "EmptyTuple", NewMetadataTypeDefinitionTuple(
-		sc.Sequence[sc.Compact]{},
-	))
 	return sc.Sequence[RuntimeApiMethodMetadata]{
 		RuntimeApiMethodMetadata{
 			Name:   offChainWorkerMethod,
 			Inputs: offChainWorkerInputsMd(),
-			Output: sc.ToCompact(emptyTupleType),
+			Output: sc.ToCompact(mdconstants.TypesEmptyTuple),
 			Docs:   sc.Sequence[sc.Str]{" Starts the off-chain task for given block header."},
 		},
 	}
 }
 
 func offChainWorkerInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	//t := NewMetadataTypeWithPath(mdconstants.TypesH256, "primitives H256", sc.Sequence[sc.Str]{"primitive_types", "H256"},
-	//	NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-	//		NewMetadataTypeDefinitionField(mdconstants.TypesFixedSequence32U8)}))
-
-	headerType := getHeaderType()
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "header",
-			Type: sc.ToCompact(headerType),
+			Type: sc.ToCompact(mdconstants.Header),
 		},
 	}
 }
@@ -445,7 +372,7 @@ func grandpaMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   grandpaAuthoritiesMethod,
 			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(5), // TODO: Encode
+			Output: sc.ToCompact(mdconstants.TypesSequenceTupleGrandpaAppPublic),
 			Docs: sc.Sequence[sc.Str]{
 				" Get the current GRANDPA authorities and weights. This should not change except",
 				" for when changes are scheduled and the corresponding delay has passed.",
@@ -459,26 +386,21 @@ func grandpaMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 }
 
 func accountNonceMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
-	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
 	return sc.Sequence[RuntimeApiMethodMetadata]{
 		RuntimeApiMethodMetadata{
 			Name:   accountNonceMethod,
 			Inputs: accountNonceInputsMd(),
-			Output: sc.ToCompact(u32Type),
+			Output: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 			Docs:   sc.Sequence[sc.Str]{" Get current account nonce of given `AccountId`."},
 		},
 	}
 }
 
 func accountNonceInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	accountType := NewMetadataTypeWithPath(mdconstants.TypesAddress32, "Address32", sc.Sequence[sc.Str]{"sp_core", "crypto", "AccountId32"}, NewMetadataTypeDefinitionComposite(
-		sc.Sequence[MetadataTypeDefinitionField]{NewMetadataTypeDefinitionFieldWithName(mdconstants.TypesFixedSequence32U8, "[u8; 32]")},
-	))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "account",
-			Type: sc.ToCompact(accountType),
+			Type: sc.ToCompact(mdconstants.TypesAddress32),
 		},
 	}
 }
@@ -488,47 +410,40 @@ func transactionPaymentMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   queryInfoMethod,
 			Inputs: queryInfoInputsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesTransactionPaymentRuntimeDispatchInfo),
+			Docs:   sc.Sequence[sc.Str]{},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   queryFeeDetailsMethod,
 			Inputs: queryFeeDetailsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesTransactionPaymentFeeDetails),
+			Docs:   sc.Sequence[sc.Str]{},
 		},
 	}
 }
 
 func queryInfoInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	uncheckedExtrinsicType := getUncheckedExtrinsicType()
-	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "uxt",
-			Type: sc.ToCompact(uncheckedExtrinsicType),
+			Type: sc.ToCompact(mdconstants.UncheckedExtrinsic),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type),
+			Type: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 		},
 	}
 }
 
 func queryFeeDetailsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	uncheckedExtrinsicType := getUncheckedExtrinsicType()
-
-	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "uxt",
-			Type: sc.ToCompact(uncheckedExtrinsicType),
+			Type: sc.ToCompact(mdconstants.UncheckedExtrinsic),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type),
+			Type: sc.ToCompact(mdconstants.PrimitiveTypesU32),
 		},
 	}
 }
@@ -538,14 +453,14 @@ func transactionPaymentCallMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   queryCallInfoMethod,
 			Inputs: queryCallInfoInputsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesTransactionPaymentRuntimeDispatchInfo),
+			Docs:   sc.Sequence[sc.Str]{" Query information of a dispatch class, weight, and fee of a given encoded `Call`."},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   queryCallFeeDetailsMethod,
 			Inputs: queryCallFeeDetailsInputsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesTransactionPaymentFeeDetails),
+			Docs:   sc.Sequence[sc.Str]{" Query fee details of a given encoded `Call`."},
 		},
 	}
 }
@@ -575,11 +490,11 @@ func queryCallInfoInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "call",
-			Type: sc.ToCompact(callType),
+			Type: sc.ToCompact(callType.Id),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type),
+			Type: sc.ToCompact(u32Type.Id),
 		},
 	}
 }
@@ -587,34 +502,40 @@ func queryCallInfoInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 func queryCallFeeDetailsInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	u32Type := NewMetadataType(mdconstants.PrimitiveTypesU32, "U32", NewMetadataTypeDefinitionPrimitive(MetadataDefinitionPrimitiveU32))
 
-	// TODO: A MetadataType with 61 variants ?
 	callType := NewMetadataTypeWithPath(mdconstants.RuntimeCall, "RuntimeCall", sc.Sequence[sc.Str]{"kitchensink_runtime", "RuntimeCall"}, NewMetadataTypeDefinitionVariant(
 		sc.Sequence[MetadataDefinitionVariant]{
 			NewMetadataDefinitionVariant(
 				"System",
-				sc.Sequence[MetadataTypeDefinitionField]{},
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8),
+				},
 				DispatchErrorOther,
-				"DispatchError.Other"),
+				""),
 			NewMetadataDefinitionVariant(
-				"Utility",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				DispatchErrorCannotLookup,
-				"DispatchError.Cannotlookup"),
-			NewMetadataDefinitionVariant(
-				"Babe",
+				"Timestamp",
 				sc.Sequence[MetadataTypeDefinitionField]{},
 				DispatchErrorBadOrigin,
-				"DispatchError.BadOrigin"),
+				""),
+			NewMetadataDefinitionVariant(
+				"Balances",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				DispatchErrorBadOrigin,
+				""),
+			NewMetadataDefinitionVariant(
+				"Grandpa",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				DispatchErrorBadOrigin,
+				""),
 		}))
 
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "call",
-			Type: sc.ToCompact(callType),
+			Type: sc.ToCompact(callType.Id),
 		},
 		RuntimeApiMethodParamMetadata{
 			Name: "len",
-			Type: sc.ToCompact(u32Type),
+			Type: sc.ToCompact(u32Type.Id),
 		},
 	}
 }
@@ -624,14 +545,26 @@ func sessionKeysMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 		RuntimeApiMethodMetadata{
 			Name:   generateSessionKeysMethod,
 			Inputs: generateSessionKeysInputsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesSequenceU8),
+			Docs: sc.Sequence[sc.Str]{
+				" Generate a set of session keys with optionally using the given seed.",
+				" The keys should be stored within the keystore exposed via runtime",
+				" externalities.",
+				"",
+				" The seed needs to be a valid `utf8` string.",
+				"",
+				" Returns the concatenated SCALE encoded public keys.",
+			},
 		},
 		RuntimeApiMethodMetadata{
 			Name:   decodeSessionKeysMethod,
 			Inputs: decodeSessionKeysInputsMd(),
-			Output: sc.ToCompact(5),
-			Docs:   sc.Sequence[sc.Str]{}, // TODO: Add docs
+			Output: sc.ToCompact(mdconstants.TypesOptionTupleSequenceU8KeyTypeId),
+			Docs: sc.Sequence[sc.Str]{
+				" Decode the given public session keys.",
+				"",
+				" Returns the list of public raw public keys + key type.",
+			},
 		},
 	}
 }
@@ -658,7 +591,7 @@ func generateSessionKeysInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "seed",
-			Type: sc.ToCompact(seedType),
+			Type: sc.ToCompact(seedType.Id),
 		},
 	}
 }
@@ -669,42 +602,7 @@ func decodeSessionKeysInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "encoded",
-			Type: sc.ToCompact(encodedType),
+			Type: sc.ToCompact(encodedType.Id),
 		},
 	}
-}
-
-// A helper function since this type is often used
-func getUncheckedExtrinsicType() MetadataType {
-	return NewMetadataTypeWithParams(mdconstants.UncheckedExtrinsic, "UncheckedExtrinsic",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-		NewMetadataTypeDefinitionComposite(
-			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8),
-			}),
-		sc.Sequence[MetadataTypeParameter]{
-			NewMetadataTypeParameter(mdconstants.TypesMultiAddress, "Address"),
-			NewMetadataTypeParameter(mdconstants.RuntimeCall, "Call"), // TODO: Is this correct ?
-			NewMetadataTypeParameter(mdconstants.TypesMultiSignature, "Signature"),
-			NewMetadataTypeParameter(mdconstants.SignedExtra, "Extra"),
-		},
-	)
-}
-
-func getHeaderType() MetadataType {
-	return NewMetadataTypeWithParams(mdconstants.TypesOffChainWorker, "OffChainWorker",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "header", "Header"},
-		NewMetadataTypeDefinitionComposite(
-			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionField(mdconstants.TypesH256),       // parent_hash // TODO: Is this correct ?
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // number
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // state_root
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // extrinsics_root
-				NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8), // digest
-			}),
-		sc.Sequence[MetadataTypeParameter]{
-			NewMetadataTypeParameter(mdconstants.PrimitiveTypesU64, "Number"), // TODO: Is this correct ?
-			NewMetadataTypeParameter(mdconstants.TypesH256, "Hash"),
-		},
-	)
 }

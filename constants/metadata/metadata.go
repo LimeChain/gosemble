@@ -67,12 +67,16 @@ const (
 	TypesSequencePubKeys
 	TypesAuthorityId
 	TypesSr25519PubKey
+	TypesEd25519PubKey
 	TypesAuraSlot
 
 	TypesBalancesErrors
 
 	TypesTransactionPaymentReleases
 	TypesTransactionPaymentEvent
+	TypesTransactionPaymentRuntimeDispatchInfo
+	TypesTransactionPaymentInclusionFee
+	TypesTransactionPaymentFeeDetails
 
 	TypesEmptyTuple
 	TypesTupleU32U32
@@ -120,7 +124,7 @@ const (
 	CheckGenesis
 	CheckMortality
 	CheckNonce
-	CheckWeight
+	CheckWeightTypesTransactionSource
 	ChargeTransactionPayment
 
 	Runtime
@@ -128,7 +132,11 @@ const (
 	Header
 
 	TypesTransactionSource
-	TypesOffChainWorker
+	TypesValidTransaction
+	TypesInvalidTransaction
+	TypesUnknownTransaction
+	TypesTransactionValidityError
+	TypesResultValidityTransaction
 	TypesOpaqueMetadata
 	TypesResult
 	TypesEmptyResult
@@ -138,4 +146,20 @@ const (
 
 	TypesSequenceUncheckedExtrinsics
 	CheckInherentsResult
+
+	TypesBlock
+	TypeOption
+	TypeOptionInclusionFee
+	TypesOptionTupleSequenceU8KeyTypeId
+
+	TypesResultEmptyTuple
+
+	TypesGrandpaAppPublic
+	TypesTupleGrandaAppPublicU64
+	TypesSequenceTupleGrandpaAppPublic
+	TypesSequenceTupleSequenceU8KeyTypeId
+
+	TypesTupleSequenceU8KeyTypeId
+
+	TypesKeyTypeId
 )
