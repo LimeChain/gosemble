@@ -16,10 +16,10 @@ import (
 // TODO: make it generic
 // generic::SignedPayload<RuntimeCall, SignedExtra>;
 type SignedPayload struct {
+	AdditionalSigned
 	Call    Call
 	Extra   SignedExtra
 	hashing io.Hashing
-	AdditionalSigned
 }
 
 // NewSignedPayload creates a new `SignedPayload`.
