@@ -81,7 +81,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
+	xt, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -94,11 +94,11 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
 	// Decode parameters and dispatch
-	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
+	dispatchInfo := primitives.GetDispatchInfo(xt.Function())
 	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
 
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
-	res, err := extrinsic.Checked(xt).Apply(unsignedValidator, &dispatchInfo, encodedLen)
+	res, err := xt.Apply(unsignedValidator, &dispatchInfo, encodedLen)
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -146,13 +146,13 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	xt, err := extrinsic.Unchecked(uxt).Check(primitives.DefaultAccountIdLookup())
+	xt, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
 
 	log.Trace("dispatch_info")
-	dispatchInfo := primitives.GetDispatchInfo(xt.Function)
+	dispatchInfo := primitives.GetDispatchInfo(xt.Function())
 
 	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
@@ -160,7 +160,7 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 
 	log.Trace("validate")
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
-	return extrinsic.Checked(xt).Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
+	return xt.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
 func (m Module) OffchainWorker(header primitives.Header) {
