@@ -102,11 +102,16 @@ func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			targetValue,
+		),
 	).Return()
 
 	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
@@ -115,11 +120,16 @@ func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			targetValue,
+		),
 	)
 }
 
@@ -144,11 +154,16 @@ func Test_Call_TransferKeepAlive_transferKeepAlive_Success(t *testing.T) {
 
 	mockMutator.On("tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
+		newEventTransfer(
+			moduleId,
+			fromAddress.AsAddress32().FixedSequence,
+			toAddress.AsAddress32().FixedSequence,
+			targetValue,
+		),
 	).Return()
 
 	result := target.transferKeepAlive(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, targetValue)
@@ -157,7 +172,7 @@ func Test_Call_TransferKeepAlive_transferKeepAlive_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",

@@ -10,6 +10,10 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	errInvalidDispatchClass = "invalid DispatchClass type in CheckBlockLength()"
+)
+
 type CheckWeight struct {
 	systemModule system.Module
 }
@@ -32,22 +36,20 @@ func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, primitive
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (cw CheckWeight) Validate(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) Validate(_who primitives.Address32, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) PreDispatch(_who *primitives.Address32, _call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
-	_, err := cw.doPreDispatch(info, length)
-	return primitives.Pre{}, err
+func (cw CheckWeight) PreDispatch(_who primitives.Address32, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+	return primitives.Pre{}, cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PreDispatchUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
-	_, err := cw.doPreDispatch(info, length)
-	return err
+func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+	return cw.doPreDispatch(info, length)
 }
 
 func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
@@ -73,34 +75,34 @@ func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compac
 	// during validation, we skip block limit check. Since the `validate_transaction`
 	// call runs on an empty block anyway, by this we prevent `on_initialize` weight
 	// consumption from causing false negatives.
-	_, err = cw.checkExtrinsicWeight(info)
+	err = cw.checkExtrinsicWeight(info)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
 
-	return primitives.DefaultValidTransaction(), err
+	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	nextLength, err := cw.checkBlockLength(info, length)
 	if err != nil {
-		return primitives.ValidTransaction{}, err
+		return err
 	}
 
 	nextWeight, err := cw.checkBlockWeight(info)
 	if err != nil {
-		return primitives.ValidTransaction{}, err
+		return err
 	}
 
-	_, err = cw.checkExtrinsicWeight(info)
+	err = cw.checkExtrinsicWeight(info)
 	if err != nil {
-		return primitives.ValidTransaction{}, err
+		return err
 	}
 
 	cw.systemModule.StorageAllExtrinsicsLen().Put(nextLength)
 	cw.systemModule.StorageBlockWeight().Put(nextWeight)
 
-	return primitives.ValidTransaction{}, err
+	return nil
 }
 
 // Checks if the current extrinsic can fit into the block with respect to block length limits.
@@ -121,7 +123,7 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 	} else if info.Class.Is(primitives.DispatchClassMandatory) {
 		maxLimit = lengthLimit.Max.Mandatory
 	} else {
-		log.Critical("invalid DispatchClass type in CheckBlockLength()")
+		log.Critical(errInvalidDispatchClass)
 	}
 
 	if nextLen > maxLimit {
@@ -142,16 +144,16 @@ func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitive
 
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
-func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) (sc.Empty, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primitives.TransactionValidityError {
 	max := cw.systemModule.BlockWeights().Get(info.Class).MaxExtrinsic
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
-			return sc.Empty{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
-	return sc.Empty{}, nil
+	return nil
 }
 
 func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
@@ -176,9 +178,6 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 		if consumedPerClass.AnyGt(max) {
 			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
-	} else {
-		// There is no `max_total` limit (`None`),
-		// or we are below the limit.
 	}
 
 	// In cases total block weight is exceeded, we need to fall back
@@ -189,9 +188,6 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 			if consumedPerClass.AnyGt(reserved) {
 				return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 			}
-		} else {
-			// There is either no limit in reserved pool (`None`),
-			// or we are below the limit.
 		}
 	}
 

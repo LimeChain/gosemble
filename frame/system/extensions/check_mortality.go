@@ -44,7 +44,7 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primit
 	return sc.NewVaryingData(primitives.NewH256(blockHash.FixedSequence...)), nil
 }
 
-func (cm CheckMortality) Validate(_who *primitives.Address32, _call *primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cm CheckMortality) Validate(_who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	currentBlockNum := cm.systemModule.StorageBlockNumber().Get() // TODO: per module implementation
 
 	validTill := cm.era.Death(currentBlockNum)
@@ -55,16 +55,16 @@ func (cm CheckMortality) Validate(_who *primitives.Address32, _call *primitives.
 	return ok, nil
 }
 
-func (cm CheckMortality) ValidateUnsigned(_call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cm CheckMortality) PreDispatch(who *primitives.Address32, call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cm CheckMortality) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := cm.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (cm CheckMortality) PreDispatchUnsigned(call *primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
 	_, err := cm.ValidateUnsigned(call, info, length)
 	return err
 }

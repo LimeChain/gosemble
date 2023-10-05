@@ -24,7 +24,7 @@ func (e SignedExtra) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func (e *SignedExtra) Decode(buffer *bytes.Buffer) {
+func (e SignedExtra) Decode(buffer *bytes.Buffer) {
 	for _, extra := range e.extras {
 		extra.Decode(buffer)
 	}
@@ -48,7 +48,7 @@ func (e SignedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityEr
 	return result, nil
 }
 
-func (e SignedExtra) Validate(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e SignedExtra) Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -62,7 +62,7 @@ func (e SignedExtra) Validate(who *Address32, call *Call, info *DispatchInfo, le
 	return valid, nil
 }
 
-func (e SignedExtra) ValidateUnsigned(call *Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e SignedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -76,7 +76,7 @@ func (e SignedExtra) ValidateUnsigned(call *Call, info *DispatchInfo, length sc.
 	return valid, nil
 }
 
-func (e SignedExtra) PreDispatch(who *Address32, call *Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
+func (e SignedExtra) PreDispatch(who Address32, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
 	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {
@@ -91,7 +91,7 @@ func (e SignedExtra) PreDispatch(who *Address32, call *Call, info *DispatchInfo,
 	return pre, nil
 }
 
-func (e SignedExtra) PreDispatchUnsigned(call *Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e SignedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
 	for _, extra := range e.extras {
 		err := extra.PreDispatchUnsigned(call, info, length)
 		if err != nil {

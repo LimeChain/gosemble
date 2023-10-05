@@ -12,15 +12,15 @@ type Checked types.CheckedExtrinsic
 func (xt Checked) Validate(validator UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	if xt.Signed.HasValue {
 		id := xt.Signed.Value
-		return xt.Extra.Validate(&id, &xt.Function, info, length)
+		return xt.Extra.Validate(id, xt.Function, info, length)
 	}
 
-	valid, err := xt.Extra.ValidateUnsigned(&xt.Function, info, length)
+	valid, err := xt.Extra.ValidateUnsigned(xt.Function, info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
 
-	unsignedValidation, err := validator.ValidateUnsigned(source, &xt.Function)
+	unsignedValidation, err := validator.ValidateUnsigned(source, xt.Function)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
@@ -36,7 +36,7 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 
 	if xt.Signed.HasValue {
 		id := xt.Signed.Value
-		pre, err := xt.Extra.PreDispatch(&id, &xt.Function, info, length)
+		pre, err := xt.Extra.PreDispatch(id, xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
@@ -50,12 +50,12 @@ func (xt Checked) Apply(validator UnsignedValidator, info *primitives.DispatchIn
 		//
 		// If you ever override this function, you need to make sure to always
 		// perform the same validation as in `ValidateUnsigned`.
-		err := xt.Extra.PreDispatchUnsigned(&xt.Function, info, length)
+		err := xt.Extra.PreDispatchUnsigned(xt.Function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 
-		_, err = validator.PreDispatch(&xt.Function)
+		_, err = validator.PreDispatch(xt.Function)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}

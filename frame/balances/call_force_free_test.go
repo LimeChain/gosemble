@@ -29,10 +29,11 @@ var (
 		Read:  1,
 		Write: 2,
 	}
-	baseWeight    = primitives.WeightFromParts(124, 123)
-	targetAddress = primitives.NewMultiAddress32(constants.ZeroAddress)
-	targetValue   = sc.NewU128(5)
-	mockStoredMap *mocks.StoredMap
+	baseWeight                    = primitives.WeightFromParts(124, 123)
+	targetAddress                 = primitives.NewMultiAddress32(constants.ZeroAddress)
+	targetValue                   = sc.NewU128(5)
+	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	mockStoredMap                 *mocks.StoredMap
 )
 
 func Test_Call_ForceFree_new(t *testing.T) {
@@ -141,7 +142,7 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
 	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")).
+		mockTypeMutateAccountDataBool).
 		Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -152,7 +153,7 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
@@ -184,7 +185,7 @@ func Test_Call_ForceFree_forceFree_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -195,7 +196,7 @@ func Test_Call_ForceFree_forceFree_Success(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
@@ -233,7 +234,7 @@ func Test_Call_ForceFree_force_Success(t *testing.T) {
 	mockMutator.On(
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mutateResult)
 	mockStoredMap.On("DepositEvent", event)
 
@@ -243,7 +244,8 @@ func Test_Call_ForceFree_force_Success(t *testing.T) {
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
 	mockMutator.AssertCalled(t, "tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"))
+		mockTypeMutateAccountDataBool,
+	)
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
 
@@ -279,7 +281,7 @@ func Test_Call_ForceFree_force_Mutate_Fails(t *testing.T) {
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
 	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	).Return(mutateResult)
 
 	result := target.force(targetAddress.AsAddress32(), targetValue)
@@ -289,7 +291,7 @@ func Test_Call_ForceFree_force_Mutate_Fails(t *testing.T) {
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddress.AsAddress32(),
-		mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]"),
+		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
