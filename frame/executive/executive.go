@@ -76,7 +76,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -88,6 +88,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
+	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
@@ -141,10 +142,11 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
+	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
