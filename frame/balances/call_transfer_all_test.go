@@ -117,7 +117,10 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	).
 		Return()
 
-	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), sc.NewVaryingData(toAddress, sc.Bool(true)))
+	result := target.Dispatch(
+		primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
+		sc.NewVaryingData(toAddress, sc.Bool(true)),
+	)
 
 	assert.Equal(t, expect, result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAddress32().FixedSequence)
@@ -138,7 +141,7 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	)
 }
 
-func Test_Call_TransferAll_Dispatch_Fails(t *testing.T) {
+func Test_Call_TransferAll_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallTransferAll()
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -147,7 +150,10 @@ func Test_Call_TransferAll_Dispatch_Fails(t *testing.T) {
 		},
 	}
 
-	result := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(fromAddress, sc.Bool(true)))
+	result := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.Bool(true)),
+	)
 
 	assert.Equal(t, expect, result)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
@@ -156,77 +162,35 @@ func Test_Call_TransferAll_Dispatch_Fails(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_TransferAll_transferAll_Success(t *testing.T) {
+func Test_Call_TransferAll_Dispatch_CannotLookup(t *testing.T) {
 	target := setupCallTransferAll()
-
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
 	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
 	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
-	mockMutator.On(
-		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	).Return(sc.Result[sc.Encodable]{})
-	mockStoredMap.On(
-		"DepositEvent",
-		newEventTransfer(
-			moduleId,
-			fromAddress.AsAddress32().FixedSequence,
-			toAddress.AsAddress32().FixedSequence,
-			accountInfo.Data.Free.Sub(sc.NewU128(1)),
-		),
-	).Return()
 
-	result := target.transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, true)
-
-	assert.Equal(t, sc.VaryingData(nil), result)
-	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAddress32().FixedSequence)
-	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAddress32())
-	mockMutator.AssertCalled(t,
-		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
+	result := target.Dispatch(
+		primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
+		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.Bool(true)),
 	)
-	mockStoredMap.AssertCalled(t,
-		"DepositEvent",
-		newEventTransfer(
-			moduleId,
-			fromAddress.AsAddress32().FixedSequence,
-			toAddress.AsAddress32().FixedSequence,
-			accountInfo.Data.Free.Sub(sc.NewU128(1)),
-		),
-	)
-}
-
-func Test_Call_TransferAll_transferAll_InvalidOrigin(t *testing.T) {
-	target := setupCallTransferAll()
-	expect := primitives.NewDispatchErrorBadOrigin()
-
-	result := target.transferAll(primitives.NewRawOriginRoot(), toAddress, true)
 
 	assert.Equal(t, expect, result)
-	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "CanDecProviders", mock.Anything)
-	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
-}
-
-func Test_Call_TransferAll_transferAll_InvalidLookup(t *testing.T) {
-	target := setupCallTransferAll()
-	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
-
-	result := target.
-		transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), primitives.NewMultiAddress20(primitives.Address20{}), true)
-
-	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAddress32().FixedSequence)
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAddress32())
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_TransferAll_transferAll_AllowDeath(t *testing.T) {
+func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 	target := setupCallTransferAll()
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: false,
+		Ok:       primitives.PostDispatchInfo{},
+	}
 
 	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
 	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
@@ -245,9 +209,11 @@ func Test_Call_TransferAll_transferAll_AllowDeath(t *testing.T) {
 		),
 	).Return()
 
-	result := target.transferAll(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, false)
+	result := target.Dispatch(
+		primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
+		sc.NewVaryingData(toAddress, sc.Bool(false)))
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Equal(t, expect, result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAddress32().FixedSequence)
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAddress32())
 	mockMutator.AssertCalled(t,

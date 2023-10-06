@@ -128,7 +128,7 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 	)
 }
 
-func Test_Call_ForceTransfer_Dispatch_Fails(t *testing.T) {
+func Test_Call_ForceTransfer_Dispatch_InvalidBadOrigin(t *testing.T) {
 	target := setupCallForceTransfer()
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -137,70 +137,49 @@ func Test_Call_ForceTransfer_Dispatch_Fails(t *testing.T) {
 		},
 	}
 
-	result := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
+	result := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceTransfer_forceTransfer_Success(t *testing.T) {
+func Test_Call_ForceTransfer_Dispatch_CannotLookup_Source(t *testing.T) {
 	target := setupCallForceTransfer()
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
 
-	mockMutator.On(
-		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	).
-		Return(sc.Result[sc.Encodable]{})
-	mockStoredMap.On(
-		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
-	).
-		Return()
-
-	result := target.forceTransfer(primitives.NewRawOriginRoot(), fromAddress, toAddress, targetValue)
-
-	assert.Equal(t, sc.VaryingData(nil), result)
-	mockMutator.AssertCalled(t,
-		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
+	result := target.Dispatch(
+		primitives.NewRawOriginRoot(),
+		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), toAddress, sc.ToCompact(targetValue)),
 	)
-	mockStoredMap.AssertCalled(t,
-		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
-	)
-
-}
-
-func Test_Call_ForceTransfer_forceTransfer_InvalidOrigin(t *testing.T) {
-	target := setupCallForceTransfer()
-	expect := primitives.NewDispatchErrorBadOrigin()
-
-	result := target.forceTransfer(primitives.NewRawOriginNone(), fromAddress, toAddress, targetValue)
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceTransfer_forceTransfer_From_Lookup(t *testing.T) {
+func Test_Call_ForceTransfer_Dispatch_CannotLookup_Dest(t *testing.T) {
 	target := setupCallForceTransfer()
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
 
-	result := target.forceTransfer(primitives.NewRawOriginRoot(), primitives.NewMultiAddress20(primitives.Address20{}), toAddress, targetValue)
+	result := target.Dispatch(
+		primitives.NewRawOriginRoot(),
+		sc.NewVaryingData(fromAddress, primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
+	)
 
-	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
-	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
-}
-
-func Test_Call_ForceTransfer_forceTransfer_Dest_Lookup(t *testing.T) {
-	target := setupCallForceTransfer()
-
-	result := target.forceTransfer(primitives.NewRawOriginRoot(), fromAddress, primitives.NewMultiAddress20(primitives.Address20{}), targetValue)
-
-	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
+	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
