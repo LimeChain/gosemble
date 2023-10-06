@@ -6,6 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -102,6 +103,27 @@ func Test_HashStorageMap_TakeBytes(t *testing.T) {
 	mockHashing.AssertCalled(t, "Twox64", keyValue.Bytes())
 	mockStorage.AssertCalled(t, "Get", concatHashStorageMapKeyKey)
 	mockStorage.AssertCalled(t, "Clear", concatHashStorageMapKeyKey)
+}
+
+func Test_HashStorageMap_TakeBytes_Nil(t *testing.T) {
+	target := setupHashStorageMap()
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Clear", concatHashStorageMapKeyKey)
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.TakeBytes(keyValue)
+
+	assert.Equal(t, []byte(nil), result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockHashing.AssertNumberOfCalls(t, "Twox64", 1)
+	mockHashing.AssertCalled(t, "Twox64", keyValue.Bytes())
+	mockStorage.AssertCalled(t, "Get", concatHashStorageMapKeyKey)
+	mockStorage.AssertNotCalled(t, "Clear", mock.Anything)
 }
 
 func Test_HashStorageMap_Remove(t *testing.T) {

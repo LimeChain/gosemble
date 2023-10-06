@@ -19,10 +19,6 @@ func Test_Module_GetIndex(t *testing.T) {
 	assert.Equal(t, sc.U8(moduleId), setupModule().GetIndex())
 }
 
-func Test_Module_name(t *testing.T) {
-	assert.Equal(t, name, setupModule().name())
-}
-
 func Test_Module_Functions(t *testing.T) {
 	target := setupModule()
 	functions := target.Functions()

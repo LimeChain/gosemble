@@ -46,11 +46,11 @@ type Module interface {
 	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
-	BlockWeights() types.BlockWeights
-	BlockLength() types.BlockLength
-	Version() types.RuntimeVersion
-	DbWeight() types.RuntimeDbWeight
 	BlockHashCount() sc.U64
+	BlockLength() types.BlockLength
+	BlockWeights() types.BlockWeights
+	DbWeight() types.RuntimeDbWeight
+	Version() types.RuntimeVersion
 
 	StorageDigest() types.Digest
 
@@ -121,6 +121,82 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 
 func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+}
+
+func (m module) BlockHashCount() sc.U64 {
+	return m.constants.BlockHashCount
+}
+
+func (m module) BlockLength() types.BlockLength {
+	return m.constants.BlockLength
+}
+
+func (m module) BlockWeights() types.BlockWeights {
+	return m.constants.BlockWeights
+}
+
+func (m module) DbWeight() types.RuntimeDbWeight {
+	return m.constants.DbWeight
+}
+
+func (m module) Version() types.RuntimeVersion {
+	return m.constants.Version
+}
+
+func (m module) StorageDigest() types.Digest {
+	return m.storage.Digest.Get()
+}
+
+func (m module) StorageBlockWeight() primitives.ConsumedWeight {
+	return m.storage.BlockWeight.Get()
+}
+
+func (m module) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
+	m.storage.BlockWeight.Put(weight)
+}
+
+func (m module) StorageBlockHash(key sc.U64) types.Blake2bHash {
+	return m.storage.BlockHash.Get(key)
+}
+
+func (m module) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
+	m.storage.BlockHash.Put(key, value)
+}
+
+func (m module) StorageBlockHashExists(key sc.U64) bool {
+	return m.storage.BlockHash.Exists(key)
+}
+
+func (m module) StorageBlockNumber() sc.U64 {
+	return m.storage.BlockNumber.Get()
+}
+
+func (m module) StorageBlockNumberSet(blockNumber sc.U64) {
+	m.storage.BlockNumber.Put(blockNumber)
+}
+
+func (m module) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
+	return m.storage.LastRuntimeUpgrade.Get()
+}
+
+func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
+	m.storage.LastRuntimeUpgrade.Put(lrui)
+}
+
+func (m module) StorageAccount(key types.PublicKey) types.AccountInfo {
+	return m.storage.Account.Get(key)
+}
+
+func (m module) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
+	m.storage.Account.Put(key, value)
+}
+
+func (m module) StorageAllExtrinsicsLen() sc.U32 {
+	return m.storage.AllExtrinsicsLen.Get()
+}
+
+func (m module) StorageAllExtrinsicsLenSet(value sc.U32) {
+	m.storage.AllExtrinsicsLen.Put(value)
 }
 
 func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {
@@ -316,6 +392,46 @@ func (m module) incProviders(who primitives.Address32) primitives.IncRefStatus {
 	return result.Value.(primitives.IncRefStatus)
 }
 
+func (m module) decrementProviders(who primitives.Address32, maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+	if maybeAccount.HasValue {
+		account := &maybeAccount.Value
+
+		if account.Providers == 0 {
+			log.Warn("Logic error: Unexpected underflow in reducing provider")
+			account.Providers = 1
+		}
+
+		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
+			m.onKilledAccount(who)
+			// No providers left (and no consumers) and no sufficients. Account dead.
+			return sc.Result[sc.Encodable]{
+				HasError: false,
+				Value:    primitives.DecRefStatusReaped,
+			}
+		}
+		if account.Providers == 1 && account.Consumers > 0 {
+			// Cannot remove last provider if there are consumers.
+			return sc.Result[sc.Encodable]{
+				HasError: true,
+				Value:    primitives.NewDispatchErrorConsumerRemaining(),
+			}
+		}
+		// Account will continue to exist as there is either > 1 provider or
+		// > 0 sufficients.
+		account.Providers = account.Providers - 1
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.DecRefStatusExists,
+		}
+	} else {
+		log.Warn("Logic error: Account already dead when reducing provider")
+		return sc.Result[sc.Encodable]{
+			HasError: false,
+			Value:    primitives.DecRefStatusReaped,
+		}
+	}
+}
+
 func (m module) incrementProviders(who primitives.Address32, account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 	if account.Providers == 0 && account.Sufficients == 0 {
 		account.Providers = 1
@@ -337,7 +453,7 @@ func (m module) incrementProviders(who primitives.Address32, account *primitives
 
 func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
 	result := m.storage.Account.TryMutateExists(who.FixedSequence, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
-		return decrementProviders(maybeAccount)
+		return m.decrementProviders(who, maybeAccount)
 	})
 
 	if result.HasError {
@@ -753,121 +869,6 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 			sc.BytesToSequenceU8(m.Version().Bytes()),
 			"Get the chain's current version.",
 		),
-	}
-}
-
-func (m module) BlockWeights() types.BlockWeights {
-	return m.constants.BlockWeights
-}
-
-func (m module) BlockLength() types.BlockLength {
-	return m.constants.BlockLength
-}
-
-func (m module) Version() types.RuntimeVersion {
-	return m.constants.Version
-}
-
-func (m module) BlockHashCount() sc.U64 {
-	return m.constants.BlockHashCount
-}
-
-func (m module) DbWeight() types.RuntimeDbWeight {
-	return m.constants.DbWeight
-}
-
-func (m module) StorageDigest() types.Digest {
-	return m.storage.Digest.Get()
-}
-
-func (m module) StorageBlockWeight() primitives.ConsumedWeight {
-	return m.storage.BlockWeight.Get()
-}
-
-func (m module) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
-	m.storage.BlockWeight.Put(weight)
-}
-
-func (m module) StorageBlockHash(key sc.U64) types.Blake2bHash {
-	return m.storage.BlockHash.Get(key)
-}
-
-func (m module) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
-	m.storage.BlockHash.Put(key, value)
-}
-
-func (m module) StorageBlockHashExists(key sc.U64) bool {
-	return m.storage.BlockHash.Exists(key)
-}
-
-func (m module) StorageBlockNumber() sc.U64 {
-	return m.storage.BlockNumber.Get()
-}
-
-func (m module) StorageBlockNumberSet(blockNumber sc.U64) {
-	m.storage.BlockNumber.Put(blockNumber)
-}
-
-func (m module) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
-	return m.storage.LastRuntimeUpgrade.Get()
-}
-
-func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
-	m.storage.LastRuntimeUpgrade.Put(lrui)
-}
-
-func (m module) StorageAccount(key types.PublicKey) types.AccountInfo {
-	return m.storage.Account.Get(key)
-}
-
-func (m module) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
-	m.storage.Account.Put(key, value)
-}
-
-func (m module) StorageAllExtrinsicsLen() sc.U32 {
-	return m.storage.AllExtrinsicsLen.Get()
-}
-
-func (m module) StorageAllExtrinsicsLenSet(value sc.U32) {
-	m.storage.AllExtrinsicsLen.Put(value)
-}
-
-func decrementProviders(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
-	if maybeAccount.HasValue {
-		account := &maybeAccount.Value
-
-		if account.Providers == 0 {
-			log.Warn("Logic error: Unexpected underflow in reducing provider")
-			account.Providers = 1
-		}
-
-		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
-			// No providers left (and no consumers) and no sufficients. Account dead.
-			return sc.Result[sc.Encodable]{
-				HasError: false,
-				Value:    primitives.DecRefStatusReaped,
-			}
-		}
-		if account.Providers == 1 && account.Consumers > 0 {
-			// Cannot remove last provider if there are consumers.
-			return sc.Result[sc.Encodable]{
-				HasError: true,
-				Value:    primitives.NewDispatchErrorConsumerRemaining(),
-			}
-		}
-		// Account will continue to exist as there is either > 1 provider or
-		// > 0 sufficients.
-		account.Providers = account.Providers - 1
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.DecRefStatusExists,
-		}
-	} else {
-		log.Warn("Logic error: Account already dead when reducing provider")
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.DecRefStatusReaped,
-		}
 	}
 }
 

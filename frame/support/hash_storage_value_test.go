@@ -17,11 +17,67 @@ func Test_HashStorageValue_Get(t *testing.T) {
 
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
+	mockStorage.On("Get", concatHashStorageKey).Return(
+		sc.NewOption[sc.Sequence[sc.U8]](
+			sc.BytesToSequenceU8(storageValue.Bytes()),
+		))
+
+	result := target.Get()
+
+	assert.Equal(t, storageValue, result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
+}
+
+func Test_HashStorageValue_Get_Nil(t *testing.T) {
+	target := setupHashStorageValue()
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
 	mockStorage.On("Get", concatHashStorageKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
 
 	result := target.Get()
 
 	assert.Equal(t, sc.U32(0), result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
+}
+
+func Test_HashStorageValue_Get_OnEmpty(t *testing.T) {
+	target := setupHashStorageValue()
+	target.defaultValue = &defaultValue
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockStorage.On("Get", concatHashStorageKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.Get()
+
+	assert.Equal(t, defaultValue, result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
+}
+
+func Test_HashStorageValue_Get_Default_HasStorageValue(t *testing.T) {
+	target := setupHashStorageValue()
+	target.defaultValue = &defaultValue
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockStorage.On("Get", concatHashStorageKey).Return(
+		sc.NewOption[sc.Sequence[sc.U8]](
+			sc.BytesToSequenceU8(storageValue.Bytes()),
+		))
+
+	result := target.Get()
+
+	assert.Equal(t, storageValue, result)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)
@@ -129,6 +185,23 @@ func Test_HashStorageValue_Take(t *testing.T) {
 	mockStorage.AssertCalled(t, "Clear", concatHashStorageKey)
 }
 
+func Test_HashStorageValue_Take_Nil(t *testing.T) {
+	target := setupHashStorageValue()
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Get", concatHashStorageKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.Take()
+
+	assert.Equal(t, sc.U32(0), result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
+}
+
 func Test_HashStorageValue_TakeBytes(t *testing.T) {
 	target := setupHashStorageValue()
 
@@ -150,7 +223,23 @@ func Test_HashStorageValue_TakeBytes(t *testing.T) {
 	mockHashing.AssertCalled(t, "Twox128", name)
 	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
 	mockStorage.AssertCalled(t, "Clear", concatHashStorageKey)
+}
 
+func Test_HashStorageValue_TakeBytes_Nil(t *testing.T) {
+	target := setupHashStorageValue()
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Get", concatHashStorageKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.TakeBytes()
+
+	assert.Equal(t, []byte(nil), result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Get", concatHashStorageKey)
 }
 
 func Test_HashStorageValue_DecodeLen(t *testing.T) {
@@ -166,6 +255,25 @@ func Test_HashStorageValue_DecodeLen(t *testing.T) {
 	result := target.DecodeLen()
 
 	assert.Equal(t, sc.NewOption[sc.U64](sc.U64(0)), result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockStorage.AssertCalled(t, "Read", concatHashStorageKey, compactBytes[:], offset)
+}
+
+func Test_HashStorageValue_DecodeLen_Nil(t *testing.T) {
+	target := setupHashStorageValue()
+	compactBytes := [5]byte{}
+	offset := int32(0)
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Read", concatHashStorageKey, compactBytes[:], offset).Return(sc.NewOption[sc.U32](nil))
+
+	result := target.DecodeLen()
+
+	assert.Equal(t, sc.NewOption[sc.U64](nil), result)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)

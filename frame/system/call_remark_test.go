@@ -160,25 +160,6 @@ func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-func Test_Call_Remark_remark_Success(t *testing.T) {
-	result := remark(primitives.NewRawOriginRoot())
-
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
-}
-
-func Test_Call_Remark_remark_Fail(t *testing.T) {
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
-
-	result := remark(primitives.NewRawOriginNone())
-
-	assert.Equal(t, expected, result)
-}
-
 func Test_EnsureSignedOrRoot_Root(t *testing.T) {
 	r, err := EnsureSignedOrRoot(primitives.NewRawOriginRoot())
 

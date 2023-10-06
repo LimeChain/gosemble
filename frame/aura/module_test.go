@@ -138,6 +138,24 @@ func Test_Aura_Functions(t *testing.T) {
 	assert.Equal(t, map[sc.U8]types.Call{}, module.Functions())
 }
 
+func Test_Module_PreDispatch(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	result, err := module.PreDispatch(new(mocks.Call))
+
+	assert.Nil(t, err)
+	assert.Equal(t, sc.Empty{}, result)
+}
+
+func Test_Module_ValidateUnsigned(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	result, err := module.ValidateUnsigned(types.NewTransactionSourceLocal(), new(mocks.Call))
+
+	assert.Equal(t, types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, types.ValidTransaction{}, result)
+}
+
 func Test_Aura_KeyType(t *testing.T) {
 	setup(timestampMinimumPeriod)
 

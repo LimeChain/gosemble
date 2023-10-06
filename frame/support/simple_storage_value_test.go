@@ -8,7 +8,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	defaultValue = sc.U32(1)
+	storageValue = sc.U32(5)
+	decodeFunc   = sc.DecodeU32
+	key          = []byte("key")
+
+	mockStorage *mocks.IoStorage
+)
+
 func Test_SimpleStorageValue_Get(t *testing.T) {
+	target := setupSimpleStorageValue()
+
+	mockStorage.On("Get", key).Return(sc.NewOption[sc.Sequence[sc.U8]](sc.BytesToSequenceU8(storageValue.Bytes())))
+
+	result := target.Get()
+
+	assert.Equal(t, storageValue, result)
+	mockStorage.AssertCalled(t, "Get", key)
+}
+
+func Test_SimpleStorageValue_Get_Nil(t *testing.T) {
 	target := setupSimpleStorageValue()
 
 	mockStorage.On("Get", key).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
@@ -16,6 +36,33 @@ func Test_SimpleStorageValue_Get(t *testing.T) {
 	result := target.Get()
 
 	assert.Equal(t, sc.U32(0), result)
+	mockStorage.AssertCalled(t, "Get", key)
+}
+
+func Test_SimpleStorageValue_Get_OnEmpty(t *testing.T) {
+	target := setupSimpleStorageValue()
+	target.defaultValue = &defaultValue
+
+	mockStorage.On("Get", key).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.Get()
+
+	assert.Equal(t, defaultValue, result)
+	mockStorage.AssertCalled(t, "Get", key)
+}
+
+func Test_SimpleStorageValue_Get_Default_HasStorageValue(t *testing.T) {
+	target := setupSimpleStorageValue()
+	target.defaultValue = &defaultValue
+
+	mockStorage.On("Get", key).Return(
+		sc.NewOption[sc.Sequence[sc.U8]](
+			sc.BytesToSequenceU8(storageValue.Bytes()),
+		))
+
+	result := target.Get()
+
+	assert.Equal(t, storageValue, result)
 	mockStorage.AssertCalled(t, "Get", key)
 }
 
@@ -89,6 +136,17 @@ func Test_SimpleStorageValue_Take(t *testing.T) {
 	mockStorage.AssertCalled(t, "Clear", key)
 }
 
+func Test_SimpleStorageValue_Take_Nil(t *testing.T) {
+	target := setupSimpleStorageValue()
+
+	mockStorage.On("Get", key).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.Take()
+
+	assert.Equal(t, sc.U32(0), result)
+	mockStorage.AssertCalled(t, "Get", key)
+}
+
 func Test_SimpleStorageValue_TakeBytes(t *testing.T) {
 	target := setupSimpleStorageValue()
 
@@ -104,7 +162,17 @@ func Test_SimpleStorageValue_TakeBytes(t *testing.T) {
 	assert.Equal(t, storageValue.Bytes(), result)
 	mockStorage.AssertCalled(t, "Get", key)
 	mockStorage.AssertCalled(t, "Clear", key)
+}
 
+func Test_SimpleStorageValue_TakeBytes_Nil(t *testing.T) {
+	target := setupSimpleStorageValue()
+
+	mockStorage.On("Get", key).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+
+	result := target.TakeBytes()
+
+	assert.Equal(t, []byte(nil), result)
+	mockStorage.AssertCalled(t, "Get", key)
 }
 
 func Test_SimpleStorageValue_DecodeLen(t *testing.T) {
@@ -117,6 +185,19 @@ func Test_SimpleStorageValue_DecodeLen(t *testing.T) {
 	result := target.DecodeLen()
 
 	assert.Equal(t, sc.NewOption[sc.U64](sc.U64(0)), result)
+	mockStorage.AssertCalled(t, "Read", key, compactBytes[:], offset)
+}
+
+func Test_SimpleStorageValue_DecodeLen_Nil(t *testing.T) {
+	target := setupSimpleStorageValue()
+	compactBytes := [5]byte{}
+	offset := int32(0)
+
+	mockStorage.On("Read", key, compactBytes[:], offset).Return(sc.NewOption[sc.U32](nil))
+
+	result := target.DecodeLen()
+
+	assert.Equal(t, sc.NewOption[sc.U64](nil), result)
 	mockStorage.AssertCalled(t, "Read", key, compactBytes[:], offset)
 }
 

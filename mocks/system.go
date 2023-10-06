@@ -197,7 +197,7 @@ func (m *SystemModule) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) 
 func (m *SystemModule) StorageBlockHashExists(key sc.U64) bool {
 	args := m.Called(key)
 
-	return args[0].(bool)
+	return args.Get(0).(bool)
 }
 
 func (m *SystemModule) StorageBlockNumber() sc.U64 {

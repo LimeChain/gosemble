@@ -19,58 +19,58 @@ func (m *Call) Encode(buffer *bytes.Buffer) {
 func (m *Call) Bytes() []byte {
 	args := m.Called()
 
-	return args[0].([]byte)
+	return args.Get(0).([]byte)
 }
 
 func (m *Call) ModuleIndex() sc.U8 {
 	args := m.Called()
 
-	return args[0].(sc.U8)
+	return args.Get(0).(sc.U8)
 }
 
 func (m *Call) FunctionIndex() sc.U8 {
 	args := m.Called()
 
-	return args[0].(sc.U8)
+	return args.Get(0).(sc.U8)
 }
 
 func (m *Call) Args() sc.VaryingData {
 	args := m.Called()
 
-	return args[0].(sc.VaryingData)
+	return args.Get(0).(sc.VaryingData)
 }
 
 func (m *Call) Dispatch(origin types.RuntimeOrigin, a sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	args := m.Called(origin, a)
 
-	return args[0].(types.DispatchResultWithPostInfo[types.PostDispatchInfo])
+	return args.Get(0).(types.DispatchResultWithPostInfo[types.PostDispatchInfo])
 }
 
 func (m *Call) BaseWeight() types.Weight {
 	args := m.Called()
 
-	return args[0].(types.Weight)
+	return args.Get(0).(types.Weight)
 }
 
 func (m *Call) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	args := m.Called(baseWeight)
 
-	return args[0].(types.DispatchClass)
+	return args.Get(0).(types.DispatchClass)
 }
 
 func (m *Call) PaysFee(baseWeight types.Weight) types.Pays {
 	args := m.Called(baseWeight)
 
-	return args[0].(types.Pays)
+	return args.Get(0).(types.Pays)
 }
 func (m *Call) WeighData(baseWeight types.Weight) types.Weight {
 	args := m.Called(baseWeight)
 
-	return args[0].(types.Weight)
+	return args.Get(0).(types.Weight)
 }
 
 func (m *Call) DecodeArgs(buffer *bytes.Buffer) types.Call {
 	args := m.Called(buffer)
 
-	return args[0].(types.Call)
+	return args.Get(0).(types.Call)
 }
