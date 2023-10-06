@@ -243,10 +243,10 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 	extrinsicV15 := primitives.MetadataExtrinsicV15{
 		Version:          types.ExtrinsicFormatVersion,
-		Address:          sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address")),
-		Call:             sc.ToCompact(primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call")),
-		Signature:        sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature")),
-		Extra:            sc.ToCompact(primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra")),
+		Address:          sc.ToCompact(metadata.TypesMultiAddress),
+		Call:             runtimeCall.Id,
+		Signature:        sc.ToCompact(metadata.TypesMultiSignature),
+		Extra:            sc.ToCompact(metadata.SignedExtra),
 		SignedExtensions: signedExtensions,
 	}
 

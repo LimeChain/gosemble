@@ -169,4 +169,6 @@ const (
 
 	TypesBTreeMap
 	TypesSequenceTuple8U8SequenceU8
+
+	TypesOptionSequenceU8
 )

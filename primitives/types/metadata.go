@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"strconv"
 )
 
@@ -23,61 +22,66 @@ func (m Metadata15) Bytes() []byte {
 }
 
 func (m Metadata15) Encode(buffer *bytes.Buffer) {
+	MetadataReserved.Encode(buffer)
+	MetadataVersion15.Encode(buffer)
 	m.Data.Encode(buffer)
 }
 
-type Metadata struct {
-	Version sc.U8
-	DataV14 RuntimeMetadataV14
-	DataV15 RuntimeMetadataV15
-}
+//type Metadata struct {
+//	Version sc.U8
+//	DataV14 RuntimeMetadataV14
+//	DataV15 RuntimeMetadataV15
+//}
 
-func NewMetadataV14(data RuntimeMetadataV14) Metadata {
-	return Metadata{Version: MetadataVersion14, DataV14: data}
-}
+//func NewMetadataV14(data RuntimeMetadataV14) Metadata {
+//	return Metadata{Version: MetadataVersion14, DataV14: data}
+//}
+//
+//func NewMetadataV15(data RuntimeMetadataV15) Metadata {
+//	return Metadata{Version: MetadataVersion15, DataV15: data}
+//}
 
-func NewMetadataV15(data RuntimeMetadataV15) Metadata {
-	return Metadata{Version: MetadataVersion15, DataV15: data}
-}
+//func (m Metadata) Encode(buffer *bytes.Buffer) {
+//	MetadataReserved.Encode(buffer)
+//
+//	switch m.Version {
+//	case MetadataVersion14:
+//		MetadataVersion14.Encode(buffer)
+//		m.DataV14.Encode(buffer)
+//	case MetadataVersion15:
+//		MetadataVersion15.Encode(buffer)
+//		m.DataV15.Encode(buffer)
+//	default:
+//		log.Critical("Unsupported metadata version")
+//	}
+//}
 
-func (m Metadata) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
-
-	switch m.Version {
-	case MetadataVersion14:
-		MetadataVersion14.Encode(buffer)
-		m.DataV14.Encode(buffer)
-	case MetadataVersion15:
-		MetadataVersion15.Encode(buffer)
-		m.DataV15.Encode(buffer)
-	default:
-		log.Critical("Unsupported metadata version")
-	}
-}
-
-func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
+func DecodeMetadata(buffer *bytes.Buffer) (Metadata15, error) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	metaReserved := sc.DecodeU32(buffer)
 	if metaReserved != MetadataReserved {
 		// return Metadata{}, errors.New(fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved))
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		return Metadata15{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 	}
 
 	version := sc.DecodeU8(buffer)
-
-	switch version {
-	case MetadataVersion14:
-		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}, nil
-	case MetadataVersion15:
-		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}, nil
-	default:
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+	if version != MetadataVersion15 {
+		return Metadata15{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion15)) + "], actual [" + strconv.Itoa(int(version)) + "]")
 	}
+	return Metadata15{DecodeRuntimeMetadataV15(buffer)}, nil
+	//switch version {
+	//case MetadataVersion14:
+	//	return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}, nil
+	//case MetadataVersion15:
+	//	return Metadata15{DecodeRuntimeMetadataV15(buffer)}, nil
+	//default:
+	//	return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+	//}
 }
 
-func (m Metadata) Bytes() []byte {
-	return sc.EncodedBytes(m)
-}
+//func (m Metadata) Bytes() []byte {
+//	return sc.EncodedBytes(m)
+//}
 
 type MetadataType struct {
 	Id         sc.Compact

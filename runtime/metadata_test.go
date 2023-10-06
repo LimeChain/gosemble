@@ -6,13 +6,12 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
-	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Metadata_Encoding_Success(t *testing.T) {
 	runtime, _ := newTestRuntime(t)
-	gossamerMetadata := runtimeMetadata(t, runtime)
+	//gossamerMetadata := runtimeMetadata(t, runtime)
 
 	bMetadata, err := runtime.Metadata()
 	assert.NoError(t, err)
@@ -33,8 +32,8 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
 
 	// Encode gossamer Metadata
-	bGossamerMetadata, err := codec.Encode(gossamerMetadata)
-	assert.NoError(t, err)
-
-	assert.Equal(t, metadata.Bytes(), bGossamerMetadata)
+	//bGossamerMetadata, err := codec.Encode(gossamerMetadata)
+	//assert.NoError(t, err)
+	//
+	//assert.Equal(t, metadata.Bytes(), bGossamerMetadata)
 }

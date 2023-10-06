@@ -41,6 +41,7 @@ func (rm RuntimeMetadataV15) Bytes() []byte {
 	return sc.EncodedBytes(rm)
 }
 
+// TODO: Do we need decode method of this struct ?
 type CustomValueMetadata struct {
 	Type  sc.Compact
 	Value sc.Sequence[sc.U8]

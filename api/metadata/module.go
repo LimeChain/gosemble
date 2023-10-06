@@ -5,7 +5,6 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/hashing"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -45,7 +44,6 @@ func (m Module) Item() primitives.ApiItem {
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
 func (m Module) Metadata() int64 {
-	log.Info("here")
 	metadata := m.buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
@@ -651,6 +649,22 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesInherentData, "inherentData"),
 			},
 			)),
+		primitives.NewMetadataTypeWithParam(metadata.TypesOptionSequenceU8, "Option<Seq<U8>>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"None",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					""),
+				primitives.NewMetadataDefinitionVariant(
+					"Some",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+					},
+					1,
+					""),
+			}),
+			primitives.NewMetadataTypeParameter(metadata.TypesSequenceU8, "T")),
 	}
 }
 

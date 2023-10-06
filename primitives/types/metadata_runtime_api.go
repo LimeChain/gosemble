@@ -7,26 +7,36 @@ import (
 )
 
 const (
-	applyExtrinsicMethod      = "apply_extrinsic"
-	finalizeBlockMethod       = "finalize_block"
-	inherentExtrinsicsMethod  = "inherent_extrinsics"
-	checkInherentsMethod      = "check_inherents"
-	metadataMethod            = "metadata"
-	metadataAtVersionMethod   = "metadata_at_version"
-	metadataVersionsMethod    = "metadata_versions"
-	coreVersionMethod         = "version"
-	coreExecuteBlockMethod    = "execute_block"
-	coreInitializeBlockMethod = "initialize_block"
-	validateTransactionMethod = "validate_transaction"
-	offChainWorkerMethod      = "offchain_worker"
-	grandpaAuthoritiesMethod  = "grandpa_authorities"
-	accountNonceMethod        = "account_nonce"
-	queryInfoMethod           = "query_info"
-	queryFeeDetailsMethod     = "query_fee_details"
-	queryCallInfoMethod       = "query_call_info"
-	queryCallFeeDetailsMethod = "query_call_fee_details"
-	generateSessionKeysMethod = "generate_session_keys"
-	decodeSessionKeysMethod   = "decode_session_keys"
+	coreModuleApi                   = "Core"
+	metadataModuleApi               = "Metadata"
+	blockBuilderModuleApi           = "BlockBuilder"
+	taggedTransactionQueueModuleApi = "TaggedTransactionQueue"
+	offChainWorkerModuleApi         = "OffchainWorkerApi"
+	grandpaModuleApi                = "GrandpaApi"
+	accountNonceModuleApi           = "AccountNonceApi"
+	transactionPaymentModuleApi     = "TransactionPaymentApi"
+	transactionPaymentCallModuleApi = "TransactionPaymentCallApi"
+	sessionKeysModuleApi            = "SessionKeys"
+	applyExtrinsicMethod            = "apply_extrinsic"
+	finalizeBlockMethod             = "finalize_block"
+	inherentExtrinsicsMethod        = "inherent_extrinsics"
+	checkInherentsMethod            = "check_inherents"
+	metadataMethod                  = "metadata"
+	metadataAtVersionMethod         = "metadata_at_version"
+	metadataVersionsMethod          = "metadata_versions"
+	coreVersionMethod               = "version"
+	coreExecuteBlockMethod          = "execute_block"
+	coreInitializeBlockMethod       = "initialize_block"
+	validateTransactionMethod       = "validate_transaction"
+	offChainWorkerMethod            = "offchain_worker"
+	grandpaAuthoritiesMethod        = "grandpa_authorities"
+	accountNonceMethod              = "account_nonce"
+	queryInfoMethod                 = "query_info"
+	queryFeeDetailsMethod           = "query_fee_details"
+	queryCallInfoMethod             = "query_call_info"
+	queryCallFeeDetailsMethod       = "query_call_fee_details"
+	generateSessionKeysMethod       = "generate_session_keys"
+	decodeSessionKeysMethod         = "decode_session_keys"
 )
 
 type RuntimeApiMetadata struct {
@@ -67,32 +77,32 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 
 	return sc.Sequence[RuntimeApiMetadata]{
 		RuntimeApiMetadata{
-			Name:    "Core",
+			Name:    coreModuleApi,
 			Methods: coreMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `Core` runtime api that every Substrate runtime needs to implement."},
 		},
 		RuntimeApiMetadata{
-			Name:    "Metadata",
+			Name:    metadataModuleApi,
 			Methods: metadataMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `Metadata` api trait that returns metadata for the runtime."},
 		},
 		RuntimeApiMetadata{
-			Name:    "BlockBuilder",
+			Name:    blockBuilderModuleApi,
 			Methods: blockBuilderMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `BlockBuilder` api trait that provides the required functionality for building a block."},
 		},
 		RuntimeApiMetadata{
-			Name:    "TaggedTransactionQueue",
+			Name:    taggedTransactionQueueModuleApi,
 			Methods: taggedTransactionQueueMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `TaggedTransactionQueue` api trait for interfering with the transaction queue."},
 		},
 		RuntimeApiMetadata{
-			Name:    "OffchainWorkerApi",
+			Name:    offChainWorkerModuleApi,
 			Methods: offChainWorkerMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The offchain worker api."},
 		},
 		RuntimeApiMetadata{
-			Name:    "GrandpaApi",
+			Name:    grandpaModuleApi,
 			Methods: grandpaMethodsMd,
 			Docs: sc.Sequence[sc.Str]{
 				" APIs for integrating the GRANDPA finality gadget into runtimes.",
@@ -107,22 +117,22 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 			},
 		},
 		RuntimeApiMetadata{
-			Name:    "AccountNonceApi",
+			Name:    accountNonceModuleApi,
 			Methods: accountNonceMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The API to query account nonce."},
 		},
 		RuntimeApiMetadata{
-			Name:    "TransactionPaymentApi",
+			Name:    transactionPaymentModuleApi,
 			Methods: transactionPaymentMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{},
 		},
 		RuntimeApiMetadata{
-			Name:    "TransactionPaymentCallApi",
+			Name:    transactionPaymentCallModuleApi,
 			Methods: transactionPaymentCallMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{},
 		},
 		RuntimeApiMetadata{
-			Name:    "SessionKeys",
+			Name:    sessionKeysModuleApi,
 			Methods: sessionKeysMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" Session keys runtime api."},
 		},
@@ -170,23 +180,23 @@ func metadataMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 			Output: sc.ToCompact(mdconstants.TypesOpaqueMetadata),
 			Docs:   sc.Sequence[sc.Str]{" Returns the metadata of a runtime."},
 		},
-		RuntimeApiMethodMetadata{
-			Name:   metadataAtVersionMethod,
-			Inputs: metadataAtVersionsInputsMd(),
-			Output: sc.ToCompact(mdconstants.TypeOption),
-			Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
-				"",
-				" If the given `version` isn't supported, this will return `None`.",
-				" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
-		},
-		RuntimeApiMethodMetadata{
-			Name:   metadataVersionsMethod,
-			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-			Output: sc.ToCompact(mdconstants.TypesSequenceU32),
-			Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
-				"",
-				" This can be used to call `metadata_at_version`."},
-		},
+		//RuntimeApiMethodMetadata{
+		//	Name:   metadataAtVersionMethod,
+		//	Inputs: metadataAtVersionsInputsMd(),
+		//	Output: sc.ToCompact(mdconstants.TypeOption),
+		//	Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
+		//		"",
+		//		" If the given `version` isn't supported, this will return `None`.",
+		//		" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
+		//},
+		//RuntimeApiMethodMetadata{
+		//	Name:   metadataVersionsMethod,
+		//	Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
+		//	Output: sc.ToCompact(mdconstants.TypesSequenceU32),
+		//	Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
+		//		"",
+		//		" This can be used to call `metadata_at_version`."},
+		//},
 	}
 }
 
@@ -472,28 +482,10 @@ func sessionKeysMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 }
 
 func generateSessionKeysInputsMd() sc.Sequence[RuntimeApiMethodParamMetadata] {
-	seedType := NewMetadataTypeWithParam(mdconstants.TypesOptionWeight, "Option", sc.Sequence[sc.Str]{"Option"}, NewMetadataTypeDefinitionVariant(
-		sc.Sequence[MetadataDefinitionVariant]{
-			NewMetadataDefinitionVariant(
-				"None",
-				sc.Sequence[MetadataTypeDefinitionField]{},
-				0,
-				""),
-			NewMetadataDefinitionVariant(
-				"Some",
-				sc.Sequence[MetadataTypeDefinitionField]{
-					NewMetadataTypeDefinitionField(mdconstants.TypesSequenceU8),
-				},
-				1,
-				""),
-		}),
-		NewMetadataTypeParameter(mdconstants.TypesSequenceU8, "T"),
-	)
-
 	return sc.Sequence[RuntimeApiMethodParamMetadata]{
 		RuntimeApiMethodParamMetadata{
 			Name: "seed",
-			Type: sc.ToCompact(seedType.Id),
+			Type: sc.ToCompact(mdconstants.TypesOptionSequenceU8),
 		},
 	}
 }
