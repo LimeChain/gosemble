@@ -128,7 +128,7 @@ const (
 	CheckGenesis
 	CheckMortality
 	CheckNonce
-	CheckWeightTypesTransactionSource
+	CheckWeight
 	ChargeTransactionPayment
 
 	Runtime

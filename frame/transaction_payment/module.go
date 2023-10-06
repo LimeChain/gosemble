@@ -153,9 +153,8 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypeOptionInclusionFee, "Option<InclusionFee<Balance>>"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "tip")}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
-			}),
+			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
+		),
 	}
 }
 

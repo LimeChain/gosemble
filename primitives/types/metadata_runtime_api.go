@@ -3,16 +3,6 @@ package types
 import (
 	"bytes"
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/api/account_nonce"
-	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
-	"github.com/LimeChain/gosemble/api/core"
-	"github.com/LimeChain/gosemble/api/grandpa"
-	md "github.com/LimeChain/gosemble/api/metadata"
-	ow "github.com/LimeChain/gosemble/api/offchain_worker"
-	"github.com/LimeChain/gosemble/api/session_keys"
-	"github.com/LimeChain/gosemble/api/tagged_transaction_queue"
-	"github.com/LimeChain/gosemble/api/transaction_payment"
-	"github.com/LimeChain/gosemble/api/transaction_payment_call"
 	mdconstants "github.com/LimeChain/gosemble/constants/metadata"
 )
 
@@ -77,32 +67,32 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 
 	return sc.Sequence[RuntimeApiMetadata]{
 		RuntimeApiMetadata{
-			Name:    core.ApiModuleName,
+			Name:    "Core",
 			Methods: coreMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `Core` runtime api that every Substrate runtime needs to implement."},
 		},
 		RuntimeApiMetadata{
-			Name:    md.ApiModuleName,
+			Name:    "Metadata",
 			Methods: metadataMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `Metadata` api trait that returns metadata for the runtime."},
 		},
 		RuntimeApiMetadata{
-			Name:    blockbuilder.ApiModuleName,
+			Name:    "BlockBuilder",
 			Methods: blockBuilderMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `BlockBuilder` api trait that provides the required functionality for building a block."},
 		},
 		RuntimeApiMetadata{
-			Name:    tagged_transaction_queue.ApiModuleName,
+			Name:    "TaggedTransactionQueue",
 			Methods: taggedTransactionQueueMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The `TaggedTransactionQueue` api trait for interfering with the transaction queue."},
 		},
 		RuntimeApiMetadata{
-			Name:    ow.ApiModuleName,
+			Name:    "OffchainWorkerApi",
 			Methods: offChainWorkerMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The offchain worker api."},
 		},
 		RuntimeApiMetadata{
-			Name:    grandpa.ApiModuleName,
+			Name:    "GrandpaApi",
 			Methods: grandpaMethodsMd,
 			Docs: sc.Sequence[sc.Str]{
 				" APIs for integrating the GRANDPA finality gadget into runtimes.",
@@ -117,22 +107,22 @@ func ApiMetadata() sc.Sequence[RuntimeApiMetadata] {
 			},
 		},
 		RuntimeApiMetadata{
-			Name:    account_nonce.ApiModuleName,
+			Name:    "AccountNonceApi",
 			Methods: accountNonceMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" The API to query account nonce."},
 		},
 		RuntimeApiMetadata{
-			Name:    transaction_payment.ApiModuleName,
+			Name:    "TransactionPaymentApi",
 			Methods: transactionPaymentMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{},
 		},
 		RuntimeApiMetadata{
-			Name:    transaction_payment_call.ApiModuleName,
+			Name:    "TransactionPaymentCallApi",
 			Methods: transactionPaymentCallMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{},
 		},
 		RuntimeApiMetadata{
-			Name:    session_keys.ApiModuleName,
+			Name:    "SessionKeys",
 			Methods: sessionKeysMethodsMd,
 			Docs:    sc.Sequence[sc.Str]{" Session keys runtime api."},
 		},
