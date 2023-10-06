@@ -53,6 +53,24 @@ func Test_Module_Functions(t *testing.T) {
 	assert.Equal(t, map[sc.U8]primitives.Call{}, target.Functions())
 }
 
+func Test_Module_PreDispatch(t *testing.T) {
+	setup()
+
+	result, err := target.PreDispatch(new(mocks.Call))
+
+	assert.Nil(t, err)
+	assert.Equal(t, sc.Empty{}, result)
+}
+
+func Test_Module_ValidateUnsigned(t *testing.T) {
+	setup()
+
+	result, err := target.ValidateUnsigned(primitives.NewTransactionSourceLocal(), new(mocks.Call))
+
+	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, primitives.ValidTransaction{}, result)
+}
+
 func Test_Module_Authorities_Success(t *testing.T) {
 	setup()
 	expectAuthorites := sc.Sequence[primitives.Authority]{
