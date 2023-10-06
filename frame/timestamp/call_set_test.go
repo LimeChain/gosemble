@@ -26,12 +26,10 @@ var (
 	mockStorageNow       *mocks.StorageValue[sc.U64]
 	mockStorageDidUpdate *mocks.StorageValue[sc.Bool]
 	mockStorage          *storage
-
-	target callSet
 )
 
 func Test_Call_Set_NewSetCall(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	expected := callSet{
 		storage:        mockStorage,
 		onTimestampSet: mockOnTimestampSet,
@@ -64,7 +62,7 @@ func Test_Call_Set_NewSetCallWithArgs(t *testing.T) {
 }
 
 func Test_Call_Set_DecodeArgs(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	compact := sc.ToCompact(sc.U8(5))
 	buf := bytes.NewBuffer(compact.Bytes())
 
@@ -74,7 +72,7 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 }
 
 func Test_Call_Set_Encode(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionSetIndex})
 	buf := &bytes.Buffer{}
 
@@ -84,7 +82,7 @@ func Test_Call_Set_Encode(t *testing.T) {
 }
 
 func Test_Call_Set_EncodeWithArgs(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	compact := sc.ToCompact(sc.U8(5))
 
 	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, compact.Bytes()...))
@@ -100,7 +98,7 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 }
 
 func Test_Call_Set_Bytes(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	expected := []byte{moduleId, functionSetIndex}
 
 	assert.Equal(t, expected, target.Bytes())
@@ -137,30 +135,30 @@ func Test_Call_Set_FunctionIndex(t *testing.T) {
 }
 
 func Test_Call_Set_BaseWeight(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 
 	assert.Equal(t, primitives.WeightFromParts(159_258_000, 1006), target.BaseWeight())
 }
 
 func Test_Call_Set_WeighData(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	assert.Equal(t, primitives.WeightFromParts(124, 0), target.WeighData(baseWeight))
 }
 
 func Test_Call_Set_ClassifyDispatch(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 
 	assert.Equal(t, primitives.NewDispatchClassMandatory(), target.ClassifyDispatch(baseWeight))
 }
 
 func Test_Call_Set_PaysFee(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 
 	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
 }
 
 func Test_Call_Set_Dispatch_Success(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(0))
 	mockStorageNow.On("Put", now).Return()
@@ -178,7 +176,7 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 }
 
 func Test_Call_Set_set_Success_ZeroPreviousTimestamp(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(0))
 	mockStorageNow.On("Put", now).Return()
@@ -196,7 +194,7 @@ func Test_Call_Set_set_Success_ZeroPreviousTimestamp(t *testing.T) {
 }
 
 func Test_Call_Set_set_Success_ValidTimestamp(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(now - c.MinimumPeriod)
 	mockStorageNow.On("Put", now).Return()
@@ -214,7 +212,7 @@ func Test_Call_Set_set_Success_ValidTimestamp(t *testing.T) {
 }
 
 func Test_Call_Set_set_InvalidOrigin(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
@@ -233,7 +231,7 @@ func Test_Call_Set_set_InvalidOrigin(t *testing.T) {
 }
 
 func Test_Call_Set_set_InvalidStorageDidUpdate(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(true)
 
 	assert.PanicsWithValue(
@@ -249,7 +247,7 @@ func Test_Call_Set_set_InvalidStorageDidUpdate(t *testing.T) {
 }
 
 func Test_Call_Set_set_InvalidPreviousTimestamp(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1000))
 
@@ -265,7 +263,7 @@ func Test_Call_Set_set_InvalidPreviousTimestamp(t *testing.T) {
 }
 
 func Test_Call_Set_set_InvalidLessThanMinPeriod(t *testing.T) {
-	setUpCallSet()
+	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1001))
 
@@ -279,7 +277,7 @@ func Test_Call_Set_set_InvalidLessThanMinPeriod(t *testing.T) {
 	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
 }
 
-func setUpCallSet() {
+func setUpCallSet() callSet {
 	mockOnTimestampSet = new(mocks.OnTimestampSet)
 	mockStorageNow = new(mocks.StorageValue[sc.U64])
 	mockStorageDidUpdate = new(mocks.StorageValue[sc.Bool])
@@ -288,5 +286,5 @@ func setUpCallSet() {
 		DidUpdate: mockStorageDidUpdate,
 	}
 
-	target = newCallSet(0, functionSetIndex, mockStorage, c, mockOnTimestampSet).(callSet)
+	return newCallSet(0, functionSetIndex, mockStorage, c, mockOnTimestampSet).(callSet)
 }
