@@ -14,10 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	mockStorageBlockNumber *mocks.StorageValue[sc.U64]
-)
-
 func Test_CheckMortality_Encode(t *testing.T) {
 	era := primitives.NewImmortalEra()
 	buffer := &bytes.Buffer{}
@@ -70,11 +66,9 @@ func Test_CheckMortality_AdditionalSigned_Success(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
-	mockModule.On("StorageBlockHash").Return(mockStorageBlockHash)
-	mockStorageBlockHash.On("Exists", sc.U64(0)).Return(true)
-	mockStorageBlockHash.On("Get", sc.U64(0)).Return(hash)
+	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(true)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash)
 
 	result, err := target.AdditionalSigned()
 
@@ -82,10 +76,8 @@ func Test_CheckMortality_AdditionalSigned_Success(t *testing.T) {
 	assert.Equal(t, sc.NewVaryingData(primitives.H256(hash)), result)
 
 	mockModule.AssertCalled(t, "StorageBlockNumber")
-	mockStorageBlockNumber.AssertCalled(t, "Get")
-	mockModule.AssertCalled(t, "StorageBlockHash")
-	mockStorageBlockHash.AssertCalled(t, "Exists", sc.U64(0))
-	mockStorageBlockHash.AssertCalled(t, "Get", sc.U64(0))
+	mockModule.AssertCalled(t, "StorageBlockHashExists", sc.U64(0))
+	mockModule.AssertCalled(t, "StorageBlockHash", sc.U64(0))
 }
 
 func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
@@ -94,10 +86,8 @@ func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
-	mockModule.On("StorageBlockHash").Return(mockStorageBlockHash)
-	mockStorageBlockHash.On("Exists", sc.U64(0)).Return(false)
+	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(false)
 
 	result, err := target.AdditionalSigned()
 
@@ -105,10 +95,7 @@ func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
 	assert.Nil(t, result)
 
 	mockModule.AssertCalled(t, "StorageBlockNumber")
-	mockStorageBlockNumber.AssertCalled(t, "Get")
-	mockModule.AssertCalled(t, "StorageBlockHash")
-	mockStorageBlockHash.AssertCalled(t, "Exists", sc.U64(0))
-	mockStorageBlockHash.AssertNotCalled(t, "Get")
+	mockModule.AssertCalled(t, "StorageBlockHashExists", sc.U64(0))
 }
 
 func Test_CheckMortality_Validate_Success(t *testing.T) {
@@ -120,8 +107,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber)
 
 	result, err := target.Validate(constants.OneAddress, nil, nil, sc.Compact{})
 
@@ -144,8 +130,7 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(mockStorageBlockNumber)
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber)
 
 	result, err := target.PreDispatch(constants.OneAddress, nil, nil, sc.Compact{})
 
@@ -190,8 +175,6 @@ func Test_CheckMortality_Metadata(t *testing.T) {
 
 func setupCheckMortality() CheckMortality {
 	mockModule = new(mocks.SystemModule)
-	mockStorageBlockHash = new(mocks.StorageMap[sc.U64, primitives.Blake2bHash])
-	mockStorageBlockNumber = new(mocks.StorageValue[sc.U64])
 
 	return NewCheckMortality(mockModule)
 }
