@@ -18,10 +18,6 @@ var (
 	oneAddress = constants.OneAddress
 )
 
-var (
-	mockStorageAccount *mocks.StorageMap[primitives.PublicKey, primitives.AccountInfo]
-)
-
 func Test_CheckNonce_Encode(t *testing.T) {
 	nonce := sc.U32(1)
 	buffer := &bytes.Buffer{}
@@ -92,15 +88,13 @@ func Test_CheckNonce_Validate_WithRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
 }
 
 func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
@@ -121,15 +115,13 @@ func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
 }
 
 func Test_CheckNonce_Validate_Fails(t *testing.T) {
@@ -142,15 +134,13 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
 }
 
 func Test_CheckNonce_ValidateUnsigned(t *testing.T) {
@@ -174,18 +164,16 @@ func Test_CheckNonce_PreDispatch_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
-	mockStorageAccount.On("Put", oneAddress.FixedSequence, expectAccountInfo).Return()
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccountSet", oneAddress.FixedSequence, expectAccountInfo).Return()
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
-	mockStorageAccount.AssertCalled(t, "Put", oneAddress.FixedSequence, expectAccountInfo)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
+	mockModule.AssertCalled(t, "StorageAccountSet", oneAddress.FixedSequence, expectAccountInfo)
 }
 
 func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
@@ -198,17 +186,15 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
-	mockStorageAccount.AssertNotCalled(t, "Put", oneAddress.FixedSequence, mock.Anything)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
+	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAddress.FixedSequence, mock.Anything)
 }
 
 func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
@@ -221,17 +207,15 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount").Return(mockStorageAccount)
-	mockStorageAccount.On("Get", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expect, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount")
-	mockStorageAccount.AssertCalled(t, "Get", oneAddress.FixedSequence)
-	mockStorageAccount.AssertNotCalled(t, "Put", oneAddress.FixedSequence, mock.Anything)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
+	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAddress.FixedSequence, mock.Anything)
 }
 
 func Test_CheckNonce_PreDispatchUnsigned(t *testing.T) {
@@ -267,7 +251,6 @@ func Test_CheckNonce_Metadata(t *testing.T) {
 
 func setupCheckNonce() CheckNonce {
 	mockModule = new(mocks.SystemModule)
-	mockStorageAccount = new(mocks.StorageMap[primitives.PublicKey, primitives.AccountInfo])
 
 	return NewCheckNonce(mockModule)
 }

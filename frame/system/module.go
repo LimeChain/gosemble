@@ -9,7 +9,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -53,13 +52,25 @@ type Module interface {
 	DbWeight() types.RuntimeDbWeight
 	BlockHashCount() sc.U64
 
-	StorageDigest() support.StorageValue[types.Digest]
-	StorageBlockWeight() support.StorageValue[primitives.ConsumedWeight]
-	StorageBlockHash() support.StorageMap[sc.U64, types.Blake2bHash]
-	StorageBlockNumber() support.StorageValue[sc.U64]
-	StorageLastRuntimeUpgrade() support.StorageValue[types.LastRuntimeUpgradeInfo]
-	StorageAccount() support.StorageMap[types.PublicKey, types.AccountInfo]
-	StorageAllExtrinsicsLen() support.StorageValue[sc.U32]
+	StorageDigest() types.Digest
+
+	StorageBlockWeight() primitives.ConsumedWeight
+	StorageBlockWeightSet(weight primitives.ConsumedWeight)
+
+	StorageBlockHash(key sc.U64) types.Blake2bHash
+	StorageBlockHashSet(key sc.U64, value types.Blake2bHash)
+	StorageBlockHashExists(key sc.U64) bool
+
+	StorageBlockNumber() sc.U64
+
+	StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo
+	StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo)
+
+	StorageAccount(key types.PublicKey) types.AccountInfo
+	StorageAccountSet(key types.PublicKey, value types.AccountInfo)
+
+	StorageAllExtrinsicsLen() sc.U32
+	StorageAllExtrinsicsLenSet(value sc.U32)
 }
 
 type module struct {
@@ -115,11 +126,11 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {
 	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseInitialization())
 	m.storage.ExtrinsicIndex.Put(sc.U32(0))
-	m.StorageBlockNumber().Put(blockNumber)
+	m.storage.BlockNumber.Put(blockNumber)
 	m.storage.Digest.Put(digest)
 	m.storage.ParentHash.Put(parentHash)
-	m.StorageBlockHash().Put(blockNumber-1, parentHash)
-	m.StorageBlockWeight().Clear()
+	m.storage.BlockHash.Put(blockNumber-1, parentHash)
+	m.storage.BlockWeight.Clear()
 }
 
 // RegisterExtraWeightUnchecked - Inform the system pallet of some additional weight that should be accounted for, in the
@@ -138,9 +149,9 @@ func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash
 //
 // Another potential use-case could be for the `on_initialize` and `on_finalize` hooks.
 func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
-	currentWeight := m.StorageBlockWeight().Get()
+	currentWeight := m.storage.BlockWeight.Get()
 	currentWeight.Accrue(weight, class)
-	m.StorageBlockWeight().Put(currentWeight)
+	m.storage.BlockWeight.Put(currentWeight)
 }
 
 func (m module) NoteFinishedInitialize() {
@@ -168,7 +179,7 @@ func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		blockNum := m.StorageBlockNumber().Get()
+		blockNum := m.StorageBlockNumber()
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
@@ -185,9 +196,9 @@ func (m module) Finalize() primitives.Header {
 	m.storage.ExecutionPhase.Clear()
 	m.storage.AllExtrinsicsLen.Clear()
 
-	blockNumber := m.StorageBlockNumber().Get()
+	blockNumber := m.StorageBlockNumber()
 	parentHash := m.storage.ParentHash.Get()
-	digest := m.StorageDigest().Get()
+	digest := m.StorageDigest()
 	extrinsicCount := m.storage.ExtrinsicCount.Take()
 
 	var extrinsics []byte
@@ -210,7 +221,7 @@ func (m module) Finalize() primitives.Header {
 	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
 	if toRemove != 0 {
-		m.StorageBlockHash().Remove(toRemove)
+		m.storage.BlockHash.Remove(toRemove)
 	}
 
 	storageRootBytes := m.ioStorage.Root(int32(m.constants.Version.StateVersion))
@@ -344,7 +355,7 @@ func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus,
 //
 // NOTE: Events not registered at the genesis block and quietly omitted.
 func (m module) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
-	blockNumber := m.StorageBlockNumber().Get()
+	blockNumber := m.StorageBlockNumber()
 	if blockNumber == 0 {
 		return
 	}
@@ -765,32 +776,60 @@ func (m module) DbWeight() types.RuntimeDbWeight {
 	return m.constants.DbWeight
 }
 
-func (m module) StorageDigest() support.StorageValue[types.Digest] {
-	return m.storage.Digest
+func (m module) StorageDigest() types.Digest {
+	return m.storage.Digest.Get()
 }
 
-func (m module) StorageBlockWeight() support.StorageValue[primitives.ConsumedWeight] {
-	return m.storage.BlockWeight
+func (m module) StorageBlockWeight() primitives.ConsumedWeight {
+	return m.storage.BlockWeight.Get()
 }
 
-func (m module) StorageBlockHash() support.StorageMap[sc.U64, types.Blake2bHash] {
-	return m.storage.BlockHash
+func (m module) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
+	m.storage.BlockWeight.Put(weight)
 }
 
-func (m module) StorageBlockNumber() support.StorageValue[sc.U64] {
-	return m.storage.BlockNumber
+func (m module) StorageBlockHash(key sc.U64) types.Blake2bHash {
+	return m.storage.BlockHash.Get(key)
 }
 
-func (m module) StorageLastRuntimeUpgrade() support.StorageValue[types.LastRuntimeUpgradeInfo] {
-	return m.storage.LastRuntimeUpgrade
+func (m module) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
+	m.storage.BlockHash.Put(key, value)
 }
 
-func (m module) StorageAccount() support.StorageMap[types.PublicKey, types.AccountInfo] {
-	return m.storage.Account
+func (m module) StorageBlockHashExists(key sc.U64) bool {
+	return m.storage.BlockHash.Exists(key)
 }
 
-func (m module) StorageAllExtrinsicsLen() support.StorageValue[sc.U32] {
-	return m.storage.AllExtrinsicsLen
+func (m module) StorageBlockNumber() sc.U64 {
+	return m.storage.BlockNumber.Get()
+}
+
+func (m module) StorageBlockNumberSet(blockNumber sc.U64) {
+	m.storage.BlockNumber.Put(blockNumber)
+}
+
+func (m module) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
+	return m.storage.LastRuntimeUpgrade.Get()
+}
+
+func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
+	m.storage.LastRuntimeUpgrade.Put(lrui)
+}
+
+func (m module) StorageAccount(key types.PublicKey) types.AccountInfo {
+	return m.storage.Account.Get(key)
+}
+
+func (m module) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
+	m.storage.Account.Put(key, value)
+}
+
+func (m module) StorageAllExtrinsicsLen() sc.U32 {
+	return m.storage.AllExtrinsicsLen.Get()
+}
+
+func (m module) StorageAllExtrinsicsLenSet(value sc.U32) {
+	m.storage.AllExtrinsicsLen.Put(value)
 }
 
 func decrementProviders(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {

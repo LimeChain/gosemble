@@ -17,6 +17,11 @@ const TransactionalLimit Layer = 255
 
 var keyTransactionLevel = []byte(":transaction_level:")
 
+var (
+	errTransactionalLimitReached = errors.New("transactional error limit reached")
+	errInvalidTransactionOutcome = "invalid transaction outcome"
+)
+
 type Transactional[T sc.Encodable, E types.DispatchError] interface {
 	WithStorageLayer(fn func() (T, types.DispatchError)) (T, E)
 }
@@ -51,14 +56,14 @@ func (t transactional[T, E]) KillTransactionLevel() {
 // IncTransactionLevel increments the transaction level. Returns an error if levels go past the limit.
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
-func (t transactional[T, E]) IncTransactionLevel() (ok sc.Empty, err error) {
+func (t transactional[T, E]) IncTransactionLevel() error {
 	existingLevels := t.GetTransactionLevel()
 	if existingLevels >= TransactionalLimit {
-		return ok, errors.New("transactional error limit reached")
+		return errTransactionalLimitReached
 	}
 	// Cannot overflow because of check above.
 	t.SetTransactionLevel(existingLevels + 1)
-	return sc.Empty{}, err
+	return nil
 }
 
 func (t transactional[T, E]) DecTransactionLevel() {
@@ -87,7 +92,7 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 	// This needs to happen before `start_transaction` below.
 	// Otherwise we may rollback the increase, then decrease as the guard goes out of scope
 	// and then end in some bad state.
-	_, e := t.IncTransactionLevel()
+	e := t.IncTransactionLevel()
 	if e != nil {
 		return ok, E(types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached()))
 	}
@@ -100,14 +105,14 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 	case types.TransactionOutcomeCommit:
 		t.transactionBroker.Commit()
 		t.DecTransactionLevel()
-		return res[1].(T), err
+		return res[1].(T), nil
 	case types.TransactionOutcomeRollback:
 		t.transactionBroker.Rollback()
 		t.DecTransactionLevel()
 		return ok, res[1].(E)
 	default:
-		log.Critical("invalid transaction outcome")
-		return ok, err
+		log.Critical(errInvalidTransactionOutcome)
+		return ok, nil
 	}
 }
 

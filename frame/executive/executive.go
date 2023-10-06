@@ -76,7 +76,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -88,6 +88,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
+	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
@@ -118,7 +119,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 func (m Module) FinalizeBlock() primitives.Header {
 	log.Trace("finalize_block")
 	m.system.NoteFinishedExtrinsics()
-	blockNumber := m.system.StorageBlockNumber().Get()
+	blockNumber := m.system.StorageBlockNumber()
 
 	m.idleAndFinalizeHook(blockNumber)
 
@@ -131,7 +132,7 @@ func (m Module) FinalizeBlock() primitives.Header {
 //
 // Changes made to storage should be discarded.
 func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNumber := m.system.StorageBlockNumber().Get()
+	currentBlockNumber := m.system.StorageBlockNumber()
 	blockNumber := currentBlockNumber + 1
 	m.system.Initialize(blockNumber, blockHash, primitives.Digest{})
 
@@ -141,10 +142,11 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
+	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
@@ -164,13 +166,13 @@ func (m Module) OffchainWorker(header primitives.Header) {
 	hash := m.hashing.Blake256(header.Bytes())
 	blockHash := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
 
-	m.system.StorageBlockHash().Put(header.Number, blockHash)
+	m.system.StorageBlockHashSet(header.Number, blockHash)
 
 	m.runtimeExtrinsic.OffchainWorker(header.Number)
 }
 
 func (m Module) idleAndFinalizeHook(blockNumber sc.U64) {
-	weight := m.system.StorageBlockWeight().Get()
+	weight := m.system.StorageBlockWeight()
 
 	maxWeight := m.system.BlockWeights().MaxBlock
 	remainingWeight := maxWeight.SaturatingSub(weight.Total())
@@ -203,7 +205,7 @@ func (m Module) initialChecks(block types.Block) {
 	blockNumber := header.Number
 
 	if blockNumber > 0 {
-		storageParentHash := m.system.StorageBlockHash().Get(blockNumber - 1)
+		storageParentHash := m.system.StorageBlockHash(blockNumber - 1)
 
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")
@@ -219,7 +221,7 @@ func (m Module) initialChecks(block types.Block) {
 }
 
 func (m Module) runtimeUpgrade() sc.Bool {
-	last := m.system.StorageLastRuntimeUpgrade().Get()
+	last := m.system.StorageLastRuntimeUpgrade()
 
 	if m.system.Version().SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
 		last.SpecName != m.system.Version().SpecName {
@@ -228,7 +230,7 @@ func (m Module) runtimeUpgrade() sc.Bool {
 			SpecVersion: sc.ToCompact(m.system.Version().SpecVersion),
 			SpecName:    m.system.Version().SpecName,
 		}
-		m.system.StorageLastRuntimeUpgrade().Put(current)
+		m.system.StorageLastRuntimeUpgradeSet(current)
 
 		return true
 	}

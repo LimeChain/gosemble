@@ -29,7 +29,7 @@ func NewHashStorageMap[K, V sc.Encodable](prefix []byte, name []byte, keyHashFun
 }
 
 func (hsm HashStorageMap[K, V]) Get(k K) V {
-	return hsm.baseStorage.getDecode(hsm.key(k), hsm.decodeFunc)
+	return hsm.baseStorage.getDecode(hsm.key(k))
 }
 
 func (hsm HashStorageMap[K, V]) Exists(k K) bool {
