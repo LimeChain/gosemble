@@ -15,18 +15,20 @@ import (
 )
 
 type Module struct {
-	system           system.Module
-	runtimeExtrinsic extrinsic.RuntimeExtrinsic
-	onRuntimeUpgrade hooks.OnRuntimeUpgrade
-	hashing          io.Hashing
+	system               system.Module
+	onRuntimeUpgrade     hooks.OnRuntimeUpgrade
+	runtimeExtrinsic     extrinsic.RuntimeExtrinsic
+	extrinsicInitializer extrinsic.ExtrinsicInitializer
+	hashing              io.Hashing
 }
 
 func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
 	return Module{
-		system:           systemModule,
-		runtimeExtrinsic: runtimeExtrinsic,
-		onRuntimeUpgrade: onRuntimeUpgrade,
-		hashing:          io.NewHashing(),
+		system:               systemModule,
+		onRuntimeUpgrade:     onRuntimeUpgrade,
+		runtimeExtrinsic:     runtimeExtrinsic,
+		extrinsicInitializer: extrinsic.NewExtrinsicInitializer(),
+		hashing:              io.NewHashing(),
 	}
 }
 
@@ -88,7 +90,8 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 
 	// AUDIT: Under no circumstances may this function panic from here onwards.
 
-	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
+	checked := m.extrinsicInitializer.NewChecked(signer, uxt.Function(), uxt.Extra())
+
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
@@ -145,7 +148,7 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
-	checked := extrinsic.NewCheckedExtrinsic(signer, uxt.Function(), uxt.Extra())
+	checked := m.extrinsicInitializer.NewChecked(signer, uxt.Function(), uxt.Extra())
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())

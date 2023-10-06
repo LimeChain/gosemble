@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -42,14 +41,14 @@ func (uxt *UncheckedExtrinsic) IsSigned() sc.Bool {
 	return args.Get(0).(sc.Bool)
 }
 
-func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (types.CheckedExtrinsic, primitives.TransactionValidityError) {
+func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {
 	args := uxt.Called(lookup)
 
-	var arg0 types.CheckedExtrinsic
+	var arg0 sc.Option[primitives.Address32]
 	var arg1 primitives.TransactionValidityError
 
 	if args.Get(0) != nil {
-		arg0 = args.Get(0).(types.CheckedExtrinsic)
+		arg0 = args.Get(0).(sc.Option[primitives.Address32])
 	}
 
 	if args.Get(1) != nil {
