@@ -143,9 +143,6 @@ const (
 	TypesResultValidityTransaction
 	TypesOpaqueMetadata
 	TypesResult
-	TypesEmptyResult
-	TypesResultOk
-	TypesResultErr
 	TypesInherentData
 
 	TypesSequenceUncheckedExtrinsics
@@ -171,4 +168,6 @@ const (
 	TypesSequenceTuple8U8SequenceU8
 
 	TypesOptionSequenceU8
+
+	TypesSequenceSequenceU8
 )

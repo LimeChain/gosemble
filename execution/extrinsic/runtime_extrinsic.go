@@ -289,7 +289,7 @@ func (re runtimeExtrinsic) runtimeError() primitives.MetadataType {
 				1,
 				""),
 			primitives.NewMetadataDefinitionVariant(
-				"Balances",
+				"Grandpa",
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
 				},

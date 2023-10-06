@@ -152,7 +152,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentFeeDetails, "pallet_transaction_payment types FeeDetails", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "FeeDetails"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypeOptionInclusionFee, "Option<InclusionFee<Balance>>"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "tip")}),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
 			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
 		),
 	}

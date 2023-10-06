@@ -767,15 +767,12 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 			sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesH256),       // parent_hash
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // number
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // state_root
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // extrinsics_root
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // digest
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.Header, "Header"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceUncheckedExtrinsics, "Vec<Extrinsic>"),
 				}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.Header, "Header"), // TODO: Is this correct ?
-				primitives.NewMetadataTypeParameter(metadata.RuntimeCall, "Extrinsic"),
+				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
+				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 			},
 		),
 
@@ -802,11 +799,11 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataTypeWithPath(metadata.TypesValidTransaction, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU64, "priority", "TransactionPriority"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "requires", "Vec<TransactionTag>"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "provides", "Vec<TransactionTag>"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU64, "longevity", "TransactionLongevity"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "propagate", "bool"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionPriority"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionLongevity"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
 				},
 			)),
 
