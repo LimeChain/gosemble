@@ -13,17 +13,24 @@ import (
 
 const (
 	functionSetIndex = iota
+	name             = sc.Str("Timestamp")
 )
 
 var (
 	inherentIdentifier = [8]byte{'t', 'i', 'm', 's', 't', 'a', 'p', '0'}
 )
 
+var (
+	errTimestampNotUpdated           = "Timestamp must be updated once in the block"
+	errTimestampInherentNotProvided  = "Timestamp inherent must be provided."
+	errTimestampInvalidInherentCheck = "invalid inherent check for timestamp module"
+)
+
 type Module struct {
 	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config
-	Storage   *storage
+	storage   *storage
 	Constants *consts
 	functions map[sc.U8]primitives.Call
 }
@@ -37,7 +44,7 @@ func New(index sc.U8, config *Config) Module {
 	return Module{
 		Index:     index,
 		Config:    config,
-		Storage:   storage,
+		storage:   storage,
 		Constants: constants,
 		functions: functions,
 	}
@@ -48,7 +55,7 @@ func (m Module) GetIndex() sc.U8 {
 }
 
 func (m Module) name() sc.Str {
-	return "Timestamp"
+	return name
 }
 
 func (m Module) Functions() map[sc.U8]primitives.Call {
@@ -64,9 +71,9 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m Module) OnFinalize(_ sc.U64) {
-	value := m.Storage.DidUpdate.TakeBytes()
+	value := m.storage.DidUpdate.TakeBytes()
 	if value == nil {
-		log.Critical("Timestamp must be updated once in the block")
+		log.Critical(errTimestampNotUpdated)
 	}
 }
 
@@ -74,7 +81,7 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 	inherentData := inherent.Data[inherentIdentifier]
 
 	if inherentData == nil {
-		log.Critical("Timestamp inherent must be provided.")
+		log.Critical(errTimestampInherentNotProvided)
 	}
 
 	buffer := &bytes.Buffer{}
@@ -82,10 +89,7 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 
-	nextTimestamp := m.Storage.Now.Get() + m.Constants.MinimumPeriod
-	if ts > nextTimestamp {
-		nextTimestamp = ts
-	}
+	nextTimestamp := sc.Max64(ts, m.storage.Now.Get()+m.Constants.MinimumPeriod)
 
 	function := newCallSetWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
 
@@ -94,7 +98,7 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 
 func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
 	if !m.IsInherent(call) {
-		return errors.New("invalid inherent check for timestamp module")
+		return errors.New(errTimestampInvalidInherentCheck)
 	}
 
 	maxTimestampDriftMillis := sc.U64(30 * 1000)
@@ -105,7 +109,7 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	inherentData := inherent.Data[inherentIdentifier]
 
 	if inherentData == nil {
-		log.Critical("Timestamp inherent must be provided.")
+		log.Critical(errTimestampInherentNotProvided)
 	}
 
 	buffer := &bytes.Buffer{}
@@ -113,7 +117,7 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	ts := sc.DecodeU64(buffer)
 	// TODO: err if not able to parse it.
 
-	systemNow := m.Storage.Now.Get()
+	systemNow := m.storage.Now.Get()
 
 	minimum := systemNow + m.Constants.MinimumPeriod
 	if t > ts+maxTimestampDriftMillis {
