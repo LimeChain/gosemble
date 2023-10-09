@@ -1370,7 +1370,7 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8), // digest
 				}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.Header, "Header"), // TODO: Is this correct ?
+				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
 				primitives.NewMetadataTypeParameter(metadata.RuntimeCall, "Extrinsic"),
 			},
 		),

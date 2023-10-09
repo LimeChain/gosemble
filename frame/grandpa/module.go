@@ -94,8 +94,8 @@ func (m Module) Authorities() sc.Sequence[primitives.Authority] {
 	return authorities
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModuleV15) {
+	return m.metadataTypes(), primitives.MetadataModuleV15{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -105,6 +105,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
+		Docs:      sc.Sequence[sc.Str]{"Test docs 123"},
 	}
 }
 

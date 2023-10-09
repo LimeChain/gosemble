@@ -69,6 +69,7 @@ type Module interface {
 	CanDecProviders(who primitives.Address32) bool
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModuleV15)
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength

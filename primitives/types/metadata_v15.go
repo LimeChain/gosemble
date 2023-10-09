@@ -7,7 +7,7 @@ import (
 
 type RuntimeMetadataV15 struct {
 	Types      sc.Sequence[MetadataType]
-	Modules    sc.Sequence[MetadataModule]
+	Modules    sc.Sequence[MetadataModuleV15]
 	Extrinsic  MetadataExtrinsicV15
 	Type       sc.Compact
 	Apis       sc.Sequence[RuntimeApiMetadata]
@@ -28,7 +28,7 @@ func (rm RuntimeMetadataV15) Encode(buffer *bytes.Buffer) {
 func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) RuntimeMetadataV15 {
 	return RuntimeMetadataV15{
 		Types:      sc.DecodeSequenceWith(buffer, DecodeMetadataType),
-		Modules:    sc.DecodeSequenceWith(buffer, DecodeMetadataModule),
+		Modules:    sc.DecodeSequenceWith(buffer, DecodeMetadataModuleV15),
 		Extrinsic:  DecodeMetadataExtrinsicV15(buffer),
 		Type:       sc.DecodeCompact(buffer),
 		Apis:       sc.DecodeSequenceWith(buffer, DecodeRuntimeApiMetadata),

@@ -48,8 +48,8 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModuleV15) {
+	return m.metadataTypes(), primitives.MetadataModuleV15{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},
 		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
@@ -67,6 +67,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     m.Index,
+		Docs:      sc.Sequence[sc.Str]{},
 	}
 }
 

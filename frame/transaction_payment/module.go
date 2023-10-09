@@ -132,7 +132,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
 			}),
 
-		primitives.NewMetadataTypeWithParam(metadata.TypeOptionInclusionFee, "Option<InclusionFee>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant( // TODO: Verify it's correct (the indices)
+		primitives.NewMetadataTypeWithParam(metadata.TypeOptionInclusionFee, "Option<InclusionFee>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"None",
