@@ -23,10 +23,10 @@ func newBaseStorage[T sc.Encodable](decodeFunc func(buffer *bytes.Buffer) T, def
 
 func (bs baseStorage[T]) get(key []byte) T {
 	if bs.defaultValue == nil {
-		return bs.getDecode(key, bs.decodeFunc)
+		return bs.getDecode(key)
 	}
 
-	return bs.getDecodeOnEmpty(key, bs.decodeFunc, *bs.defaultValue)
+	return bs.getDecodeOnEmpty(key)
 }
 
 func (bs baseStorage[T]) getBytes(key []byte) sc.Option[sc.Sequence[sc.U8]] {
@@ -50,7 +50,7 @@ func (bs baseStorage[T]) append(key []byte, value T) {
 }
 
 func (bs baseStorage[T]) take(key []byte) T {
-	return bs.takeDecode(key, bs.decodeFunc)
+	return bs.takeDecode(key)
 }
 
 func (bs baseStorage[T]) decodeLen(key []byte) sc.Option[sc.U64] {
@@ -62,10 +62,7 @@ func (bs baseStorage[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 		return sc.NewOption[sc.U64](nil)
 	}
 
-	length := option.Value
-	if length > sc.U32(len(data)) {
-		length = sc.U32(len(data))
-	}
+	length := sc.Min32(option.Value, sc.U32(len(data)))
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(data[:length])
@@ -79,7 +76,7 @@ func (bs baseStorage[T]) decodeLen(key []byte) sc.Option[sc.U64] {
 // getDecode gets the storage value and returns it decoded. The result from Get is Option<sc.Sequence[sc.U8]>.
 // If the option is empty, it returns the default value T.
 // If the option is not empty, it decodes it using decodeFunc and returns it.
-func (bs baseStorage[T]) getDecode(key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
+func (bs baseStorage[T]) getDecode(key []byte) T {
 	option := bs.storage.Get(key)
 
 	if !option.HasValue {
@@ -89,20 +86,20 @@ func (bs baseStorage[T]) getDecode(key []byte, decodeFunc func(buffer *bytes.Buf
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(option.Value))
 
-	return decodeFunc(buffer)
+	return bs.decodeFunc(buffer)
 }
 
-func (bs baseStorage[T]) getDecodeOnEmpty(key []byte, decodeFunc func(buffer *bytes.Buffer) T, onEmpty T) T {
+func (bs baseStorage[T]) getDecodeOnEmpty(key []byte) T {
 	option := bs.storage.Get(key)
 
 	if !option.HasValue {
-		return onEmpty
+		return *bs.defaultValue
 	}
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(option.Value))
 
-	return decodeFunc(buffer)
+	return bs.decodeFunc(buffer)
 }
 
 // takeBytes gets the storage value. The result from Get is Option<sc.Sequence[sc.U8]>.
@@ -123,7 +120,7 @@ func (bs baseStorage[T]) takeBytes(key []byte) []byte {
 // TakeDecode gets the storage value and returns it decoded. The result from Get is Option<sc.Sequence[sc.U8]>.
 // If the option is empty, it returns default value T.
 // If the option is not empty, it clears it and returns decodeFunc(value).
-func (bs baseStorage[T]) takeDecode(key []byte, decodeFunc func(buffer *bytes.Buffer) T) T {
+func (bs baseStorage[T]) takeDecode(key []byte) T {
 	option := bs.storage.Get(key)
 
 	if !option.HasValue {
@@ -135,5 +132,5 @@ func (bs baseStorage[T]) takeDecode(key []byte, decodeFunc func(buffer *bytes.Bu
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(option.Value))
 
-	return decodeFunc(buffer)
+	return bs.decodeFunc(buffer)
 }

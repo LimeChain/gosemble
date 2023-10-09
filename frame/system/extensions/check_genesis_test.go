@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	mockModule           *mocks.SystemModule
-	mockStorageBlockHash *mocks.StorageMap[sc.U64, primitives.Blake2bHash]
+	mockModule *mocks.SystemModule
 )
 
 func Test_CheckGenesis_AdditionalSigned(t *testing.T) {
@@ -25,15 +24,13 @@ func Test_CheckGenesis_AdditionalSigned(t *testing.T) {
 		)}
 	target := setupCheckGenesis()
 
-	mockModule.On("StorageBlockHash").Return(mockStorageBlockHash)
-	mockStorageBlockHash.On("Get", sc.U64(0)).Return(hash)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash)
 
 	result, err := target.AdditionalSigned()
 
 	assert.Nil(t, err)
 	assert.Equal(t, sc.NewVaryingData(primitives.H256(hash)), result)
-	mockModule.AssertCalled(t, "StorageBlockHash")
-	mockStorageBlockHash.AssertCalled(t, "Get", sc.U64(0))
+	mockModule.AssertCalled(t, "StorageBlockHash", sc.U64(0))
 }
 
 func Test_CheckGenesis_Encode(t *testing.T) {
@@ -125,7 +122,6 @@ func Test_CheckGenesis_Metadata(t *testing.T) {
 
 func setupCheckGenesis() CheckGenesis {
 	mockModule = new(mocks.SystemModule)
-	mockStorageBlockHash = new(mocks.StorageMap[sc.U64, primitives.Blake2bHash])
 
 	return NewCheckGenesis(mockModule)
 }

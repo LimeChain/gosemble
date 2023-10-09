@@ -58,18 +58,3 @@ func (re *RuntimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc
 	args := re.Called()
 	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModule]), args.Get(2).(primitives.MetadataExtrinsic)
 }
-
-func (re *RuntimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
-	args := re.Called(variants)
-	return args.Get(0).(primitives.MetadataType)
-}
-
-func (re *RuntimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
-	args := re.Called(variants)
-	return args.Get(0).(primitives.MetadataType)
-}
-
-func (re *RuntimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
-	args := re.Called(variants, id, docs, path)
-	return args.Get(0).(primitives.MetadataType)
-}

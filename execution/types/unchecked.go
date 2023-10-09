@@ -28,7 +28,7 @@ type UncheckedExtrinsic interface {
 	Extra() primitives.SignedExtra
 
 	IsSigned() sc.Bool
-	Check(lookup primitives.AccountIdLookup) (CheckedExtrinsic, primitives.TransactionValidityError)
+	Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError)
 }
 
 type uncheckedExtrinsic struct {
@@ -96,30 +96,28 @@ func (uxt uncheckedExtrinsic) IsSigned() sc.Bool {
 	return uxt.signature.HasValue
 }
 
-func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (CheckedExtrinsic, primitives.TransactionValidityError) {
+func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {
 	if uxt.signature.HasValue {
 		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
 		signedAddress, err := lookup.Lookup(signer)
 		if err != nil {
-			return nil, err
+			return sc.NewOption[primitives.Address32](nil), err
 		}
 
 		rawPayload, err := primitives.NewSignedPayload(uxt.function, extra)
 		if err != nil {
-			return nil, err
+			return sc.NewOption[primitives.Address32](nil), err
 		}
 
 		if !uxt.verify(signature, rawPayload.UsingEncoded(), signedAddress) {
-			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+			return sc.NewOption[primitives.Address32](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
-		function, extra, _ := rawPayload.Call, rawPayload.Extra, rawPayload.AdditionalSigned
-
-		return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signedAddress), function, extra), nil
+		return sc.NewOption[primitives.Address32](signedAddress), nil
 	}
 
-	return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.function, uxt.extra), nil
+	return sc.NewOption[primitives.Address32](nil), nil
 }
 
 func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.Address32) bool {

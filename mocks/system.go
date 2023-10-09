@@ -2,7 +2,6 @@ package mocks
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
@@ -172,37 +171,67 @@ func (m *SystemModule) BlockHashCount() sc.U64 {
 	return args.Get(0).(sc.U64)
 }
 
-func (m *SystemModule) StorageDigest() support.StorageValue[types.Digest] {
+func (m *SystemModule) StorageDigest() types.Digest {
 	args := m.Called()
-	return args.Get(0).(support.StorageValue[types.Digest])
+	return args.Get(0).(types.Digest)
 }
 
-func (m *SystemModule) StorageBlockWeight() support.StorageValue[primitives.ConsumedWeight] {
+func (m *SystemModule) StorageBlockWeight() primitives.ConsumedWeight {
 	args := m.Called()
-	return args.Get(0).(support.StorageValue[primitives.ConsumedWeight])
+	return args.Get(0).(primitives.ConsumedWeight)
 }
 
-func (m *SystemModule) StorageBlockHash() support.StorageMap[sc.U64, types.Blake2bHash] {
-	args := m.Called()
-	return args.Get(0).(support.StorageMap[sc.U64, types.Blake2bHash])
+func (m *SystemModule) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
+	m.Called(weight)
 }
 
-func (m *SystemModule) StorageBlockNumber() support.StorageValue[sc.U64] {
-	args := m.Called()
-	return args.Get(0).(support.StorageValue[sc.U64])
+func (m *SystemModule) StorageBlockHash(key sc.U64) types.Blake2bHash {
+	args := m.Called(key)
+	return args.Get(0).(types.Blake2bHash)
 }
 
-func (m *SystemModule) StorageLastRuntimeUpgrade() support.StorageValue[types.LastRuntimeUpgradeInfo] {
-	args := m.Called()
-	return args.Get(0).(support.StorageValue[types.LastRuntimeUpgradeInfo])
+func (m *SystemModule) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
+	m.Called(key, value)
 }
 
-func (m *SystemModule) StorageAccount() support.StorageMap[types.PublicKey, types.AccountInfo] {
-	args := m.Called()
-	return args.Get(0).(support.StorageMap[types.PublicKey, types.AccountInfo])
+func (m *SystemModule) StorageBlockHashExists(key sc.U64) bool {
+	args := m.Called(key)
+
+	return args[0].(bool)
 }
 
-func (m *SystemModule) StorageAllExtrinsicsLen() support.StorageValue[sc.U32] {
+func (m *SystemModule) StorageBlockNumber() sc.U64 {
 	args := m.Called()
-	return args.Get(0).(support.StorageValue[sc.U32])
+	return args.Get(0).(sc.U64)
+}
+
+func (m *SystemModule) StorageBlockNumberSet(blockNumber sc.U64) {
+	m.Called(blockNumber)
+}
+
+func (m *SystemModule) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
+	args := m.Called()
+	return args.Get(0).(types.LastRuntimeUpgradeInfo)
+}
+
+func (m *SystemModule) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
+	m.Called(lrui)
+}
+
+func (m *SystemModule) StorageAccount(key types.PublicKey) types.AccountInfo {
+	args := m.Called(key)
+	return args.Get(0).(types.AccountInfo)
+}
+
+func (m *SystemModule) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
+	m.Called(key, value)
+}
+
+func (m *SystemModule) StorageAllExtrinsicsLen() sc.U32 {
+	args := m.Called()
+	return args.Get(0).(sc.U32)
+}
+
+func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {
+	m.Called(value)
 }

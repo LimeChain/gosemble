@@ -101,7 +101,7 @@ func initializeModules() map[sc.U8]types.Module {
 			TimestampMinimumPeriod,
 			AuraMaxAuthorites,
 			false,
-			systemModule.StorageDigest().Get,
+			systemModule.StorageDigest,
 		),
 	)
 
