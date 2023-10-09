@@ -22,12 +22,14 @@ type TaggedTransactionQueue interface {
 type Module struct {
 	executive executive.Module
 	decoder   types.ModuleDecoder
+	memUtils  utils.WasmMemoryTranslator
 }
 
 func New(executive executive.Module, decoder types.ModuleDecoder) Module {
 	return Module{
 		executive: executive,
 		decoder:   decoder,
+		memUtils:  utils.NewMemoryTranslator(),
 	}
 }
 
@@ -48,7 +50,7 @@ func (m Module) Item() primitives.ApiItem {
 // Returns a pointer-size of the SCALE-encoded result whether the extrinsic is valid.
 // [Specification](https://spec.polkadot.network/#sect-rte-validate-transaction)
 func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
-	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
 	txSource := primitives.DecodeTransactionSource(buffer)
@@ -64,5 +66,5 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 		res = primitives.NewTransactionValidityResult(ok)
 	}
 
-	return utils.BytesToOffsetAndSize(res.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(res.Bytes())
 }

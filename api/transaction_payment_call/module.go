@@ -23,12 +23,14 @@ var (
 type Module struct {
 	decoder    types.ModuleDecoder
 	txPayments transaction_payment.Module
+	memUtils   utils.WasmMemoryTranslator
 }
 
 func NewCallApi(decoder types.ModuleDecoder, txPayments transaction_payment.Module) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
+		memUtils:   utils.NewMemoryTranslator(),
 	}
 }
 
@@ -49,7 +51,7 @@ func (m Module) Item() primitives.ApiItem {
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
 func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	call := m.decoder.DecodeCall(buffer)
@@ -64,7 +66,7 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 		PartialFee: partialFee,
 	}
 
-	return utils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
 }
 
 // QueryCallFeeDetails queries the detailed fee of a dispatch call.
@@ -75,7 +77,7 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
 func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	call := m.decoder.DecodeCall(buffer)
@@ -84,5 +86,5 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	dispatchInfo := primitives.GetDispatchInfo(call)
 	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
 
-	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
 }

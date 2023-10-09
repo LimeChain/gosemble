@@ -112,8 +112,8 @@ func setup(minimumPeriod sc.U64) {
 		mockStorageDigest.Get,
 	)
 	module = New(moduleId, config)
-	module.Storage.CurrentSlot = mockStorageCurrentSlot
-	module.Storage.Authorities = mockStorageAuthorities
+	module.storage.CurrentSlot = mockStorageCurrentSlot
+	module.storage.Authorities = mockStorageAuthorities
 }
 
 func newPreRuntimeDigest(n sc.U64) *types.Digest {

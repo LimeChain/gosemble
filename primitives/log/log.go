@@ -39,7 +39,8 @@ func Trace(message string) {
 }
 
 func log(level int32, target []byte, message []byte) {
-	targetOffsetSize := utils.BytesToOffsetAndSize(target)
-	messageOffsetSize := utils.BytesToOffsetAndSize(message)
+	mem := utils.NewMemoryTranslator()
+	targetOffsetSize := mem.BytesToOffsetAndSize(target)
+	messageOffsetSize := mem.BytesToOffsetAndSize(message)
 	env.ExtLoggingLogVersion1(level, targetOffsetSize, messageOffsetSize)
 }

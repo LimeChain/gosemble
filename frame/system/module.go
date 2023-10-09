@@ -9,6 +9,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -25,13 +26,8 @@ const (
 )
 
 type Module interface {
-	types.InherentProvider
-	hooks.DispatchModule
+	dispatch.Module
 
-	GetIndex() sc.U8
-	Functions() map[sc.U8]primitives.Call
-	PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError)
-	ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError)
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass)
 	NoteFinishedInitialize()
@@ -44,7 +40,6 @@ type Module interface {
 	CanDecProviders(who primitives.Address32) bool
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength

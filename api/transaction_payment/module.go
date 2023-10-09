@@ -23,12 +23,14 @@ var (
 type Module struct {
 	decoder    types.ModuleDecoder
 	txPayments transaction_payment.Module
+	memUtils   utils.WasmMemoryTranslator
 }
 
 func New(decoder types.ModuleDecoder, txPayments transaction_payment.Module) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
+		memUtils:   utils.NewMemoryTranslator(),
 	}
 }
 
@@ -49,7 +51,7 @@ func (m Module) Item() primitives.ApiItem {
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-info)
 func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
@@ -68,7 +70,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 		PartialFee: partialFee,
 	}
 
-	return utils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(runtimeDispatchInfo.Bytes())
 }
 
 // QueryFeeDetails queries the detailed fee of an extrinsic.
@@ -79,7 +81,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 // Returns a pointer-size of the SCALE-encoded detailed fee.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentapi-query-fee-details)
 func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
@@ -96,5 +98,5 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 		}
 	}
 
-	return utils.BytesToOffsetAndSize(feeDetails.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
