@@ -2,6 +2,7 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -9,8 +10,10 @@ type UnsignedValidatorForChecked struct {
 	runtimeExtrinsic RuntimeExtrinsic
 }
 
-func NewUnsignedValidatorForChecked(extrinsic RuntimeExtrinsic) UnsignedValidatorForChecked {
-	return UnsignedValidatorForChecked{runtimeExtrinsic: extrinsic}
+func NewUnsignedValidatorForChecked(extrinsic RuntimeExtrinsic) types.UnsignedValidator {
+	return UnsignedValidatorForChecked{
+		runtimeExtrinsic: extrinsic,
+	}
 }
 
 // PreDispatch validates the dispatch call before execution.

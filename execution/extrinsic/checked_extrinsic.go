@@ -22,15 +22,6 @@ type checkedExtrinsic struct {
 	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
 }
 
-func NewCheckedExtrinsic(signed sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) types.CheckedExtrinsic {
-	return checkedExtrinsic{
-		signed:        signed,
-		function:      function,
-		extra:         extra,
-		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](),
-	}
-}
-
 func (c checkedExtrinsic) Apply(validator types.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[primitives.Address32]
