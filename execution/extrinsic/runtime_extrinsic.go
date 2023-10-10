@@ -8,6 +8,12 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
+const (
+	runtimeSystemErrIdx sc.U8 = iota
+	runtimeBalancesErrIdx
+	runtimeGrandpaErrIdx
+)
+
 type RuntimeExtrinsic interface {
 	Module(index sc.U8) (module primitives.Module, isFound bool)
 	CreateInherents(inherentData primitives.InherentData) []byte
@@ -207,19 +213,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	metadataTypes = append(metadataTypes, runtimeError)
 
 	// create the unchecked extrinsic type using runtime call id
-	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-		primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-			}),
-		sc.Sequence[primitives.MetadataTypeParameter]{
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
-			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
-			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
-		},
-	)
+	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
 
 	// append it to all types
 	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
@@ -284,19 +278,7 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 	metadataTypes = append(metadataTypes, runtimeError)
 
 	// create the unchecked extrinsic type using runtime call id
-	uncheckedExtrinsicType := primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
-		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
-		primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-			}),
-		sc.Sequence[primitives.MetadataTypeParameter]{
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
-			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
-			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
-			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
-		},
-	)
+	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
 
 	// append it to all types
 	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
@@ -311,6 +293,22 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 	}
 
 	return metadataTypes, modules, extrinsicV15, apis, outerEnums, custom
+}
+
+func createUncheckedExtrinsicType(runtimeCall primitives.MetadataType) primitives.MetadataType {
+	return primitives.NewMetadataTypeWithParams(metadata.UncheckedExtrinsic, "UncheckedExtrinsic",
+		sc.Sequence[sc.Str]{"sp_runtime", "generic", "unchecked_extrinsic", "UncheckedExtrinsic"},
+		primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+			}),
+		sc.Sequence[primitives.MetadataTypeParameter]{
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiAddress, "Address"),
+			primitives.NewMetadataTypeParameterCompactId(runtimeCall.Id, "Call"),
+			primitives.NewMetadataTypeParameter(metadata.TypesMultiSignature, "Signature"),
+			primitives.NewMetadataTypeParameter(metadata.SignedExtra, "Extra"),
+		},
+	)
 }
 
 func (re runtimeExtrinsic) runtimeCall(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
@@ -339,21 +337,21 @@ func (re runtimeExtrinsic) runtimeError() primitives.MetadataType {
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
 				},
-				0,
+				runtimeSystemErrIdx,
 				""),
 			primitives.NewMetadataDefinitionVariant(
 				"Balances",
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
 				},
-				1,
+				runtimeBalancesErrIdx,
 				""),
 			primitives.NewMetadataDefinitionVariant(
 				"Grandpa",
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
 				},
-				2,
+				runtimeGrandpaErrIdx,
 				""),
 		}))
 }

@@ -149,7 +149,7 @@ const (
 	CheckInherentsResult
 
 	TypesBlock
-	TypeOption
+	TypeOptionOpaqueMetadata
 	TypeOptionInclusionFee
 	TypesOptionTupleSequenceU8KeyTypeId
 

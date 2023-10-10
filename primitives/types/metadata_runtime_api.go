@@ -180,23 +180,23 @@ func metadataMethodsMd() sc.Sequence[RuntimeApiMethodMetadata] {
 			Output: sc.ToCompact(mdconstants.TypesOpaqueMetadata),
 			Docs:   sc.Sequence[sc.Str]{" Returns the metadata of a runtime."},
 		},
-		//RuntimeApiMethodMetadata{
-		//	Name:   metadataAtVersionMethod,
-		//	Inputs: metadataAtVersionsInputsMd(),
-		//	Output: sc.ToCompact(mdconstants.TypeOption),
-		//	Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
-		//		"",
-		//		" If the given `version` isn't supported, this will return `None`.",
-		//		" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
-		//},
-		//RuntimeApiMethodMetadata{
-		//	Name:   metadataVersionsMethod,
-		//	Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
-		//	Output: sc.ToCompact(mdconstants.TypesSequenceU32),
-		//	Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
-		//		"",
-		//		" This can be used to call `metadata_at_version`."},
-		//},
+		RuntimeApiMethodMetadata{
+			Name:   metadataAtVersionMethod,
+			Inputs: metadataAtVersionsInputsMd(),
+			Output: sc.ToCompact(mdconstants.TypeOptionOpaqueMetadata),
+			Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
+				"",
+				" If the given `version` isn't supported, this will return `None`.",
+				" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
+		},
+		RuntimeApiMethodMetadata{
+			Name:   metadataVersionsMethod,
+			Inputs: sc.Sequence[RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(mdconstants.TypesSequenceU32),
+			Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
+				"",
+				" This can be used to call `metadata_at_version`."},
+		},
 	}
 }
 

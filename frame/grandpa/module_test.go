@@ -143,7 +143,7 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
 		primitives.NewMetadataType(metadata.TypesSequenceTupleGrandpaAppPublic, "[]byte (GrandpaAppPublic, U64)", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleGrandaAppPublicU64))),
 	}
-	expectMetadataModule := primitives.MetadataModule{
+	moduleV14 := primitives.MetadataModuleV14{
 		Name:      name,
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -153,6 +153,11 @@ func Test_Module_Metadata(t *testing.T) {
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     moduleId,
+	}
+
+	expectMetadataModule := primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: moduleV14,
 	}
 
 	metadataTypes, metadataModule := target.Metadata()

@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )

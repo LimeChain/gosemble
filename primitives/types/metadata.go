@@ -89,22 +89,11 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 	default:
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 	}
-
-	//if version != MetadataVersion15 {
-	//	return Metadata15{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion15)) + "], actual [" + strconv.Itoa(int(version)) + "]")
-	//}
-	//
-	//return Metadata15{DecodeRuntimeMetadataV15(buffer)}, nil
-
 }
 
 func (m Metadata) Bytes() []byte {
 	return sc.EncodedBytes(m)
 }
-
-//func (m Metadata) Bytes() []byte {
-//	return sc.EncodedBytes(m)
-//}
 
 type MetadataType struct {
 	Id         sc.Compact

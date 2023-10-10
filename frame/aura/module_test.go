@@ -75,10 +75,10 @@ var (
 			types.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
 
 		// type 923
-		types.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TypesTupleSequenceU8KeyTypeId", types.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),
+		types.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TupleSequenceU8KeyTypeId", types.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),
 
 		// type 922
-		types.NewMetadataTypeWithParam(metadata.TypesOptionTupleSequenceU8KeyTypeId, "Option<TupleSequenceU8KeyTypeId>", sc.Sequence[sc.Str]{"Option"}, types.NewMetadataTypeDefinitionVariant( // TODO: Verify it's correct (the indices)
+		types.NewMetadataTypeWithParam(metadata.TypesOptionTupleSequenceU8KeyTypeId, "Option<TupleSequenceU8KeyTypeId>", sc.Sequence[sc.Str]{"Option"}, types.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[types.MetadataDefinitionVariant]{
 				types.NewMetadataDefinitionVariant(
 					"None",
@@ -96,7 +96,7 @@ var (
 			types.NewMetadataTypeParameter(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "T")),
 	}
 
-	expectedMetadataModule = types.MetadataModule{
+	moduleV14 = types.MetadataModuleV14{
 		Name: "Aura",
 		Storage: sc.NewOption[types.MetadataModuleStorage](types.MetadataModuleStorage{
 			Prefix: "Aura",
@@ -120,6 +120,11 @@ var (
 		Constants: sc.Sequence[types.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
 		Index:     sc.U8(13),
+	}
+
+	expectedMetadataModule = types.MetadataModule{
+		Version:   types.ModuleVersion14,
+		ModuleV14: moduleV14,
 	}
 )
 

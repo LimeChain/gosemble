@@ -24,7 +24,7 @@ const NODE_TEMPLATE_RUNTIME = "../build/node_template_v15.wasm"
 
 // const WASM_RUNTIME = "../build/node_template_v15.wasm"
 // const WASM_RUNTIME = "../build/runtime-optimized.wasm" // min memory: 257
-const WASM_RUNTIME = "../build/node_template_v15.wasm"
+const WASM_RUNTIME = "../build/runtime.wasm"
 
 var (
 	keySystemHash, _           = common.Twox128Hash([]byte("System"))

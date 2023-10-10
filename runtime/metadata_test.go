@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
 )
 

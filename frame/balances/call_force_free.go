@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -120,7 +121,6 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 	return nil
 }
 
-// forceFree frees some funds, returning the amount that has not been freed.
 // forceFree frees funds, returning the amount that has not been freed.
 func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 	if value.Eq(constants.Zero) {

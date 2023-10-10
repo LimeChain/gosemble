@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"

@@ -16,8 +16,13 @@ const (
 )
 
 const (
-	ResultOk sc.U8 = iota
-	ResultErr
+	resultOkIdx sc.U8 = iota
+	resultErrIdx
+)
+
+const (
+	optionNoneIdx sc.U8 = iota
+	optionSomeIdx
 )
 
 type Module struct {
@@ -612,19 +617,19 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 				})),
 
-		primitives.NewMetadataTypeWithParam(metadata.TypeOption, "Option<OpaqueMetadata>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(metadata.TypeOptionOpaqueMetadata, "Option<OpaqueMetadata>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"None",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					0,
+					optionNoneIdx,
 					""),
 				primitives.NewMetadataDefinitionVariant(
 					"Some",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesOpaqueMetadata),
 					},
-					1,
+					optionSomeIdx,
 					""),
 			}),
 			primitives.NewMetadataTypeParameter(metadata.TypesOpaqueMetadata, "T")),
@@ -637,14 +642,14 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesEmptyTuple),
 					},
-					ResultOk,
+					resultOkIdx,
 					""),
 				primitives.NewMetadataDefinitionVariant(
 					"Err",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesDispatchError),
 					},
-					ResultErr, ""),
+					resultErrIdx, ""),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.TypesEmptyTuple, "T"),
@@ -658,14 +663,14 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesResultEmptyTuple),
 					},
-					ResultOk,
+					resultOkIdx,
 					""),
 				primitives.NewMetadataDefinitionVariant(
 					"Err",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
 					},
-					ResultErr, ""),
+					resultErrIdx, ""),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.TypesResultEmptyTuple, "T"),
@@ -706,14 +711,14 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"None",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					0,
+					optionNoneIdx,
 					""),
 				primitives.NewMetadataDefinitionVariant(
 					"Some",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
 					},
-					1,
+					optionSomeIdx,
 					""),
 			}),
 			primitives.NewMetadataTypeParameter(metadata.TypesSequenceU8, "T")),
