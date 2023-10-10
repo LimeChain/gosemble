@@ -13,11 +13,11 @@ const (
 )
 
 type Module struct {
-	grandpa  grandpa.Module
+	grandpa  grandpa.GrandpaModule
 	memUtils utils.WasmMemoryTranslator
 }
 
-func New(grandpa grandpa.Module) Module {
+func New(grandpa grandpa.GrandpaModule) Module {
 	return Module{
 		grandpa:  grandpa,
 		memUtils: utils.NewMemoryTranslator(),
