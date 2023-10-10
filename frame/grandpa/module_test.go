@@ -47,15 +47,28 @@ func Test_Module_GetIndex(t *testing.T) {
 	assert.Equal(t, moduleId, target.GetIndex())
 }
 
-func Test_Module_name(t *testing.T) {
-	setup()
-	assert.Equal(t, name, target.name())
-}
-
 func Test_Module_Functions(t *testing.T) {
 	setup()
 
 	assert.Equal(t, map[sc.U8]primitives.Call{}, target.Functions())
+}
+
+func Test_Module_PreDispatch(t *testing.T) {
+	setup()
+
+	result, err := target.PreDispatch(new(mocks.Call))
+
+	assert.Nil(t, err)
+	assert.Equal(t, sc.Empty{}, result)
+}
+
+func Test_Module_ValidateUnsigned(t *testing.T) {
+	setup()
+
+	result, err := target.ValidateUnsigned(primitives.NewTransactionSourceLocal(), new(mocks.Call))
+
+	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, primitives.ValidTransaction{}, result)
 }
 
 func Test_Module_Authorities_Success(t *testing.T) {

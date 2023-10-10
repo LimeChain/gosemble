@@ -15,6 +15,18 @@ import (
 )
 
 var (
+	accountInfo = primitives.AccountInfo{
+		Nonce:       1,
+		Consumers:   2,
+		Providers:   3,
+		Sufficients: 4,
+		Data: primitives.AccountData{
+			Free:       sc.NewU128(5),
+			Reserved:   sc.NewU128(6),
+			MiscFrozen: sc.NewU128(7),
+			FeeFrozen:  sc.NewU128(8),
+		},
+	}
 	blockHashCount = sc.U64(5)
 	blockWeights   = primitives.BlockWeights{
 		BaseBlock: primitives.Weight{
@@ -102,10 +114,6 @@ func Test_Module_GetIndex(t *testing.T) {
 	assert.Equal(t, sc.U8(moduleId), setupModule().GetIndex())
 }
 
-func Test_Module_name(t *testing.T) {
-	assert.Equal(t, name, setupModule().name())
-}
-
 func Test_Module_Functions(t *testing.T) {
 	target := setupModule()
 	functions := target.Functions()
@@ -131,6 +139,197 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 
 	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator()), err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
+}
+
+func Test_Module_BlockHashCount(t *testing.T) {
+	assert.Equal(t, blockHashCount, setupModule().BlockHashCount())
+}
+
+func Test_Module_BlockLength(t *testing.T) {
+	assert.Equal(t, blockLength, setupModule().BlockLength())
+}
+
+func Test_Module_BlockWeights(t *testing.T) {
+	assert.Equal(t, blockWeights, setupModule().BlockWeights())
+}
+
+func Test_Module_DbWeight(t *testing.T) {
+	assert.Equal(t, dbWeight, setupModule().DbWeight())
+}
+
+func Test_Module_Version(t *testing.T) {
+	assert.Equal(t, version, setupModule().Version())
+}
+
+func Test_Module_StorageDigest(t *testing.T) {
+	target := setupModule()
+
+	mockStorageDigest.On("Get").Return(digest)
+
+	result := target.StorageDigest()
+
+	assert.Equal(t, digest, result)
+	mockStorageDigest.AssertCalled(t, "Get")
+}
+
+func Test_Module_StorageBlockWeight(t *testing.T) {
+	blockWeight := primitives.ConsumedWeight{
+		Normal:      primitives.WeightFromParts(1, 2),
+		Operational: primitives.WeightFromParts(3, 4),
+		Mandatory:   primitives.WeightFromParts(5, 6),
+	}
+	target := setupModule()
+
+	mockStorageBlockWeight.On("Get").Return(blockWeight)
+
+	result := target.StorageBlockWeight()
+
+	assert.Equal(t, blockWeight, result)
+	mockStorageBlockWeight.AssertCalled(t, "Get")
+}
+
+func Test_Module_StorageBlockWeightSet(t *testing.T) {
+	blockWeight := primitives.ConsumedWeight{
+		Normal:      primitives.WeightFromParts(1, 2),
+		Operational: primitives.WeightFromParts(3, 4),
+		Mandatory:   primitives.WeightFromParts(5, 6),
+	}
+	target := setupModule()
+
+	mockStorageBlockWeight.On("Put", blockWeight).Return()
+
+	target.StorageBlockWeightSet(blockWeight)
+
+	mockStorageBlockWeight.AssertCalled(t, "Put", blockWeight)
+}
+
+func Test_Module_StorageBlockHash(t *testing.T) {
+	key := sc.U64(0)
+	target := setupModule()
+
+	mockStorageBlockHash.On("Get", key).Return(parentHash)
+
+	result := target.StorageBlockHash(key)
+
+	assert.Equal(t, parentHash, result)
+	mockStorageBlockHash.AssertCalled(t, "Get", key)
+}
+
+func Test_Module_StorageBlockHashSet(t *testing.T) {
+	key := sc.U64(0)
+	target := setupModule()
+
+	mockStorageBlockHash.On("Put", key, parentHash).Return()
+
+	target.StorageBlockHashSet(key, parentHash)
+
+	mockStorageBlockHash.AssertCalled(t, "Put", key, parentHash)
+}
+
+func Test_Module_StorageBlockHashExists(t *testing.T) {
+	key := sc.U64(0)
+	target := setupModule()
+
+	mockStorageBlockHash.On("Exists", key).Return(true)
+
+	result := target.StorageBlockHashExists(key)
+
+	assert.Equal(t, true, result)
+	mockStorageBlockHash.AssertCalled(t, "Exists", key)
+}
+
+func Test_Module_StorageBlockNumber(t *testing.T) {
+	target := setupModule()
+
+	mockStorageBlockNumber.On("Get").Return(blockNumber)
+
+	result := target.StorageBlockNumber()
+
+	assert.Equal(t, blockNumber, result)
+	mockStorageBlockNumber.AssertCalled(t, "Get")
+}
+
+func Test_Module_StorageBlockNumberSet(t *testing.T) {
+	target := setupModule()
+
+	mockStorageBlockNumber.On("Put", blockNumber).Return()
+
+	target.StorageBlockNumberSet(blockNumber)
+
+	mockStorageBlockNumber.AssertCalled(t, "Put", blockNumber)
+}
+
+func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
+	lrui := primitives.LastRuntimeUpgradeInfo{
+		SpecVersion: sc.ToCompact(sc.U32(1)),
+		SpecName:    "test",
+	}
+	target := setupModule()
+
+	mockStorageLastRuntimeUpgrade.On("Get").Return(lrui)
+
+	result := target.StorageLastRuntimeUpgrade()
+
+	assert.Equal(t, lrui, result)
+	mockStorageLastRuntimeUpgrade.AssertCalled(t, "Get")
+}
+
+func Test_Module_StorageLastRuntimeUpgradeSet(t *testing.T) {
+	lrui := primitives.LastRuntimeUpgradeInfo{
+		SpecVersion: sc.ToCompact(sc.U32(1)),
+		SpecName:    "test",
+	}
+	target := setupModule()
+
+	mockStorageLastRuntimeUpgrade.On("Put", lrui).Return()
+
+	target.StorageLastRuntimeUpgradeSet(lrui)
+
+	mockStorageLastRuntimeUpgrade.AssertCalled(t, "Put", lrui)
+}
+
+func Test_Module_StorageAccount(t *testing.T) {
+	target := setupModule()
+
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+
+	result := target.StorageAccount(targetAccount.FixedSequence)
+
+	assert.Equal(t, accountInfo, result)
+	mockStorageAccount.AssertCalled(t, "Get", targetAccount.FixedSequence)
+}
+
+func Test_Module_StorageAccountSet(t *testing.T) {
+	target := setupModule()
+
+	mockStorageAccount.On("Put", targetAccount.FixedSequence, accountInfo).Return()
+
+	target.StorageAccountSet(targetAccount.FixedSequence, accountInfo)
+
+	mockStorageAccount.AssertCalled(t, "Put", targetAccount.FixedSequence, accountInfo)
+}
+
+func Test_Module_StorageAllExtrinsicLen(t *testing.T) {
+	extrinsicLen := sc.U32(2)
+	target := setupModule()
+
+	mockStorageAllExtrinsicsLen.On("Get").Return(extrinsicLen)
+
+	result := target.StorageAllExtrinsicsLen()
+
+	assert.Equal(t, extrinsicLen, result)
+	mockStorageAllExtrinsicsLen.AssertCalled(t, "Get")
+}
+
+func Test_Module_StorageAllExtrinsicLenSet(t *testing.T) {
+	extrinsicLen := sc.U32(2)
+	target := setupModule()
+
+	mockStorageAllExtrinsicsLen.On("Put", extrinsicLen).Return()
+
+	target.StorageAllExtrinsicsLenSet(extrinsicLen)
+
+	mockStorageAllExtrinsicsLen.AssertCalled(t, "Put", extrinsicLen)
 }
 
 func Test_Module_Initialize(t *testing.T) {
@@ -683,30 +882,6 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 		mockTypeMutateAccountInfo)
 }
 
-func Test_Module_incProviders(t *testing.T) {
-	expect := primitives.IncRefStatusCreated
-	mockResult := sc.Result[sc.Encodable]{
-		Value: expect,
-	}
-	target := setupModule()
-
-	mockStorageAccount.
-		On(
-			"Mutate",
-			targetAccount.FixedSequence,
-			mockTypeMutateAccountInfo).
-		Return(mockResult)
-
-	result := target.incProviders(targetAccount)
-
-	assert.Equal(t, expect, result)
-
-	mockStorageAccount.AssertCalled(t,
-		"Mutate",
-		targetAccount.FixedSequence,
-		mockTypeMutateAccountInfo)
-}
-
 func Test_Module_incrementProviders_RefStatusCreated(t *testing.T) {
 	accountInfo := &primitives.AccountInfo{}
 	expect := sc.Result[sc.Encodable]{
@@ -753,55 +928,34 @@ func Test_Module_incrementProviders_RefStatusExisted(t *testing.T) {
 	mockStorageEventTopics.AssertNotCalled(t, "Append", mock.Anything, mock.Anything)
 }
 
-func Test_Module_decProviders_Success(t *testing.T) {
-	target := setupModule()
-	expect := primitives.DecRefStatusReaped
-	mockResult := sc.Result[sc.Encodable]{
-		Value: expect,
+func Test_Module_DepositEvent_Success(t *testing.T) {
+	firstHash := [32]sc.U8{}
+	firstHash[0] = 1
+	secondHash := [32]sc.U8{}
+	secondHash[0] = 2
+	event := newEventCodeUpdated(moduleId)
+	expectEventRecord := primitives.EventRecord{
+		Phase:  primitives.NewExtrinsicPhaseInitialization(),
+		Event:  event,
+		Topics: []primitives.H256{},
 	}
-
-	mockStorageAccount.
-		On(
-			"TryMutateExists",
-			targetAccount.FixedSequence,
-			mockTypeMutateOptionAccountInfo).
-		Return(mockResult)
-
-	result, err := target.decProviders(targetAccount)
-
-	assert.Nil(t, err)
-	assert.Equal(t, expect, result)
-
-	mockStorageAccount.AssertCalled(t,
-		"TryMutateExists",
-		targetAccount.FixedSequence,
-		mockTypeMutateOptionAccountInfo)
-}
-
-func Test_Module_decProviders_Error(t *testing.T) {
+	blockNum := sc.U64(1)
+	eventCount := sc.U32(2)
 	target := setupModule()
-	expectError := primitives.NewDispatchErrorCannotLookup()
-	mockResult := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    expectError,
-	}
 
-	mockStorageAccount.
-		On(
-			"TryMutateExists",
-			targetAccount.FixedSequence,
-			mockTypeMutateOptionAccountInfo).
-		Return(mockResult)
+	mockStorageBlockNumber.On("Get").Return(blockNum)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
+	mockStorageEventCount.On("Get").Return(eventCount)
+	mockStorageEventCount.On("Put", eventCount+1).Return()
+	mockStorageEvents.On("Append", expectEventRecord).Return()
 
-	result, err := target.decProviders(targetAccount)
+	target.DepositEvent(event)
 
-	assert.Equal(t, expectError, err)
-	assert.Equal(t, sc.U8(0), result)
-
-	mockStorageAccount.AssertCalled(t,
-		"TryMutateExists",
-		targetAccount.FixedSequence,
-		mockTypeMutateOptionAccountInfo)
+	mockStorageBlockNumber.AssertCalled(t, "Get")
+	mockStorageExecutionPhase.AssertCalled(t, "Get")
+	mockStorageEventCount.AssertCalled(t, "Get")
+	mockStorageEventCount.AssertCalled(t, "Put", eventCount+1)
+	mockStorageEvents.AssertCalled(t, "Append", expectEventRecord)
 }
 
 func Test_Module_depositEventIndexed_Success(t *testing.T) {
@@ -848,13 +1002,13 @@ func Test_Module_depositEventIndexed_Success(t *testing.T) {
 	mockStorageEventTopics.AssertCalled(t, "Append", topics[0], topicValue)
 }
 
-func Test_Module_depositEventIndexed_Overflow(t *testing.T) {
+func Test_Module_DepositEvent_Overflow(t *testing.T) {
 	target := setupModule()
 	mockStorageBlockNumber.On("Get").Return(sc.U64(1))
 	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
 	mockStorageEventCount.On("Get").Return(sc.U32(math.MaxUint32))
 
-	target.depositEventIndexed([]primitives.H256{}, newEventCodeUpdated(moduleId))
+	target.DepositEvent(newEventCodeUpdated(moduleId))
 
 	mockStorageBlockNumber.AssertCalled(t, "Get")
 	mockStorageExecutionPhase.AssertCalled(t, "Get")
@@ -864,39 +1018,11 @@ func Test_Module_depositEventIndexed_Overflow(t *testing.T) {
 	mockStorageEventTopics.AssertNotCalled(t, "Append", mock.Anything, mock.Anything)
 }
 
-func Test_Module_depositEventIndexed_ZeroBlockNumber(t *testing.T) {
+func Test_Module_DepositEvent_ZeroBlockNumber(t *testing.T) {
 	target := setupModule()
 	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
 
-	target.depositEventIndexed([]primitives.H256{}, newEventCodeUpdated(moduleId))
-
-	mockStorageBlockNumber.AssertCalled(t, "Get")
-	mockStorageExecutionPhase.AssertNotCalled(t, "Get")
-	mockStorageEventCount.AssertNotCalled(t, "Get")
-	mockStorageEventCount.AssertNotCalled(t, "Put", mock.Anything)
-	mockStorageEventCount.AssertNotCalled(t, "Append", mock.Anything)
-	mockStorageEventTopics.AssertNotCalled(t, "Append", mock.Anything, mock.Anything)
-}
-
-func Test_Module_onCreatedAccount(t *testing.T) {
-	target := setupModule()
-	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
-
-	target.onCreatedAccount(targetAccount)
-
-	mockStorageBlockNumber.AssertCalled(t, "Get")
-	mockStorageExecutionPhase.AssertNotCalled(t, "Get")
-	mockStorageEventCount.AssertNotCalled(t, "Get")
-	mockStorageEventCount.AssertNotCalled(t, "Put", mock.Anything)
-	mockStorageEventCount.AssertNotCalled(t, "Append", mock.Anything)
-	mockStorageEventTopics.AssertNotCalled(t, "Append", mock.Anything, mock.Anything)
-}
-
-func Test_Module_onKilledAccount(t *testing.T) {
-	target := setupModule()
-	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
-
-	target.onKilledAccount(targetAccount)
+	target.DepositEvent(newEventCodeUpdated(moduleId))
 
 	mockStorageBlockNumber.AssertCalled(t, "Get")
 	mockStorageExecutionPhase.AssertNotCalled(t, "Get")
@@ -907,18 +1033,26 @@ func Test_Module_onKilledAccount(t *testing.T) {
 }
 
 func Test_Module_decrementProviders_HasAccount_NoProvidersLeft(t *testing.T) {
+	target := setupModule()
 	maybeAccount := sc.NewOption[primitives.AccountInfo](primitives.AccountInfo{})
 	expect := sc.Result[sc.Encodable]{
 		Value: primitives.DecRefStatusReaped,
 	}
 
-	result := decrementProviders(&maybeAccount)
+	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
+
+	result := target.decrementProviders(targetAccount, &maybeAccount)
 
 	assert.Equal(t, expect, result)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Providers)
+
+	mockStorageBlockNumber.AssertCalled(t, "Get")
+	mockStorageExecutionPhase.AssertNotCalled(t, "Get")
+	mockStorageEventCount.AssertNotCalled(t, "Get")
 }
 
 func Test_Module_decrementProviders_HasAccount_ConsumerRemaining(t *testing.T) {
+	target := setupModule()
 	accountInfo := primitives.AccountInfo{
 		Consumers: 1,
 		Data:      primitives.AccountData{},
@@ -929,7 +1063,7 @@ func Test_Module_decrementProviders_HasAccount_ConsumerRemaining(t *testing.T) {
 		Value:    primitives.NewDispatchErrorConsumerRemaining(),
 	}
 
-	result := decrementProviders(&maybeAccount)
+	result := target.decrementProviders(targetAccount, &maybeAccount)
 
 	assert.Equal(t, expect, result)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Providers)
@@ -937,6 +1071,7 @@ func Test_Module_decrementProviders_HasAccount_ConsumerRemaining(t *testing.T) {
 }
 
 func Test_Module_decrementProviders_HasAccount_ContinueExist(t *testing.T) {
+	target := setupModule()
 	accountInfo := primitives.AccountInfo{
 		Sufficients: 1,
 		Data:        primitives.AccountData{},
@@ -946,7 +1081,7 @@ func Test_Module_decrementProviders_HasAccount_ContinueExist(t *testing.T) {
 		Value: primitives.DecRefStatusExists,
 	}
 
-	result := decrementProviders(&maybeAccount)
+	result := target.decrementProviders(targetAccount, &maybeAccount)
 
 	assert.Equal(t, expect, result)
 	assert.Equal(t, sc.U32(0), maybeAccount.Value.Providers)
@@ -954,12 +1089,13 @@ func Test_Module_decrementProviders_HasAccount_ContinueExist(t *testing.T) {
 }
 
 func Test_Module_decrementProviders_NoAccount(t *testing.T) {
+	target := setupModule()
 	maybeAccount := sc.NewOption[primitives.AccountInfo](nil)
 	expect := sc.Result[sc.Encodable]{
 		Value: primitives.DecRefStatusReaped,
 	}
 
-	result := decrementProviders(&maybeAccount)
+	result := target.decrementProviders(targetAccount, &maybeAccount)
 
 	assert.Equal(t, expect, result)
 }

@@ -12,12 +12,12 @@ type StorageValue[T sc.Encodable] struct {
 func (m *StorageValue[T]) Get() T {
 	args := m.Called()
 
-	return args[0].(T)
+	return args.Get(0).(T)
 }
 
 func (m *StorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
 	args := m.Called()
-	return args[0].(sc.Option[sc.Sequence[sc.U8]])
+	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]])
 }
 
 func (m *StorageValue[T]) Exists() bool {
@@ -41,17 +41,17 @@ func (m *StorageValue[T]) Append(value T) {
 func (m *StorageValue[T]) Take() T {
 	args := m.Called()
 
-	return args[0].(T)
+	return args.Get(0).(T)
 }
 
 func (m *StorageValue[T]) TakeBytes() []byte {
 	args := m.Called()
 
-	return args[0].([]byte)
+	return args.Get(0).([]byte)
 }
 
 func (m *StorageValue[T]) DecodeLen() sc.Option[sc.U64] {
 	args := m.Called()
 
-	return args[0].(sc.Option[sc.U64])
+	return args.Get(0).(sc.Option[sc.U64])
 }

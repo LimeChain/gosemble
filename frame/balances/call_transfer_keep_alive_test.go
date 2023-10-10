@@ -133,7 +133,7 @@ func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
 	)
 }
 
-func Test_Call_TransferKeepAlive_Dispatch_Fails(t *testing.T) {
+func Test_Call_TransferKeepAlive_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -142,62 +142,32 @@ func Test_Call_TransferKeepAlive_Dispatch_Fails(t *testing.T) {
 		},
 	}
 
-	result := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(fromAddress, sc.ToCompact(targetValue)))
+	result := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.ToCompact(targetValue)),
+	)
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_TransferKeepAlive_transferKeepAlive_Success(t *testing.T) {
+func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-
-	mockMutator.On("tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	).Return(sc.Result[sc.Encodable]{})
-	mockStoredMap.On(
-		"DepositEvent",
-		newEventTransfer(
-			moduleId,
-			fromAddress.AsAddress32().FixedSequence,
-			toAddress.AsAddress32().FixedSequence,
-			targetValue,
-		),
-	).Return()
-
-	result := target.transferKeepAlive(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), toAddress, targetValue)
-
-	assert.Equal(t, sc.VaryingData(nil), result)
-	mockMutator.AssertCalled(t,
-		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	)
-	mockStoredMap.AssertCalled(t,
-		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
-	)
-}
-
-func Test_Call_TransferKeepAlive_transferKeepAlive_InvalidOrigin(t *testing.T) {
-	target := setupCallTransferKeepAlive()
-	expect := primitives.NewDispatchErrorBadOrigin()
-
-	result := target.transferKeepAlive(primitives.NewRawOriginNone(), toAddress, targetValue)
-
-	assert.Equal(t, expect, result)
-	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
-}
-
-func Test_Call_TransferKeepAlive_transferKeepAlive_Lookup(t *testing.T) {
-	target := setupCallTransferKeepAlive()
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
 
 	result := target.
-		transferKeepAlive(primitives.NewRawOriginSigned(fromAddress.AsAddress32()), primitives.NewMultiAddress20(primitives.Address20{}), targetValue)
+		Dispatch(
+			primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
+			sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
+		)
 
-	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
+	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

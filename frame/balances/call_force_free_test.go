@@ -158,7 +158,7 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	mockStoredMap.AssertCalled(t, "DepositEvent", event)
 }
 
-func Test_Call_ForceFree_Dispatch_Fails(t *testing.T) {
+func Test_Call_ForceFree_Dispatch_InvalidOrigin(t *testing.T) {
 	target := setupCallForceFree()
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -175,106 +175,49 @@ func Test_Call_ForceFree_Dispatch_Fails(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceFree_forceFree_Success(t *testing.T) {
-	target := setupCallForceFree()
-	actual := sc.NewU128(1)
-	mutateResult := sc.Result[sc.Encodable]{HasError: false, Value: actual}
-	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
-
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockMutator.On(
-		"tryMutateAccount",
-		targetAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	).Return(mutateResult)
-	mockStoredMap.On("DepositEvent", event)
-
-	result := target.forceFree(primitives.NewRawOriginRoot(), targetAddress, targetValue)
-
-	assert.Equal(t, sc.VaryingData(nil), result)
-	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockMutator.AssertCalled(t,
-		"tryMutateAccount",
-		targetAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	)
-	mockStoredMap.AssertCalled(t, "DepositEvent", event)
-}
-
-func Test_Call_ForceFree_forceFree_InvalidOrigin(t *testing.T) {
+func Test_Call_ForceFree_Dispatch_InvalidLookup(t *testing.T) {
+	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
 	target := setupCallForceFree()
 
-	result := target.forceFree(primitives.NewRawOriginNone(), targetAddress, targetValue)
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), targetValue))
 
-	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), result)
+	assert.Equal(t, expected, result)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceFree_forceFree_InvalidLookup(t *testing.T) {
+func Test_Call_ForceFree_Dispatch_ZeroBalance(t *testing.T) {
 	target := setupCallForceFree()
 
-	result := target.forceFree(primitives.NewRawOriginRoot(), primitives.NewMultiAddress20(primitives.Address20{}), targetValue)
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, constants.Zero))
 
-	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
+	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceFree_force_Success(t *testing.T) {
-	target := setupCallForceFree()
-	actual := sc.NewU128(1)
-	expectedResult := targetValue.Sub(actual)
-	mutateResult := sc.Result[sc.Encodable]{HasError: false, Value: actual}
-	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
-
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockMutator.On(
-		"tryMutateAccount",
-		targetAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	).Return(mutateResult)
-	mockStoredMap.On("DepositEvent", event)
-
-	result := target.force(targetAddress.AsAddress32(), targetValue)
-
-	assert.Equal(t, expectedResult, result)
-	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockMutator.AssertCalled(t, "tryMutateAccount",
-		targetAddress.AsAddress32(),
-		mockTypeMutateAccountDataBool,
-	)
-	mockStoredMap.AssertCalled(t, "DepositEvent", event)
-}
-
-func Test_Call_ForceFree_force_ZeroBalance(t *testing.T) {
-	target := setupCallForceFree()
-
-	result := target.force(targetAddress.AsAddress32(), constants.Zero)
-
-	assert.Equal(t, constants.Zero, result)
-	mockStoredMap.AssertNotCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
-	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
-	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
-}
-
-func Test_Call_ForceFree_force_FullBalance(t *testing.T) {
+func Test_Call_ForceFree_Dispatch_ZeroTotalStorageBalance(t *testing.T) {
 	target := setupCallForceFree()
 	accountInfo := primitives.AccountInfo{Data: primitives.AccountData{}}
 
 	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
 
-	result := target.force(targetAddress.AsAddress32(), targetValue)
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, targetValue, result)
+	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceFree_force_Mutate_Fails(t *testing.T) {
+func Test_Call_ForceFree_Dispatch_Mutation_Fails(t *testing.T) {
 	target := setupCallForceFree()
 	mutateResult := sc.Result[sc.Encodable]{HasError: true}
 
@@ -284,9 +227,9 @@ func Test_Call_ForceFree_force_Mutate_Fails(t *testing.T) {
 		mockTypeMutateAccountDataBool,
 	).Return(mutateResult)
 
-	result := target.force(targetAddress.AsAddress32(), targetValue)
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, targetValue, result)
+	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
 	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAddress32().FixedSequence)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",

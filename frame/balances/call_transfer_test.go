@@ -122,7 +122,7 @@ func Test_Call_Transfer_Dispatch_Success(t *testing.T) {
 	assert.Equal(t, expected, result)
 }
 
-func Test_Call_Transfer_Dispatch_Fails(t *testing.T) {
+func Test_Call_Transfer_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallTransfer()
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -132,6 +132,23 @@ func Test_Call_Transfer_Dispatch_Fails(t *testing.T) {
 	}
 
 	result := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
+
+	assert.Equal(t, expected, result)
+}
+
+func Test_Call_Transfer_Dispatch_CannotLookup(t *testing.T) {
+	target := setupCallTransfer()
+	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
+
+	result := target.Dispatch(
+		primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
+		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
+	)
 
 	assert.Equal(t, expected, result)
 }

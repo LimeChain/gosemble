@@ -142,7 +142,7 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 	)
 }
 
-func Test_Call_SetBalance_Dispatch_Fails(t *testing.T) {
+func Test_Call_SetBalance_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallSetBalance()
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
@@ -154,6 +154,26 @@ func Test_Call_SetBalance_Dispatch_Fails(t *testing.T) {
 	result := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(targetAddress, sc.ToCompact(newFree), sc.ToCompact(newReserved)))
+
+	assert.Equal(t, expect, result)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
+	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
+	target := setupCallSetBalance()
+	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorCannotLookup(),
+		},
+	}
+
+	result := target.Dispatch(
+		primitives.NewRawOriginRoot(),
+		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(newFree), sc.ToCompact(newReserved)))
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)

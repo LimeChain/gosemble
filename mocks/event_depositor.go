@@ -10,5 +10,5 @@ type EventDepositor struct {
 }
 
 func (m *EventDepositor) DepositEvent(event types.Event) {
-	_ = m.Called(event)
+	m.Called(event)
 }

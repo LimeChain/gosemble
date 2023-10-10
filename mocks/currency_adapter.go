@@ -13,19 +13,19 @@ type CurrencyAdapter struct {
 func (m *CurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.U128) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value)
 
-	if args[1] != nil {
-		return args[0].(types.Balance), args[1].(types.DispatchError)
+	if args.Get(1) != nil {
+		return args.Get(0).(types.Balance), args.Get(1).(types.DispatchError)
 	}
 
-	return args[0].(types.Balance), nil
+	return args.Get(0).(types.Balance), nil
 }
 
 func (m *CurrencyAdapter) Withdraw(who types.Address32, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value, reasons, liveness)
 
-	if args[1] != nil {
-		return args[0].(types.Balance), args[1].(types.DispatchError)
+	if args.Get(1) != nil {
+		return args.Get(0).(types.Balance), args.Get(1).(types.DispatchError)
 	}
 
-	return args[0].(types.Balance), nil
+	return args.Get(0).(types.Balance), nil
 }
