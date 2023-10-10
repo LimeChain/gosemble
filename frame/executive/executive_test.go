@@ -116,7 +116,7 @@ var (
 )
 
 var (
-	target Module
+	target module
 
 	mockExtrinsicIntializer           *mocks.ExtrinsicInitializer
 	mockSystemModule                  *mocks.SystemModule
@@ -150,7 +150,7 @@ func setup() {
 		mockSystemModule,
 		mockRuntimeExtrinsic,
 		mockOnRuntimeUpgradeHook,
-	)
+	).(module)
 	target.extrinsicInitializer = mockExtrinsicIntializer
 	target.hashing = mockIoHashing
 

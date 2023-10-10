@@ -159,7 +159,7 @@ func newSignedExtra() primitives.SignedExtra {
 
 func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
-	decoder := types.NewModuleDecoder(modules, extra)
+	decoder := types.NewRuntimeDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
 	auraModule := modules[AuraIndex].(aura.Module)
 	grandpaModule := modules[GrandpaIndex].(grandpa.Module)

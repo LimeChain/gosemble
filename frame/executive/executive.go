@@ -14,7 +14,16 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Module struct {
+type Module interface {
+	InitializeBlock(header primitives.Header)
+	ExecuteBlock(block types.Block)
+	ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
+	FinalizeBlock() primitives.Header
+	ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
+	OffchainWorker(header primitives.Header)
+}
+
+type module struct {
 	system               system.Module
 	onRuntimeUpgrade     hooks.OnRuntimeUpgrade
 	runtimeExtrinsic     extrinsic.RuntimeExtrinsic
@@ -23,7 +32,7 @@ type Module struct {
 }
 
 func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
-	return Module{
+	return module{
 		system:               systemModule,
 		onRuntimeUpgrade:     onRuntimeUpgrade,
 		runtimeExtrinsic:     runtimeExtrinsic,
@@ -34,7 +43,7 @@ func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic
 
 // InitializeBlock initialises a block with the given header,
 // starting the execution of a particular block.
-func (m Module) InitializeBlock(header primitives.Header) {
+func (m module) InitializeBlock(header primitives.Header) {
 	log.Trace("init_block")
 	m.system.ResetEvents()
 
@@ -53,7 +62,7 @@ func (m Module) InitializeBlock(header primitives.Header) {
 	m.system.NoteFinishedInitialize()
 }
 
-func (m Module) ExecuteBlock(block types.Block) {
+func (m module) ExecuteBlock(block types.Block) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
 	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number)))
@@ -71,7 +80,7 @@ func (m Module) ExecuteBlock(block types.Block) {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
+func (m module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -119,7 +128,7 @@ func (m Module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dispatc
 	return primitives.NewDispatchOutcome(nil), nil
 }
 
-func (m Module) FinalizeBlock() primitives.Header {
+func (m module) FinalizeBlock() primitives.Header {
 	log.Trace("finalize_block")
 	m.system.NoteFinishedExtrinsics()
 	blockNumber := m.system.StorageBlockNumber()
@@ -134,7 +143,7 @@ func (m Module) FinalizeBlock() primitives.Header {
 // not.
 //
 // Changes made to storage should be discarded.
-func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	log.Trace("validate_transaction")
 	currentBlockNumber := m.system.StorageBlockNumber()
 
@@ -162,7 +171,7 @@ func (m Module) ValidateTransaction(source primitives.TransactionSource, uxt typ
 	return checked.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
-func (m Module) OffchainWorker(header primitives.Header) {
+func (m module) OffchainWorker(header primitives.Header) {
 	m.system.Initialize(header.Number, header.ParentHash, header.Digest)
 
 	hash := m.hashing.Blake256(header.Bytes())
@@ -173,7 +182,7 @@ func (m Module) OffchainWorker(header primitives.Header) {
 	m.runtimeExtrinsic.OffchainWorker(header.Number)
 }
 
-func (m Module) idleAndFinalizeHook(blockNumber sc.U64) {
+func (m module) idleAndFinalizeHook(blockNumber sc.U64) {
 	weight := m.system.StorageBlockWeight()
 
 	maxWeight := m.system.BlockWeights().MaxBlock
@@ -187,7 +196,7 @@ func (m Module) idleAndFinalizeHook(blockNumber sc.U64) {
 	m.runtimeExtrinsic.OnFinalize(blockNumber)
 }
 
-func (m Module) executeExtrinsicsWithBookKeeping(block types.Block) {
+func (m module) executeExtrinsicsWithBookKeeping(block types.Block) {
 	for _, ext := range block.Extrinsics {
 		_, err := m.ApplyExtrinsic(ext)
 		if err != nil {
@@ -200,7 +209,7 @@ func (m Module) executeExtrinsicsWithBookKeeping(block types.Block) {
 	m.idleAndFinalizeHook(block.Header.Number)
 }
 
-func (m Module) initialChecks(block types.Block) {
+func (m module) initialChecks(block types.Block) {
 	log.Trace("initial_checks")
 
 	header := block.Header
@@ -222,7 +231,7 @@ func (m Module) initialChecks(block types.Block) {
 	}
 }
 
-func (m Module) runtimeUpgrade() sc.Bool {
+func (m module) runtimeUpgrade() sc.Bool {
 	last := m.system.StorageLastRuntimeUpgrade()
 
 	if m.system.Version().SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
@@ -240,7 +249,7 @@ func (m Module) runtimeUpgrade() sc.Bool {
 	return false
 }
 
-func (m Module) finalChecks(header *primitives.Header) {
+func (m module) finalChecks(header *primitives.Header) {
 	newHeader := m.system.Finalize()
 
 	if len(header.Digest) != len(newHeader.Digest) {
@@ -264,7 +273,7 @@ func (m Module) finalChecks(header *primitives.Header) {
 }
 
 // executeOnRuntimeUpgrade - Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.
-func (m Module) executeOnRuntimeUpgrade() primitives.Weight {
+func (m module) executeOnRuntimeUpgrade() primitives.Weight {
 	weight := m.onRuntimeUpgrade.OnRuntimeUpgrade()
 
 	return weight.SaturatingAdd(m.runtimeExtrinsic.OnRuntimeUpgrade())

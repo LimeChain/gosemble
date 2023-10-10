@@ -23,12 +23,12 @@ type Core interface {
 
 type Module struct {
 	executive      executive.Module
-	decoder        types.ModuleDecoder
+	decoder        types.RuntimeDecoder
 	runtimeVersion *primitives.RuntimeVersion
 	memUtils       utils.WasmMemoryTranslator
 }
 
-func New(module executive.Module, decoder types.ModuleDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
+func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
 	return Module{
 		executive:      module,
 		decoder:        decoder,

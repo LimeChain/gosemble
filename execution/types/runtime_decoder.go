@@ -9,16 +9,38 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type ModuleDecoder struct {
+type RuntimeDecoder interface {
+	DecodeBlock(buffer *bytes.Buffer) Block
+	DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic
+	DecodeCall(buffer *bytes.Buffer) primitives.Call
+}
+
+type runtimeDecoder struct {
 	modules map[sc.U8]Module
 	extra   primitives.SignedExtra
 }
 
-func NewModuleDecoder(modules map[sc.U8]Module, extra primitives.SignedExtra) ModuleDecoder {
-	return ModuleDecoder{modules: modules, extra: extra}
+func NewRuntimeDecoder(modules map[sc.U8]Module, extra primitives.SignedExtra) RuntimeDecoder {
+	return runtimeDecoder{modules: modules, extra: extra}
 }
 
-func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
+func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) Block {
+	header := primitives.DecodeHeader(buffer)
+
+	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	extrinsics := make([]UncheckedExtrinsic, length)
+
+	for i := 0; i < len(extrinsics); i++ {
+		extrinsics[i] = rd.DecodeUncheckedExtrinsic(buffer)
+	}
+
+	return Block{
+		Header:     header,
+		Extrinsics: extrinsics,
+	}
+}
+
+func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
@@ -34,11 +56,11 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
-		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(md.extra, buffer))
+		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(rd.extra, buffer))
 	}
 
 	// Decodes the dispatch call, including its arguments.
-	function := md.DecodeCall(buffer)
+	function := rd.DecodeCall(buffer)
 
 	afterLength := buffer.Len()
 
@@ -46,14 +68,14 @@ func (md ModuleDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) Unchecked
 		log.Critical("invalid length prefix")
 	}
 
-	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, md.extra)
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra)
 }
 
-func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
+func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	moduleIndex := sc.DecodeU8(buffer)
 	functionIndex := sc.DecodeU8(buffer)
 
-	module, ok := md.modules[moduleIndex]
+	module, ok := rd.modules[moduleIndex]
 	if !ok {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
@@ -70,20 +92,4 @@ func (md ModuleDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	function = function.DecodeArgs(buffer)
 
 	return function
-}
-
-func (md ModuleDecoder) DecodeBlock(buffer *bytes.Buffer) Block {
-	header := primitives.DecodeHeader(buffer)
-
-	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
-	extrinsics := make([]UncheckedExtrinsic, length)
-
-	for i := 0; i < len(extrinsics); i++ {
-		extrinsics[i] = md.DecodeUncheckedExtrinsic(buffer)
-	}
-
-	return Block{
-		Header:     header,
-		Extrinsics: extrinsics,
-	}
 }
