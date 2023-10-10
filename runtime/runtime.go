@@ -320,11 +320,11 @@ func MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 }
 
 //go:export Metadata_versions
-//func MetadataVersions(_, _ int32) int64 {
-//	return runtimeApi().
-//		Module(metadata.ApiModuleName).(metadata.Module).
-//		MetadataVersions()
-//}
+func MetadataVersions(_, _ int32) int64 {
+	return runtimeApi().
+		Module(metadata.ApiModuleName).(metadata.Module).
+		MetadataVersions()
+}
 
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {

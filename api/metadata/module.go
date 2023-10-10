@@ -131,6 +131,14 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
+func (m Module) MetadataVersions() int64 {
+	bVersions := sc.Sequence[sc.U32]{
+		sc.U32(primitives.MetadataVersion14), sc.U32(primitives.MetadataVersion15),
+	}
+
+	return m.memUtils.BytesToOffsetAndSize(bVersions.Bytes())
+}
+
 // primitiveTypes returns all primitive types
 func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
