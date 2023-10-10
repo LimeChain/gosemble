@@ -9,15 +9,18 @@ type Trie interface {
 	Blake2256OrderedRoot(key []byte, version int32) []byte
 }
 
-func NewTrie() Trie {
-	return trie{}
+type trie struct {
+	memoryTranslator utils.WasmMemoryTranslator
 }
 
-type trie struct {
+func NewTrie() Trie {
+	return trie{
+		memoryTranslator: utils.NewMemoryTranslator(),
+	}
 }
 
 func (t trie) Blake2256OrderedRoot(key []byte, version int32) []byte {
-	keyOffsetSize := utils.BytesToOffsetAndSize(key)
+	keyOffsetSize := t.memoryTranslator.BytesToOffsetAndSize(key)
 	r := env.ExtTrieBlake2256OrderedRootVersion2(keyOffsetSize, version)
-	return utils.ToWasmMemorySlice(r, 32)
+	return t.memoryTranslator.GetWasmMemorySlice(r, 32)
 }

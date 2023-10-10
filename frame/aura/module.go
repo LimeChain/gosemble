@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -22,29 +23,38 @@ var (
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
 )
 
+type AuraModule interface {
+	dispatch.Module
+
+	KeyType() primitives.PublicKeyType
+	KeyTypeId() [4]byte
+	OnTimestampSet(now sc.U64)
+	SlotDuration() sc.U64
+	GetAuthorities() sc.Option[sc.Sequence[sc.U8]]
+}
+
 type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	Config    *Config
-	Storage   *storage
-	Constants *consts
+	index     sc.U8
+	config    *Config
+	storage   *storage
+	constants *consts
 }
 
 func New(index sc.U8, config *Config) Module {
 	storage := newStorage()
-	constants := newConstants(config.DbWeight, config.MinimumPeriod)
 
 	return Module{
-		Index:     index,
-		Config:    config,
-		Storage:   storage,
-		Constants: constants,
+		index:     index,
+		config:    config,
+		storage:   storage,
+		constants: newConstants(config.DbWeight, config.MinimumPeriod),
 	}
 }
 
 func (m Module) GetIndex() sc.U8 {
-	return m.Index
+	return m.index
 }
 
 func (m Module) name() sc.Str {
@@ -64,7 +74,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m Module) KeyType() primitives.PublicKeyType {
-	return m.Config.KeyType
+	return m.config.KeyType
 }
 
 func (m Module) KeyTypeId() [4]byte {
@@ -77,15 +87,15 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 	if slot.HasValue {
 		newSlot := slot.Value
 
-		currentSlot := m.Storage.CurrentSlot.Get()
+		currentSlot := m.storage.CurrentSlot.Get()
 
 		if currentSlot >= newSlot {
 			log.Critical(errSlotMustIncrease)
 		}
 
-		m.Storage.CurrentSlot.Put(newSlot)
+		m.storage.CurrentSlot.Put(newSlot)
 
-		totalAuthorities := m.Storage.Authorities.DecodeLen()
+		totalAuthorities := m.storage.Authorities.DecodeLen()
 		if totalAuthorities.HasValue {
 			_ = currentSlot % totalAuthorities.Value
 
@@ -100,9 +110,9 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 			*/
 		}
 
-		return m.Constants.DbWeight.ReadsWrites(2, 1)
+		return m.constants.DbWeight.ReadsWrites(2, 1)
 	} else {
-		return m.Constants.DbWeight.Reads(1)
+		return m.constants.DbWeight.Reads(1)
 	}
 }
 
@@ -114,7 +124,7 @@ func (m Module) OnTimestampSet(now sc.U64) {
 
 	timestampSlot := now / slotDuration
 
-	currentSlot := m.Storage.CurrentSlot.Get()
+	currentSlot := m.storage.CurrentSlot.Get()
 	if currentSlot != timestampSlot {
 		log.Critical(errTimestampSlotMismatch)
 	}
@@ -130,7 +140,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     m.Index,
+		Index:     m.index,
 	}
 }
 
@@ -193,7 +203,7 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 }
 
 func (m Module) currentSlotFromDigests() sc.Option[slot] {
-	digest := m.Config.SystemDigest()
+	digest := m.config.SystemDigest()
 
 	for keyDigest, dig := range digest {
 		if keyDigest == primitives.DigestTypePreRuntime {
@@ -212,5 +222,9 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 }
 
 func (m Module) SlotDuration() sc.U64 {
-	return m.Constants.MinimumPeriod * 2
+	return m.constants.MinimumPeriod * 2
+}
+
+func (m Module) GetAuthorities() sc.Option[sc.Sequence[sc.U8]] {
+	return m.storage.Authorities.GetBytes()
 }

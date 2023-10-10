@@ -28,13 +28,15 @@ type Module struct {
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	executive        executive.Module
 	decoder          types.ModuleDecoder
+	memUtils         utils.WasmMemoryTranslator
 }
 
 func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.ModuleDecoder) Module {
 	return Module{
-		runtimeExtrinsic,
-		executive,
-		decoder,
+		runtimeExtrinsic: runtimeExtrinsic,
+		executive:        executive,
+		decoder:          decoder,
+		memUtils:         utils.NewMemoryTranslator(),
 	}
 }
 
@@ -55,7 +57,7 @@ func (m Module) Item() primitives.ApiItem {
 // Returns a pointer-size of the SCALE-encoded result, which specifies if this extrinsic is included in this block or not.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic)
 func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	uxt := m.decoder.DecodeUncheckedExtrinsic(buffer)
@@ -71,7 +73,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	buffer.Reset()
 	applyExtrinsicResult.Encode(buffer)
 
-	return utils.BytesToOffsetAndSize(buffer.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
 // FinalizeBlock finalizes the state changes for the current block.
@@ -80,8 +82,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 func (m Module) FinalizeBlock() int64 {
 	header := m.executive.FinalizeBlock()
 	encodedHeader := header.Bytes()
-
-	return utils.BytesToOffsetAndSize(encodedHeader)
+	return m.memUtils.BytesToOffsetAndSize(encodedHeader)
 }
 
 // InherentExtrinsics generates inherent extrinsics. Inherent data varies depending on chain configuration.
@@ -92,7 +93,7 @@ func (m Module) FinalizeBlock() int64 {
 // Returns a pointer-size of the SCALE-encoded timestamp extrinsic.
 // [Specification](https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics)
 func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
@@ -102,7 +103,7 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 
 	result := m.runtimeExtrinsic.CreateInherents(*inherentData)
 
-	return utils.BytesToOffsetAndSize(result)
+	return m.memUtils.BytesToOffsetAndSize(result)
 }
 
 // CheckInherents checks the inherents are valid.
@@ -113,7 +114,7 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 // Returns a pointer-size of the SCALE-encoded result, specifying if all inherents are valid.
 // [Specification](https://spec.polkadot.network/#id-blockbuilder_check_inherents)
 func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	block := m.decoder.DecodeBlock(buffer)
@@ -125,5 +126,5 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 
 	result := m.runtimeExtrinsic.CheckInherents(*inherentData, block)
 
-	return utils.BytesToOffsetAndSize(result.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }

@@ -25,13 +25,15 @@ type Module struct {
 	executive      executive.Module
 	decoder        types.ModuleDecoder
 	runtimeVersion *primitives.RuntimeVersion
+	memUtils       utils.WasmMemoryTranslator
 }
 
 func New(module executive.Module, decoder types.ModuleDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
 	return Module{
-		module,
-		decoder,
-		runtimeVersion,
+		executive:      module,
+		decoder:        decoder,
+		runtimeVersion: runtimeVersion,
+		memUtils:       utils.NewMemoryTranslator(),
 	}
 }
 
@@ -49,8 +51,7 @@ func (m Module) Item() primitives.ApiItem {
 func (m Module) Version() int64 {
 	buffer := &bytes.Buffer{}
 	m.runtimeVersion.Encode(buffer)
-
-	return utils.BytesToOffsetAndSize(buffer.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
 // InitializeBlock starts the execution of a particular block.
@@ -60,7 +61,7 @@ func (m Module) Version() int64 {
 // which represent the SCALE-encoded header of the block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-initialize-block)
 func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
-	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 	header := primitives.DecodeHeader(buffer)
 	m.executive.InitializeBlock(header)
@@ -73,7 +74,7 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 // which represent the SCALE-encoded block.
 // [Specification](https://spec.polkadot.network/#sect-rte-core-execute-block)
 func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
-	data := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 	block := m.decoder.DecodeBlock(buffer)
 	m.executive.ExecuteBlock(block)

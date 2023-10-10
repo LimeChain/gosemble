@@ -16,10 +16,14 @@ const (
 
 type Module struct {
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
+	memUtils         utils.WasmMemoryTranslator
 }
 
 func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic) Module {
-	return Module{runtimeExtrinsic}
+	return Module{
+		runtimeExtrinsic: runtimeExtrinsic,
+		memUtils:         utils.NewMemoryTranslator(),
+	}
 }
 
 func (m Module) Name() string {
@@ -37,8 +41,7 @@ func (m Module) Item() primitives.ApiItem {
 func (m Module) Metadata() int64 {
 	metadata := m.buildMetadata()
 	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
-
-	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
 func (m Module) buildMetadata() primitives.Metadata {

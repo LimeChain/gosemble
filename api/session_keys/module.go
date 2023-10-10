@@ -19,12 +19,14 @@ const (
 type Module struct {
 	sessions []types.Session
 	crypto   io.Crypto
+	memUtils utils.WasmMemoryTranslator
 }
 
 func New(sessions []types.Session) Module {
 	return Module{
 		sessions: sessions,
 		crypto:   io.NewCrypto(),
+		memUtils: utils.NewMemoryTranslator(),
 	}
 }
 
@@ -46,7 +48,7 @@ func (m Module) Item() types.ApiItem {
 // Returns a pointer-size of the SCALE-encoded set of keys.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_generate_session_keys)
 func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	seed := sc.DecodeOptionWith(buffer, sc.DecodeSequence[sc.U8])
@@ -62,7 +64,7 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 	res := sc.BytesToSequenceU8(publicKeys)
 
-	return utils.BytesToOffsetAndSize(res.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(res.Bytes())
 }
 
 // DecodeSessionKeys decodes the given session keys.
@@ -73,7 +75,7 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 // Returns a pointer-size of the SCALE-encoded set of raw keys and their respective key type.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_decode_session_keys)
 func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 	sequence := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
 
@@ -85,7 +87,7 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	}
 
 	result := sc.NewOption[sc.Sequence[types.SessionKey]](sessionKeys)
-	return utils.BytesToOffsetAndSize(result.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }
 
 func getKeyFunction(m Module, keyType types.PublicKeyType) func([]byte, []byte) []byte {

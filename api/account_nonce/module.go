@@ -16,10 +16,14 @@ const (
 
 type Module struct {
 	systemModule system.Module
+	memUtils     utils.WasmMemoryTranslator
 }
 
 func New(systemModule system.Module) Module {
-	return Module{systemModule}
+	return Module{
+		systemModule: systemModule,
+		memUtils:     utils.NewMemoryTranslator(),
+	}
 }
 
 func (m Module) Name() string {
@@ -39,11 +43,11 @@ func (m Module) Item() types.ApiItem {
 // Returns a pointer-size of the SCALE-encoded nonce of the AccountId.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-accountnonceapi-account-nonce)
 func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	publicKey := types.DecodePublicKey(buffer)
 	nonce := m.systemModule.Get(publicKey).Nonce
 
-	return utils.BytesToOffsetAndSize(nonce.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
 }

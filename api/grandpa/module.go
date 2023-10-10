@@ -13,12 +13,14 @@ const (
 )
 
 type Module struct {
-	grandpa grandpa.Module
+	grandpa  grandpa.Module
+	memUtils utils.WasmMemoryTranslator
 }
 
 func New(grandpa grandpa.Module) Module {
 	return Module{
-		grandpa,
+		grandpa:  grandpa,
+		memUtils: utils.NewMemoryTranslator(),
 	}
 }
 
@@ -33,6 +35,5 @@ func (m Module) Item() primitives.ApiItem {
 
 func (m Module) Authorities() int64 {
 	authorities := m.grandpa.Authorities()
-
-	return utils.BytesToOffsetAndSize(authorities.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(authorities.Bytes())
 }

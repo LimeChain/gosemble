@@ -17,10 +17,14 @@ const (
 
 type Module struct {
 	executive executive.Module
+	memUtils  utils.WasmMemoryTranslator
 }
 
 func New(executive executive.Module) Module {
-	return Module{executive: executive}
+	return Module{
+		executive: executive,
+		memUtils:  utils.NewMemoryTranslator(),
+	}
 }
 
 func (m Module) Name() string {
@@ -39,7 +43,7 @@ func (m Module) Item() types.ApiItem {
 // which represent the SCALE-encoded header of the block.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#id-offchainworkerapi_offchain_worker)
 func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 	header := primitives.DecodeHeader(buffer)
 	m.executive.OffchainWorker(header)
