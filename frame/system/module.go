@@ -69,7 +69,7 @@ type Module interface {
 	CanDecProviders(who primitives.Address32) bool
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModuleV15)
+	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength
@@ -534,7 +534,7 @@ func (m module) onKilledAccount(who primitives.Address32) {
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	metadataModule := primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
 		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
@@ -562,7 +562,10 @@ func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Index:     m.Index,
 	}
 
-	return m.metadataTypes(), metadataModule
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
+	}
 }
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {

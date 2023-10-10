@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"bytes"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
@@ -45,33 +46,84 @@ func (m Module) Item() primitives.ApiItem {
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
 func (m Module) Metadata() int64 {
 	metadata := m.buildMetadata()
-	bMetadata := sc.BytesToSequenceU8(metadata.Bytes())
+
+	bMetadata := sc.Sequence[sc.U8]{}
+
+	switch metadata.Version {
+	case primitives.MetadataVersion14:
+		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV14(metadata.DataV14).Bytes())
+	case primitives.MetadataVersion15:
+		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadata.DataV15).Bytes())
+	}
+
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
-func (m Module) buildMetadata() primitives.Metadata15 {
+func (m Module) buildMetadata() primitives.Metadata {
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic, apis, outerEnums, custom := m.runtimeExtrinsic.Metadata()
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata()
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
 
-	runtimeV15Metadata := primitives.RuntimeMetadataV15{
-		Types:      metadataTypes,
-		Modules:    modules,
-		Extrinsic:  extrinsic,
-		Type:       sc.ToCompact(metadata.Runtime),
-		Apis:       apis,
-		OuterEnums: outerEnums,
-		Custom:     custom,
+	runtimeV14Metadata := primitives.RuntimeMetadataV14{
+		Types:     metadataTypes,
+		Modules:   modules,
+		Extrinsic: extrinsic,
+		Type:      sc.ToCompact(metadata.Runtime),
 	}
 
-	return primitives.Metadata15{
-		Data: runtimeV15Metadata,
+	return primitives.Metadata{
+		Version: primitives.MetadataVersion14,
+		DataV14: runtimeV14Metadata,
 	}
+}
+
+// MetadataAtVersion returns the metadata of a specific version of the runtime passed as argument.
+// Returns a pointer-size of the SCALE-encoded metadata of the runtime.
+// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
+func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
+	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	version := sc.DecodeU32(buffer)
+
+	metadataTypes := append(primitiveTypes(), basicTypes()...)
+
+	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
+
+	bMetadata := sc.Sequence[sc.U8]{}
+
+	switch version {
+	case sc.U32(primitives.MetadataVersion14):
+		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
+		metadataTypes = append(metadataTypes, types...)
+		metadataV14 := primitives.RuntimeMetadataV14{
+			Types:     metadataTypes,
+			Modules:   modules,
+			Extrinsic: extrinsicV14,
+			Type:      sc.ToCompact(metadata.Runtime),
+		}
+		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV14(metadataV14).Bytes())
+	case sc.U32(primitives.MetadataVersion15):
+		typesV15, modulesV15, extrinsicV15, apis, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
+		metadataTypes = append(metadataTypes, typesV15...)
+		metadataV15 := primitives.RuntimeMetadataV15{
+			Types:      metadataTypes,
+			Modules:    modulesV15,
+			Extrinsic:  extrinsicV15,
+			Type:       sc.ToCompact(metadata.Runtime),
+			Apis:       apis,
+			OuterEnums: outerEnums,
+			Custom:     custom,
+		}
+		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadataV15).Bytes())
+	}
+
+	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
 // primitiveTypes returns all primitive types

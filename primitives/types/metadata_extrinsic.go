@@ -6,27 +6,27 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type MetadataExtrinsic struct {
+type MetadataExtrinsicV14 struct {
 	Type             sc.Compact
 	Version          sc.U8
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
-func (me MetadataExtrinsic) Encode(buffer *bytes.Buffer) {
+func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) {
 	me.Type.Encode(buffer)
 	me.Version.Encode(buffer)
 	me.SignedExtensions.Encode(buffer)
 }
 
-func DecodeMetadataExtrinsic(buffer *bytes.Buffer) MetadataExtrinsic {
-	return MetadataExtrinsic{
+func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) MetadataExtrinsicV14 {
+	return MetadataExtrinsicV14{
 		Type:             sc.DecodeCompact(buffer),
 		Version:          sc.DecodeU8(buffer),
 		SignedExtensions: sc.DecodeSequenceWith(buffer, DecodeMetadataSignedExtension),
 	}
 }
 
-func (me MetadataExtrinsic) Bytes() []byte {
+func (me MetadataExtrinsicV14) Bytes() []byte {
 	return sc.EncodedBytes(me)
 }
 
