@@ -86,7 +86,7 @@ func (m Module) buildMetadata() primitives.Metadata {
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
 func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
-	b := utils.ToWasmMemorySlice(dataPtr, dataLen)
+	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
 	version := sc.DecodeU32(buffer)
@@ -123,7 +123,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadataV15).Bytes())
 	}
 
-	return utils.BytesToOffsetAndSize(bMetadata.Bytes())
+	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
 // primitiveTypes returns all primitive types
