@@ -61,13 +61,14 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata15, error) {
 	metaReserved := sc.DecodeU32(buffer)
 	if metaReserved != MetadataReserved {
 		// return Metadata{}, errors.New(fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved))
-		return Metadata15{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		return Metadata15{}, errors.New("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 	}
 
 	version := sc.DecodeU8(buffer)
 	if version != MetadataVersion15 {
 		return Metadata15{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion15)) + "], actual [" + strconv.Itoa(int(version)) + "]")
 	}
+
 	return Metadata15{DecodeRuntimeMetadataV15(buffer)}, nil
 	//switch version {
 	//case MetadataVersion14:
