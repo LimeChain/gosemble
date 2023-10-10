@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -19,6 +20,14 @@ var (
 	EngineId               = [4]byte{'f', 'r', 'n', 'k'}
 	KeyTypeId              = [4]byte{'g', 'r', 'a', 'n'}
 )
+
+type GrandpaModule interface {
+	dispatch.Module
+
+	KeyType() primitives.PublicKeyType
+	KeyTypeId() [4]byte
+	Authorities() sc.Sequence[primitives.Authority]
+}
 
 type Module struct {
 	primitives.DefaultInherentProvider
