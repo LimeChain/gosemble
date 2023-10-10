@@ -3,6 +3,7 @@ package aura
 import (
 	"testing"
 
+	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -32,8 +33,10 @@ func Test_Name(t *testing.T) {
 func Test_Item(t *testing.T) {
 	setup()
 
+	hash := common.MustBlake2b8([]byte("AuraApi"))
+
 	expected := types.ApiItem{
-		Name:    sc.BytesToFixedSequenceU8([]byte{221, 113, 141, 92, 197, 50, 98, 212}),
+		Name:    sc.BytesToFixedSequenceU8(hash[:]),
 		Version: 1,
 	}
 
