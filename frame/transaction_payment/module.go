@@ -3,49 +3,59 @@ package transaction_payment
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type Module struct {
+type Module interface {
+	dispatch.Module
+
+	ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance
+	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails
+	ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance
+	OperationalFeeMultiplier() sc.U8
+}
+
+type module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	Config    *Config
-	Constants *consts
-	storage   *storage
+	index     sc.U8
+	config    *Config
+	constants *consts
+	storage   Storage
 }
 
 func New(index sc.U8, config *Config) Module {
-	return Module{
-		Index:     index,
-		Config:    config,
-		Constants: newConstants(config.OperationalFeeMultiplier),
+	return &module{
+		index:     index,
+		config:    config,
+		constants: newConstants(config.OperationalFeeMultiplier),
 		storage:   newStorage(),
 	}
 }
 
-func (m Module) GetIndex() sc.U8 {
-	return m.Index
+func (m module) GetIndex() sc.U8 {
+	return m.index
 }
 
-func (m Module) name() sc.Str {
+func (m module) name() sc.Str {
 	return "TransactionPayment"
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	return m.metadataTypes(), primitives.MetadataModule{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -58,23 +68,23 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesTransactionPaymentEvent, "pallet_transaction_payment::Event<Runtime>"),
 				},
-				m.Index,
+				m.index,
 				"Events.TransactionPayment"),
 		),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"OperationalFeeMultiplier",
 				sc.ToCompact(metadata.PrimitiveTypesU8),
-				sc.BytesToSequenceU8(m.Constants.OperationalFeeMultiplier.Bytes()),
+				sc.BytesToSequenceU8(m.constants.OperationalFeeMultiplier.Bytes()),
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
 		Error: sc.NewOption[sc.Compact](nil),
-		Index: m.Index,
+		Index: m.index,
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -105,7 +115,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
 		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
@@ -123,26 +133,26 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m Module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
+func (m module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
 	return m.ComputeFeeDetails(len, info, tip).FinalFee()
 }
 
-func (m Module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
 	return m.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
-func (m Module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
+func (m module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
 	return m.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
 }
 
-func (m Module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
 	return m.computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
 }
 
-func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
+func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := m.weightToFee(weight)
-		multiplier := m.storage.NextFeeMultiplier.Get()
+		multiplier := m.storage.GetNextFeeMultiplier()
 		// Storage value is FixedU128, which is different from U128.
 		// It implements a decimal fixed point number, which is `1 / VALUE`
 		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
@@ -152,7 +162,7 @@ func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 		adjustedWeightFee := bnAdjustedWeightFee.Div(fixedU128Div) // TODO: Create FixedU128 type
 
 		lenFee := m.lengthToFee(len)
-		baseFee := m.weightToFee(m.Config.BlockWeights.Get(class).BaseExtrinsic)
+		baseFee := m.weightToFee(m.config.BlockWeights.Get(class).BaseExtrinsic)
 
 		inclusionFee := sc.NewOption[primitives.InclusionFee](primitives.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
 
@@ -168,12 +178,16 @@ func (m Module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 	}
 }
 
-func (m Module) lengthToFee(length sc.U32) primitives.Balance {
-	return m.Config.LengthToFee.WeightToFee(primitives.WeightFromParts(sc.U64(length), 0))
+func (m module) lengthToFee(length sc.U32) primitives.Balance {
+	return m.config.LengthToFee.WeightToFee(primitives.WeightFromParts(sc.U64(length), 0))
 }
 
-func (m Module) weightToFee(weight primitives.Weight) primitives.Balance {
-	cappedWeight := weight.Min(m.Config.BlockWeights.MaxBlock)
+func (m module) weightToFee(weight primitives.Weight) primitives.Balance {
+	cappedWeight := weight.Min(m.config.BlockWeights.MaxBlock)
 
-	return m.Config.WeightToFee.WeightToFee(cappedWeight)
+	return m.config.WeightToFee.WeightToFee(cappedWeight)
+}
+
+func (m module) OperationalFeeMultiplier() sc.U8 {
+	return m.constants.OperationalFeeMultiplier
 }
