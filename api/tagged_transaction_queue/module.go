@@ -21,11 +21,11 @@ type TaggedTransactionQueue interface {
 
 type Module struct {
 	executive executive.Module
-	decoder   types.ModuleDecoder
+	decoder   types.RuntimeDecoder
 	memUtils  utils.WasmMemoryTranslator
 }
 
-func New(executive executive.Module, decoder types.ModuleDecoder) Module {
+func New(executive executive.Module, decoder types.RuntimeDecoder) Module {
 	return Module{
 		executive: executive,
 		decoder:   decoder,
