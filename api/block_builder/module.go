@@ -27,11 +27,11 @@ type BlockBuilder interface {
 type Module struct {
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	executive        executive.Module
-	decoder          types.ModuleDecoder
+	decoder          types.RuntimeDecoder
 	memUtils         utils.WasmMemoryTranslator
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.ModuleDecoder) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.RuntimeDecoder) Module {
 	return Module{
 		runtimeExtrinsic: runtimeExtrinsic,
 		executive:        executive,

@@ -21,12 +21,12 @@ var (
 )
 
 type Module struct {
-	decoder    types.ModuleDecoder
+	decoder    types.RuntimeDecoder
 	txPayments transaction_payment.Module
 	memUtils   utils.WasmMemoryTranslator
 }
 
-func New(decoder types.ModuleDecoder, txPayments transaction_payment.Module) Module {
+func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
