@@ -340,31 +340,6 @@ func (re runtimeExtrinsic) runtimeError(variants sc.Sequence[sc.Option[primitive
 		"node_template_runtime RuntimeError",
 		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"},
 	)
-
-	//return primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeError, "", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"}, primitives.NewMetadataTypeDefinitionVariant(
-	//	sc.Sequence[primitives.MetadataDefinitionVariant]{
-	//		primitives.NewMetadataDefinitionVariant(
-	//			"System",
-	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
-	//			},
-	//			runtimeSystemErrIdx,
-	//			""),
-	//		primitives.NewMetadataDefinitionVariant(
-	//			"Balances",
-	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
-	//			},
-	//			runtimeBalancesErrIdx,
-	//			""),
-	//		primitives.NewMetadataDefinitionVariant(
-	//			"Grandpa",
-	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
-	//			},
-	//			runtimeGrandpaErrIdx,
-	//			""),
-	//	}))
 }
 
 func (re runtimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {
