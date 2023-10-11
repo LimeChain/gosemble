@@ -23,7 +23,7 @@ type Module struct {
 	memUtils   utils.WasmMemoryTranslator
 }
 
-func NewCallApi(decoder types.RuntimeDecoder, txPayments transaction_payment.Module) Module {
+func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
