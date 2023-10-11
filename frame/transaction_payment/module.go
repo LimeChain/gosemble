@@ -23,7 +23,7 @@ type module struct {
 	index     sc.U8
 	config    *Config
 	constants *consts
-	storage   Storage
+	storage   *storage
 }
 
 func New(index sc.U8, config *Config) Module {
@@ -152,7 +152,7 @@ func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo
 func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := m.weightToFee(weight)
-		multiplier := m.storage.GetNextFeeMultiplier()
+		multiplier := m.storage.NextFeeMultiplier.Get()
 		// Storage value is FixedU128, which is different from U128.
 		// It implements a decimal fixed point number, which is `1 / VALUE`
 		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.

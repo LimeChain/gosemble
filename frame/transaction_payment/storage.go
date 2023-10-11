@@ -12,25 +12,17 @@ var (
 
 var defaultMultiplierValue = sc.NewU128(1)
 
-type Storage interface {
-	GetNextFeeMultiplier() sc.U128
-}
-
 type storage struct {
-	nextFeeMultiplier support.StorageValue[sc.U128]
+	NextFeeMultiplier support.StorageValue[sc.U128]
 }
 
-func newStorage() Storage {
+func newStorage() *storage {
 	return &storage{
-		nextFeeMultiplier: support.NewHashStorageValueWithDefault(
+		NextFeeMultiplier: support.NewHashStorageValueWithDefault(
 			keyTransactionPayment,
 			keyNextFeeMultiplier,
 			sc.DecodeU128,
 			&defaultMultiplierValue,
 		),
 	}
-}
-
-func (s storage) GetNextFeeMultiplier() sc.U128 {
-	return s.nextFeeMultiplier.Get()
 }
