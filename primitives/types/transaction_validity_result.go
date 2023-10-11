@@ -7,6 +7,11 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
+const (
+	ValidityTransactionValid sc.U8 = iota
+	ValidityTransactionErr
+)
+
 // TransactionValidityResult Information on a transaction's validity and, if valid, on how it relates to other transactions.
 type TransactionValidityResult sc.VaryingData
 

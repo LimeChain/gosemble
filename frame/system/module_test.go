@@ -1410,59 +1410,59 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataDefinitionVariant(
 						"Call",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						CallIndex,
+						primitives.InvalidTransactionCall,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Payment",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						PaymentIndex,
+						primitives.InvalidTransactionPayment,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Future",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						FutureIndex,
+						primitives.InvalidTransactionFuture,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Stale",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						StaleIndex,
+						primitives.InvalidTransactionStale,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"BadProof",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						BadProofIndex,
+						primitives.InvalidTransactionBadProof,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"AncientBirthBlock",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						AncientBirthBlockIndex,
+						primitives.InvalidTransactionAncientBirthBlock,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"ExhaustsResources",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ExhaustsResourcesIndex,
+						primitives.InvalidTransactionExhaustsResources,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Custom",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
 						},
-						CustomIndex,
+						primitives.InvalidTransactionCustom,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"BadMandatory",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						BadMandatoryIndex,
+						primitives.InvalidTransactionBadMandatory,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"MandatoryValidation",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						MandatoryValidationIndex,
+						primitives.InvalidTransactionMandatoryValidation,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"BadSigner",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						BadSignerIndex,
+						primitives.InvalidTransactionBadSigner,
 						""),
 				},
 			)),
@@ -1474,19 +1474,19 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataDefinitionVariant(
 						"CannotLookup",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						CannotLookupIndex,
+						primitives.UnknownTransactionCannotLookup,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"NoUnsignedValidator",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						NoUnsignedValidatorIndex,
+						primitives.UnknownTransactionNoUnsignedValidator,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Custom",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
 						},
-						CustomUnknownIndex,
+						primitives.UnknownTransactionCustomUnknownTransaction,
 						""),
 				},
 			)),
@@ -1500,14 +1500,14 @@ func Test_Module_Metadata(t *testing.T) {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesInvalidTransaction),
 						},
-						InvalidTransactionIndex,
+						primitives.TransactionValidityErrorInvalidTransaction,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Unknown",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction),
 						},
-						UnknownTransactionIndex,
+						primitives.TransactionValidityErrorUnknownTransaction,
 						""),
 				},
 			)),
@@ -1520,14 +1520,14 @@ func Test_Module_Metadata(t *testing.T) {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
 						},
-						ValidTransactionIndex,
+						primitives.ValidityTransactionValid,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Err",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
 						},
-						TransactionErrIndex,
+						primitives.ValidityTransactionErr,
 						""),
 				})),
 	}
