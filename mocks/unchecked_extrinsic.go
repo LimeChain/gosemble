@@ -36,9 +36,9 @@ func (uxt *UncheckedExtrinsic) Extra() primitives.SignedExtra {
 	return args.Get(0).(primitives.SignedExtra)
 }
 
-func (uxt *UncheckedExtrinsic) IsSigned() sc.Bool {
+func (uxt *UncheckedExtrinsic) IsSigned() bool {
 	args := uxt.Called()
-	return args.Get(0).(sc.Bool)
+	return args.Get(0).(bool)
 }
 
 func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {

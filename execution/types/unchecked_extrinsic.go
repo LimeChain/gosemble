@@ -27,7 +27,7 @@ type UncheckedExtrinsic interface {
 	Function() primitives.Call
 	Extra() primitives.SignedExtra
 
-	IsSigned() sc.Bool
+	IsSigned() bool
 	Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError)
 }
 
@@ -92,8 +92,8 @@ func (uxt uncheckedExtrinsic) Extra() primitives.SignedExtra {
 	return uxt.extra
 }
 
-func (uxt uncheckedExtrinsic) IsSigned() sc.Bool {
-	return uxt.signature.HasValue
+func (uxt uncheckedExtrinsic) IsSigned() bool {
+	return bool(uxt.signature.HasValue)
 }
 
 func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {

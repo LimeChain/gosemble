@@ -12,5 +12,6 @@ const (
 )
 
 var (
-	Zero = sc.NewU128(0)
+	Zero       = sc.NewU128(0)
+	DefaultTip = Zero
 )

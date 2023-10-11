@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -14,10 +15,6 @@ import (
 const (
 	ApiModuleName = "TransactionPaymentCallApi"
 	apiVersion    = 3
-)
-
-var (
-	DefaultTip = sc.NewU128(0)
 )
 
 type Module struct {
@@ -58,7 +55,7 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	partialFee := m.txPayments.ComputeFee(length, dispatchInfo, DefaultTip)
+	partialFee := m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
 		Weight:     dispatchInfo.Weight,
@@ -84,7 +81,7 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	length := sc.DecodeU32(buffer)
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
+	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
