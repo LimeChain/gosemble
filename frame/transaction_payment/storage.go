@@ -17,5 +17,12 @@ type storage struct {
 }
 
 func newStorage() *storage {
-	return &storage{NextFeeMultiplier: support.NewHashStorageValueWithDefault(keyTransactionPayment, keyNextFeeMultiplier, sc.DecodeU128, &defaultMultiplierValue)}
+	return &storage{
+		NextFeeMultiplier: support.NewHashStorageValueWithDefault(
+			keyTransactionPayment,
+			keyNextFeeMultiplier,
+			sc.DecodeU128,
+			&defaultMultiplierValue,
+		),
+	}
 }
