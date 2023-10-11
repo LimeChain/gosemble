@@ -324,7 +324,16 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		),
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
-		Index:     m.Index,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+				},
+				m.Index,
+				"Errors.Balances"),
+		),
+		Index: m.Index,
 	}
 	return m.metadataTypes(), primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

@@ -119,6 +119,7 @@ var (
 		EventDef:  sc.NewOption[types.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[types.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
+		ErrorDef:  sc.NewOption[types.MetadataDefinitionVariant](nil),
 		Index:     sc.U8(13),
 	}
 

@@ -139,6 +139,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
+		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.index,
 	}
 	return m.metadataTypes(), primitives.MetadataModule{

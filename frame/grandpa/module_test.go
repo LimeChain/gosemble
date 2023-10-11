@@ -152,7 +152,16 @@ func Test_Module_Metadata(t *testing.T) {
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     moduleId,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
+				},
+				moduleId,
+				"Errors.Grandpa"),
+		),
+		Index: moduleId,
 	}
 
 	expectMetadataModule := primitives.MetadataModule{

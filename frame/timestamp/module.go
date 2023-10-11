@@ -161,8 +161,9 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](nil),
-		Index: m.Index,
+		Error:    sc.NewOption[sc.Compact](nil),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Index:    m.Index,
 	}
 
 	return m.metadataTypes(), primitives.MetadataModule{

@@ -40,6 +40,7 @@ type MetadataModuleV15 struct {
 	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Constants sc.Sequence[MetadataModuleConstant]
 	Error     sc.Option[sc.Compact]
+	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Index     sc.U8
 	Docs      sc.Sequence[sc.Str]
 }
@@ -81,6 +82,7 @@ type MetadataModuleV14 struct {
 	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Constants sc.Sequence[MetadataModuleConstant]
 	Error     sc.Option[sc.Compact]
+	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Index     sc.U8
 }
 

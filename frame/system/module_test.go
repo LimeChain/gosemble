@@ -1520,14 +1520,14 @@ func Test_Module_Metadata(t *testing.T) {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
 						},
-						primitives.ValidityTransactionValid,
+						primitives.TransactionValidityResultValid,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Err",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
 						},
-						primitives.ValidityTransactionErr,
+						primitives.TransactionValidityResultError,
 						""),
 				})),
 	}
@@ -1680,6 +1680,15 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+				},
+				moduleId,
+				"Errors.System"),
+		),
 		Index: moduleId,
 	}
 

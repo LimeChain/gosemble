@@ -283,8 +283,9 @@ func Test_Module_Metadata(t *testing.T) {
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](nil),
-		Index: moduleId,
+		Error:    sc.NewOption[sc.Compact](nil),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Index:    moduleId,
 	}
 
 	expectMetadataModule := primitives.MetadataModule{

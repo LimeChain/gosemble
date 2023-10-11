@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ValidityTransactionValid sc.U8 = iota
-	ValidityTransactionErr
+	TransactionValidityResultValid sc.U8 = iota
+	TransactionValidityResultError
 )
 
 // TransactionValidityResult Information on a transaction's validity and, if valid, on how it relates to other transactions.
@@ -29,9 +29,9 @@ func NewTransactionValidityResult(value sc.Encodable) TransactionValidityResult 
 func (r TransactionValidityResult) Encode(buffer *bytes.Buffer) {
 	switch r[0].(type) {
 	case ValidTransaction:
-		sc.U8(0).Encode(buffer)
+		TransactionValidityResultValid.Encode(buffer)
 	case TransactionValidityError:
-		sc.U8(1).Encode(buffer)
+		TransactionValidityResultError.Encode(buffer)
 	default:
 		log.Critical("invalid TransactionValidityResult type")
 	}
@@ -43,9 +43,9 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) TransactionValidityRe
 	b := sc.DecodeU8(buffer)
 
 	switch b {
-	case 0:
+	case TransactionValidityResultValid:
 		return NewTransactionValidityResult(DecodeValidTransaction(buffer))
-	case 1:
+	case TransactionValidityResultError:
 		return NewTransactionValidityResult(DecodeTransactionValidityError(buffer))
 	default:
 		log.Critical("invalid TransactionValidityResult type")

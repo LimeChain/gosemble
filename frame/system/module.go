@@ -529,7 +529,16 @@ func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		),
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
-		Index:     m.Index,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+				},
+				m.Index,
+				"Errors.System"),
+		),
+		Index: m.Index,
 	}
 
 	return m.metadataTypes(), primitives.MetadataModule{
@@ -898,14 +907,14 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
 						},
-						primitives.ValidityTransactionValid,
+						primitives.TransactionValidityResultValid,
 						""),
 					primitives.NewMetadataDefinitionVariant(
 						"Err",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
 						},
-						primitives.ValidityTransactionErr,
+						primitives.TransactionValidityResultError,
 						""),
 				})),
 	}

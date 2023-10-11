@@ -79,7 +79,8 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 			),
 		},
 		Error: sc.NewOption[sc.Compact](nil),
-		Index: m.index,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Index:    m.index,
 	}
 
 	return m.metadataTypes(), primitives.MetadataModule{

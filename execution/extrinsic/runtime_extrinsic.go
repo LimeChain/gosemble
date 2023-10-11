@@ -182,6 +182,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
+	errorVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
@@ -193,6 +194,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 
 		callVariants = append(callVariants, mModuleV14.CallDef)
 		eventVariants = append(eventVariants, mModuleV14.EventDef)
+		errorVariants = append(errorVariants, mModuleV14.ErrorDef)
 	}
 
 	// append runtime event
@@ -208,7 +210,7 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	// append runtime call to all types
 	metadataTypes = append(metadataTypes, runtimeCall)
 
-	runtimeError := re.runtimeError()
+	runtimeError := re.runtimeError(errorVariants)
 
 	metadataTypes = append(metadataTypes, runtimeError)
 
@@ -234,6 +236,7 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
+	errorVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
 	apis := primitives.ApiMetadata()
 
@@ -258,6 +261,7 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 
 		callVariants = append(callVariants, moduleV15.CallDef)
 		eventVariants = append(eventVariants, moduleV15.EventDef)
+		errorVariants = append(errorVariants, moduleV15.ErrorDef)
 	}
 
 	// append runtime event
@@ -273,7 +277,7 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 	// append runtime call to all types
 	metadataTypes = append(metadataTypes, runtimeCall)
 
-	runtimeError := re.runtimeError()
+	runtimeError := re.runtimeError(errorVariants)
 
 	metadataTypes = append(metadataTypes, runtimeError)
 
@@ -329,31 +333,38 @@ func (re runtimeExtrinsic) runtimeEvent(variants sc.Sequence[sc.Option[primitive
 	)
 }
 
-func (re runtimeExtrinsic) runtimeError() primitives.MetadataType {
-	return primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeError, "", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"}, primitives.NewMetadataTypeDefinitionVariant(
-		sc.Sequence[primitives.MetadataDefinitionVariant]{
-			primitives.NewMetadataDefinitionVariant(
-				"System",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
-				},
-				runtimeSystemErrIdx,
-				""),
-			primitives.NewMetadataDefinitionVariant(
-				"Balances",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
-				},
-				runtimeBalancesErrIdx,
-				""),
-			primitives.NewMetadataDefinitionVariant(
-				"Grandpa",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
-				},
-				runtimeGrandpaErrIdx,
-				""),
-		}))
+func (re runtimeExtrinsic) runtimeError(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]) primitives.MetadataType {
+	return re.runtimeType(
+		variants,
+		metadata.TypesRuntimeError,
+		"node_template_runtime RuntimeError",
+		sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"},
+	)
+
+	//return primitives.NewMetadataTypeWithPath(metadata.TypesRuntimeError, "", sc.Sequence[sc.Str]{"node_template_runtime", "RuntimeError"}, primitives.NewMetadataTypeDefinitionVariant(
+	//	sc.Sequence[primitives.MetadataDefinitionVariant]{
+	//		primitives.NewMetadataDefinitionVariant(
+	//			"System",
+	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+	//			},
+	//			runtimeSystemErrIdx,
+	//			""),
+	//		primitives.NewMetadataDefinitionVariant(
+	//			"Balances",
+	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+	//			},
+	//			runtimeBalancesErrIdx,
+	//			""),
+	//		primitives.NewMetadataDefinitionVariant(
+	//			"Grandpa",
+	//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//				primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
+	//			},
+	//			runtimeGrandpaErrIdx,
+	//			""),
+	//	}))
 }
 
 func (re runtimeExtrinsic) runtimeType(variants sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]], id int, docs string, path sc.Sequence[sc.Str]) primitives.MetadataType {

@@ -775,6 +775,15 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+				},
+				moduleId,
+				"Errors.Balances"),
+		),
 		Index: moduleId,
 	}
 
