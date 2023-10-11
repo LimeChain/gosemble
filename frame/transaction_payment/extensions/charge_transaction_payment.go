@@ -81,7 +81,7 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 			return err
 		}
 
-		ctp.systemModule.DepositEvent(transaction_payment.NewEventTransactionFeePaid(ctp.txPaymentModule.Index, who.FixedSequence, actualFee, tip))
+		ctp.systemModule.DepositEvent(transaction_payment.NewEventTransactionFeePaid(ctp.txPaymentModule.GetIndex(), who.FixedSequence, actualFee, tip))
 	}
 	return nil
 }
@@ -146,7 +146,7 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	} else if info.Class.Is(primitives.DispatchClassMandatory) {
 		return sc.U64(scaledTip.ToBigInt().Uint64())
 	} else if info.Class.Is(primitives.DispatchClassOperational) {
-		feeMultiplier := ctp.txPaymentModule.Constants.OperationalFeeMultiplier
+		feeMultiplier := ctp.txPaymentModule.OperationalFeeMultiplier()
 		virtualTip := finalFee.Mul(sc.NewU128(feeMultiplier))
 		scaledVirtualTip := virtualTip.Mul(sc.NewU128(maxTxPerBlock))
 
