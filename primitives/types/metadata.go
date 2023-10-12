@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"errors"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"strconv"
@@ -71,23 +70,24 @@ func (m Metadata) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
+func DecodeMetadata(buffer *bytes.Buffer) Metadata {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	metaReserved := sc.DecodeU32(buffer)
 	if metaReserved != MetadataReserved {
-		// return Metadata{}, errors.New(fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved))
-		return Metadata{}, errors.New("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		log.Critical("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		return Metadata{}
 	}
 
 	version := sc.DecodeU8(buffer)
 
 	switch version {
 	case MetadataVersion14:
-		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}, nil
+		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}
 	case MetadataVersion15:
-		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}, nil
+		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}
 	default:
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+		return Metadata{}
 	}
 }
 

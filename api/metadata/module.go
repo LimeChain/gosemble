@@ -100,8 +100,6 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	bMetadata := sc.Sequence[sc.U8]{}
-
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
 		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
@@ -112,7 +110,11 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 			Extrinsic: extrinsicV14,
 			Type:      sc.ToCompact(metadata.Runtime),
 		}
-		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV14(metadataV14).Bytes())
+		optionMd := sc.Option[primitives.Metadata14]{
+			HasValue: sc.Bool(true),
+			Value:    primitives.NewMetadataV14(metadataV14),
+		}
+		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
 		typesV15, modulesV15, extrinsicV15, apis, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
 		metadataTypes = append(metadataTypes, typesV15...)
@@ -125,10 +127,17 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 			OuterEnums: outerEnums,
 			Custom:     custom,
 		}
-		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadataV15).Bytes())
+		optionMd := sc.Option[primitives.Metadata15]{
+			HasValue: sc.Bool(true),
+			Value:    primitives.NewMetadataV15(metadataV15),
+		}
+		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
+	default:
+		optionUnsupported := sc.Option[primitives.Metadata]{
+			HasValue: sc.Bool(false),
+		}
+		return m.memUtils.BytesToOffsetAndSize(optionUnsupported.Bytes())
 	}
-
-	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
 func (m Module) MetadataVersions() int64 {

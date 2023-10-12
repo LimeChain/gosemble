@@ -26,8 +26,7 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 	bMetadataCopy := make([]byte, buffer.Len())
 	copy(bMetadataCopy, buffer.Bytes())
 
-	metadata, err := types.DecodeMetadata(buffer)
-	assert.NoError(t, err)
+	metadata := types.DecodeMetadata(buffer)
 
 	// Assert encoding of previously decoded
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
@@ -42,7 +41,7 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 func Test_Metadata_Versions_Correct_Versions(t *testing.T) {
 	runtime, _ := newTestRuntime(t)
 
-	metadataVersions, err := runtime.Exec("Metadata_versions", []byte{})
+	metadataVersions, err := runtime.Exec("Metadata_metadata_versions", []byte{})
 	assert.NoError(t, err)
 
 	buffer := &bytes.Buffer{}
@@ -52,7 +51,8 @@ func Test_Metadata_Versions_Correct_Versions(t *testing.T) {
 	buffer.Reset()
 
 	expectedVersions := sc.Sequence[sc.U32]{
-		sc.U32(14), sc.U32(15),
+		sc.U32(types.MetadataVersion14),
+		sc.U32(types.MetadataVersion15),
 	}
 
 	assert.Equal(t, versions, expectedVersions)
@@ -62,25 +62,22 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 	runtime, _ := newTestRuntime(t)
 	gossamerMetadata := runtimeMetadata(t, runtime)
 
-	version14 := sc.U32(14)
+	version14 := sc.U32(types.MetadataVersion14)
 
-	bMetadata, err := runtime.Exec("Metadata_at_version", version14.Bytes())
+	bMetadata, err := runtime.Exec("Metadata_metadata_at_version", version14.Bytes())
 	assert.NoError(t, err)
 
-	buffer := bytes.NewBuffer(bMetadata)
+	resultOptionMetadataBuffer := bytes.NewBuffer(bMetadata)
 
-	// Decode Compact Length
-	_ = sc.DecodeCompact(buffer)
+	optionMetadata := sc.DecodeOptionWith[types.Metadata](resultOptionMetadataBuffer, types.DecodeMetadata)
 
-	// Copy bytes for assertion after re-encode.
-	bMetadataCopy := make([]byte, buffer.Len())
-	copy(bMetadataCopy, buffer.Bytes())
+	metadataV14Bytes := optionMetadata.Value.Bytes()
 
-	metadata, err := types.DecodeMetadata(buffer)
-	assert.NoError(t, err)
+	buffer := bytes.NewBuffer(metadataV14Bytes)
 
-	// Assert encoding of previously decoded
-	assert.Equal(t, bMetadataCopy, metadata.Bytes())
+	metadata := types.DecodeMetadata(buffer)
+
+	assert.Equal(t, metadataV14Bytes, metadata.Bytes())
 
 	// Encode gossamer Metadata
 	bGossamerMetadata, err := codec.Encode(gossamerMetadata)
@@ -92,23 +89,39 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 func Test_Metadata_At_Version_15(t *testing.T) {
 	runtime, _ := newTestRuntime(t)
 
-	version15 := sc.U32(15)
+	version15 := sc.U32(types.MetadataVersion15)
 
-	bMetadata, err := runtime.Exec("Metadata_at_version", version15.Bytes())
+	bMetadata, err := runtime.Exec("Metadata_metadata_at_version", version15.Bytes())
+	assert.NoError(t, err)
+
+	resultOptionMetadataBuffer := bytes.NewBuffer(bMetadata)
+
+	optionMetadata := sc.DecodeOptionWith[types.Metadata](resultOptionMetadataBuffer, types.DecodeMetadata)
+
+	metadataV15Bytes := optionMetadata.Value.Bytes()
+
+	buffer := bytes.NewBuffer(metadataV15Bytes)
+
+	metadata := types.DecodeMetadata(buffer)
+
+	assert.Equal(t, metadataV15Bytes, metadata.Bytes())
+}
+
+func Test_Metadata_At_Version_UnsupportedVersion(t *testing.T) {
+	runtime, _ := newTestRuntime(t)
+
+	unsupportedVersion := sc.U32(10)
+
+	bMetadata, err := runtime.Exec("Metadata_metadata_at_version", unsupportedVersion.Bytes())
 	assert.NoError(t, err)
 
 	buffer := bytes.NewBuffer(bMetadata)
 
-	// Decode Compact Length
-	_ = sc.DecodeCompact(buffer)
+	result := sc.DecodeOption[types.Metadata](buffer)
 
-	// Copy bytes for assertion after re-encode.
-	bMetadataCopy := make([]byte, buffer.Len())
-	copy(bMetadataCopy, buffer.Bytes())
+	expectedResult := sc.Option[types.Metadata]{
+		HasValue: sc.Bool(false),
+	}
 
-	metadata, err := types.DecodeMetadata(buffer)
-	assert.NoError(t, err)
-
-	// Assert encoding of previously decoded
-	assert.Equal(t, bMetadataCopy, metadata.Bytes())
+	assert.Equal(t, result.Bytes(), expectedResult.Bytes())
 }
