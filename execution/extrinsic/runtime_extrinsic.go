@@ -9,10 +9,10 @@ import (
 )
 
 type RuntimeExtrinsic interface {
-	Module(index sc.U8) (module types.Module, isFound bool)
+	Module(index sc.U8) (module primitives.Module, isFound bool)
 	CreateInherents(inherentData primitives.InherentData) []byte
-	CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult
-	EnsureInherentsAreFirst(block types.Block) int
+	CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult
+	EnsureInherentsAreFirst(block primitives.Block) int
 	OnInitialize(n sc.U64) primitives.Weight
 	OnRuntimeUpgrade() primitives.Weight
 	OnFinalize(n sc.U64)
@@ -22,18 +22,18 @@ type RuntimeExtrinsic interface {
 }
 
 type runtimeExtrinsic struct {
-	modules map[sc.U8]types.Module
+	modules map[sc.U8]primitives.Module
 	extra   primitives.SignedExtra
 }
 
-func New(modules map[sc.U8]types.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
+func New(modules map[sc.U8]primitives.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
 	return runtimeExtrinsic{
 		modules: modules,
 		extra:   extra,
 	}
 }
 
-func (re runtimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
+func (re runtimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFound bool) {
 	m, ok := re.modules[index]
 	return m, ok
 }
@@ -59,10 +59,10 @@ func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData)
 	return append(sc.ToCompact(i).Bytes(), result...)
 }
 
-func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
+func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
 	result := primitives.NewCheckInherentsResult()
 
-	for _, extrinsic := range block.Extrinsics {
+	for _, extrinsic := range block.Extrinsics() {
 		// Inherents are before any other extrinsics.
 		// And signed extrinsics are not inherents.
 		if extrinsic.IsSigned() {
@@ -103,10 +103,10 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block ty
 }
 
 // EnsureInherentsAreFirst checks if the inherents are before non-inherents.
-func (re runtimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
+func (re runtimeExtrinsic) EnsureInherentsAreFirst(block primitives.Block) int {
 	signedExtrinsicFound := false
 
-	for i, extrinsic := range block.Extrinsics {
+	for i, extrinsic := range block.Extrinsics() {
 		isInherent := false
 
 		if extrinsic.IsSigned() {

@@ -87,7 +87,7 @@ const (
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()
 
-func initializeModules() map[sc.U8]types.Module {
+func initializeModules() map[sc.U8]primitives.Module {
 	systemModule := system.New(
 		SystemIndex,
 		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, DbWeight, *RuntimeVersion),
@@ -124,7 +124,7 @@ func initializeModules() map[sc.U8]types.Module {
 
 	testableModule := tm.New(TestableIndex)
 
-	return map[sc.U8]types.Module{
+	return map[sc.U8]primitives.Module{
 		SystemIndex:     systemModule,
 		TimestampIndex:  timestampModule,
 		AuraIndex:       auraModule,

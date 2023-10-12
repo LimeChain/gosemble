@@ -2,7 +2,6 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -10,7 +9,7 @@ type UnsignedValidatorForChecked struct {
 	runtimeExtrinsic RuntimeExtrinsic
 }
 
-func NewUnsignedValidatorForChecked(extrinsic RuntimeExtrinsic) types.UnsignedValidator {
+func NewUnsignedValidatorForChecked(extrinsic RuntimeExtrinsic) primitives.UnsignedValidator {
 	return UnsignedValidatorForChecked{
 		runtimeExtrinsic: extrinsic,
 	}

@@ -5,7 +5,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -22,7 +21,7 @@ var (
 )
 
 type GrandpaModule interface {
-	dispatch.Module
+	primitives.Module
 
 	KeyType() primitives.PublicKeyType
 	KeyTypeId() [4]byte

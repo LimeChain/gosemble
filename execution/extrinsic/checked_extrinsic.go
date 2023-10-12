@@ -2,7 +2,6 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/support"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -22,7 +21,7 @@ type checkedExtrinsic struct {
 	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
 }
 
-func (c checkedExtrinsic) Apply(validator types.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
+func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	var (
 		maybeWho sc.Option[primitives.Address32]
 		maybePre sc.Option[sc.Sequence[primitives.Pre]]
@@ -99,7 +98,7 @@ func (c checkedExtrinsic) Signed() sc.Option[primitives.Address32] {
 	return c.signed
 }
 
-func (c checkedExtrinsic) Validate(validator types.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	if c.signed.HasValue {
 		id := c.signed.Value
 		return c.extra.Validate(id, c.function, info, length)
