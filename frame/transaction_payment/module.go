@@ -27,7 +27,7 @@ type module struct {
 }
 
 func New(index sc.U8, config *Config) Module {
-	return &module{
+	return module{
 		index:     index,
 		config:    config,
 		constants: newConstants(config.OperationalFeeMultiplier),

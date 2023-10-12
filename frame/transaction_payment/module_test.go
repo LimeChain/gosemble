@@ -125,12 +125,8 @@ var (
 func setup() {
 	mockNextFeeMultiplier = new(mocks.StorageValue[sc.U128])
 
-	target = module{
-		index:     moduleId,
-		config:    NewConfig(operationalFeeMultiplier, weightToFee, lengthToFee, blockWeights),
-		constants: newConstants(operationalFeeMultiplier),
-		storage:   newStorage(),
-	}
+	config := NewConfig(operationalFeeMultiplier, weightToFee, lengthToFee, blockWeights)
+	target = New(moduleId, config).(module)
 	target.storage.NextFeeMultiplier = mockNextFeeMultiplier
 }
 
