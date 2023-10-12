@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -14,10 +15,6 @@ import (
 const (
 	ApiModuleName = "TransactionPaymentApi"
 	apiVersion    = 3
-)
-
-var (
-	DefaultTip = sc.NewU128(0)
 )
 
 type Module struct {
@@ -61,7 +58,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 
 	partialFee := sc.NewU128(0)
 	if ext.IsSigned() {
-		partialFee = m.txPayments.ComputeFee(length, dispatchInfo, DefaultTip)
+		partialFee = m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
@@ -91,7 +88,7 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 
 	var feeDetails primitives.FeeDetails
 	if ext.IsSigned() {
-		feeDetails = m.txPayments.ComputeFeeDetails(length, dispatchInfo, DefaultTip)
+		feeDetails = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 	} else {
 		feeDetails = primitives.FeeDetails{
 			InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
