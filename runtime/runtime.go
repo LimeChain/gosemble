@@ -185,7 +185,7 @@ func runtimeApi() types.RuntimeApi {
 		apiGrandpa.New(grandpaModule),
 		account_nonce.New(modules[SystemIndex].(system.Module)),
 		apiTxPayments.New(decoder, txPaymentsModule),
-		apiTxPaymentsCall.NewCallApi(decoder, txPaymentsModule),
+		apiTxPaymentsCall.New(decoder, txPaymentsModule),
 		session_keys.New(sessions),
 		offchain_worker.New(executiveModule),
 	}
