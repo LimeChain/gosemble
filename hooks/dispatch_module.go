@@ -5,14 +5,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type DispatchModule interface {
-	OnInitialize
-	OnRuntimeUpgrade
-	OnFinalize(n sc.U64)
-	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
-	OffchainWorker(n sc.U64)
-}
-
 type DefaultDispatchModule struct{}
 
 func (dmh DefaultDispatchModule) OnInitialize(n sc.U64) primitives.Weight {

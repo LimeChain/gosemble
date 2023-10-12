@@ -2,7 +2,6 @@ package mocks
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -11,7 +10,7 @@ type CheckedExtrinsic struct {
 	mock.Mock
 }
 
-func (c *CheckedExtrinsic) Apply(validator types.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
+func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	args := c.Called(validator, info, length)
 
 	var arg0 primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
@@ -43,7 +42,7 @@ func (c *CheckedExtrinsic) Signed() sc.Option[primitives.Address32] {
 	return args.Get(0).(sc.Option[primitives.Address32])
 }
 
-func (c *CheckedExtrinsic) Validate(validator types.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (c *CheckedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	args := c.Called(validator, source, info, length)
 
 	var arg0 primitives.ValidTransaction

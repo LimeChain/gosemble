@@ -6,41 +6,42 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type RuntimeDecoder interface {
-	DecodeBlock(buffer *bytes.Buffer) Block
-	DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic
+	DecodeBlock(buffer *bytes.Buffer) primitives.Block
+	DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitives.UncheckedExtrinsic
 	DecodeCall(buffer *bytes.Buffer) primitives.Call
 }
 
 type runtimeDecoder struct {
-	modules map[sc.U8]Module
+	modules map[sc.U8]types.Module
 	extra   primitives.SignedExtra
 }
 
-func NewRuntimeDecoder(modules map[sc.U8]Module, extra primitives.SignedExtra) RuntimeDecoder {
-	return runtimeDecoder{modules: modules, extra: extra}
+func NewRuntimeDecoder(modules map[sc.U8]types.Module, extra primitives.SignedExtra) RuntimeDecoder {
+	return runtimeDecoder{
+		modules: modules,
+		extra:   extra,
+	}
 }
 
-func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) Block {
+func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) primitives.Block {
 	header := primitives.DecodeHeader(buffer)
 
 	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
-	extrinsics := make([]UncheckedExtrinsic, length)
+	extrinsics := make([]types.UncheckedExtrinsic, length)
 
 	for i := 0; i < len(extrinsics); i++ {
 		extrinsics[i] = rd.DecodeUncheckedExtrinsic(buffer)
 	}
 
-	return Block{
-		Header:     header,
-		Extrinsics: extrinsics,
-	}
+	return NewBlock(header, extrinsics)
 }
 
-func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) UncheckedExtrinsic {
+func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitives.UncheckedExtrinsic {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.

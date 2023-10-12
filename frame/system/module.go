@@ -9,7 +9,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -26,7 +25,7 @@ const (
 )
 
 type Module interface {
-	dispatch.Module
+	primitives.Module
 
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass)

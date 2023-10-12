@@ -63,7 +63,7 @@ var (
 		},
 	}
 
-	unsignedValidator types.UnsignedValidator
+	unsignedValidator primitives.UnsignedValidator
 
 	defaultAccountIdLookup = primitives.DefaultAccountIdLookup()
 
@@ -82,7 +82,7 @@ var (
 		Digest:     testDigest(),
 	}
 
-	block = types.Block{Header: header}
+	block = types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
 
 	encodedExtrinsic    = []byte{0, 1, 2, 3, 4, 5}
 	encodedExtrinsicLen = sc.ToCompact(len(encodedExtrinsic))
@@ -249,7 +249,8 @@ func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
 		ParentHash: blockHash,
 		Digest:     testDigest(),
 	}
-	block := types.Block{Header: header}
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
 
 	mockSystemModule.On("ResetEvents").Return()
 	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo)
@@ -278,7 +279,8 @@ func Test_Executive_ExecuteBlock_Success(t *testing.T) {
 		ParentHash: blockHash,
 		Digest:     testDigest(),
 	}
-	block := types.Block{Header: header}
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
 
 	mockSystemModule.On("ResetEvents").Return()
 	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo)

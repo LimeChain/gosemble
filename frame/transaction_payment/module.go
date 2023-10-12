@@ -3,13 +3,12 @@ package transaction_payment
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	dispatch "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type Module interface {
-	dispatch.Module
+	primitives.Module
 
 	ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance
 	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails

@@ -3,7 +3,7 @@ package mocks
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )

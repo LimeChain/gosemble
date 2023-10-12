@@ -155,10 +155,7 @@ func Test_Module_InherentExtrinsics_InvalidInherentData(t *testing.T) {
 func Test_Module_CheckInherents_Success(t *testing.T) {
 	target := setup()
 
-	block := types.Block{
-		Header: primitives.Header{
-			Number: 1,
-		}}
+	block := types.NewBlock(primitives.Header{Number: 1}, sc.Sequence[primitives.UncheckedExtrinsic]{})
 	bInherentData := sc.ToCompact(0).Bytes()
 	bufferData := bytes.NewBuffer(bInherentData)
 	inherentData := primitives.NewInherentData()
@@ -181,10 +178,7 @@ func Test_Module_CheckInherents_Success(t *testing.T) {
 func Test_Module_CheckInherents_InvalidInherentData(t *testing.T) {
 	target := setup()
 
-	block := types.Block{
-		Header: primitives.Header{
-			Number: 1,
-		}}
+	block := types.NewBlock(primitives.Header{Number: 1}, sc.Sequence[primitives.UncheckedExtrinsic]{})
 	bytesInvalidInherentData := sc.ToCompact(1).Bytes()
 	bufferData := bytes.NewBuffer(bytesInvalidInherentData)
 

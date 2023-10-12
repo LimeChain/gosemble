@@ -20,17 +20,6 @@ const (
 	ExtrinsicUnmaskVersion = 0b0111_1111
 )
 
-type UncheckedExtrinsic interface {
-	sc.Encodable
-
-	Signature() sc.Option[primitives.ExtrinsicSignature]
-	Function() primitives.Call
-	Extra() primitives.SignedExtra
-
-	IsSigned() bool
-	Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError)
-}
-
 type uncheckedExtrinsic struct {
 	version sc.U8
 	// The signature, address, number of extrinsics have come before from
@@ -43,7 +32,13 @@ type uncheckedExtrinsic struct {
 }
 
 // NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
-func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) uncheckedExtrinsic {
+func NewUncheckedExtrinsic(
+	version sc.U8,
+	signature sc.Option[primitives.ExtrinsicSignature],
+	function primitives.Call,
+	extra primitives.SignedExtra,
+) uncheckedExtrinsic {
+
 	return uncheckedExtrinsic{
 		version:   version,
 		signature: signature,
@@ -54,7 +49,7 @@ func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.Extrins
 }
 
 // NewUnsignedUncheckedExtrinsic returns a new instance of an unsigned extrinsic.
-func NewUnsignedUncheckedExtrinsic(function primitives.Call) UncheckedExtrinsic {
+func NewUnsignedUncheckedExtrinsic(function primitives.Call) primitives.UncheckedExtrinsic {
 	return uncheckedExtrinsic{
 		version:   ExtrinsicFormatVersion,
 		signature: sc.NewOption[primitives.ExtrinsicSignature](nil),

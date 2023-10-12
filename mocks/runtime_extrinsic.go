@@ -2,7 +2,7 @@ package mocks
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -11,9 +11,9 @@ type RuntimeExtrinsic struct {
 	mock.Mock
 }
 
-func (re *RuntimeExtrinsic) Module(index sc.U8) (module types.Module, isFound bool) {
+func (re *RuntimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFound bool) {
 	args := re.Called(index)
-	return args.Get(0).(types.Module), args.Bool(1)
+	return args.Get(0).(primitives.Module), args.Bool(1)
 }
 
 func (re *RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
@@ -21,7 +21,7 @@ func (re *RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData
 	return args.Get(0).([]byte)
 }
 
-func (re *RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block types.Block) primitives.CheckInherentsResult {
+func (re *RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
 	args := re.Called(data, block)
 	return args.Get(0).(primitives.CheckInherentsResult)
 }

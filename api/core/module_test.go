@@ -91,10 +91,7 @@ func Test_Module_InitializeBlock(t *testing.T) {
 func Test_Module_ExecuteBlock(t *testing.T) {
 	target := setup()
 	bBlock := []byte{1, 2, 3}
-	block := types.Block{
-		Header: primitives.Header{
-			Number: 2,
-		}}
+	block := types.NewBlock(primitives.Header{Number: 2}, sc.Sequence[primitives.UncheckedExtrinsic]{})
 	buffer := bytes.NewBuffer(bBlock)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bBlock)

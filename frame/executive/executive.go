@@ -6,9 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
-	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -16,22 +14,22 @@ import (
 
 type Module interface {
 	InitializeBlock(header primitives.Header)
-	ExecuteBlock(block types.Block)
-	ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
+	ExecuteBlock(block primitives.Block)
+	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
 	FinalizeBlock() primitives.Header
-	ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
+	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
 	OffchainWorker(header primitives.Header)
 }
 
 type module struct {
 	system               system.Module
-	onRuntimeUpgrade     hooks.OnRuntimeUpgrade
+	onRuntimeUpgrade     primitives.OnRuntimeUpgrade
 	runtimeExtrinsic     extrinsic.RuntimeExtrinsic
 	extrinsicInitializer extrinsic.ExtrinsicInitializer
 	hashing              io.Hashing
 }
 
-func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade hooks.OnRuntimeUpgrade) Module {
+func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade primitives.OnRuntimeUpgrade) Module {
 	return module{
 		system:               systemModule,
 		onRuntimeUpgrade:     onRuntimeUpgrade,
@@ -62,25 +60,26 @@ func (m module) InitializeBlock(header primitives.Header) {
 	m.system.NoteFinishedInitialize()
 }
 
-func (m module) ExecuteBlock(block types.Block) {
+func (m module) ExecuteBlock(block primitives.Block) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
-	log.Trace("execute_block " + strconv.Itoa(int(block.Header.Number)))
+	log.Trace("execute_block " + strconv.Itoa(int(block.Header().Number)))
 
-	m.InitializeBlock(block.Header)
+	m.InitializeBlock(block.Header())
 
 	m.initialChecks(block)
 
 	m.executeExtrinsicsWithBookKeeping(block)
 
-	m.finalChecks(&block.Header)
+	header := block.Header()
+	m.finalChecks(&header)
 }
 
 // ApplyExtrinsic applies extrinsic outside the block execution function.
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func (m module) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
+func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -143,7 +142,7 @@ func (m module) FinalizeBlock() primitives.Header {
 // not.
 //
 // Changes made to storage should be discarded.
-func (m module) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m module) ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	log.Trace("validate_transaction")
 	currentBlockNumber := m.system.StorageBlockNumber()
 
@@ -196,8 +195,8 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) {
 	m.runtimeExtrinsic.OnFinalize(blockNumber)
 }
 
-func (m module) executeExtrinsicsWithBookKeeping(block types.Block) {
-	for _, ext := range block.Extrinsics {
+func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) {
+	for _, ext := range block.Extrinsics() {
 		_, err := m.ApplyExtrinsic(ext)
 		if err != nil {
 			log.Critical(string(err[0].Bytes()))
@@ -206,13 +205,13 @@ func (m module) executeExtrinsicsWithBookKeeping(block types.Block) {
 
 	m.system.NoteFinishedExtrinsics()
 
-	m.idleAndFinalizeHook(block.Header.Number)
+	m.idleAndFinalizeHook(block.Header().Number)
 }
 
-func (m module) initialChecks(block types.Block) {
+func (m module) initialChecks(block primitives.Block) {
 	log.Trace("initial_checks")
 
-	header := block.Header
+	header := block.Header()
 	blockNumber := header.Number
 
 	if blockNumber > 0 {
