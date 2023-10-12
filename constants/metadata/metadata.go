@@ -156,7 +156,7 @@ const (
 	TypesResultEmptyTuple
 
 	TypesGrandpaAppPublic
-	TypesTupleGrandaAppPublicU64
+	TypesTupleGrandpaAppPublicU64
 	TypesSequenceTupleGrandpaAppPublic
 	TypesSequenceTupleSequenceU8KeyTypeId
 

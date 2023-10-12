@@ -79,6 +79,7 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 
 	assert.Equal(t, metadataV14Bytes, metadata.Bytes())
 
+	// Encode gossamer Metadata
 	bGossamerMetadata, err := codec.Encode(gossamerMetadata)
 	assert.NoError(t, err)
 

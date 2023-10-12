@@ -8,12 +8,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	runtimeSystemErrIdx sc.U8 = iota
-	runtimeBalancesErrIdx
-	runtimeGrandpaErrIdx
-)
-
 type RuntimeExtrinsic interface {
 	Module(index sc.U8) (module primitives.Module, isFound bool)
 	CreateInherents(inherentData primitives.InherentData) []byte

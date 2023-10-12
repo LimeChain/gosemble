@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
