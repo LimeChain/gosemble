@@ -87,8 +87,6 @@ var (
 	encodedExtrinsic    = []byte{0, 1, 2, 3, 4, 5}
 	encodedExtrinsicLen = sc.ToCompact(len(encodedExtrinsic))
 
-	signedExtra = primitives.SignedExtra{}
-
 	signer = sc.Option[primitives.Address32]{}
 )
 
@@ -123,6 +121,7 @@ var (
 	mockRuntimeExtrinsic              *mocks.RuntimeExtrinsic
 	mockOnRuntimeUpgradeHook          *mocks.DefaultOnRuntimeUpgrade
 	mockUncheckedExtrinsic            *mocks.UncheckedExtrinsic
+	mockSignedExtra                   *mocks.SignedExtra
 	mockCheckedExtrinsic              *mocks.CheckedExtrinsic
 	mockCall                          *mocks.Call
 	mockStorageLastRuntimeUpgradeInfo *mocks.StorageValue[primitives.LastRuntimeUpgradeInfo]
@@ -138,6 +137,7 @@ func setup() {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockOnRuntimeUpgradeHook = new(mocks.DefaultOnRuntimeUpgrade)
 	mockUncheckedExtrinsic = new(mocks.UncheckedExtrinsic)
+	mockSignedExtra = new(mocks.SignedExtra)
 	mockCheckedExtrinsic = new(mocks.CheckedExtrinsic)
 	mockCall = new(mocks.Call)
 	mockStorageLastRuntimeUpgradeInfo = new(mocks.StorageValue[primitives.LastRuntimeUpgradeInfo])
@@ -335,7 +335,7 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionExhaustsResourcesError(t *t
 	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(signedExtra)
+	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
 	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
 		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
@@ -368,7 +368,7 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testin
 	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(signedExtra)
+	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
 	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
 		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
@@ -394,7 +394,7 @@ func Test_Executive_ApplyExtrinsic_Success(t *testing.T) {
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 
 	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(signedExtra)
+	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
 	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
 		Return(mockCheckedExtrinsic)
 
@@ -481,7 +481,7 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
 	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(signedExtra)
+	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
 	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
 		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
@@ -517,7 +517,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, transactionValidityError)
 	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(signedExtra)
+	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
 	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
 		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)

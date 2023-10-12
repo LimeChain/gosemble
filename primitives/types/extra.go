@@ -7,34 +7,48 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
-// SignedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
-type SignedExtra struct {
+type SignedExtra interface {
+	sc.Encodable
+	Decode(buffer *bytes.Buffer)
+
+	AdditionalSigned() (AdditionalSigned, TransactionValidityError)
+	Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	PreDispatch(who Address32, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError)
+	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError
+	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError
+
+	Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
+}
+
+// signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
+type signedExtra struct {
 	extras []SignedExtension
 }
 
 func NewSignedExtra(checks []SignedExtension) SignedExtra {
-	return SignedExtra{
+	return signedExtra{
 		extras: checks,
 	}
 }
 
-func (e SignedExtra) Encode(buffer *bytes.Buffer) {
+func (e signedExtra) Encode(buffer *bytes.Buffer) {
 	for _, extra := range e.extras {
 		extra.Encode(buffer)
 	}
 }
 
-func (e SignedExtra) Decode(buffer *bytes.Buffer) {
+func (e signedExtra) Decode(buffer *bytes.Buffer) {
 	for _, extra := range e.extras {
 		extra.Decode(buffer)
 	}
 }
 
-func (e SignedExtra) Bytes() []byte {
+func (e signedExtra) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
 
-func (e SignedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
+func (e signedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
 	result := AdditionalSigned{}
 
 	for _, extra := range e.extras {
@@ -48,7 +62,7 @@ func (e SignedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityEr
 	return result, nil
 }
 
-func (e SignedExtra) Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e signedExtra) Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -62,7 +76,7 @@ func (e SignedExtra) Validate(who Address32, call Call, info *DispatchInfo, leng
 	return valid, nil
 }
 
-func (e SignedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -76,7 +90,7 @@ func (e SignedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.C
 	return valid, nil
 }
 
-func (e SignedExtra) PreDispatch(who Address32, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
+func (e signedExtra) PreDispatch(who Address32, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
 	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {
@@ -91,7 +105,7 @@ func (e SignedExtra) PreDispatch(who Address32, call Call, info *DispatchInfo, l
 	return pre, nil
 }
 
-func (e SignedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
 	for _, extra := range e.extras {
 		err := extra.PreDispatchUnsigned(call, info, length)
 		if err != nil {
@@ -102,7 +116,7 @@ func (e SignedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length s
 	return nil
 }
 
-func (e SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
 	if pre.HasValue {
 		preValue := pre.Value
 		for i, extra := range e.extras {
@@ -123,7 +137,7 @@ func (e SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e SignedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
+func (e signedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
 	ids := sc.Sequence[sc.Compact]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
