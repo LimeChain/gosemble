@@ -76,12 +76,20 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
 		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
+
 		err := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
 		if err != nil {
 			return err
 		}
 
-		ctp.systemModule.DepositEvent(transaction_payment.NewEventTransactionFeePaid(ctp.txPaymentModule.GetIndex(), who.FixedSequence, actualFee, tip))
+		ctp.systemModule.DepositEvent(
+			transaction_payment.NewEventTransactionFeePaid(
+				ctp.txPaymentModule.GetIndex(),
+				who.FixedSequence,
+				actualFee,
+				tip,
+			),
+		)
 	}
 	return nil
 }
