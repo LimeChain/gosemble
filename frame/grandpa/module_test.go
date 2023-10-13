@@ -121,8 +121,29 @@ func Test_Module_Metadata(t *testing.T) {
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataEmptyTypeParameter("T"),
 				primitives.NewMetadataEmptyTypeParameter("I"),
-			})}
-	expectMetadataModule := primitives.MetadataModule{
+			}),
+		primitives.NewMetadataTypeWithParams(metadata.TypesGrandpaErrors, "The `Error` enum of this pallet.", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant("PauseFailed", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, PauseFailedError, ""),
+				primitives.NewMetadataDefinitionVariant("ResumeFailed", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, ResumeFailedError, ""),
+				primitives.NewMetadataDefinitionVariant("ChangePending", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, ChangePendingError, ""),
+				primitives.NewMetadataDefinitionVariant("TooSoon", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, TooSoonError, ""),
+				primitives.NewMetadataDefinitionVariant("InvalidKeyOwnershipProof", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, InvalidKeyOwnershipProofError, ""),
+				primitives.NewMetadataDefinitionVariant("InvalidEquivocationProof", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, InvalidEquivocationProofError, ""),
+				primitives.NewMetadataDefinitionVariant("DuplicateOffenceReport", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, DuplicateOffenceReportError, ""),
+			}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataEmptyTypeParameter("T"),
+			}),
+		primitives.NewMetadataTypeWithPath(metadata.TypesGrandpaAppPublic, "sp_consensus_grandpa app Public", sc.Sequence[sc.Str]{"sp_consensus_grandpa", "app", "Public"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionField(metadata.TypesEd25519PubKey),
+			})),
+		primitives.NewMetadataType(metadata.TypesTupleGrandpaAppPublicU64, "(GrandpaAppPublic, U64)",
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
+		primitives.NewMetadataType(metadata.TypesSequenceTupleGrandpaAppPublic, "[]byte (GrandpaAppPublic, U64)", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleGrandpaAppPublicU64))),
+	}
+	moduleV14 := primitives.MetadataModuleV14{
 		Name:      name,
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -131,7 +152,21 @@ func Test_Module_Metadata(t *testing.T) {
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     moduleId,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
+				},
+				moduleId,
+				"Errors.Grandpa"),
+		),
+		Index: moduleId,
+	}
+
+	expectMetadataModule := primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: moduleV14,
 	}
 
 	metadataTypes, metadataModule := target.Metadata()

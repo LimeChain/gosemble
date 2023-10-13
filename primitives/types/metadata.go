@@ -2,79 +2,97 @@ package types
 
 import (
 	"bytes"
-	"errors"
-	"strconv"
-
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
+	"strconv"
 )
 
 const (
-	MetadataReserved sc.U32 = 0x6174656d // "meta"
-	MetadataVersion  sc.U8  = 14
+	MetadataReserved  sc.U32 = 0x6174656d // "meta"
+	MetadataVersion14 sc.U8  = 14
+	MetadataVersion15 sc.U8  = 15
 )
 
-type Metadata struct {
+type Metadata15 struct {
+	Data RuntimeMetadataV15
+}
+
+func (m Metadata15) Bytes() []byte {
+	return sc.EncodedBytes(m)
+}
+
+func (m Metadata15) Encode(buffer *bytes.Buffer) {
+	MetadataReserved.Encode(buffer)
+	MetadataVersion15.Encode(buffer)
+	m.Data.Encode(buffer)
+}
+
+type Metadata14 struct {
 	Data RuntimeMetadataV14
 }
 
-func NewMetadata(data RuntimeMetadataV14) Metadata {
-	return Metadata{Data: data}
+func (m Metadata14) Bytes() []byte {
+	return sc.EncodedBytes(m)
+}
+
+func (m Metadata14) Encode(buffer *bytes.Buffer) {
+	MetadataReserved.Encode(buffer)
+	MetadataVersion14.Encode(buffer)
+	m.Data.Encode(buffer)
+}
+
+type Metadata struct {
+	Version sc.U8
+	DataV14 RuntimeMetadataV14
+	DataV15 RuntimeMetadataV15
+}
+
+func NewMetadataV14(data RuntimeMetadataV14) Metadata14 {
+	return Metadata14{Data: data}
+}
+
+func NewMetadataV15(data RuntimeMetadataV15) Metadata15 {
+	return Metadata15{Data: data}
 }
 
 func (m Metadata) Encode(buffer *bytes.Buffer) {
 	MetadataReserved.Encode(buffer)
-	MetadataVersion.Encode(buffer)
-	m.Data.Encode(buffer)
+
+	switch m.Version {
+	case MetadataVersion14:
+		MetadataVersion14.Encode(buffer)
+		m.DataV14.Encode(buffer)
+	case MetadataVersion15:
+		MetadataVersion15.Encode(buffer)
+		m.DataV15.Encode(buffer)
+	default:
+		log.Critical("Unsupported metadata version")
+	}
 }
 
-func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
+func DecodeMetadata(buffer *bytes.Buffer) Metadata {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	metaReserved := sc.DecodeU32(buffer)
 	if metaReserved != MetadataReserved {
-		// return Metadata{}, errors.New(fmt.Sprintf("metadata reserved mismatch: expect [%d], actual [%d]", MetadataReserved, metaReserved))
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		log.Critical("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
+		return Metadata{}
 	}
 
 	version := sc.DecodeU8(buffer)
-	if version != MetadataVersion {
-		// return Metadata{}, errors.New(fmt.Sprintf("metadata version mismatch: expect [%d], actual [%d]", MetadataVersion, version))
-		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion)) + "], actual [" + strconv.Itoa(int(version)) + "]")
-	}
 
-	return Metadata{
-		Data: DecodeRuntimeMetadataV14(buffer),
-	}, nil
+	switch version {
+	case MetadataVersion14:
+		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}
+	case MetadataVersion15:
+		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}
+	default:
+		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
+		return Metadata{}
+	}
 }
 
 func (m Metadata) Bytes() []byte {
 	return sc.EncodedBytes(m)
-}
-
-type RuntimeMetadataV14 struct {
-	Types     sc.Sequence[MetadataType]
-	Modules   sc.Sequence[MetadataModule]
-	Extrinsic MetadataExtrinsic
-	Type      sc.Compact
-}
-
-func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) {
-	rm.Types.Encode(buffer)
-	rm.Modules.Encode(buffer)
-	rm.Extrinsic.Encode(buffer)
-	rm.Type.Encode(buffer)
-}
-
-func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) RuntimeMetadataV14 {
-	return RuntimeMetadataV14{
-		Types:     sc.DecodeSequenceWith(buffer, DecodeMetadataType),
-		Modules:   sc.DecodeSequenceWith(buffer, DecodeMetadataModule),
-		Extrinsic: DecodeMetadataExtrinsic(buffer),
-		Type:      sc.DecodeCompact(buffer),
-	}
-}
-
-func (rm RuntimeMetadataV14) Bytes() []byte {
-	return sc.EncodedBytes(rm)
 }
 
 type MetadataType struct {

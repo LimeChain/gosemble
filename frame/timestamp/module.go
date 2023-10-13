@@ -138,7 +138,7 @@ func (m Module) IsInherent(call primitives.Call) bool {
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
 		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
@@ -161,8 +161,14 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](nil),
-		Index: m.Index,
+		Error:    sc.NewOption[sc.Compact](nil),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Index:    m.Index,
+	}
+
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
 	}
 }
 

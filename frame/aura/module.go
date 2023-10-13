@@ -130,7 +130,7 @@ func (m Module) OnTimestampSet(now sc.U64) {
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   m.metadataStorage(),
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -139,7 +139,12 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
+		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.index,
+	}
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
 	}
 }
 
@@ -180,6 +185,31 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
 				})),
+
+		// type 924
+		primitives.NewMetadataType(metadata.TypesTupleSequenceU8KeyTypeId, "(Seq<U8>, KeyTypeId)",
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
+
+		// type 923
+		primitives.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TupleSequenceU8KeyTypeId", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),
+
+		// type 922
+		primitives.NewMetadataTypeWithParam(metadata.TypesOptionTupleSequenceU8KeyTypeId, "Option<TupleSequenceU8KeyTypeId>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"None",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					""),
+				primitives.NewMetadataDefinitionVariant(
+					"Some",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceTupleSequenceU8KeyTypeId),
+					},
+					1,
+					""),
+			}),
+			primitives.NewMetadataTypeParameter(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "T")),
 	}
 }
 

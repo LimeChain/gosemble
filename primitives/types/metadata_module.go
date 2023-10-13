@@ -7,7 +7,31 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
+const (
+	ModuleVersion14 sc.U8 = 14
+	ModuleVersion15 sc.U8 = 15
+)
+
 type MetadataModule struct {
+	Version   sc.U8
+	ModuleV14 MetadataModuleV14
+	ModuleV15 MetadataModuleV15
+}
+
+func (m MetadataModule) Encode(buffer *bytes.Buffer) {
+	switch m.Version {
+	case ModuleVersion14:
+		m.ModuleV14.Encode(buffer)
+	case ModuleVersion15:
+		m.ModuleV15.Encode(buffer)
+	}
+}
+
+func (mm MetadataModule) Bytes() []byte {
+	return sc.EncodedBytes(mm)
+}
+
+type MetadataModuleV15 struct {
 	Name      sc.Str
 	Storage   sc.Option[MetadataModuleStorage]
 	Call      sc.Option[sc.Compact]
@@ -16,10 +40,53 @@ type MetadataModule struct {
 	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Constants sc.Sequence[MetadataModuleConstant]
 	Error     sc.Option[sc.Compact]
+	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
+	Index     sc.U8
+	Docs      sc.Sequence[sc.Str]
+}
+
+func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) {
+	mm.Name.Encode(buffer)
+	mm.Storage.Encode(buffer)
+	mm.Call.Encode(buffer)
+	mm.Event.Encode(buffer)
+	mm.Constants.Encode(buffer)
+	mm.Error.Encode(buffer)
+	mm.Index.Encode(buffer)
+	mm.Docs.Encode(buffer)
+}
+
+func DecodeMetadataModuleV15(buffer *bytes.Buffer) MetadataModuleV15 {
+	return MetadataModuleV15{
+		Name:      sc.DecodeStr(buffer),
+		Storage:   sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage),
+		Call:      sc.DecodeOption[sc.Compact](buffer),
+		Event:     sc.DecodeOption[sc.Compact](buffer),
+		Constants: sc.DecodeSequenceWith(buffer, DecodeMetadataModuleConstant),
+		Error:     sc.DecodeOption[sc.Compact](buffer),
+		Index:     sc.DecodeU8(buffer),
+		Docs:      sc.DecodeSequence[sc.Str](buffer),
+	}
+}
+
+func (mm MetadataModuleV15) Bytes() []byte {
+	return sc.EncodedBytes(mm)
+}
+
+type MetadataModuleV14 struct {
+	Name      sc.Str
+	Storage   sc.Option[MetadataModuleStorage]
+	Call      sc.Option[sc.Compact]
+	CallDef   sc.Option[MetadataDefinitionVariant] // not encoded
+	Event     sc.Option[sc.Compact]
+	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
+	Constants sc.Sequence[MetadataModuleConstant]
+	Error     sc.Option[sc.Compact]
+	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Index     sc.U8
 }
 
-func (mm MetadataModule) Encode(buffer *bytes.Buffer) {
+func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) {
 	mm.Name.Encode(buffer)
 	mm.Storage.Encode(buffer)
 	mm.Call.Encode(buffer)
@@ -29,8 +96,8 @@ func (mm MetadataModule) Encode(buffer *bytes.Buffer) {
 	mm.Index.Encode(buffer)
 }
 
-func DecodeMetadataModule(buffer *bytes.Buffer) MetadataModule {
-	return MetadataModule{
+func DecodeMetadataModuleV14(buffer *bytes.Buffer) MetadataModuleV14 {
+	return MetadataModuleV14{
 		Name:      sc.DecodeStr(buffer),
 		Storage:   sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage),
 		Call:      sc.DecodeOption[sc.Compact](buffer),
@@ -41,7 +108,7 @@ func DecodeMetadataModule(buffer *bytes.Buffer) MetadataModule {
 	}
 }
 
-func (mm MetadataModule) Bytes() []byte {
+func (mm MetadataModuleV14) Bytes() []byte {
 	return sc.EncodedBytes(mm)
 }
 

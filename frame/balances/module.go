@@ -299,7 +299,7 @@ func (m Module) deposit(who primitives.Address32, account *primitives.AccountDat
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
 		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
@@ -324,7 +324,20 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		),
 		Constants: m.metadataConstants(),
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
-		Index:     m.Index,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+				},
+				m.Index,
+				"Errors.Balances"),
+		),
+		Index: m.Index,
+	}
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
 	}
 }
 

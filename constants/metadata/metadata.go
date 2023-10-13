@@ -19,12 +19,14 @@ const (
 	PrimitiveTypesI256
 
 	TypesFixedSequence4U8
+	TypesFixedSequence8U8
 	TypesFixedSequence20U8
 	TypesFixedSequence32U8
 	TypesFixedSequence64U8
 	TypesFixedSequence65U8
 
 	TypesSequenceU8
+	TypesSequenceU32
 	TypesFixedU128
 
 	TypesCompactU32
@@ -57,6 +59,7 @@ const (
 	TypesBlockLength
 	TypesPerDispatchClassU32
 	TypesDbWeight
+	TypesGrandpaErrors
 
 	TypesRuntimeApis
 	TypesRuntimeVecApis
@@ -66,16 +69,21 @@ const (
 	TypesSequencePubKeys
 	TypesAuthorityId
 	TypesSr25519PubKey
+	TypesEd25519PubKey
 	TypesAuraSlot
 
 	TypesBalancesErrors
 
 	TypesTransactionPaymentReleases
 	TypesTransactionPaymentEvent
+	TypesTransactionPaymentRuntimeDispatchInfo
+	TypesTransactionPaymentInclusionFee
+	TypesTransactionPaymentFeeDetails
 
 	TypesEmptyTuple
 	TypesTupleU32U32
 	TypesTupleApiIdU32
+	TypesTuple8U8SequenceU8
 
 	TypesAddress32
 	TypesMultiAddress
@@ -103,6 +111,7 @@ const (
 	TypesRuntimeEvent
 	TypesRuntimeVersion
 	RuntimeCall
+	TypesRuntimeError
 
 	SystemCalls
 	TimestampCalls
@@ -123,4 +132,42 @@ const (
 	ChargeTransactionPayment
 
 	Runtime
+
+	Header
+
+	TypesTransactionSource
+	TypesValidTransaction
+	TypesInvalidTransaction
+	TypesUnknownTransaction
+	TypesTransactionValidityError
+	TypesResultValidityTransaction
+	TypesOpaqueMetadata
+	TypesResult
+	TypesInherentData
+
+	TypesSequenceUncheckedExtrinsics
+	CheckInherentsResult
+
+	TypesBlock
+	TypeOptionOpaqueMetadata
+	TypeOptionInclusionFee
+	TypesOptionTupleSequenceU8KeyTypeId
+
+	TypesResultEmptyTuple
+
+	TypesGrandpaAppPublic
+	TypesTupleGrandpaAppPublicU64
+	TypesSequenceTupleGrandpaAppPublic
+	TypesSequenceTupleSequenceU8KeyTypeId
+
+	TypesTupleSequenceU8KeyTypeId
+
+	TypesKeyTypeId
+
+	TypesBTreeMap
+	TypesSequenceTuple8U8SequenceU8
+
+	TypesOptionSequenceU8
+
+	TypesSequenceSequenceU8
 )

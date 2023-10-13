@@ -55,7 +55,7 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
 		Call:    sc.NewOption[sc.Compact](nil),
@@ -78,8 +78,14 @@ func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](nil),
-		Index: m.index,
+		Error:    sc.NewOption[sc.Compact](nil),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
+		Index:    m.index,
+	}
+
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
 	}
 }
 
@@ -111,6 +117,50 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					0,
 					"Event.TransactionFeePaid"),
 			}), primitives.NewMetadataEmptyTypeParameter("T")),
+
+		primitives.NewMetadataTypeWithParams(metadata.TypesTransactionPaymentRuntimeDispatchInfo, "pallet_transaction_payment types RuntimeDispatchInfo", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "RuntimeDispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesDispatchClass, "Class"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
+				primitives.NewMetadataTypeParameter(metadata.TypesWeight, "Weight"),
+			}),
+
+		// type 910
+		primitives.NewMetadataTypeWithParams(metadata.TypesTransactionPaymentInclusionFee, "pallet_transaction_payment types InclusionFee", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "InclusionFee"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
+			}),
+
+		primitives.NewMetadataTypeWithParam(metadata.TypeOptionInclusionFee, "Option<InclusionFee>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"None",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					""),
+				primitives.NewMetadataDefinitionVariant(
+					"Some",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionPaymentInclusionFee),
+					},
+					1,
+					""),
+			}),
+			primitives.NewMetadataTypeParameter(metadata.TypesTransactionPaymentInclusionFee, "T")),
+
+		primitives.NewMetadataTypeWithParam(metadata.TypesTransactionPaymentFeeDetails, "pallet_transaction_payment types FeeDetails", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "FeeDetails"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypeOptionInclusionFee, "Option<InclusionFee<Balance>>"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
+			primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
+		),
 	}
 }
 

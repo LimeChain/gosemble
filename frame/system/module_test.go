@@ -1358,9 +1358,181 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataEmptyTypeParameter("T")),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
+
+		primitives.NewMetadataTypeWithParams(metadata.TypesBlock, "Block",
+			sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.Header, "Header"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceUncheckedExtrinsics, "Vec<Extrinsic>"),
+				}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
+				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
+			},
+		),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionSource, "TransactionSource", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"InBlock",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.TransactionSourceInBlock,
+						"TransactionSourceInBlock"),
+					primitives.NewMetadataDefinitionVariant(
+						"Local",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.TransactionSourceLocal,
+						"TransactionSourceLocal"),
+					primitives.NewMetadataDefinitionVariant(
+						"External",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.TransactionSourceExternal,
+						"TransactionSourceExternal"),
+				})),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesValidTransaction, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionPriority"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionLongevity"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
+				},
+			)),
+
+		// type 871
+		primitives.NewMetadataTypeWithPath(metadata.TypesInvalidTransaction, "InvalidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "InvalidTransaction"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"Call",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionCall,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Payment",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionPayment,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Future",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionFuture,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Stale",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionStale,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"BadProof",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionBadProof,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"AncientBirthBlock",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionAncientBirthBlock,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"ExhaustsResources",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionExhaustsResources,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Custom",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+						},
+						primitives.InvalidTransactionCustom,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"BadMandatory",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionBadMandatory,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"MandatoryValidation",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionMandatoryValidation,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"BadSigner",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.InvalidTransactionBadSigner,
+						""),
+				},
+			)),
+
+		// type 872
+		primitives.NewMetadataTypeWithPath(metadata.TypesUnknownTransaction, "UnknownTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "UnknownTransaction"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"CannotLookup",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.UnknownTransactionCannotLookup,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"NoUnsignedValidator",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						primitives.UnknownTransactionNoUnsignedValidator,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Custom",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+						},
+						primitives.UnknownTransactionCustomUnknownTransaction,
+						""),
+				},
+			)),
+
+		// type 870
+		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionValidityError, "TransactionValidityError", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionValidityError"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"Invalid",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesInvalidTransaction),
+						},
+						primitives.TransactionValidityErrorInvalidTransaction,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Unknown",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction),
+						},
+						primitives.TransactionValidityErrorUnknownTransaction,
+						""),
+				},
+			)),
+
+		primitives.NewMetadataTypeWithPath(metadata.TypesResultValidityTransaction, "Result", sc.Sequence[sc.Str]{"Result"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"Ok",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
+						},
+						primitives.TransactionValidityResultValid,
+						""),
+					primitives.NewMetadataDefinitionVariant(
+						"Err",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
+						},
+						primitives.TransactionValidityResultError,
+						""),
+				})),
 	}
 
-	expectMetadataModule := primitives.MetadataModule{
+	moduleV14 := primitives.MetadataModuleV14{
 		Name: name,
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 			Prefix: name,
@@ -1508,7 +1680,21 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+				},
+				moduleId,
+				"Errors.System"),
+		),
 		Index: moduleId,
+	}
+
+	expectMetadataModule := primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: moduleV14,
 	}
 
 	resultTypes, resultMetadataModule := target.Metadata()

@@ -722,7 +722,7 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 	}
-	expectMetadataModule := primitives.MetadataModule{
+	moduleV14 := primitives.MetadataModuleV14{
 		Name: name,
 		Storage: sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 			Prefix: name,
@@ -775,7 +775,21 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 		},
 		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				name,
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesBalancesErrors),
+				},
+				moduleId,
+				"Errors.Balances"),
+		),
 		Index: moduleId,
+	}
+
+	expectMetadataModule := primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: moduleV14,
 	}
 
 	resultTypes, resultMetadataModule := target.Metadata()

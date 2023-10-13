@@ -14,6 +14,16 @@ const (
 	name = sc.Str("Grandpa")
 )
 
+const (
+	PauseFailedError = iota
+	ResumeFailedError
+	ChangePendingError
+	TooSoonError
+	InvalidKeyOwnershipProofError
+	InvalidEquivocationProofError
+	DuplicateOffenceReportError
+)
+
 var (
 	AuthorityVersion sc.U8 = 1
 	EngineId               = [4]byte{'f', 'r', 'n', 'k'}
@@ -85,7 +95,7 @@ func (m Module) Authorities() sc.Sequence[primitives.Authority] {
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	return m.metadataTypes(), primitives.MetadataModule{
+	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
 		Call:      sc.NewOption[sc.Compact](nil),
@@ -94,7 +104,21 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
 		Error:     sc.NewOption[sc.Compact](nil),
-		Index:     m.Index,
+		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
+			primitives.NewMetadataDefinitionVariantStr(
+				m.name(),
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionField(metadata.TypesGrandpaErrors),
+				},
+				m.Index,
+				"Errors.Grandpa"),
+		),
+		Index: m.Index,
+	}
+
+	return m.metadataTypes(), primitives.MetadataModule{
+		Version:   primitives.ModuleVersion14,
+		ModuleV14: dataV14,
 	}
 }
 
@@ -107,5 +131,25 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("T"),
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
+		primitives.NewMetadataTypeWithParams(metadata.TypesGrandpaErrors, "The `Error` enum of this pallet.", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant("PauseFailed", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, PauseFailedError, ""),
+				primitives.NewMetadataDefinitionVariant("ResumeFailed", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, ResumeFailedError, ""),
+				primitives.NewMetadataDefinitionVariant("ChangePending", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, ChangePendingError, ""),
+				primitives.NewMetadataDefinitionVariant("TooSoon", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, TooSoonError, ""),
+				primitives.NewMetadataDefinitionVariant("InvalidKeyOwnershipProof", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, InvalidKeyOwnershipProofError, ""),
+				primitives.NewMetadataDefinitionVariant("InvalidEquivocationProof", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, InvalidEquivocationProofError, ""),
+				primitives.NewMetadataDefinitionVariant("DuplicateOffenceReport", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, DuplicateOffenceReportError, ""),
+			}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataEmptyTypeParameter("T"),
+			}),
+		primitives.NewMetadataTypeWithPath(metadata.TypesGrandpaAppPublic, "sp_consensus_grandpa app Public", sc.Sequence[sc.Str]{"sp_consensus_grandpa", "app", "Public"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionField(metadata.TypesEd25519PubKey),
+			})),
+		primitives.NewMetadataType(metadata.TypesTupleGrandpaAppPublicU64, "(GrandpaAppPublic, U64)",
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
+		primitives.NewMetadataType(metadata.TypesSequenceTupleGrandpaAppPublic, "[]byte (GrandpaAppPublic, U64)", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleGrandpaAppPublicU64))),
 	}
 }
