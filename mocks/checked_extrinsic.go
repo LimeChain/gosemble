@@ -27,19 +27,9 @@ func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *p
 	return arg0, arg1
 }
 
-func (c *CheckedExtrinsic) Extra() primitives.SignedExtra {
-	args := c.Called()
-	return args.Get(0).(primitives.SignedExtra)
-}
-
 func (c *CheckedExtrinsic) Function() primitives.Call {
 	args := c.Called()
 	return args.Get(0).(primitives.Call)
-}
-
-func (c *CheckedExtrinsic) Signed() sc.Option[primitives.Address32] {
-	args := c.Called()
-	return args.Get(0).(sc.Option[primitives.Address32])
 }
 
 func (c *CheckedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {

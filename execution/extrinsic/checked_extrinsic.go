@@ -15,10 +15,14 @@ import (
 type checkedExtrinsic struct {
 	// Who this purports to be from and the number of extrinsics have come before
 	// from the same signer, if anyone (note this is not a signature).
-	signed        sc.Option[primitives.Address32]
+	signer        sc.Option[primitives.Address32]
 	function      primitives.Call
 	extra         primitives.SignedExtra
 	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
+}
+
+func (c checkedExtrinsic) Function() primitives.Call {
+	return c.function
 }
 
 func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
@@ -27,8 +31,8 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		maybePre sc.Option[sc.Sequence[primitives.Pre]]
 	)
 
-	if c.signed.HasValue {
-		id := c.signed.Value
+	if c.signer.HasValue {
+		id := c.signer.Value
 		pre, err := c.extra.PreDispatch(id, c.function, info, length)
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
@@ -58,49 +62,37 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 
 	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
 
-	c.transactional.WithStorageLayer(
+	dispatchInfo, err := c.transactional.WithStorageLayer(
 		func() (primitives.PostDispatchInfo, primitives.DispatchError) {
-			resWithInfo = c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
-
-			if resWithInfo.HasError {
-				return primitives.PostDispatchInfo{}, resWithInfo.Err.Error
-			}
-
-			return resWithInfo.Ok, nil
+			return c.dispatch(maybeWho)
 		},
 	)
+
+	if err != nil {
+		resWithInfo.HasError = true
+		resWithInfo.Err = primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			PostInfo: dispatchInfo,
+			Error:    err,
+		}
+	} else {
+		resWithInfo.Ok = dispatchInfo
+	}
 
 	var postInfo primitives.PostDispatchInfo
 	if resWithInfo.HasError {
 		postInfo = resWithInfo.Err.PostInfo
 	} else {
-		postInfo = primitives.PostDispatchInfo{
-			ActualWeight: sc.NewOption[primitives.Weight](info.Weight),
-			PaysFee:      info.PaysFee[0].(sc.U8),
-		}
+		postInfo = resWithInfo.Ok
 	}
 
 	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
-	err := c.extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 
-	return resWithInfo, err
-}
-
-func (c checkedExtrinsic) Extra() primitives.SignedExtra {
-	return c.extra
-}
-
-func (c checkedExtrinsic) Function() primitives.Call {
-	return c.function
-}
-
-func (c checkedExtrinsic) Signed() sc.Option[primitives.Address32] {
-	return c.signed
+	return resWithInfo, c.extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 }
 
 func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	if c.signed.HasValue {
-		id := c.signed.Value
+	if c.signer.HasValue {
+		id := c.signer.Value
 		return c.extra.Validate(id, c.function, info, length)
 	}
 
@@ -115,4 +107,14 @@ func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, sourc
 	}
 
 	return valid.CombineWith(unsignedValidation), nil
+}
+
+func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.Address32]) (primitives.PostDispatchInfo, primitives.DispatchError) {
+	resWithInfo := c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
+
+	if resWithInfo.HasError {
+		return resWithInfo.Err.PostInfo, resWithInfo.Err.Error
+	}
+
+	return resWithInfo.Ok, nil
 }
