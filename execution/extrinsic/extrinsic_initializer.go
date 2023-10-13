@@ -16,9 +16,9 @@ func NewExtrinsicInitializer() ExtrinsicInitializer {
 	return extrinsicInitializer{}
 }
 
-func (ex extrinsicInitializer) NewChecked(signed sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
+func (ex extrinsicInitializer) NewChecked(signer sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
 	return checkedExtrinsic{
-		signed:        signed,
+		signer:        signer,
 		function:      function,
 		extra:         extra,
 		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](),
