@@ -20,36 +20,38 @@ const (
 	ExtrinsicUnmaskVersion = 0b0111_1111
 )
 
+type PayloadInitializer = func(call primitives.Call, extra primitives.SignedExtra) (
+	primitives.SignedPayload, primitives.TransactionValidityError,
+)
+
 type uncheckedExtrinsic struct {
 	version sc.U8
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
-	signature sc.Option[primitives.ExtrinsicSignature]
-	function  primitives.Call
-	extra     primitives.SignedExtra
-	crypto    io.Crypto
+	signature          sc.Option[primitives.ExtrinsicSignature]
+	function           primitives.Call
+	extra              primitives.SignedExtra
+	payloadInitializer PayloadInitializer
+	crypto             io.Crypto
+	hashing            io.Hashing
 }
 
 // NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
-func NewUncheckedExtrinsic(
-	version sc.U8,
-	signature sc.Option[primitives.ExtrinsicSignature],
-	function primitives.Call,
-	extra primitives.SignedExtra,
-) uncheckedExtrinsic {
-
+func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) uncheckedExtrinsic {
 	return uncheckedExtrinsic{
-		version:   version,
-		signature: signature,
-		function:  function,
-		extra:     extra,
-		crypto:    io.NewCrypto(),
+		version:            version,
+		signature:          signature,
+		function:           function,
+		extra:              extra,
+		payloadInitializer: primitives.NewSignedPayload,
+		crypto:             io.NewCrypto(),
+		hashing:            io.NewHashing(),
 	}
 }
 
 // NewUnsignedUncheckedExtrinsic returns a new instance of an unsigned extrinsic.
-func NewUnsignedUncheckedExtrinsic(function primitives.Call) primitives.UncheckedExtrinsic {
+func NewUnsignedUncheckedExtrinsic(function primitives.Call) uncheckedExtrinsic {
 	return uncheckedExtrinsic{
 		version:   ExtrinsicFormatVersion,
 		signature: sc.NewOption[primitives.ExtrinsicSignature](nil),
@@ -57,6 +59,7 @@ func NewUnsignedUncheckedExtrinsic(function primitives.Call) primitives.Unchecke
 		crypto:    io.NewCrypto(),
 	}
 }
+
 func (uxt uncheckedExtrinsic) Encode(buffer *bytes.Buffer) {
 	tempBuffer := &bytes.Buffer{}
 
@@ -95,24 +98,37 @@ func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Optio
 	if uxt.signature.HasValue {
 		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
-		signedAddress, err := lookup.Lookup(signer)
+		signerAddress, err := lookup.Lookup(signer)
 		if err != nil {
 			return sc.NewOption[primitives.Address32](nil), err
 		}
 
-		rawPayload, err := primitives.NewSignedPayload(uxt.function, extra)
+		rawPayload, err := uxt.payloadInitializer(uxt.function, extra)
 		if err != nil {
 			return sc.NewOption[primitives.Address32](nil), err
 		}
 
-		if !uxt.verify(signature, rawPayload.UsingEncoded(), signedAddress) {
+		r := uxt.encodePayload(rawPayload)
+
+		if !uxt.verify(signature, r, signerAddress) {
 			return sc.NewOption[primitives.Address32](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
-		return sc.NewOption[primitives.Address32](signedAddress), nil
+		return sc.NewOption[primitives.Address32](signerAddress), nil
 	}
 
 	return sc.NewOption[primitives.Address32](nil), nil
+}
+
+func (uxt uncheckedExtrinsic) encodePayload(sp primitives.SignedPayload) sc.Sequence[sc.U8] {
+	enc := sp.Bytes()
+
+	if len(enc) > 256 {
+		hash := uxt.hashing.Blake256(enc)
+		return sc.BytesToSequenceU8(hash)
+	} else {
+		return sc.BytesToSequenceU8(enc)
+	}
 }
 
 func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.Address32) bool {
