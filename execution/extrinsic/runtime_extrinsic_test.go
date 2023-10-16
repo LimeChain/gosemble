@@ -224,7 +224,6 @@ func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 	mockModuleOne.On("IsInherent", mockCallOne).Return(true)
 	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(err)
 	mockModuleOne.On("InherentIdentifier").Return(inherentIdentifier)
-	mockModuleTwo.On("IsInherent", mockCallOne).Return(false)
 
 	result := target.CheckInherents(inherentData, mockBlock)
 
