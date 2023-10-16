@@ -59,7 +59,7 @@ func (re *RuntimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc
 	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModuleV14]), args.Get(2).(primitives.MetadataExtrinsicV14)
 }
 
-func (re *RuntimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, sc.Sequence[primitives.RuntimeApiMetadata], primitives.OuterEnums, primitives.CustomMetadata) {
+func (re *RuntimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
 	args := re.Called()
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModuleV15]), args.Get(2).(primitives.MetadataExtrinsicV15), args.Get(3).(sc.Sequence[primitives.RuntimeApiMetadata]), args.Get(4).(primitives.OuterEnums), args.Get(5).(primitives.CustomMetadata)
+	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModuleV15]), args.Get(2).(primitives.MetadataExtrinsicV15), args.Get(3).(primitives.OuterEnums), args.Get(4).(primitives.CustomMetadata)
 }

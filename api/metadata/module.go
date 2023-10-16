@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -60,6 +61,8 @@ func (m Module) Metadata() int64 {
 		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV14(metadata.DataV14).Bytes())
 	case primitives.MetadataVersion15:
 		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadata.DataV15).Bytes())
+	default:
+		log.Critical("Unknown md version")
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
@@ -111,13 +114,15 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 			Extrinsic: extrinsicV14,
 			Type:      sc.ToCompact(metadata.Runtime),
 		}
-		optionMd := sc.Option[primitives.Metadata14]{
+		bMetadataV14 := sc.BytesToSequenceU8(primitives.NewMetadataV14(metadataV14).Bytes())
+		optionMd := sc.Option[sc.Sequence[sc.U8]]{
 			HasValue: sc.Bool(true),
-			Value:    primitives.NewMetadataV14(metadataV14),
+			Value:    bMetadataV14,
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		typesV15, modulesV15, extrinsicV15, apis, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
+		apis := primitives.ApiMetadata()
+		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,
@@ -128,13 +133,14 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 			OuterEnums: outerEnums,
 			Custom:     custom,
 		}
-		optionMd := sc.Option[primitives.Metadata15]{
+		bMetadataV15 := sc.BytesToSequenceU8(primitives.NewMetadataV15(metadataV15).Bytes())
+		optionMd := sc.Option[sc.Sequence[sc.U8]]{
 			HasValue: sc.Bool(true),
-			Value:    primitives.NewMetadataV15(metadataV15),
+			Value:    bMetadataV15,
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	default:
-		optionUnsupported := sc.Option[primitives.Metadata]{
+		optionUnsupported := sc.Option[sc.Sequence[sc.U8]]{
 			HasValue: sc.Bool(false),
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionUnsupported.Bytes())

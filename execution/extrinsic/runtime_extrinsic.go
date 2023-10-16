@@ -19,7 +19,7 @@ type RuntimeExtrinsic interface {
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
 	Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
-	MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, sc.Sequence[primitives.RuntimeApiMetadata], primitives.OuterEnums, primitives.CustomMetadata)
+	MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
 }
 
 type runtimeExtrinsic struct {
@@ -224,15 +224,13 @@ func (re runtimeExtrinsic) Metadata() (sc.Sequence[primitives.MetadataType], sc.
 	return metadataTypes, modules, extrinsic
 }
 
-func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, sc.Sequence[primitives.RuntimeApiMetadata], primitives.OuterEnums, primitives.CustomMetadata) {
+func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
 	metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModuleV15]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	errorVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
-
-	apis := primitives.ApiMetadata()
 
 	outerEnums := primitives.OuterEnums{
 		CallEnumType:  sc.ToCompact(metadata.RuntimeCall),
@@ -290,7 +288,7 @@ func (re runtimeExtrinsic) MetadataLatest() (sc.Sequence[primitives.MetadataType
 		SignedExtensions: signedExtensions,
 	}
 
-	return metadataTypes, modules, extrinsicV15, apis, outerEnums, custom
+	return metadataTypes, modules, extrinsicV15, outerEnums, custom
 }
 
 func createUncheckedExtrinsicType(runtimeCall primitives.MetadataType) primitives.MetadataType {
