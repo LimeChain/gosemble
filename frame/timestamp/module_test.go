@@ -1,7 +1,6 @@
 package timestamp
 
 import (
-	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -167,7 +166,7 @@ func Test_Module_CheckInherent_NotInherent(t *testing.T) {
 
 	result := target.CheckInherent(mockCall, *inherentData)
 
-	assert.Equal(t, errors.New(errTimestampInvalidInherentCheck), result)
+	assert.Equal(t, primitives.NewTimestampErrorInvalid(), result)
 
 	mockCall.AssertCalled(t, "ModuleIndex")
 }

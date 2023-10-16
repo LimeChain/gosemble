@@ -7,10 +7,7 @@ import (
 const (
 	TimestampErrorTooEarly sc.U8 = iota
 	TimestampErrorTooFarInFuture
-)
-
-const (
-	errInvalidTimestampType = "invalid TimestampError type"
+	TimestampErrorInvalid
 )
 
 type TimestampError struct {
@@ -25,9 +22,13 @@ func NewTimestampErrorTooFarInFuture() TimestampError {
 	return TimestampError{sc.NewVaryingData(TimestampErrorTooFarInFuture)}
 }
 
+func NewTimestampErrorInvalid() TimestampError {
+	return TimestampError{sc.NewVaryingData(TimestampErrorInvalid)}
+}
+
 func (te TimestampError) IsFatal() sc.Bool {
 	switch te.VaryingData[0] {
-	case TimestampErrorTooEarly, TimestampErrorTooFarInFuture:
+	case TimestampErrorTooEarly, TimestampErrorTooFarInFuture, TimestampErrorInvalid:
 		return true
 	default:
 		return false
@@ -40,6 +41,8 @@ func (te TimestampError) Error() string {
 		return "The time since the last timestamp is lower than the minimum period."
 	case TimestampErrorTooFarInFuture:
 		return "The timestamp of the block is too far in the future."
+	case TimestampErrorInvalid:
+		return "invalid inherent check for timestamp module"
 	}
 
 	panic("unreachable")
