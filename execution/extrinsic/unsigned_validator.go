@@ -18,7 +18,7 @@ func NewUnsignedValidatorForChecked(extrinsic RuntimeExtrinsic) primitives.Unsig
 // PreDispatch validates the dispatch call before execution.
 // Inherent call is accepted for being dispatched
 func (v UnsignedValidatorForChecked) PreDispatch(call primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
-	module, ok := v.runtimeExtrinsic.Module((call).ModuleIndex())
+	module, ok := v.runtimeExtrinsic.Module(call.ModuleIndex())
 	if !ok {
 		return sc.Empty{}, nil
 	}
@@ -28,11 +28,11 @@ func (v UnsignedValidatorForChecked) PreDispatch(call primitives.Call) (sc.Empty
 
 // ValidateUnsigned returns the validity of the dispatch call.
 // Inherent call is not validated as unsigned
-func (v UnsignedValidatorForChecked) ValidateUnsigned(_source primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (v UnsignedValidatorForChecked) ValidateUnsigned(txSource primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	module, ok := v.runtimeExtrinsic.Module(call.ModuleIndex())
 	if !ok {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	}
 
-	return module.ValidateUnsigned(_source, call)
+	return module.ValidateUnsigned(txSource, call)
 }
