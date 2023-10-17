@@ -17,7 +17,6 @@ func (m *SignedExtra) Encode(buffer *bytes.Buffer) {
 }
 func (m *SignedExtra) Bytes() []byte {
 	args := m.Called()
-
 	return args.Get(0).([]byte)
 }
 
@@ -26,15 +25,15 @@ func (m *SignedExtra) Decode(buffer *bytes.Buffer) {
 }
 
 func (m *SignedExtra) AdditionalSigned() (types.AdditionalSigned, types.TransactionValidityError) {
-	args := m.Called(0)
+	args := m.Called()
 
 	if args.Get(1) != nil {
 		return args.Get(0).(types.AdditionalSigned), args.Get(1).(types.TransactionValidityError)
 	}
 
 	return args.Get(0).(types.AdditionalSigned), nil
-
 }
+
 func (m *SignedExtra) Validate(who types.Address32, call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, types.TransactionValidityError) {
 	args := m.Called(who, call, info, length)
 

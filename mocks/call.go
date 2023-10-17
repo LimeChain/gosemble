@@ -18,7 +18,6 @@ func (m *Call) Encode(buffer *bytes.Buffer) {
 
 func (m *Call) Bytes() []byte {
 	args := m.Called()
-
 	return args.Get(0).([]byte)
 }
 
