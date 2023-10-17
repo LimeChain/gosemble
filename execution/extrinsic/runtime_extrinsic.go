@@ -23,11 +23,11 @@ type RuntimeExtrinsic interface {
 }
 
 type runtimeExtrinsic struct {
-	modules map[sc.U8]primitives.Module
+	modules []primitives.Module
 	extra   primitives.SignedExtra
 }
 
-func New(modules map[sc.U8]primitives.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
+func New(modules []primitives.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
 	return runtimeExtrinsic{
 		modules: modules,
 		extra:   extra,
@@ -35,8 +35,7 @@ func New(modules map[sc.U8]primitives.Module, extra primitives.SignedExtra) Runt
 }
 
 func (re runtimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFound bool) {
-	m, ok := re.modules[index]
-	return m, ok
+	return primitives.GetModule(index, re.modules)
 }
 
 func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
@@ -77,16 +76,15 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block pr
 			if module.IsInherent(call) {
 				isInherent = true
 
-				err := module.CheckInherent(extrinsic.Function(), data)
-				if err != nil {
-					e := err.(primitives.IsFatalError)
-					err := result.PutError(module.InherentIdentifier(), e)
+				fatalErr := module.CheckInherent(call, data)
+				if fatalErr != nil {
+					err := result.PutError(module.InherentIdentifier(), fatalErr)
 					// TODO: log depending on error type - handle_put_error_result
 					if err != nil {
 						log.Critical(err.Error())
 					}
 
-					if e.IsFatal() {
+					if fatalErr.IsFatal() {
 						return result
 					}
 				}

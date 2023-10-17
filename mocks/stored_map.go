@@ -11,7 +11,7 @@ type StoredMap struct {
 }
 
 func (m *StoredMap) DepositEvent(event types.Event) {
-	_ = m.Called(event)
+	m.Called(event)
 }
 
 func (m *StoredMap) Get(key types.PublicKey) types.AccountInfo {

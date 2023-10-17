@@ -2,7 +2,8 @@ package types
 
 import "github.com/LimeChain/goscale"
 
-type IsFatalError interface {
+type FatalError interface {
 	goscale.Encodable
 	IsFatal() goscale.Bool
+	Error() string
 }

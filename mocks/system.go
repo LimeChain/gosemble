@@ -16,9 +16,9 @@ func (m *SystemModule) CreateInherent(inherent primitives.InherentData) sc.Optio
 	return args.Get(0).(sc.Option[primitives.Call])
 }
 
-func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) error {
+func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) primitives.FatalError {
 	args := m.Called(call, data)
-	return args.Error(0)
+	return args.Get(0).(primitives.FatalError)
 }
 
 func (m *SystemModule) InherentIdentifier() [8]byte {
@@ -64,13 +64,13 @@ func (m *SystemModule) Functions() map[sc.U8]primitives.Call {
 	return args.Get(0).(map[sc.U8]primitives.Call)
 }
 
-func (m *SystemModule) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
-	args := m.Called()
+func (m *SystemModule) PreDispatch(call primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+	args := m.Called(call)
 	return args.Get(0).(sc.Empty), args.Get(1).(primitives.TransactionValidityError)
 }
 
-func (m *SystemModule) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	args := m.Called()
+func (m *SystemModule) ValidateUnsigned(txSource primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+	args := m.Called(txSource, call)
 	return args.Get(0).(primitives.ValidTransaction), args.Get(1).(primitives.TransactionValidityError)
 }
 

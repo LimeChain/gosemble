@@ -93,7 +93,7 @@ func (cir CheckInherentsResult) Bytes() []byte {
 	return sc.EncodedBytes(cir)
 }
 
-func (cir CheckInherentsResult) PutError(inherentIdentifier [8]byte, error IsFatalError) error {
+func (cir *CheckInherentsResult) PutError(inherentIdentifier [8]byte, error FatalError) error {
 	if cir.FatalError {
 		return NewInherentErrorFatalErrorReported()
 	}

@@ -7,16 +7,11 @@ import (
 )
 
 type RuntimeApi struct {
-	apis map[string]primitives.ApiModule
+	apis []primitives.ApiModule
 }
 
 func NewRuntimeApi(apis []primitives.ApiModule) RuntimeApi {
-	result := make(map[string]primitives.ApiModule)
-	for _, api := range apis {
-		result[api.Name()] = api
-	}
-
-	return RuntimeApi{apis: result}
+	return RuntimeApi{apis: apis}
 }
 
 func (ra RuntimeApi) Items() sc.Sequence[primitives.ApiItem] {
@@ -30,10 +25,12 @@ func (ra RuntimeApi) Items() sc.Sequence[primitives.ApiItem] {
 }
 
 func (ra RuntimeApi) Module(name string) primitives.ApiModule {
-	module, ok := ra.apis[name]
-	if !ok {
-		log.Critical("runtime module [" + name + "] not found.")
+	for _, module := range ra.apis {
+		if module.Name() == name {
+			return module
+		}
 	}
+	log.Critical("runtime module [" + name + "] not found.")
 
-	return module
+	panic("unreachable")
 }

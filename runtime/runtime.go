@@ -87,7 +87,7 @@ const (
 // Modules contains all the modules used by the runtime.
 var modules = initializeModules()
 
-func initializeModules() map[sc.U8]primitives.Module {
+func initializeModules() []primitives.Module {
 	systemModule := system.New(
 		SystemIndex,
 		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, DbWeight, *RuntimeVersion),
@@ -124,21 +124,22 @@ func initializeModules() map[sc.U8]primitives.Module {
 
 	testableModule := tm.New(TestableIndex)
 
-	return map[sc.U8]primitives.Module{
-		SystemIndex:     systemModule,
-		TimestampIndex:  timestampModule,
-		AuraIndex:       auraModule,
-		GrandpaIndex:    grandpaModule,
-		BalancesIndex:   balancesModule,
-		TxPaymentsIndex: tpmModule,
-		TestableIndex:   testableModule,
+	return []primitives.Module{
+		systemModule,
+		timestampModule,
+		auraModule,
+		grandpaModule,
+		balancesModule,
+		tpmModule,
+		testableModule,
 	}
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	systemModule := modules[SystemIndex].(system.Module)
-	balancesModule := modules[BalancesIndex].(balances.Module)
-	txPaymentModule := modules[TxPaymentsIndex].(transaction_payment.Module)
+	modules := modules
+	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
+	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
+	txPaymentModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	checkMortality := sysExtensions.NewCheckMortality(systemModule)
 	checkNonce := sysExtensions.NewCheckNonce(systemModule)
@@ -158,15 +159,17 @@ func newSignedExtra() primitives.SignedExtra {
 }
 
 func runtimeApi() types.RuntimeApi {
+	modules := modules
 	extra := newSignedExtra()
 	decoder := types.NewRuntimeDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
-	auraModule := modules[AuraIndex].(aura.Module)
-	grandpaModule := modules[GrandpaIndex].(grandpa.Module)
-	txPaymentsModule := modules[TxPaymentsIndex].(transaction_payment.Module)
+	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
+	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
+	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
+	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	executiveModule := executive.New(
-		modules[SystemIndex].(system.Module),
+		systemModule,
 		runtimeExtrinsic,
 		hooks.DefaultOnRuntimeUpgrade{},
 	)
@@ -183,7 +186,7 @@ func runtimeApi() types.RuntimeApi {
 		metadata.New(runtimeExtrinsic),
 		apiAura.New(auraModule),
 		apiGrandpa.New(grandpaModule),
-		account_nonce.New(modules[SystemIndex].(system.Module)),
+		account_nonce.New(systemModule),
 		apiTxPayments.New(decoder, txPaymentsModule),
 		apiTxPaymentsCall.New(decoder, txPaymentsModule),
 		session_keys.New(sessions),

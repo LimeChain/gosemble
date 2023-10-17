@@ -7,7 +7,7 @@ type InherentProvider interface {
 	// CreateInherent creates an inherent call based on InherentData.
 	CreateInherent(inherent InherentData) sc.Option[Call]
 	// CheckInherent validates if the provided call is valid and exists in InherentData.
-	CheckInherent(call Call, data InherentData) error
+	CheckInherent(call Call, data InherentData) FatalError
 	// InherentIdentifier returns the identifier for the specific inherent call. Must be included in InherentData.
 	InherentIdentifier() [8]byte
 	// IsInherent checks if the call is from the given module.
@@ -27,7 +27,7 @@ func (dp DefaultInherentProvider) CreateInherent(inherent InherentData) sc.Optio
 	return sc.NewOption[Call](nil)
 }
 
-func (dp DefaultInherentProvider) CheckInherent(call Call, data InherentData) error {
+func (dp DefaultInherentProvider) CheckInherent(call Call, data InherentData) FatalError {
 	return nil
 }
 

@@ -2,7 +2,6 @@ package timestamp
 
 import (
 	"bytes"
-	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -21,9 +20,8 @@ var (
 )
 
 var (
-	errTimestampNotUpdated           = "Timestamp must be updated once in the block"
-	errTimestampInherentNotProvided  = "Timestamp inherent must be provided."
-	errTimestampInvalidInherentCheck = "invalid inherent check for timestamp module"
+	errTimestampNotUpdated          = "Timestamp must be updated once in the block"
+	errTimestampInherentNotProvided = "Timestamp inherent must be provided."
 )
 
 type Module struct {
@@ -96,9 +94,9 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 	return sc.NewOption[primitives.Call](function)
 }
 
-func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
+func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) primitives.FatalError {
 	if !m.IsInherent(call) {
-		return errors.New(errTimestampInvalidInherentCheck)
+		return primitives.NewTimestampErrorInvalid()
 	}
 
 	maxTimestampDriftMillis := sc.U64(30 * 1000)

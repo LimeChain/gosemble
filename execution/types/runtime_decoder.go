@@ -17,11 +17,11 @@ type RuntimeDecoder interface {
 }
 
 type runtimeDecoder struct {
-	modules map[sc.U8]types.Module
+	modules []types.Module
 	extra   primitives.SignedExtra
 }
 
-func NewRuntimeDecoder(modules map[sc.U8]types.Module, extra primitives.SignedExtra) RuntimeDecoder {
+func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
 	return runtimeDecoder{
 		modules: modules,
 		extra:   extra,
@@ -76,7 +76,7 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	moduleIndex := sc.DecodeU8(buffer)
 	functionIndex := sc.DecodeU8(buffer)
 
-	module, ok := rd.modules[moduleIndex]
+	module, ok := primitives.GetModule(moduleIndex, rd.modules)
 	if !ok {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
