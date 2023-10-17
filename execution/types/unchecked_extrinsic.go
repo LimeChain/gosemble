@@ -29,24 +29,22 @@ type uncheckedExtrinsic struct {
 	// The signature, address, number of extrinsics have come before from
 	// the same signer and an era describing the longevity of this transaction,
 	// if this is a signed extrinsic.
-	signature          sc.Option[primitives.ExtrinsicSignature]
-	function           primitives.Call
-	extra              primitives.SignedExtra
-	payloadInitializer PayloadInitializer
-	crypto             io.Crypto
-	hashing            io.Hashing
+	signature         sc.Option[primitives.ExtrinsicSignature]
+	function          primitives.Call
+	extra             primitives.SignedExtra
+	initializePayload PayloadInitializer
+	crypto            io.Crypto
 }
 
 // NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
 func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) primitives.UncheckedExtrinsic {
 	return uncheckedExtrinsic{
-		version:            version,
-		signature:          signature,
-		function:           function,
-		extra:              extra,
-		payloadInitializer: primitives.NewSignedPayload,
-		crypto:             io.NewCrypto(),
-		hashing:            io.NewHashing(),
+		version:           version,
+		signature:         signature,
+		function:          function,
+		extra:             extra,
+		initializePayload: primitives.NewSignedPayload,
+		crypto:            io.NewCrypto(),
 	}
 }
 
@@ -103,7 +101,7 @@ func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Optio
 			return sc.NewOption[primitives.Address32](nil), err
 		}
 
-		rawPayload, err := uxt.payloadInitializer(uxt.function, extra)
+		rawPayload, err := uxt.initializePayload(uxt.function, extra)
 		if err != nil {
 			return sc.NewOption[primitives.Address32](nil), err
 		}

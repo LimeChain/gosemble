@@ -79,7 +79,6 @@ var (
 	mockAccountIdLookup *mocks.AccountIdLookup
 	mocksSignedPayload  *mocks.SignedPayload
 	mockCrypto          *mocks.IoCrypto
-	mockHashing         *mocks.IoHashing
 )
 
 func setup(signature types.MultiSignature) {
@@ -88,7 +87,6 @@ func setup(signature types.MultiSignature) {
 	mockAccountIdLookup = new(mocks.AccountIdLookup)
 	mocksSignedPayload = new(mocks.SignedPayload)
 	mockCrypto = new(mocks.IoCrypto)
-	mockHashing = new(mocks.IoHashing)
 
 	extrinsicSignature = sc.NewOption[types.ExtrinsicSignature](
 		types.ExtrinsicSignature{
@@ -106,7 +104,6 @@ func setup(signature types.MultiSignature) {
 		mockSignedExtra,
 		mocksSignedPayload,
 		mockCrypto,
-		mockHashing,
 	)
 }
 
@@ -116,7 +113,6 @@ func newTestUnsignedExtrinsic(call types.Call) uncheckedExtrinsic {
 		signature: sc.NewOption[types.ExtrinsicSignature](nil),
 		function:  call,
 		crypto:    io.NewCrypto(),
-		hashing:   io.NewHashing(),
 	}
 }
 
@@ -125,21 +121,19 @@ func newTestSignedExtrinsic(
 	call types.Call,
 	extra types.SignedExtra,
 	signedPayload types.SignedPayload,
-	crypto io.Crypto,
-	hashing io.Hashing) uncheckedExtrinsic {
+	crypto io.Crypto) uncheckedExtrinsic {
 
 	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
 		return signedPayload, nil
 	}
 
 	return uncheckedExtrinsic{
-		version:            Version,
-		signature:          signature,
-		function:           call,
-		extra:              extra,
-		payloadInitializer: initializer,
-		crypto:             crypto,
-		hashing:            hashing,
+		version:           Version,
+		signature:         signature,
+		function:          call,
+		extra:             extra,
+		initializePayload: initializer,
+		crypto:            crypto,
 	}
 }
 
@@ -269,7 +263,7 @@ func Test_Check_SignedUncheckedExtrinsic_LookupError(t *testing.T) {
 func Test_Check_SignedUncheckedExtrinsic_AncientBirthBlockError(t *testing.T) {
 	setup(signatureEd25519)
 
-	targetSigned.payloadInitializer = types.NewSignedPayload
+	targetSigned.initializePayload = types.NewSignedPayload
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
 	mockSignedExtra.On("AdditionalSigned").Return(types.AdditionalSigned{}, invalidTransactionAncientBirthBlockError)
 
