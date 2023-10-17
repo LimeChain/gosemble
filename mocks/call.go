@@ -8,15 +8,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var callEncodedBytes = []byte{0x35, 0x35, 0x35}
-
 type Call struct {
 	mock.Mock
 }
 
 func (m *Call) Encode(buffer *bytes.Buffer) {
-	m.Called()
-	buffer.Write(callEncodedBytes)
+	m.Called(buffer)
 }
 
 func (m *Call) Bytes() []byte {

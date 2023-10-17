@@ -8,15 +8,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var signedExtraEncodedBytes = []byte{0x36, 0x36, 0x36}
-
 type SignedExtra struct {
 	mock.Mock
 }
 
 func (m *SignedExtra) Encode(buffer *bytes.Buffer) {
-	m.Called()
-	buffer.Write(signedExtraEncodedBytes)
+	m.Called(buffer)
 }
 func (m *SignedExtra) Bytes() []byte {
 	args := m.Called()

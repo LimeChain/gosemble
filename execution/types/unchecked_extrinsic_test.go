@@ -6,13 +6,14 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 const (
-	UnsignedVersion = sc.U8(5)
+	Version = sc.U8(5)
 )
 
 var (
@@ -49,6 +50,10 @@ var (
 		),
 	)
 
+	unknownMultisignature = types.MultiSignature{
+		VaryingData: sc.NewVaryingData(sc.U8(3), signatureEd25519),
+	}
+
 	additionalSigned = sc.NewVaryingData(
 		types.H256{
 			FixedSequence: sc.FixedSequence[sc.U8]{
@@ -68,7 +73,6 @@ var (
 	targetUnsigned uncheckedExtrinsic
 
 	extrinsicSignature sc.Option[types.ExtrinsicSignature]
-	version            sc.U8
 
 	mockCall            *mocks.Call
 	mockSignedExtra     *mocks.SignedExtra
@@ -94,13 +98,52 @@ func setup(signature types.MultiSignature) {
 		},
 	)
 
-	targetUnsigned = NewUnsignedUncheckedExtrinsic(mockCall)
-	targetSigned = NewUncheckedExtrinsic(UnsignedVersion, extrinsicSignature, mockCall, mockSignedExtra)
-	targetSigned.crypto = mockCrypto
-	targetSigned.hashing = mockHashing
+	targetUnsigned = newTestUnsignedExtrinsic(mockCall)
+
+	targetSigned = newTestSignedExtrinsic(
+		extrinsicSignature,
+		mockCall,
+		mockSignedExtra,
+		mocksSignedPayload,
+		mockCrypto,
+		mockHashing,
+	)
 }
 
-func Test_Encode_UnsignedUncheckedExtrinsic(t *testing.T) {
+func newTestUnsignedExtrinsic(call types.Call) uncheckedExtrinsic {
+	return uncheckedExtrinsic{
+		version:   Version,
+		signature: sc.NewOption[types.ExtrinsicSignature](nil),
+		function:  call,
+		crypto:    io.NewCrypto(),
+		hashing:   io.NewHashing(),
+	}
+}
+
+func newTestSignedExtrinsic(
+	signature sc.Option[types.ExtrinsicSignature],
+	call types.Call,
+	extra types.SignedExtra,
+	signedPayload types.SignedPayload,
+	crypto io.Crypto,
+	hashing io.Hashing) uncheckedExtrinsic {
+
+	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
+		return signedPayload, nil
+	}
+
+	return uncheckedExtrinsic{
+		version:            Version,
+		signature:          signature,
+		function:           call,
+		extra:              extra,
+		payloadInitializer: initializer,
+		crypto:             crypto,
+		hashing:            hashing,
+	}
+}
+
+func Test_Encode_UncheckedExtrinsic_Unsigned(t *testing.T) {
 	setup(signatureEd25519)
 
 	buffer := &bytes.Buffer{}
@@ -110,10 +153,10 @@ func Test_Encode_UnsignedUncheckedExtrinsic(t *testing.T) {
 
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
 	mockSignedExtra.AssertNotCalled(t, "Encode")
-	assert.Equal(t, []byte{0x10, 0x4, 0x35, 0x35, 0x35}, buffer.Bytes())
+	assert.Equal(t, []byte{0x4, 0x5}, buffer.Bytes())
 }
 
-func Test_Encode_SignedUncheckedExtrinsic(t *testing.T) {
+func Test_Encode_UncheckedExtrinsic_Signed(t *testing.T) {
 	setup(signatureEd25519)
 
 	buffer := &bytes.Buffer{}
@@ -125,19 +168,19 @@ func Test_Encode_SignedUncheckedExtrinsic(t *testing.T) {
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
 	mockSignedExtra.AssertCalled(t, "Encode", mock.Anything)
 	assert.Equal(t, []byte{
-		0xa5, 0x1, // length
+		0x8d, 0x1, // length
 		5,                                                                                                 // version
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, // signature,
-		0x36, 0x36, 0x36, // extra
-		0x35, 0x35, 0x35, // call,
+		// extra
+		// call
 	}, buffer.Bytes())
 }
 
-func Test_Bytes_UnsignedUncheckedExtrinsic(t *testing.T) {
+func Test_Bytes_UncheckedExtrinsic_Unsigned(t *testing.T) {
 	setup(signatureEd25519)
 
 	mockCall.On("Encode", mock.Anything)
@@ -145,10 +188,10 @@ func Test_Bytes_UnsignedUncheckedExtrinsic(t *testing.T) {
 	encoded := targetUnsigned.Bytes()
 
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
-	assert.Equal(t, []byte{0x10, 0x4, 0x35, 0x35, 0x35}, encoded)
+	assert.Equal(t, []byte{0x4, 0x5}, encoded)
 }
 
-func Test_Bytes_SignedUncheckedExtrinsic(t *testing.T) {
+func Test_Bytes_UncheckedExtrinsic_Signed(t *testing.T) {
 	setup(signatureEd25519)
 
 	mockCall.On("Encode", mock.Anything)
@@ -159,15 +202,15 @@ func Test_Bytes_SignedUncheckedExtrinsic(t *testing.T) {
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
 	mockSignedExtra.AssertCalled(t, "Encode", mock.Anything)
 	assert.Equal(t, []byte{
-		0xa5, 0x1, // length
+		0x8d, 0x1, // length
 		5,                                                                                                 // version
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, // signature,
-		0x36, 0x36, 0x36, // extra
-		0x35, 0x35, 0x35, // call,
+		// extra
+		// call
 	}, encoded)
 }
 
@@ -226,6 +269,7 @@ func Test_Check_SignedUncheckedExtrinsic_LookupError(t *testing.T) {
 func Test_Check_SignedUncheckedExtrinsic_AncientBirthBlockError(t *testing.T) {
 	setup(signatureEd25519)
 
+	targetSigned.payloadInitializer = types.NewSignedPayload
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
 	mockSignedExtra.On("AdditionalSigned").Return(types.AdditionalSigned{}, invalidTransactionAncientBirthBlockError)
 
@@ -243,16 +287,13 @@ func Test_Check_SignedUncheckedExtrinsic_BadProofError(t *testing.T) {
 	setup(signatureEd25519)
 
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
-	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
-	targetSigned.payloadInitializer = func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
-		return mocksSignedPayload, nil
-	}
+	mocksSignedPayload.On("UsingEncoded").Return(sc.BytesToSequenceU8(encodedPayloadBytes))
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(false)
 
 	res, err := targetSigned.Check(mockAccountIdLookup)
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
-	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mocksSignedPayload.AssertCalled(t, "UsingEncoded")
 	mockCrypto.AssertCalled(t, "Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes)
 	assert.Equal(t, invalidTransactionBadProofError, err)
 	assert.Equal(t, sc.NewOption[types.Address32](nil), res)
@@ -261,22 +302,16 @@ func Test_Check_SignedUncheckedExtrinsic_BadProofError(t *testing.T) {
 func Test_Check_SignedUncheckedExtrinsic_LongEncoding_BadProofError(t *testing.T) {
 	setup(signatureEd25519)
 
-	encodedPayloadBytes := make([]byte, 257)
 	blakeHashBytes := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09}
 
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
-	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
-	targetSigned.payloadInitializer = func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
-		return mocksSignedPayload, nil
-	}
-	mockHashing.On("Blake256", mock.Anything).Return(blakeHashBytes)
+	mocksSignedPayload.On("UsingEncoded").Return(sc.BytesToSequenceU8(blakeHashBytes))
 	mockCrypto.On("Ed25519Verify", signatureBytes, blakeHashBytes, signerAddressBytes).Return(false)
 
 	res, err := targetSigned.Check(mockAccountIdLookup)
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
-	mocksSignedPayload.AssertCalled(t, "Bytes")
-	mockHashing.AssertCalled(t, "Blake256", mock.Anything)
+	mocksSignedPayload.AssertCalled(t, "UsingEncoded")
 	mockCrypto.AssertCalled(t, "Ed25519Verify", signatureBytes, blakeHashBytes, signerAddressBytes)
 	assert.Equal(t, invalidTransactionBadProofError, err)
 	assert.Equal(t, sc.NewOption[types.Address32](nil), res)
@@ -286,16 +321,13 @@ func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 	setup(signatureEd25519)
 
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
-	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
-	targetSigned.payloadInitializer = func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
-		return mocksSignedPayload, nil
-	}
+	mocksSignedPayload.On("UsingEncoded").Return(sc.BytesToSequenceU8(encodedPayloadBytes))
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
 
 	res, err := targetSigned.Check(mockAccountIdLookup)
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
-	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mocksSignedPayload.AssertCalled(t, "UsingEncoded")
 	mockCrypto.AssertCalled(t, "Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes)
 	assert.Nil(t, err)
 	assert.Equal(t, sc.NewOption[types.Address32](signerAddress), res)
@@ -305,17 +337,29 @@ func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	setup(signatureSr25519)
 
 	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
-	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
-	targetSigned.payloadInitializer = func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
-		return mocksSignedPayload, nil
-	}
+	mocksSignedPayload.On("UsingEncoded").Return(sc.BytesToSequenceU8(encodedPayloadBytes))
 	mockCrypto.On("Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
 
 	res, err := targetSigned.Check(mockAccountIdLookup)
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
-	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mocksSignedPayload.AssertCalled(t, "UsingEncoded")
 	mockCrypto.AssertCalled(t, "Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes)
 	assert.Nil(t, err)
 	assert.Equal(t, sc.NewOption[types.Address32](signerAddress), res)
+}
+
+func Test_Check_SignedUncheckedExtrinsic_UnknownSignatureType(t *testing.T) {
+	setup(unknownMultisignature)
+
+	mockAccountIdLookup.On("Lookup", extrinsicSignature.Value.Signer).Return(signerAddress, nil)
+	mocksSignedPayload.On("UsingEncoded").Return(sc.BytesToSequenceU8(encodedPayloadBytes))
+
+	assert.PanicsWithValue(t, "invalid MultiSignature type in Verify", func() {
+		targetSigned.Check(mockAccountIdLookup)
+	})
+
+	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
+	mocksSignedPayload.AssertCalled(t, "UsingEncoded")
+	mockCrypto.AssertNotCalled(t, "Sr25519Verify", mock.Anything, mock.Anything, mock.Anything)
 }

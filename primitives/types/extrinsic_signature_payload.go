@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/io"
 )
 
 type SignedPayload interface {
@@ -12,6 +13,8 @@ type SignedPayload interface {
 	AdditionalSigned() AdditionalSigned
 	Call() Call
 	Extra() SignedExtra
+
+	UsingEncoded() sc.Sequence[sc.U8]
 }
 
 type AdditionalSigned = sc.VaryingData
@@ -28,6 +31,7 @@ type signedPayload struct {
 	additionalSigned AdditionalSigned
 	call             Call
 	extra            SignedExtra
+	hashing          io.Hashing
 }
 
 // NewSignedPayload creates a new `SignedPayload`.
@@ -42,6 +46,7 @@ func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, TransactionV
 		call:             call,
 		extra:            extra,
 		additionalSigned: additionalSigned,
+		hashing:          io.NewHashing(),
 	}, nil
 }
 
@@ -65,4 +70,15 @@ func (sp signedPayload) Call() Call {
 
 func (sp signedPayload) Extra() SignedExtra {
 	return sp.extra
+}
+
+func (sp signedPayload) UsingEncoded() sc.Sequence[sc.U8] {
+	enc := sp.Bytes()
+
+	if len(enc) > 256 {
+		hash := sp.hashing.Blake256(enc)
+		return sc.BytesToSequenceU8(hash)
+	} else {
+		return sc.BytesToSequenceU8(enc)
+	}
 }
