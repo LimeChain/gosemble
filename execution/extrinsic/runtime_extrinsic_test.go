@@ -528,12 +528,11 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 	mockModuleTwo.On("Metadata").Return(metadataTypes, metadataTwo)
 	mockSignedExtra.On("Metadata").Return(metadataTypes, signedExtensions)
 
-	resultTypes, resultModules, resultExtrinsic, resultApis, resultOuterEnums, resultCustom := target.MetadataLatest()
+	resultTypes, resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest()
 
 	assert.Equal(t, expectTypes, resultTypes)
 	assert.Equal(t, expectModules, resultModules)
 	assert.Equal(t, expectExtrinsic, resultExtrinsic)
-	assert.Equal(t, primitives.ApiMetadata(), resultApis)
 	assert.Equal(t, expectOuterEnums, resultOuterEnums)
 	assert.Equal(t, expectCustom, resultCustom)
 	mockModuleOne.AssertCalled(t, "Metadata")
