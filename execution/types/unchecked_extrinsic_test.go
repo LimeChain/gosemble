@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	Version = sc.U8(5)
+	version = sc.U8(5)
 )
 
 var (
@@ -108,12 +108,7 @@ func setup(signature types.MultiSignature) {
 }
 
 func newTestUnsignedExtrinsic(call types.Call) uncheckedExtrinsic {
-	return uncheckedExtrinsic{
-		version:   Version,
-		signature: sc.NewOption[types.ExtrinsicSignature](nil),
-		function:  call,
-		crypto:    io.NewCrypto(),
-	}
+	return NewUnsignedUncheckedExtrinsic(call).(uncheckedExtrinsic)
 }
 
 func newTestSignedExtrinsic(
@@ -127,14 +122,11 @@ func newTestSignedExtrinsic(
 		return signedPayload, nil
 	}
 
-	return uncheckedExtrinsic{
-		version:           Version,
-		signature:         signature,
-		function:          call,
-		extra:             extra,
-		initializePayload: initializer,
-		crypto:            crypto,
-	}
+	uxt := NewUncheckedExtrinsic(version, signature, call, extra).(uncheckedExtrinsic)
+	uxt.initializePayload = initializer
+	uxt.crypto = crypto
+
+	return uxt
 }
 
 func Test_Encode_UncheckedExtrinsic_Unsigned(t *testing.T) {
@@ -147,7 +139,7 @@ func Test_Encode_UncheckedExtrinsic_Unsigned(t *testing.T) {
 
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
 	mockSignedExtra.AssertNotCalled(t, "Encode")
-	assert.Equal(t, []byte{0x4, 0x5}, buffer.Bytes())
+	assert.Equal(t, []byte{0x4, 0x4}, buffer.Bytes())
 }
 
 func Test_Encode_UncheckedExtrinsic_Signed(t *testing.T) {
@@ -182,7 +174,7 @@ func Test_Bytes_UncheckedExtrinsic_Unsigned(t *testing.T) {
 	encoded := targetUnsigned.Bytes()
 
 	mockCall.AssertCalled(t, "Encode", mock.Anything)
-	assert.Equal(t, []byte{0x4, 0x5}, encoded)
+	assert.Equal(t, []byte{0x4, 0x4}, encoded)
 }
 
 func Test_Bytes_UncheckedExtrinsic_Signed(t *testing.T) {
@@ -254,7 +246,7 @@ func Test_Check_SignedUncheckedExtrinsic_LookupError(t *testing.T) {
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
 	mockSignedExtra.AssertNotCalled(t, "AdditionalSigned")
-	mocksSignedPayload.AssertNotCalled(t, "Bytes")
+	mocksSignedPayload.AssertNotCalled(t, "UsingEncoded")
 	mockCrypto.AssertNotCalled(t, "Ed25519Verify", mock.Anything, mock.Anything, mock.Anything)
 	assert.Equal(t, unknownTransactionCannotLookupError, err)
 	assert.Equal(t, sc.NewOption[types.Address32](nil), res)
@@ -271,7 +263,7 @@ func Test_Check_SignedUncheckedExtrinsic_AncientBirthBlockError(t *testing.T) {
 
 	mockAccountIdLookup.AssertCalled(t, "Lookup", extrinsicSignature.Value.Signer)
 	mockSignedExtra.AssertCalled(t, "AdditionalSigned")
-	mocksSignedPayload.AssertNotCalled(t, "Bytes")
+	mocksSignedPayload.AssertNotCalled(t, "UsingEncoded")
 	mockCrypto.AssertNotCalled(t, "Ed25519Verify", mock.Anything, mock.Anything, mock.Anything)
 	assert.Equal(t, invalidTransactionAncientBirthBlockError, err)
 	assert.Equal(t, sc.NewOption[types.Address32](nil), res)
