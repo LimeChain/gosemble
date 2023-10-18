@@ -26,6 +26,8 @@ var (
 )
 
 var (
+	mockSignedExtra *mocks.SignedExtra
+
 	mockModuleOne *mocks.Module
 	mockModuleTwo *mocks.Module
 

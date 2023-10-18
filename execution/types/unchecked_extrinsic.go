@@ -92,28 +92,28 @@ func (uxt uncheckedExtrinsic) IsSigned() bool {
 	return bool(uxt.signature.HasValue)
 }
 
-func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {
+func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
 	if uxt.signature.HasValue {
 		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
 		signerAddress, err := lookup.Lookup(signer)
 		if err != nil {
-			return sc.NewOption[primitives.Address32](nil), err
+			return nil, err
 		}
 
 		rawPayload, err := uxt.initializePayload(uxt.function, extra)
 		if err != nil {
-			return sc.NewOption[primitives.Address32](nil), err
+			return nil, err
 		}
 
 		if !uxt.verify(signature, rawPayload.UsingEncoded(), signerAddress) {
-			return sc.NewOption[primitives.Address32](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
-		return sc.NewOption[primitives.Address32](signerAddress), nil
+		return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signerAddress), uxt.function, extra), nil
 	}
 
-	return sc.NewOption[primitives.Address32](nil), nil
+	return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.function, uxt.extra), nil
 }
 
 func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.Address32) bool {

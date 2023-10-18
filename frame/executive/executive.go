@@ -22,20 +22,18 @@ type Module interface {
 }
 
 type module struct {
-	system               system.Module
-	onRuntimeUpgrade     primitives.OnRuntimeUpgrade
-	runtimeExtrinsic     extrinsic.RuntimeExtrinsic
-	extrinsicInitializer extrinsic.ExtrinsicInitializer
-	hashing              io.Hashing
+	system           system.Module
+	onRuntimeUpgrade primitives.OnRuntimeUpgrade
+	runtimeExtrinsic extrinsic.RuntimeExtrinsic
+	hashing          io.Hashing
 }
 
 func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade primitives.OnRuntimeUpgrade) Module {
 	return module{
-		system:               systemModule,
-		onRuntimeUpgrade:     onRuntimeUpgrade,
-		runtimeExtrinsic:     runtimeExtrinsic,
-		extrinsicInitializer: extrinsic.NewExtrinsicInitializer(),
-		hashing:              io.NewHashing(),
+		system:           systemModule,
+		onRuntimeUpgrade: onRuntimeUpgrade,
+		runtimeExtrinsic: runtimeExtrinsic,
+		hashing:          io.NewHashing(),
 	}
 }
 
@@ -86,7 +84,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -97,8 +95,6 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	m.system.NoteExtrinsic(encoded)
 
 	// AUDIT: Under no circumstances may this function panic from here onwards.
-
-	checked := m.extrinsicInitializer.NewChecked(signer, uxt.Function(), uxt.Extra())
 
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
@@ -152,11 +148,10 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	signer, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
 	if err != nil {
 		return primitives.ValidTransaction{}, err
 	}
-	checked := m.extrinsicInitializer.NewChecked(signer, uxt.Function(), uxt.Extra())
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
