@@ -3,6 +3,7 @@ package transaction_payment
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -11,7 +12,7 @@ type Module interface {
 	primitives.Module
 
 	ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance
-	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails
+	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) types.FeeDetails
 	ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance
 	OperationalFeeMultiplier() sc.U8
 }
@@ -186,7 +187,7 @@ func (m module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primiti
 	return m.ComputeFeeDetails(len, info, tip).FinalFee()
 }
 
-func (m module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) types.FeeDetails {
 	return m.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
@@ -194,11 +195,11 @@ func (m module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postI
 	return m.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
 }
 
-func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.FeeDetails {
+func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) types.FeeDetails {
 	return m.computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
 }
 
-func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) primitives.FeeDetails {
+func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) types.FeeDetails {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := m.weightToFee(weight)
 		multiplier := m.storage.NextFeeMultiplier.Get()
@@ -213,16 +214,16 @@ func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 		lenFee := m.lengthToFee(len)
 		baseFee := m.weightToFee(m.config.BlockWeights.Get(class).BaseExtrinsic)
 
-		inclusionFee := sc.NewOption[primitives.InclusionFee](primitives.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
+		inclusionFee := sc.NewOption[types.InclusionFee](types.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
 
-		return primitives.FeeDetails{
+		return types.FeeDetails{
 			InclusionFee: inclusionFee,
 			Tip:          tip,
 		}
 	}
 
-	return primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
+	return types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](nil),
 		Tip:          tip,
 	}
 }

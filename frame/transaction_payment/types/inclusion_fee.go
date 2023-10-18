@@ -4,15 +4,16 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type InclusionFee struct {
-	BaseFee           Balance
-	LenFee            Balance
-	AdjustedWeightFee Balance
+	BaseFee           primitives.Balance
+	LenFee            primitives.Balance
+	AdjustedWeightFee primitives.Balance
 }
 
-func NewInclusionFee(baseFee, lenFee, adjustedWeightFee Balance) InclusionFee {
+func NewInclusionFee(baseFee, lenFee, adjustedWeightFee primitives.Balance) InclusionFee {
 	return InclusionFee{
 		baseFee,
 		lenFee,
@@ -38,6 +39,6 @@ func DecodeInclusionFee(buffer *bytes.Buffer) InclusionFee {
 	}
 }
 
-func (i InclusionFee) InclusionFee() Balance {
+func (i InclusionFee) InclusionFee() primitives.Balance {
 	return i.BaseFee.Add(i.LenFee).Add(i.AdjustedWeightFee)
 }

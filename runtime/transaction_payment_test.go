@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 
 	sc "github.com/LimeChain/goscale"
@@ -140,11 +141,11 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := primitives.DecodeFeeDetails(buffer)
+	fd := types.DecodeFeeDetails(buffer)
 
-	expectedFd := primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](
-			primitives.NewInclusionFee(
+	expectedFd := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](
+			types.NewInclusionFee(
 				sc.NewU128(110_536_000),
 				sc.NewU128(107),
 				sc.NewU128(0),
@@ -176,10 +177,10 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := primitives.DecodeFeeDetails(buffer)
+	fd := types.DecodeFeeDetails(buffer)
 
-	expectedFd := primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
+	expectedFd := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](nil),
 	}
 
 	assert.Equal(t, expectedFd, fd)
@@ -242,11 +243,11 @@ func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := primitives.DecodeFeeDetails(buffer)
+	fd := types.DecodeFeeDetails(buffer)
 
-	expectedFd := primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](
-			primitives.NewInclusionFee(
+	expectedFd := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](
+			types.NewInclusionFee(
 				sc.NewU128(110_536_000),
 				sc.NewU128(3),
 				sc.NewU128(0),

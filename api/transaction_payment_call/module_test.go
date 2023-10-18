@@ -7,6 +7,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -93,9 +94,9 @@ func Test_Module_QueryCallInfo(t *testing.T) {
 func Test_Module_QueryCallFeeDetails(t *testing.T) {
 	target := setup()
 
-	feeDetails := primitives.FeeDetails{
-		InclusionFee: sc.NewOption[primitives.InclusionFee](
-			primitives.NewInclusionFee(
+	feeDetails := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](
+			types.NewInclusionFee(
 				sc.NewU128(9),
 				sc.NewU128(8),
 				sc.NewU128(7),

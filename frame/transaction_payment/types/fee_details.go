@@ -4,12 +4,12 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type FeeDetails struct {
 	InclusionFee sc.Option[InclusionFee]
-
-	Tip Balance // not serializable
+	Tip          primitives.Balance // not serializable
 }
 
 func (fd FeeDetails) Encode(buffer *bytes.Buffer) {
@@ -26,7 +26,7 @@ func DecodeFeeDetails(buffer *bytes.Buffer) FeeDetails {
 	}
 }
 
-func (fd FeeDetails) FinalFee() Balance {
+func (fd FeeDetails) FinalFee() primitives.Balance {
 	sum := fd.Tip
 
 	if fd.InclusionFee.HasValue {

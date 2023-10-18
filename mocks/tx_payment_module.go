@@ -2,6 +2,7 @@ package mocks
 
 import (
 	sc "github.com/LimeChain/goscale"
+	tx_types "github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -83,9 +84,9 @@ func (m *TransactionPaymentModule) ComputeFee(len sc.U32, info types.DispatchInf
 	return args.Get(0).(types.Balance)
 }
 
-func (m *TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info types.DispatchInfo, tip types.Balance) types.FeeDetails {
+func (m *TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info types.DispatchInfo, tip types.Balance) tx_types.FeeDetails {
 	args := m.Called(len, info, tip)
-	return args.Get(0).(types.FeeDetails)
+	return args.Get(0).(tx_types.FeeDetails)
 }
 
 func (m *TransactionPaymentModule) ComputeActualFee(len sc.U32, info types.DispatchInfo, postInfo types.PostDispatchInfo, tip types.Balance) types.Balance {
