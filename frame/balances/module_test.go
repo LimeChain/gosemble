@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/frame/balances/types"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -604,12 +605,12 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataDefinitionVariant(
 						"Free",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.BalanceStatusFree,
+						types.BalanceStatusFree,
 						"BalanceStatus.Free"),
 					primitives.NewMetadataDefinitionVariant(
 						"Reserved",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.BalanceStatusReserved,
+						types.BalanceStatusReserved,
 						"BalanceStatus.Reserved"),
 				})),
 

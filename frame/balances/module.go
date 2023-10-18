@@ -6,6 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/frame/balances/types"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -438,12 +439,12 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataDefinitionVariant(
 						"Free",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.BalanceStatusFree,
+						types.BalanceStatusFree,
 						"BalanceStatus.Free"),
 					primitives.NewMetadataDefinitionVariant(
 						"Reserved",
 						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.BalanceStatusReserved,
+						types.BalanceStatusReserved,
 						"BalanceStatus.Reserved"),
 				})),
 
