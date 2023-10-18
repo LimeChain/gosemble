@@ -41,14 +41,14 @@ func (uxt *UncheckedExtrinsic) IsSigned() bool {
 	return args.Get(0).(bool)
 }
 
-func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (sc.Option[primitives.Address32], primitives.TransactionValidityError) {
+func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
 	args := uxt.Called(lookup)
 
-	var arg0 sc.Option[primitives.Address32]
+	var arg0 primitives.CheckedExtrinsic
 	var arg1 primitives.TransactionValidityError
 
 	if args.Get(0) != nil {
-		arg0 = args.Get(0).(sc.Option[primitives.Address32])
+		arg0 = args.Get(0).(primitives.CheckedExtrinsic)
 	}
 
 	if args.Get(1) != nil {

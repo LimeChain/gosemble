@@ -116,7 +116,6 @@ var (
 var (
 	target module
 
-	mockExtrinsicIntializer           *mocks.ExtrinsicInitializer
 	mockSystemModule                  *mocks.SystemModule
 	mockRuntimeExtrinsic              *mocks.RuntimeExtrinsic
 	mockOnRuntimeUpgradeHook          *mocks.DefaultOnRuntimeUpgrade
@@ -132,7 +131,6 @@ var (
 )
 
 func setup() {
-	mockExtrinsicIntializer = new(mocks.ExtrinsicInitializer)
 	mockSystemModule = new(mocks.SystemModule)
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockOnRuntimeUpgradeHook = new(mocks.DefaultOnRuntimeUpgrade)
@@ -151,7 +149,6 @@ func setup() {
 		mockRuntimeExtrinsic,
 		mockOnRuntimeUpgradeHook,
 	).(module)
-	target.extrinsicInitializer = mockExtrinsicIntializer
 	target.hashing = mockIoHashing
 
 	unsignedValidator = extrinsic.NewUnsignedValidatorForChecked(mockRuntimeExtrinsic)
@@ -334,12 +331,8 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionExhaustsResourcesError(t *t
 	setup()
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
+	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
-	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
-		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -367,12 +360,8 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testin
 	}
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
+	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
-	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
-		Return(mockCheckedExtrinsic)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -392,13 +381,8 @@ func Test_Executive_ApplyExtrinsic_Success(t *testing.T) {
 	setup()
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
+	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-
-	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
-	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
-		Return(mockCheckedExtrinsic)
 
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
@@ -481,11 +465,7 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, nil)
-	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
-	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
-		Return(mockCheckedExtrinsic)
+	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -498,9 +478,6 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
 	mockUncheckedExtrinsic.AssertCalled(t, "Check", defaultAccountIdLookup)
-	mockUncheckedExtrinsic.AssertCalled(t, "Function")
-	mockUncheckedExtrinsic.AssertCalled(t, "Extra")
-	mockExtrinsicIntializer.AssertCalled(t, "NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra())
 	mockCheckedExtrinsic.AssertCalled(t, "Function")
 	mockCall.AssertCalled(t, "BaseWeight")
 	mockCall.AssertCalled(t, "WeighData", baseWeight)
@@ -517,11 +494,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(signer, transactionValidityError)
-	mockUncheckedExtrinsic.On("Function").Return(mockCall)
-	mockUncheckedExtrinsic.On("Extra").Return(mockSignedExtra)
-	mockExtrinsicIntializer.On("NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra()).
-		Return(mockCheckedExtrinsic)
+	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, transactionValidityError)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -536,9 +509,6 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
 	mockUncheckedExtrinsic.AssertCalled(t, "Check", defaultAccountIdLookup)
-	mockUncheckedExtrinsic.AssertCalled(t, "Function")
-	mockUncheckedExtrinsic.AssertCalled(t, "Extra")
-	mockExtrinsicIntializer.AssertCalled(t, "NewChecked", signer, mockUncheckedExtrinsic.Function(), mockUncheckedExtrinsic.Extra())
 	mockCheckedExtrinsic.AssertCalled(t, "Function")
 	mockCall.AssertCalled(t, "BaseWeight")
 	mockCall.AssertCalled(t, "WeighData", baseWeight)

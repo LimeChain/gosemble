@@ -12,9 +12,11 @@ import (
 
 var (
 	moduleId = sc.U8(3)
+	txSource = primitives.NewTransactionSourceExternal()
 )
 
 var (
+	mockCall             *mocks.Call
 	mockRuntimeExtrinsic *mocks.RuntimeExtrinsic
 	mockModule           *mocks.Module
 )

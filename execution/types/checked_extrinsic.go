@@ -1,4 +1,4 @@
-package extrinsic
+package types
 
 import (
 	sc "github.com/LimeChain/goscale"
@@ -19,6 +19,15 @@ type checkedExtrinsic struct {
 	function      primitives.Call
 	extra         primitives.SignedExtra
 	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
+}
+
+func NewCheckedExtrinsic(signer sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
+	return checkedExtrinsic{
+		signer:        signer,
+		function:      function,
+		extra:         extra,
+		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](),
+	}
 }
 
 func (c checkedExtrinsic) Function() primitives.Call {
