@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/frame/balances/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -108,7 +108,7 @@ func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
 	buffer.Write(fromAddress.AsAddress32().Bytes())
 	buffer.Write(toAddress.AsAddress32().Bytes())
 	buffer.Write(targetValue.Bytes())
-	buffer.Write(primitives.BalanceStatusFree.Bytes())
+	buffer.Write(types.BalanceStatusFree.Bytes())
 
 	result := DecodeEvent(moduleId, buffer)
 
@@ -118,7 +118,7 @@ func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
 			EventReserveRepatriated,
 			fromAddress.AsAddress32().FixedSequence,
 			toAddress.AsAddress32().FixedSequence,
-			targetValue, primitives.BalanceStatusFree),
+			targetValue, types.BalanceStatusFree),
 		result,
 	)
 }
