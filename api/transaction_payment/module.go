@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
+	tx_types "github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -86,12 +87,12 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
-	var feeDetails primitives.FeeDetails
+	var feeDetails tx_types.FeeDetails
 	if ext.IsSigned() {
 		feeDetails = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 	} else {
-		feeDetails = primitives.FeeDetails{
-			InclusionFee: sc.NewOption[primitives.InclusionFee](nil),
+		feeDetails = tx_types.FeeDetails{
+			InclusionFee: sc.NewOption[tx_types.InclusionFee](nil),
 		}
 	}
 
