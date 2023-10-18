@@ -54,4 +54,13 @@ func Test_AccountInfo_Frozen(t *testing.T) {
 	assert.Equal(t, sc.NewU128(8), targetAccountInfo.Frozen(ReasonsAll))
 	assert.Equal(t, sc.NewU128(7), targetAccountInfo.Frozen(ReasonsMisc))
 	assert.Equal(t, sc.NewU128(7), targetAccountInfo.Frozen(ReasonsFee))
+	assert.Equal(t, sc.NewU128(0), targetAccountInfo.Frozen(3))
+}
+
+func Test_AccountInfo_Frozen_WithGreaterMiscFrozen(t *testing.T) {
+	targetAccountInfo = AccountInfo{}
+	targetAccountInfo.Data.MiscFrozen = sc.NewU128(9)
+	targetAccountInfo.Data.FeeFrozen = sc.NewU128(8)
+
+	assert.Equal(t, sc.NewU128(9), targetAccountInfo.Frozen(ReasonsAll))
 }
