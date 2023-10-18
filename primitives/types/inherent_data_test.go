@@ -6,6 +6,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +22,7 @@ var (
 	value0 = sc.Sequence[sc.I32]{1, 2, 3}
 	value1 = sc.U32(7)
 
-	expectEncoded = []byte{8, 116, 101, 115, 116, 105, 110, 104, 48, 52, 12, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 116, 101, 115, 116, 105, 110, 104, 49, 16, 7, 0, 0, 0}
+	expectEncoded = common.MustHexToBytes("0x0874657374696e6830340c01000000020000000300000074657374696e68311007000000")
 )
 
 func Test_InherentData_Encode(t *testing.T) {
