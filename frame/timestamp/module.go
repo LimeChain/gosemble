@@ -76,7 +76,7 @@ func (m Module) OnFinalize(_ sc.U64) {
 }
 
 func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
-	inherentData := inherent.Data[inherentIdentifier]
+	inherentData := inherent.Get(inherentIdentifier)
 
 	if inherentData == nil {
 		log.Critical(errTimestampInherentNotProvided)
@@ -104,7 +104,7 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	compactTs := call.Args()[0].(sc.Compact)
 	t := sc.U64(compactTs.ToBigInt().Uint64())
 
-	inherentData := inherent.Data[inherentIdentifier]
+	inherentData := inherent.Get(inherentIdentifier)
 
 	if inherentData == nil {
 		log.Critical(errTimestampInherentNotProvided)

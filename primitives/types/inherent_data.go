@@ -9,27 +9,27 @@ import (
 )
 
 type InherentData struct {
-	Data map[[8]byte]sc.Sequence[sc.U8]
+	data map[[8]byte]sc.Sequence[sc.U8]
 }
 
 func NewInherentData() *InherentData {
 	return &InherentData{
-		Data: make(map[[8]byte]sc.Sequence[sc.U8]),
+		data: make(map[[8]byte]sc.Sequence[sc.U8]),
 	}
 }
 
 func (id *InherentData) Encode(buffer *bytes.Buffer) {
-	sc.ToCompact(uint64(len(id.Data))).Encode(buffer)
+	sc.ToCompact(uint64(len(id.data))).Encode(buffer)
 
 	keys := make([][8]byte, 0)
-	for k := range id.Data {
+	for k := range id.data {
 		keys = append(keys, k)
 	}
 
 	sort.Slice(keys, func(i, j int) bool { return string(keys[i][:]) < string(keys[j][:]) })
 
 	for _, k := range keys {
-		value := id.Data[k]
+		value := id.data[k]
 
 		buffer.Write(k[:])
 		buffer.Write(value.Bytes())
@@ -40,18 +40,22 @@ func (id *InherentData) Bytes() []byte {
 	return sc.EncodedBytes(id)
 }
 
+func (id InherentData) Get(key [8]byte) sc.Sequence[sc.U8] {
+	return id.data[key]
+}
+
 func (id *InherentData) Put(key [8]byte, value sc.Encodable) error {
-	if id.Data[key] != nil {
+	if id.data[key] != nil {
 		return NewInherentErrorInherentDataExists(sc.BytesToSequenceU8(key[:]))
 	}
 
-	id.Data[key] = sc.BytesToSequenceU8(value.Bytes())
+	id.data[key] = sc.BytesToSequenceU8(value.Bytes())
 
 	return nil
 }
 
 func (id *InherentData) Clear() {
-	id.Data = make(map[[8]byte]sc.Sequence[sc.U8])
+	id.data = make(map[[8]byte]sc.Sequence[sc.U8])
 }
 
 func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
@@ -69,10 +73,7 @@ func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
 		}
 		value := sc.DecodeSequence[sc.U8](buffer)
 
-		result.Data[key] = value
-		if err != nil {
-			return nil, err
-		}
+		result.data[key] = value
 	}
 
 	return result, nil

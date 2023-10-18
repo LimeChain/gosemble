@@ -206,16 +206,13 @@ func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
 func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 	target := setupRuntimeExtrinsic()
 
-	err := primitives.NewTimestampErrorInvalid()
 	inherentData := *primitives.NewInherentData()
+	err := primitives.NewTimestampErrorInvalid()
+	inherentData.Put(inherentIdentifier, err)
 	expect := primitives.CheckInherentsResult{
 		Okay:       false,
 		FatalError: true,
-		Errors: primitives.InherentData{
-			Data: map[[8]byte]sc.Sequence[sc.U8]{
-				inherentIdentifier: sc.BytesToSequenceU8(err.Bytes()),
-			},
-		},
+		Errors:     inherentData,
 	}
 
 	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
