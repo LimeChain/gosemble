@@ -317,6 +317,7 @@ func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buf).Run(func(args mock.Arguments) {
 		buf := args.Get(0).(*bytes.Buffer)
+		// reading 3 bytes for the 3 arguments
 		buf.ReadByte()
 		buf.ReadByte()
 		buf.ReadByte()

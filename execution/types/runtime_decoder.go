@@ -46,13 +46,9 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
 	expectedLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
-
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
-
-	log.Info("version: ")
-	log.Info(strconv.Itoa(int(version)))
 
 	if version&ExtrinsicUnmaskVersion != ExtrinsicFormatVersion {
 		log.Critical("invalid Extrinsic version")
