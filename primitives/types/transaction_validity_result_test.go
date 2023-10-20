@@ -58,19 +58,19 @@ func Test_TransactionValidityResult_Encode_Panics(t *testing.T) {
 
 func Test_DecodeTransactionValidityResult(t *testing.T) {
 	var testExamples = []struct {
-		label       string
-		input       []byte
-		expectation TransactionValidityResult
+		label  string
+		input  []byte
+		expect TransactionValidityResult
 	}{
 		{
-			label:       "Encode(TransactionValidityResult(ValidTransaction))",
-			input:       append(TransactionValidityResultValid.Bytes(), DefaultValidTransaction().Bytes()...),
-			expectation: NewTransactionValidityResult(DefaultValidTransaction()),
+			label:  "Encode(TransactionValidityResult(ValidTransaction))",
+			input:  append(TransactionValidityResultValid.Bytes(), DefaultValidTransaction().Bytes()...),
+			expect: NewTransactionValidityResult(DefaultValidTransaction()),
 		},
 		{
-			label:       "Encode(TransactionValidityResult(TransactionValidityError))",
-			input:       []byte{0x01, 0x00, 0x01},
-			expectation: NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment())),
+			label:  "Encode(TransactionValidityResult(TransactionValidityError))",
+			input:  []byte{0x01, 0x00, 0x01},
+			expect: NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment())),
 		},
 	}
 
@@ -81,7 +81,7 @@ func Test_DecodeTransactionValidityResult(t *testing.T) {
 
 			result := DecodeTransactionValidityResult(buffer)
 
-			assert.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expect, result)
 		})
 	}
 }

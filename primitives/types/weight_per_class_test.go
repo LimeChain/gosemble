@@ -11,7 +11,10 @@ import (
 
 var (
 	expectBytesWeightPerClass, _ = hex.DecodeString("0408010c10011418011c20")
-	targetWeightPerClass         = WeightsPerClass{
+)
+
+var (
+	targetWeightPerClass = WeightsPerClass{
 		BaseExtrinsic: WeightFromParts(1, 2),
 		MaxExtrinsic:  sc.NewOption[Weight](WeightFromParts(3, 4)),
 		MaxTotal:      sc.NewOption[Weight](WeightFromParts(5, 6)),

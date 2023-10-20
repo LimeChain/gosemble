@@ -12,7 +12,9 @@ import (
 
 var (
 	expectBytesValidTransaction, _ = hex.DecodeString("0100000000000000040c020304080c0506070c08090a0b0000000000000001")
+)
 
+var (
 	targetValidTransaction = ValidTransaction{
 		Priority: 1,
 		Requires: sc.Sequence[sc.Sequence[sc.U8]]{
