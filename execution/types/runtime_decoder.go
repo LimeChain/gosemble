@@ -32,8 +32,6 @@ func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) primitives.Block {
 	header := primitives.DecodeHeader(buffer)
 
 	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
-	log.Info("Len extrinsics:")
-	log.Info(strconv.FormatInt(length, 10))
 	extrinsics := make([]types.UncheckedExtrinsic, length)
 
 	for i := 0; i < len(extrinsics); i++ {
@@ -48,15 +46,13 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
 	expectedLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
-	log.Info("Expected len:")
-	log.Info(strconv.FormatInt(expectedLength, 10))
 
 	beforeLength := buffer.Len()
 
-	log.Info("Before len:")
-	log.Info(strconv.Itoa(beforeLength))
-
 	version, _ := buffer.ReadByte()
+
+	log.Info("version: ")
+	log.Info(strconv.Itoa(int(version)))
 
 	if version&ExtrinsicUnmaskVersion != ExtrinsicFormatVersion {
 		log.Critical("invalid Extrinsic version")
@@ -68,16 +64,10 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(rd.extra, buffer))
 	}
 
-	log.Info("Buffer before decodeCall:")
-	log.Info(strconv.Itoa(len(buffer.String())))
-
 	// Decodes the dispatch call, including its arguments.
 	function := rd.DecodeCall(buffer)
 
 	afterLength := buffer.Len()
-
-	log.Info("After len:")
-	log.Info(strconv.Itoa(afterLength))
 
 	if int(expectedLength) != beforeLength-afterLength {
 		log.Critical("invalid length prefix")
@@ -89,8 +79,6 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 	moduleIndex := sc.DecodeU8(buffer)
 	functionIndex := sc.DecodeU8(buffer)
-
-	//log.Info(string(functionIndex))
 
 	module, ok := primitives.GetModule(moduleIndex, rd.modules)
 	if !ok {
