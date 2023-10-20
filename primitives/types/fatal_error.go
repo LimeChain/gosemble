@@ -1,9 +1,9 @@
 package types
 
-import "github.com/LimeChain/goscale"
+import sc "github.com/LimeChain/goscale"
 
 type FatalError interface {
-	goscale.Encodable
-	IsFatal() goscale.Bool
+	sc.Encodable
+	IsFatal() sc.Bool
 	Error() string
 }

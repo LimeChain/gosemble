@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -18,56 +17,6 @@ const (
 const (
 	errDecodeInherentData = "failed to decode InherentData"
 )
-
-type InherentError struct {
-	sc.VaryingData
-}
-
-func NewInherentErrorInherentDataExists(inherentIdentifier sc.Sequence[sc.U8]) InherentError {
-	return InherentError{sc.NewVaryingData(InherentErrorInherentDataExists, inherentIdentifier)}
-}
-
-func NewInherentErrorDecodingFailed(inherentIdentifier sc.Sequence[sc.U8]) InherentError {
-	return InherentError{sc.NewVaryingData(InherentErrorDecodingFailed, inherentIdentifier)}
-}
-
-func NewInherentErrorFatalErrorReported() InherentError {
-	return InherentError{sc.NewVaryingData(InherentErrorFatalErrorReported)}
-}
-
-func NewInherentErrorApplication() InherentError {
-	// TODO: encode additional value
-	return InherentError{sc.NewVaryingData(InherentErrorApplication)}
-}
-
-func (ie InherentError) IsFatal() sc.Bool {
-	switch ie.VaryingData[0] {
-	case InherentErrorFatalErrorReported:
-		return true
-	default:
-		return false
-	}
-}
-
-func (ie InherentError) Error() string {
-	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-	switch ie.VaryingData[0] {
-	case InherentErrorInherentDataExists:
-		// return fmt.Sprintf("Inherent data already exists for identifier: [%v]", ie.VaryingData[1])
-		return "Inherent data already exists for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]"
-	case InherentErrorDecodingFailed:
-		// return fmt.Sprintf("Failed to decode inherent data for identifier: [%v]", ie.VaryingData[1])
-		return "Failed to decode inherent data for identifier: [" + strconv.Itoa(int(ie.VaryingData[1].(sc.U8))) + "]"
-	case InherentErrorFatalErrorReported:
-		return "There was already a fatal error reported and no other errors are allowed"
-	case InherentErrorApplication:
-		return "Inherent error application"
-	default:
-		log.Critical("invalid inherent error")
-	}
-
-	panic("unreachable")
-}
 
 type CheckInherentsResult struct {
 	Okay       sc.Bool
@@ -93,22 +42,22 @@ func (cir CheckInherentsResult) Bytes() []byte {
 	return sc.EncodedBytes(cir)
 }
 
-func (cir *CheckInherentsResult) PutError(inherentIdentifier [8]byte, error FatalError) error {
+func (cir *CheckInherentsResult) PutError(inherentIdentifier [8]byte, er FatalError) error {
 	if cir.FatalError {
 		return NewInherentErrorFatalErrorReported()
 	}
 
-	if error.IsFatal() {
+	if er.IsFatal() {
 		cir.Errors.Clear()
 	}
 
-	err := cir.Errors.Put(inherentIdentifier, error)
+	err := cir.Errors.Put(inherentIdentifier, er)
 	if err != nil {
 		return err
 	}
 
 	cir.Okay = false
-	cir.FatalError = error.IsFatal()
+	cir.FatalError = er.IsFatal()
 
 	return nil
 }
