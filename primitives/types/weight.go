@@ -9,7 +9,6 @@ import (
 type Weight struct {
 	// The weight of computational time used based on some reference hardware.
 	RefTime sc.U64
-
 	// The weight of storage space used by proof of validity.
 	ProofSize sc.U64
 }
@@ -47,25 +46,6 @@ func (w Weight) SaturatingAdd(rhs Weight) Weight {
 	}
 }
 
-// Saturating [`Weight`] subtraction. Computes `self - rhs`, saturating at the numeric bounds
-// of all fields instead of overflowing.
-func (w Weight) SaturatingSub(rhs Weight) Weight {
-	return Weight{
-		RefTime:   sc.SaturatingSubU64(w.RefTime, rhs.RefTime),
-		ProofSize: sc.SaturatingSubU64(w.ProofSize, rhs.ProofSize),
-	}
-}
-
-// Increment [`Weight`] by `amount` via saturating addition.
-func (w *Weight) SaturatingAccrue(amount Weight) {
-	*w = w.SaturatingAdd(amount)
-}
-
-// Reduce [`Weight`] by `amount` via saturating subtraction.
-func (w *Weight) SaturatingReduce(amount Weight) {
-	*w = w.SaturatingSub(amount)
-}
-
 // Checked [`Weight`] addition. Computes `self + rhs`, returning `None` if overflow occurred.
 func (w Weight) CheckedAdd(rhs Weight) sc.Option[Weight] {
 	refTime, err := sc.CheckedAddU64(w.RefTime, rhs.RefTime)
@@ -86,6 +66,25 @@ func (w Weight) Sub(rhs Weight) Weight {
 		RefTime:   w.RefTime - rhs.RefTime,
 		ProofSize: w.ProofSize - rhs.ProofSize,
 	}
+}
+
+// Saturating [`Weight`] subtraction. Computes `self - rhs`, saturating at the numeric bounds
+// of all fields instead of overflowing.
+func (w Weight) SaturatingSub(rhs Weight) Weight {
+	return Weight{
+		RefTime:   sc.SaturatingSubU64(w.RefTime, rhs.RefTime),
+		ProofSize: sc.SaturatingSubU64(w.ProofSize, rhs.ProofSize),
+	}
+}
+
+// Increment [`Weight`] by `amount` via saturating addition.
+func (w *Weight) SaturatingAccrue(amount Weight) {
+	*w = w.SaturatingAdd(amount)
+}
+
+// Reduce [`Weight`] by `amount` via saturating subtraction.
+func (w *Weight) SaturatingReduce(amount Weight) {
+	*w = w.SaturatingSub(amount)
 }
 
 func (w Weight) Mul(b sc.U64) Weight {
@@ -120,13 +119,13 @@ func (w Weight) Max(rhs Weight) Weight {
 
 // AllGt Returns true if all of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
-func (w Weight) AllGt(rhs Weight) sc.Bool {
+func (w Weight) AllGt(rhs Weight) bool {
 	return w.RefTime > rhs.RefTime && w.ProofSize > rhs.ProofSize
 }
 
 // AnyGt Returns true if any of `self`'s constituent weights is strictly greater than that of the
 // `other`'s, otherwise returns false.
-func (w Weight) AnyGt(otherW Weight) sc.Bool {
+func (w Weight) AnyGt(otherW Weight) bool {
 	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
 }
 
