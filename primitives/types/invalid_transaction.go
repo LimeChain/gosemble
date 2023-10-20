@@ -2,67 +2,10 @@ package types
 
 import (
 	"bytes"
-	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
 )
-
-const (
-	TransactionValidityErrorInvalidTransaction sc.U8 = iota
-	TransactionValidityErrorUnknownTransaction
-)
-
-// TransactionValidityError Errors that can occur while checking the validity of a transaction.
-type TransactionValidityError sc.VaryingData
-
-func NewTransactionValidityError(value sc.Encodable) TransactionValidityError {
-	// InvalidTransaction = 0 - Transaction is invalid.
-	// UnknownTransaction = 1 - Transaction validity can’t be determined.
-	switch value.(type) {
-	case InvalidTransaction, UnknownTransaction:
-	default:
-		log.Critical("invalid TransactionValidityError type")
-	}
-
-	return TransactionValidityError(sc.NewVaryingData(value))
-}
-
-func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
-	value := e[0]
-
-	switch reflect.TypeOf(value) {
-	case reflect.TypeOf(*new(InvalidTransaction)):
-		buffer.Write([]byte{0x00})
-	case reflect.TypeOf(*new(UnknownTransaction)):
-		buffer.Write([]byte{0x01})
-	default:
-		log.Critical("invalid TransactionValidityError type")
-	}
-
-	value.Encode(buffer)
-}
-
-func DecodeTransactionValidityError(buffer *bytes.Buffer) TransactionValidityError {
-	b := sc.DecodeU8(buffer)
-
-	switch b {
-	case TransactionValidityErrorInvalidTransaction:
-		value := DecodeInvalidTransaction(buffer)
-		return NewTransactionValidityError(value)
-	case TransactionValidityErrorUnknownTransaction:
-		value := DecodeUnknownTransaction(buffer)
-		return NewTransactionValidityError(value)
-	default:
-		log.Critical("invalid TransactionValidityError type")
-	}
-
-	panic("unreachable")
-}
-
-func (e TransactionValidityError) Bytes() []byte {
-	return sc.EncodedBytes(e)
-}
 
 const (
 	// The call of the transaction is not expected. Reject
@@ -206,49 +149,4 @@ func DecodeInvalidTransaction(buffer *bytes.Buffer) InvalidTransaction {
 
 func (e InvalidTransaction) Bytes() []byte {
 	return sc.EncodedBytes(e)
-}
-
-const (
-	// Could not lookup some information that is required to validate the transaction. Reject
-	UnknownTransactionCannotLookup sc.U8 = iota
-
-	// No validator found for the given unsigned transaction. Reject
-	UnknownTransactionNoUnsignedValidator
-
-	// Any other custom unknown validity that is not covered by this type. Reject
-	UnknownTransactionCustomUnknownTransaction // + sc.U8
-)
-
-type UnknownTransaction struct {
-	sc.VaryingData
-}
-
-func NewUnknownTransactionCannotLookup() UnknownTransaction {
-	return UnknownTransaction{sc.NewVaryingData(UnknownTransactionCannotLookup)}
-}
-
-func NewUnknownTransactionNoUnsignedValidator() UnknownTransaction {
-	return UnknownTransaction{sc.NewVaryingData(UnknownTransactionNoUnsignedValidator)}
-}
-
-func NewUnknownTransactionCustomUnknownTransaction(unknown sc.U8) UnknownTransaction {
-	return UnknownTransaction{sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)}
-}
-
-func DecodeUnknownTransaction(buffer *bytes.Buffer) UnknownTransaction {
-	b := sc.DecodeU8(buffer)
-
-	switch b {
-	case UnknownTransactionCannotLookup:
-		return NewUnknownTransactionCannotLookup()
-	case UnknownTransactionNoUnsignedValidator:
-		return NewUnknownTransactionNoUnsignedValidator()
-	case UnknownTransactionCustomUnknownTransaction:
-		v := sc.DecodeU8(buffer)
-		return NewUnknownTransactionCustomUnknownTransaction(v)
-	default:
-		log.Critical("invalid UnknownTransaction type")
-	}
-
-	panic("unreachable")
 }
