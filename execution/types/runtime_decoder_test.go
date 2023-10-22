@@ -13,14 +13,15 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+const (
+	moduleOneIdx           = sc.U8(0)
+	functionIdx            = sc.U8(0)
+	signedExtrinsicVersion = 132
+)
+
 var (
-	mockModuleOne        *mocks.Module
-	mockCallOne          *mocks.Call
-	moduleOneIdx         = sc.U8(0)
-	moduleIdx            = sc.U8(0)
-	functionIdx          = sc.U8(0)
 	signedExtrinsicBytes = []byte{
-		132,                                                                                               // version
+		byte(signedExtrinsicVersion),                                                                      // version
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -28,18 +29,6 @@ var (
 		1, 1, 1, 1, 1, 1, 1, // signature,
 		// extra
 		uint8(moduleOneIdx), uint8(functionIdx), // call
-	}
-
-	expectedSignedExtrinsicsBytesAfterDecode = []byte{
-		0x8d, 0x1, // length
-		132,                                                                                               // version
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
-		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, // signature,
-		// extra
-		// call
 	}
 
 	header = primitives.Header{
@@ -51,12 +40,15 @@ var (
 		Digest:         primitives.Digest{},
 	}
 
-	expectedUncheckedExtrinsicUnsignedAfterDecode = []byte{0x4, 0x4}
-
 	parentHash      = common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355c").ToBytes()
 	stateRoot       = common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355b").ToBytes()
 	extrinsicsRoot  = common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355a").ToBytes()
 	moduleFunctions = map[sc.U8]primitives.Call{}
+)
+
+var (
+	mockModuleOne *mocks.Module
+	mockCallOne   *mocks.Call
 )
 
 func Test_RuntimeDecoder_New(t *testing.T) {
@@ -79,18 +71,16 @@ func Test_RuntimeDecoder_DecodeBlock_ZeroExtrinsicsEmptyBody(t *testing.T) {
 
 	expectedBlock := NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
 
-	assert.Equal(t, resultBlock, expectedBlock)
+	assert.Equal(t, expectedBlock, resultBlock)
 }
 
 func Test_RuntimeDecoder_DecodeBlock_Module_Not_Exists(t *testing.T) {
 	target := setupRuntimeDecoder()
 
-	moduleFunctions[0] = mockCallOne
-
 	idxModuleNotExists := sc.U8(10)
 
 	nonExistentExtrinsicsBytes := []byte{
-		132,                                                                                               // version
+		byte(signedExtrinsicVersion),                                                                      // version
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -106,8 +96,6 @@ func Test_RuntimeDecoder_DecodeBlock_Module_Not_Exists(t *testing.T) {
 	decodeBlockBytes := append(lenExtrinsics, buffExtrinsic.Bytes()...)
 	decodeBlockBytes = append(header.Bytes(), decodeBlockBytes...)
 
-	mockCallOne.On("Encode", mock.Anything)
-
 	decodeBlockBuff := bytes.NewBuffer(decodeBlockBytes)
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
@@ -121,12 +109,10 @@ func Test_RuntimeDecoder_DecodeBlock_Module_Not_Exists(t *testing.T) {
 func Test_RuntimeDecoder_DecodeBlock_Function_Not_Exists(t *testing.T) {
 	target := setupRuntimeDecoder()
 
-	moduleFunctions[0] = mockCallOne
-
 	idxFunctionNotExists := sc.U8(10)
 
 	nonExistentExtrinsicsBytes := []byte{
-		132,                                                                                               // version
+		byte(signedExtrinsicVersion),                                                                      // version
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -166,8 +152,6 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	decodeBlockBytes := append(lenExtrinsics, buffExtrinsic.Bytes()...)
 	decodeBlockBytes = append(header.Bytes(), decodeBlockBytes...)
 
-	mockCallOne.On("Encode", mock.Anything)
-
 	decodeBlockBuff := bytes.NewBuffer(decodeBlockBytes)
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
@@ -176,16 +160,22 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	mockCallOne.On("DecodeArgs", decodeBlockBuff).Return(mockCallOne)
 	result := target.DecodeBlock(decodeBlockBuff)
 
-	mockCallOne.On("DecodeArgs", buffExtrinsic).Return(mockCallOne)
-
-	decodedExtr := target.DecodeUncheckedExtrinsic(buffExtrinsic)
-
-	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{decodedExtr}
+	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{
+		NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra),
+	}
 
 	expectedBlock := NewBlock(header, extrinsics)
 
-	mockSignedExtra.On("Encode", mock.Anything)
-	assert.Equal(t, result.Bytes(), expectedBlock.Bytes())
+	assert.Equal(t, expectedBlock.Header().Number, result.Header().Number)
+	assert.Equal(t, expectedBlock.Header().Digest, result.Header().Digest)
+	assert.Equal(t, expectedBlock.Header().ParentHash, result.Header().ParentHash)
+	assert.Equal(t, expectedBlock.Header().ExtrinsicsRoot, result.Header().ExtrinsicsRoot)
+	assert.Equal(t, expectedBlock.Header().StateRoot, result.Header().StateRoot)
+
+	assert.Equal(t, expectedBlock.Extrinsics()[0].Signature(), result.Extrinsics()[0].Signature())
+	assert.Equal(t, expectedBlock.Extrinsics()[0].Function(), result.Extrinsics()[0].Function())
+	assert.Equal(t, expectedBlock.Extrinsics()[0].Extra(), result.Extrinsics()[0].Extra())
+	assert.Equal(t, expectedBlock.Extrinsics()[0].IsSigned(), result.Extrinsics()[0].IsSigned())
 
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")
@@ -211,8 +201,6 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 	decodeBlockBytes := append(lenExtrinsics, allExtrinsicsBytes...)
 	decodeBlockBytes = append(header.Bytes(), decodeBlockBytes...)
 
-	mockCallOne.On("Encode", mock.Anything)
-
 	buff := bytes.NewBuffer(decodeBlockBytes)
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
@@ -221,26 +209,29 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
 	result := target.DecodeBlock(buff)
 
-	bufferSignedExtrinsics := bytes.NewBuffer(signedExtrinsicBytes)
-
-	mockCallOne.On("DecodeArgs", bufferSignedExtrinsics).Return(mockCallOne)
-
-	decodedExtr := target.DecodeUncheckedExtrinsic(bufferSignedExtrinsics)
-
 	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{}
-
 	for i := 0; i < totalExtrinsicsInBlock; i++ {
-		extrinsics = append(extrinsics, decodedExtr)
+		extrinsics = append(extrinsics, NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra))
 	}
 
 	expectedBlock := NewBlock(header, extrinsics)
 
-	mockSignedExtra.On("Encode", mock.Anything)
-	assert.Equal(t, result.Bytes(), expectedBlock.Bytes())
+	assert.Equal(t, expectedBlock.Header().Number, result.Header().Number)
+	assert.Equal(t, expectedBlock.Header().Digest, result.Header().Digest)
+	assert.Equal(t, expectedBlock.Header().ParentHash, result.Header().ParentHash)
+	assert.Equal(t, expectedBlock.Header().ExtrinsicsRoot, result.Header().ExtrinsicsRoot)
+	assert.Equal(t, expectedBlock.Header().StateRoot, result.Header().StateRoot)
+
+	for i := 0; i < totalExtrinsicsInBlock; i++ {
+		assert.Equal(t, expectedBlock.Extrinsics()[i].Signature(), result.Extrinsics()[i].Signature())
+		assert.Equal(t, expectedBlock.Extrinsics()[i].Function(), result.Extrinsics()[i].Function())
+		assert.Equal(t, expectedBlock.Extrinsics()[i].Extra(), result.Extrinsics()[i].Extra())
+		assert.Equal(t, expectedBlock.Extrinsics()[i].IsSigned(), result.Extrinsics()[i].IsSigned())
+	}
 
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")
-	mockCallOne.AssertCalled(t, "DecodeArgs", bufferSignedExtrinsics)
+	mockCallOne.AssertCalled(t, "DecodeArgs", buff)
 	mockSignedExtra.AssertCalled(t, "Decode", mock.Anything)
 }
 
@@ -248,21 +239,25 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 	target := setupRuntimeDecoder()
 	moduleFunctions[0] = mockCallOne
 
-	unsignedExtrBytes := append(moduleIdx.Bytes(), functionIdx.Bytes()...)
+	unsignedExtrBytes := append(moduleOneIdx.Bytes(), functionIdx.Bytes()...)
 	unsignedExtrBytes = append(sc.U8(ExtrinsicFormatVersion).Bytes(), unsignedExtrBytes...)
 	unsignedExtrBytes = append(sc.ToCompact(len(unsignedExtrBytes)).Bytes(), unsignedExtrBytes...)
 
 	buff := bytes.NewBuffer(unsignedExtrBytes)
 
-	mockModuleOne.On("GetIndex").Return(moduleIdx)
+	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
 
 	result := target.DecodeUncheckedExtrinsic(buff)
-	assert.Equal(t, result.IsSigned(), false)
 
-	mockCallOne.On("Encode", mock.Anything)
-	assert.Equal(t, result.Bytes(), expectedUncheckedExtrinsicUnsignedAfterDecode)
+	expectedUnsignedExtrinsic := NewUncheckedExtrinsic(version, sc.Option[primitives.ExtrinsicSignature]{}, mockCallOne, mockSignedExtra)
+
+	assert.Equal(t, expectedUnsignedExtrinsic.IsSigned(), result.IsSigned())
+
+	assert.Equal(t, expectedUnsignedExtrinsic.Signature(), result.Signature())
+	assert.Equal(t, expectedUnsignedExtrinsic.Function(), result.Function())
+	assert.Equal(t, expectedUnsignedExtrinsic.Extra(), result.Extra())
 
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")
@@ -277,7 +272,6 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 	// Append the length of the bytes to decode as compact
 	buff := bytes.NewBuffer(append(sc.ToCompact(len(signedExtrinsicBytes)).Bytes(), signedExtrinsicBytes...))
 
-	moduleFunctions := map[sc.U8]primitives.Call{}
 	moduleFunctions[0] = mockCallOne
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
@@ -286,11 +280,13 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 	result := target.DecodeUncheckedExtrinsic(buff)
 
-	mockCallOne.On("Encode", mock.Anything)
-	mockSignedExtra.On("Encode", mock.Anything)
+	expectedSignedExtrinsicsBytesAfterDecode := NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra)
 
-	assert.Equal(t, result.Bytes(), expectedSignedExtrinsicsBytesAfterDecode)
-	assert.Equal(t, result.IsSigned(), true)
+	assert.Equal(t, expectedSignedExtrinsicsBytesAfterDecode.IsSigned(), result.IsSigned())
+
+	assert.Equal(t, expectedSignedExtrinsicsBytesAfterDecode.Signature(), result.Signature())
+	assert.Equal(t, expectedSignedExtrinsicsBytesAfterDecode.Function(), result.Function())
+	assert.Equal(t, expectedSignedExtrinsicsBytesAfterDecode.Extra(), result.Extra())
 
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")
@@ -309,11 +305,9 @@ func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
 	callBytes = append(callBytes, args.Bytes()...)
 
 	buf := bytes.NewBuffer(callBytes)
-
-	moduleFunctions := map[sc.U8]primitives.Call{}
 	moduleFunctions[0] = mockCallOne
 
-	mockModuleOne.On("GetIndex").Return(moduleIdx)
+	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buf).Run(func(args mock.Arguments) {
 		buf := args.Get(0).(*bytes.Buffer)
@@ -336,6 +330,14 @@ func setupRuntimeDecoder() RuntimeDecoder {
 	mockCallOne = new(mocks.Call)
 
 	mockSignedExtra = new(mocks.SignedExtra)
+
+	extrinsicSignature = sc.NewOption[primitives.ExtrinsicSignature](
+		primitives.ExtrinsicSignature{
+			Signer:    signer,
+			Signature: signatureEd25519,
+			Extra:     mockSignedExtra,
+		},
+	)
 
 	apis := []primitives.Module{mockModuleOne}
 
