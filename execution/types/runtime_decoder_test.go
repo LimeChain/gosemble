@@ -74,73 +74,6 @@ func Test_RuntimeDecoder_DecodeBlock_ZeroExtrinsicsEmptyBody(t *testing.T) {
 	assert.Equal(t, expectedBlock, resultBlock)
 }
 
-func Test_RuntimeDecoder_DecodeBlock_Module_Not_Exists(t *testing.T) {
-	target := setupRuntimeDecoder()
-
-	idxModuleNotExists := sc.U8(10)
-
-	nonExistentExtrinsicsBytes := []byte{
-		byte(signedExtrinsicVersion),                                                                      // version
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
-		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, // signature,
-		// extra
-		uint8(idxModuleNotExists), uint8(functionIdx), // call
-	}
-
-	buffExtrinsic := bytes.NewBuffer(append(sc.ToCompact(len(nonExistentExtrinsicsBytes)).Bytes(), nonExistentExtrinsicsBytes...))
-
-	lenExtrinsics := sc.ToCompact(1).Bytes()
-	decodeBlockBytes := append(lenExtrinsics, buffExtrinsic.Bytes()...)
-	decodeBlockBytes = append(header.Bytes(), decodeBlockBytes...)
-
-	decodeBlockBuff := bytes.NewBuffer(decodeBlockBytes)
-
-	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
-	mockSignedExtra.On("Decode", mock.Anything).Return()
-
-	assert.PanicsWithValue(t, "module with index ["+strconv.Itoa(int(idxModuleNotExists))+"] not found", func() {
-		target.DecodeBlock(decodeBlockBuff)
-	})
-}
-
-func Test_RuntimeDecoder_DecodeBlock_Function_Not_Exists(t *testing.T) {
-	target := setupRuntimeDecoder()
-
-	idxFunctionNotExists := sc.U8(10)
-
-	nonExistentExtrinsicsBytes := []byte{
-		byte(signedExtrinsicVersion),                                                                      // version
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // signer
-		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, // signature,
-		// extra
-		uint8(moduleOneIdx), uint8(idxFunctionNotExists), // call
-	}
-
-	buffExtrinsic := bytes.NewBuffer(append(sc.ToCompact(len(nonExistentExtrinsicsBytes)).Bytes(), nonExistentExtrinsicsBytes...))
-
-	lenExtrinsics := sc.ToCompact(1).Bytes()
-	decodeBlockBytes := append(lenExtrinsics, buffExtrinsic.Bytes()...)
-	decodeBlockBytes = append(header.Bytes(), decodeBlockBytes...)
-
-	mockCallOne.On("Encode", mock.Anything)
-
-	decodeBlockBuff := bytes.NewBuffer(decodeBlockBytes)
-
-	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
-	mockSignedExtra.On("Decode", mock.Anything).Return()
-	mockModuleOne.On("Functions").Return(moduleFunctions)
-
-	assert.PanicsWithValue(t, "function index ["+strconv.Itoa(int(idxFunctionNotExists))+"] for module ["+strconv.Itoa(int(moduleOneIdx))+"] not found", func() {
-		target.DecodeBlock(decodeBlockBuff)
-	})
-}
-
 func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	target := setupRuntimeDecoder()
 
@@ -269,7 +202,6 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 
-	// Append the length of the bytes to decode as compact
 	buff := bytes.NewBuffer(append(sc.ToCompact(len(signedExtrinsicBytes)).Bytes(), signedExtrinsicBytes...))
 
 	moduleFunctions[0] = mockCallOne
@@ -291,6 +223,81 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")
 	mockCallOne.AssertCalled(t, "DecodeArgs", buff)
+}
+
+func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidExtrinsicVersion(t *testing.T) {
+	target := setupRuntimeDecoder()
+
+	invalidExtrinsicVersion := byte(99)
+
+	signedExtrinsicBytesInvalid := make([]byte, len(signedExtrinsicBytes))
+	copy(signedExtrinsicBytesInvalid, signedExtrinsicBytes)
+
+	signedExtrinsicBytesInvalid[0] = invalidExtrinsicVersion
+
+	buff := bytes.NewBuffer(append(sc.ToCompact(len(signedExtrinsicBytesInvalid)).Bytes(), signedExtrinsicBytesInvalid...))
+
+	assert.PanicsWithValue(t, "invalid Extrinsic version", func() {
+		target.DecodeUncheckedExtrinsic(buff)
+	})
+}
+
+func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing.T) {
+	target := setupRuntimeDecoder()
+
+	mockSignedExtra.On("Decode", mock.Anything).Return()
+
+	invalidExpectedLength := sc.ToCompact(len(signedExtrinsicBytes) - 1)
+
+	buff := bytes.NewBuffer(append(invalidExpectedLength.Bytes(), signedExtrinsicBytes...))
+
+	moduleFunctions[0] = mockCallOne
+
+	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
+	mockModuleOne.On("Functions").Return(moduleFunctions)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+
+	assert.PanicsWithValue(t, "invalid length prefix", func() {
+		target.DecodeUncheckedExtrinsic(buff)
+	})
+}
+
+func Test_RuntimeDecoder_DecodeCall_Module_Not_Exists(t *testing.T) {
+	target := setupRuntimeDecoder()
+
+	idxModuleNotExists := sc.U8(10)
+
+	callBytes := []byte{
+		uint8(idxModuleNotExists), uint8(functionIdx),
+	}
+
+	buf := bytes.NewBuffer(callBytes)
+
+	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
+
+	assert.PanicsWithValue(t, "module with index ["+strconv.Itoa(int(idxModuleNotExists))+"] not found", func() {
+		target.DecodeCall(buf)
+	})
+}
+
+func Test_RuntimeDecoder_DecodeCall_Function_Not_Exists(t *testing.T) {
+	target := setupRuntimeDecoder()
+
+	idxFunctionNotExists := sc.U8(10)
+
+	callBytes := []byte{
+		uint8(moduleOneIdx), uint8(idxFunctionNotExists),
+	}
+
+	buf := bytes.NewBuffer(callBytes)
+	moduleFunctions[0] = mockCallOne
+
+	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
+	mockModuleOne.On("Functions").Return(moduleFunctions)
+
+	assert.PanicsWithValue(t, "function index ["+strconv.Itoa(int(idxFunctionNotExists))+"] for module ["+strconv.Itoa(int(moduleOneIdx))+"] not found", func() {
+		target.DecodeCall(buf)
+	})
 }
 
 func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
