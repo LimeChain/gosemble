@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ed25519SignatureLength = 64
+	signatureEd25519Length = 64
 )
 
 type SignatureEd25519 struct {
@@ -15,7 +15,7 @@ type SignatureEd25519 struct {
 }
 
 func NewSignatureEd25519(values ...sc.U8) SignatureEd25519 {
-	return SignatureEd25519{sc.NewFixedSequence(ed25519SignatureLength, values...)}
+	return SignatureEd25519{sc.NewFixedSequence(signatureEd25519Length, values...)}
 }
 
 func (s SignatureEd25519) Encode(buffer *bytes.Buffer) {
@@ -24,7 +24,7 @@ func (s SignatureEd25519) Encode(buffer *bytes.Buffer) {
 
 func DecodeSignatureEd25519(buffer *bytes.Buffer) SignatureEd25519 {
 	s := SignatureEd25519{}
-	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](ed25519SignatureLength, buffer)
+	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](signatureEd25519Length, buffer)
 	return s
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ecdsaSignatureLength = 65
+	signatureEcdsaLength = 65
 )
 
 type SignatureEcdsa struct {
@@ -15,7 +15,7 @@ type SignatureEcdsa struct {
 }
 
 func NewSignatureEcdsa(values ...sc.U8) SignatureEcdsa {
-	return SignatureEcdsa{sc.NewFixedSequence(ecdsaSignatureLength, values...)}
+	return SignatureEcdsa{sc.NewFixedSequence(signatureEcdsaLength, values...)}
 }
 
 func (s SignatureEcdsa) Encode(buffer *bytes.Buffer) {
@@ -24,7 +24,7 @@ func (s SignatureEcdsa) Encode(buffer *bytes.Buffer) {
 
 func DecodeSignatureEcdsa(buffer *bytes.Buffer) SignatureEcdsa {
 	s := SignatureEcdsa{}
-	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](ecdsaSignatureLength, buffer)
+	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](signatureEcdsaLength, buffer)
 	return s
 }
 

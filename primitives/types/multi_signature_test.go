@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -69,7 +68,6 @@ func Test_DecodeMultiSignature(t *testing.T) {
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
-			fmt.Println("asd")
 			buffer.Write(testExample.input)
 
 			result := DecodeMultiSignature(buffer)
