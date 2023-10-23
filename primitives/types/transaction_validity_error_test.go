@@ -2,12 +2,20 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"testing"
 
+	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_EncodeTransactionValidityError(t *testing.T) {
+func Test_NewTransactionValidityError_Panics(t *testing.T) {
+	assert.PanicsWithValue(t, errInvalidTransactionValidityErrorType, func() {
+		NewTransactionValidityError(sc.U8(6))
+	})
+}
+
+func Test_TransactionValidityError_Encode(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       TransactionValidityError
@@ -34,6 +42,18 @@ func Test_EncodeTransactionValidityError(t *testing.T) {
 			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
+}
+
+func Test_TransactionValidityError_Encode_Panics(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	assert.PanicsWithValue(t, errInvalidTransactionValidityErrorType, func() {
+		tve := TransactionValidityError(sc.NewVaryingData(sc.U8(6)))
+
+		tve.Encode(buffer)
+	})
+
+	assert.Equal(t, &bytes.Buffer{}, buffer)
 }
 
 func Test_DecodeTransactionValidityError(t *testing.T) {
@@ -64,4 +84,20 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 			assert.Equal(t, testExample.expectation, result)
 		})
 	}
+}
+
+func Test_DecodeTransactionValidityError_Panics(t *testing.T) {
+	buffer := &bytes.Buffer{}
+	buffer.WriteByte(6)
+
+	assert.PanicsWithValue(t, errInvalidTransactionValidityErrorType, func() {
+		DecodeTransactionValidityError(buffer)
+	})
+}
+
+func Test_TransactionValidityError_Bytes(t *testing.T) {
+	expect, _ := hex.DecodeString("0001")
+	tve := NewTransactionValidityError(NewInvalidTransactionPayment())
+
+	assert.Equal(t, expect, tve.Bytes())
 }

@@ -8,6 +8,10 @@ import (
 )
 
 const (
+	errInvalidTransactionValidityResultType = "invalid TransactionValidityResult type"
+)
+
+const (
 	TransactionValidityResultValid sc.U8 = iota
 	TransactionValidityResultError
 )
@@ -20,7 +24,7 @@ func NewTransactionValidityResult(value sc.Encodable) TransactionValidityResult 
 	case ValidTransaction, TransactionValidityError:
 		return TransactionValidityResult(sc.NewVaryingData(value))
 	default:
-		log.Critical("invalid TransactionValidityResult type")
+		log.Critical(errInvalidTransactionValidityResultType)
 	}
 
 	panic("unreachable")
@@ -33,7 +37,7 @@ func (r TransactionValidityResult) Encode(buffer *bytes.Buffer) {
 	case TransactionValidityError:
 		TransactionValidityResultError.Encode(buffer)
 	default:
-		log.Critical("invalid TransactionValidityResult type")
+		log.Critical(errInvalidTransactionValidityResultType)
 	}
 
 	r[0].Encode(buffer)
@@ -48,7 +52,7 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) TransactionValidityRe
 	case TransactionValidityResultError:
 		return NewTransactionValidityResult(DecodeTransactionValidityError(buffer))
 	default:
-		log.Critical("invalid TransactionValidityResult type")
+		log.Critical(errInvalidTransactionValidityResultType)
 	}
 
 	panic("unreachable")
@@ -58,7 +62,7 @@ func (r TransactionValidityResult) Bytes() []byte {
 	return sc.EncodedBytes(r)
 }
 
-func (r TransactionValidityResult) IsValidTransaction() sc.Bool {
+func (r TransactionValidityResult) IsValidTransaction() bool {
 	switch r[0].(type) {
 	case ValidTransaction:
 		return true

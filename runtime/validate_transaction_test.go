@@ -77,7 +77,7 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 	buffer.Write(encTransactionValidityResult)
 	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
 
-	assert.Equal(t, sc.Bool(true), transactionValidityResult.IsValidTransaction())
+	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
 }
 
 func Test_ValidateTransaction_InvalidModuleFunctionIndex(t *testing.T) {
@@ -340,7 +340,7 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 	buffer.Write(encTransactionValidityResult)
 	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
 
-	assert.Equal(t, sc.Bool(true), transactionValidityResult.IsValidTransaction())
+	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
 	assert.Equal(t, sc.U64(15), transactionValidityResult.AsValidTransaction().Longevity)
 }
 
