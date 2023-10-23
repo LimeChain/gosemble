@@ -93,7 +93,7 @@ func Test_Module_Item(t *testing.T) {
 	target := setup()
 
 	hexName := common.MustBlake2b8([]byte(ApiModuleName))
-	expect := primitives.NewApiItem(hexName[:], apiVersion)
+	expect := primitives.NewApiItem(hexName, apiVersion)
 
 	result := target.Item()
 

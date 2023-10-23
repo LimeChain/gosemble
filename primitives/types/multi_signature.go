@@ -17,15 +17,15 @@ type MultiSignature struct {
 	sc.VaryingData
 }
 
-func NewMultiSignatureEd25519(signature Ed25519) MultiSignature {
+func NewMultiSignatureEd25519(signature SignatureEd25519) MultiSignature {
 	return MultiSignature{sc.NewVaryingData(MultiSignatureEd25519, signature)}
 }
 
-func NewMultiSignatureSr25519(signature Sr25519) MultiSignature {
+func NewMultiSignatureSr25519(signature SignatureSr25519) MultiSignature {
 	return MultiSignature{sc.NewVaryingData(MultiSignatureSr25519, signature)}
 }
 
-func NewMultiSignatureEcdsa(signature Ecdsa) MultiSignature {
+func NewMultiSignatureEcdsa(signature SignatureEcdsa) MultiSignature {
 	return MultiSignature{sc.NewVaryingData(MultiSignatureEcdsa, signature)}
 }
 
@@ -38,9 +38,9 @@ func (s MultiSignature) IsEd25519() sc.Bool {
 	}
 }
 
-func (s MultiSignature) AsEd25519() Ed25519 {
+func (s MultiSignature) AsEd25519() SignatureEd25519 {
 	if s.IsEd25519() {
-		return s.VaryingData[1].(Ed25519)
+		return s.VaryingData[1].(SignatureEd25519)
 	} else {
 		log.Critical("not a Ed25519 signature type")
 	}
@@ -57,9 +57,9 @@ func (s MultiSignature) IsSr25519() sc.Bool {
 	}
 }
 
-func (s MultiSignature) AsSr25519() Sr25519 {
+func (s MultiSignature) AsSr25519() SignatureSr25519 {
 	if s.IsSr25519() {
-		return s.VaryingData[1].(Sr25519)
+		return s.VaryingData[1].(SignatureSr25519)
 	} else {
 		log.Critical("not a Sr25519 signature type")
 	}
@@ -76,9 +76,9 @@ func (s MultiSignature) IsEcdsa() sc.Bool {
 	}
 }
 
-func (s MultiSignature) AsEcdsa() Ecdsa {
+func (s MultiSignature) AsEcdsa() SignatureEcdsa {
 	if s.IsEcdsa() {
-		return s.VaryingData[0].(Ecdsa)
+		return s.VaryingData[0].(SignatureEcdsa)
 	} else {
 		log.Critical("not a Ecdsa signature type")
 	}
@@ -91,11 +91,11 @@ func DecodeMultiSignature(buffer *bytes.Buffer) MultiSignature {
 
 	switch b {
 	case MultiSignatureEd25519:
-		return NewMultiSignatureEd25519(DecodeEd25519(buffer))
+		return NewMultiSignatureEd25519(DecodeSignatureEd25519(buffer))
 	case MultiSignatureSr25519:
-		return NewMultiSignatureSr25519(DecodeSr25519(buffer))
+		return NewMultiSignatureSr25519(DecodeSignatureSr25519(buffer))
 	case MultiSignatureEcdsa:
-		return NewMultiSignatureEcdsa(DecodeEcdsa(buffer))
+		return NewMultiSignatureEcdsa(DecodeSignatureEcdsa(buffer))
 	default:
 		log.Critical("invalid MultiSignature type in Decode: " + string(b))
 	}

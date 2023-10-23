@@ -24,10 +24,10 @@ func Blake2b8(data []byte) (digest [8]byte, err error) {
 }
 
 // MustBlake2b8 returns the first 8 bytes of the Blake2b hash of the input data
-func MustBlake2b8(data []byte) []byte {
+func MustBlake2b8(data []byte) [8]byte {
 	digest, err := Blake2b8(data)
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	return digest[:]
+	return digest
 }
