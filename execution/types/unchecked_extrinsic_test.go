@@ -40,12 +40,12 @@ var (
 		1, 1, 1, 1, 1, 1, 1,
 	}
 	signatureEd25519 = types.NewMultiSignatureEd25519(
-		types.NewEd25519(
+		types.NewSignatureEd25519(
 			sc.BytesToFixedSequenceU8(signatureBytes)...,
 		),
 	)
 	signatureSr25519 = types.NewMultiSignatureSr25519(
-		types.NewSr25519(
+		types.NewSignatureSr25519(
 			sc.BytesToFixedSequenceU8(signatureBytes)...,
 		),
 	)

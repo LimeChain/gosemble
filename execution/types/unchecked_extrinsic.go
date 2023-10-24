@@ -121,10 +121,10 @@ func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc
 	signerBytes := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
 
 	if signature.IsEd25519() {
-		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsEd25519().H512.FixedSequence)
+		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsEd25519().FixedSequence)
 		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsSr25519() {
-		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsSr25519().H512.FixedSequence)
+		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsSr25519().FixedSequence)
 		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsEcdsa() {
 		return true

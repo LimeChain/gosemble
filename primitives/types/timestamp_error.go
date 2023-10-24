@@ -2,6 +2,7 @@ package types
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -43,6 +44,8 @@ func (te TimestampError) Error() string {
 		return "The timestamp of the block is too far in the future."
 	case TimestampErrorInvalid:
 		return "invalid inherent check for timestamp module"
+	default:
+		log.Critical("invalid TimestampError")
 	}
 
 	panic("unreachable")
