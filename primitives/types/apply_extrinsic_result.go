@@ -53,16 +53,22 @@ func (r ApplyExtrinsicResult) Encode(buffer *bytes.Buffer) {
 	r[0].Encode(buffer)
 }
 
-func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) ApplyExtrinsicResult {
-	b := sc.DecodeU8(buffer)
+func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) (ApplyExtrinsicResult, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	switch b {
 	case 0:
-		value := DecodeDispatchOutcome(buffer)
-		return NewApplyExtrinsicResult(value)
+		value, err := DecodeDispatchOutcome(buffer)
+		if err != nil {
+			return nil, err
+		}
+		return NewApplyExtrinsicResult(value), nil
 	case 1:
 		value := DecodeTransactionValidityError(buffer)
-		return NewApplyExtrinsicResult(value)
+		return NewApplyExtrinsicResult(value), nil
 	default:
 		log.Critical("invalid ApplyExtrinsicResult type")
 	}

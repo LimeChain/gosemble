@@ -13,9 +13,9 @@ type Storage interface {
 	Clear(key []byte)
 	ClearPrefix(key []byte, limit []byte)
 	Exists(key []byte) bool
-	Get(key []byte) sc.Option[sc.Sequence[sc.U8]]
+	Get(key []byte) (sc.Option[sc.Sequence[sc.U8]], error)
 	NextKey(key int64) int64
-	Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32]
+	Read(key []byte, valueOut []byte, offset int32) (sc.Option[sc.U32], error)
 	Root(version int32) []byte
 	Set(key []byte, value []byte)
 }
@@ -52,7 +52,7 @@ func (s storage) Exists(key []byte) bool {
 	return env.ExtStorageExistsVersion1(keyOffsetSize) != 0
 }
 
-func (s storage) Get(key []byte) sc.Option[sc.Sequence[sc.U8]] {
+func (s storage) Get(key []byte) (sc.Option[sc.Sequence[sc.U8]], error) {
 	value := get(s.memoryTranslator, key)
 
 	buffer := &bytes.Buffer{}
@@ -65,7 +65,7 @@ func (s storage) NextKey(key int64) int64 {
 	panic("not implemented")
 }
 
-func (s storage) Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
+func (s storage) Read(key []byte, valueOut []byte, offset int32) (sc.Option[sc.U32], error) {
 	value := read(s.memoryTranslator, key, valueOut, offset)
 
 	buffer := &bytes.Buffer{}

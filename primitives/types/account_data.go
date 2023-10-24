@@ -26,13 +26,29 @@ func (ad AccountData) Bytes() []byte {
 	return sc.EncodedBytes(ad)
 }
 
-func DecodeAccountData(buffer *bytes.Buffer) AccountData {
-	return AccountData{
-		Free:       sc.DecodeU128(buffer),
-		Reserved:   sc.DecodeU128(buffer),
-		MiscFrozen: sc.DecodeU128(buffer),
-		FeeFrozen:  sc.DecodeU128(buffer),
+func DecodeAccountData(buffer *bytes.Buffer) (AccountData, error) {
+	free, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return AccountData{}, err
 	}
+	reserved, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return AccountData{}, err
+	}
+	misc, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return AccountData{}, err
+	}
+	fee, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return AccountData{}, err
+	}
+	return AccountData{
+		Free:       free,
+		Reserved:   reserved,
+		MiscFrozen: misc,
+		FeeFrozen:  fee,
+	}, nil
 }
 
 func (ad AccountData) Total() sc.U128 {

@@ -24,12 +24,20 @@ func (di DispatchInfo) Encode(buffer *bytes.Buffer) {
 	di.PaysFee.Encode(buffer)
 }
 
-func DecodeDispatchInfo(buffer *bytes.Buffer) DispatchInfo {
+func DecodeDispatchInfo(buffer *bytes.Buffer) (DispatchInfo, error) {
 	di := DispatchInfo{}
-	di.Weight = DecodeWeight(buffer)
-	di.Class = DecodeDispatchClass(buffer)
+	weight, err := DecodeWeight(buffer)
+	if err != nil {
+		return DispatchInfo{}, err
+	}
+	di.Weight = weight
+	class, err := DecodeDispatchClass(buffer)
+	if err != nil {
+		return DispatchInfo{}, err
+	}
+	di.Class = class
 	di.PaysFee = DecodePays(buffer)
-	return di
+	return di, nil
 }
 
 func (di DispatchInfo) Bytes() []byte {

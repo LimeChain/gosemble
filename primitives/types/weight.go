@@ -18,14 +18,20 @@ func (w Weight) Encode(buffer *bytes.Buffer) {
 	sc.ToCompact(w.ProofSize).Encode(buffer)
 }
 
-func DecodeWeight(buffer *bytes.Buffer) Weight {
-	refTime := sc.DecodeCompact(buffer)
-	proofSize := sc.DecodeCompact(buffer)
+func DecodeWeight(buffer *bytes.Buffer) (Weight, error) {
+	refTime, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return Weight{}, err
+	}
+	proofSize, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return Weight{}, err
+	}
 
 	return Weight{
 		RefTime:   sc.U64(refTime.ToBigInt().Uint64()),
 		ProofSize: sc.U64(proofSize.ToBigInt().Uint64()),
-	}
+	}, nil
 }
 
 func (w Weight) Bytes() []byte {

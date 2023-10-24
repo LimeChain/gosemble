@@ -56,17 +56,49 @@ func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) {
 	mm.Docs.Encode(buffer)
 }
 
-func DecodeMetadataModuleV15(buffer *bytes.Buffer) MetadataModuleV15 {
-	return MetadataModuleV15{
-		Name:      sc.DecodeStr(buffer),
-		Storage:   sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage),
-		Call:      sc.DecodeOption[sc.Compact](buffer),
-		Event:     sc.DecodeOption[sc.Compact](buffer),
-		Constants: sc.DecodeSequenceWith(buffer, DecodeMetadataModuleConstant),
-		Error:     sc.DecodeOption[sc.Compact](buffer),
-		Index:     sc.DecodeU8(buffer),
-		Docs:      sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
+	name, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
 	}
+	storage, err := sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	call, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	event, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	constants, err := sc.DecodeSequenceWith(buffer, DecodeMetadataModuleConstant)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	e, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	idx, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataModuleV15{}, err
+	}
+	return MetadataModuleV15{
+		Name:      name,
+		Storage:   storage,
+		Call:      call,
+		Event:     event,
+		Constants: constants,
+		Error:     e,
+		Index:     idx,
+		Docs:      docs,
+	}, nil
 }
 
 func (mm MetadataModuleV15) Bytes() []byte {
@@ -96,16 +128,44 @@ func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) {
 	mm.Index.Encode(buffer)
 }
 
-func DecodeMetadataModuleV14(buffer *bytes.Buffer) MetadataModuleV14 {
-	return MetadataModuleV14{
-		Name:      sc.DecodeStr(buffer),
-		Storage:   sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage),
-		Call:      sc.DecodeOption[sc.Compact](buffer),
-		Event:     sc.DecodeOption[sc.Compact](buffer),
-		Constants: sc.DecodeSequenceWith(buffer, DecodeMetadataModuleConstant),
-		Error:     sc.DecodeOption[sc.Compact](buffer),
-		Index:     sc.DecodeU8(buffer),
+func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
+	name, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataModuleV14{}, err
 	}
+	storage, err := sc.DecodeOptionWith(buffer, DecodeMetadataModuleStorage)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	call, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	event, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	constants, err := sc.DecodeSequenceWith(buffer, DecodeMetadataModuleConstant)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	e, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	idx, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataModuleV14{}, err
+	}
+	return MetadataModuleV14{
+		Name:      name,
+		Storage:   storage,
+		Call:      call,
+		Event:     event,
+		Constants: constants,
+		Error:     e,
+		Index:     idx,
+	}, nil
 }
 
 func (mm MetadataModuleV14) Bytes() []byte {
@@ -122,11 +182,19 @@ func (mms MetadataModuleStorage) Encode(buffer *bytes.Buffer) {
 	mms.Items.Encode(buffer)
 }
 
-func DecodeMetadataModuleStorage(buffer *bytes.Buffer) MetadataModuleStorage {
-	return MetadataModuleStorage{
-		Prefix: sc.DecodeStr(buffer),
-		Items:  sc.DecodeSequenceWith(buffer, DecodeMetadataModuleStorageEntry),
+func DecodeMetadataModuleStorage(buffer *bytes.Buffer) (MetadataModuleStorage, error) {
+	prefix, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataModuleStorage{}, err
 	}
+	items, err := sc.DecodeSequenceWith(buffer, DecodeMetadataModuleStorageEntry)
+	if err != nil {
+		return MetadataModuleStorage{}, err
+	}
+	return MetadataModuleStorage{
+		Prefix: prefix,
+		Items:  items,
+	}, nil
 }
 
 func (mms MetadataModuleStorage) Bytes() []byte {
@@ -159,14 +227,34 @@ func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) {
 	mmse.Docs.Encode(buffer)
 }
 
-func DecodeMetadataModuleStorageEntry(buffer *bytes.Buffer) MetadataModuleStorageEntry {
-	return MetadataModuleStorageEntry{
-		Name:       sc.DecodeStr(buffer),
-		Modifier:   DecodeMetadataModuleStorageEntryModifier(buffer),
-		Definition: DecodeMetadataModuleStorageEntryDefinition(buffer),
-		Fallback:   sc.DecodeSequence[sc.U8](buffer),
-		Docs:       sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataModuleStorageEntry(buffer *bytes.Buffer) (MetadataModuleStorageEntry, error) {
+	name, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataModuleStorageEntry{}, err
 	}
+	mod, err := DecodeMetadataModuleStorageEntryModifier(buffer)
+	if err != nil {
+		return MetadataModuleStorageEntry{}, err
+	}
+	def, err := DecodeMetadataModuleStorageEntryDefinition(buffer)
+	if err != nil {
+		return MetadataModuleStorageEntry{}, err
+	}
+	fallback, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return MetadataModuleStorageEntry{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataModuleStorageEntry{}, err
+	}
+	return MetadataModuleStorageEntry{
+		Name:       name,
+		Modifier:   mod,
+		Definition: def,
+		Fallback:   fallback,
+		Docs:       docs,
+	}, nil
 }
 
 func (mmse MetadataModuleStorageEntry) Bytes() []byte {
@@ -180,14 +268,17 @@ const (
 
 type MetadataModuleStorageEntryModifier = sc.U8
 
-func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) MetadataModuleStorageEntryModifier {
-	b := sc.DecodeU8(buffer)
+func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataModuleStorageEntryModifier, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataModuleStorageEntryModifier(0), err
+	}
 
 	switch b {
 	case MetadataModuleStorageEntryModifierOptional:
-		return MetadataModuleStorageEntryModifierOptional
+		return MetadataModuleStorageEntryModifierOptional, nil
 	case MetadataModuleStorageEntryModifierDefault:
-		return MetadataModuleStorageEntryModifierDefault
+		return MetadataModuleStorageEntryModifierDefault, nil
 	default:
 		log.Critical("invalid DecodeMetadataModuleStorageEntryModifier type")
 	}
@@ -210,14 +301,33 @@ func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[Met
 	return sc.NewVaryingData(MetadataModuleStorageEntryDefinitionMap, storageHashFuncs, key, value)
 }
 
-func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) MetadataModuleStorageEntryDefinition {
-	b := sc.DecodeU8(buffer)
+func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataModuleStorageEntryDefinition, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataModuleStorageEntryDefinition{}, err
+	}
 
 	switch b {
 	case MetadataModuleStorageEntryDefinitionPlain:
-		return NewMetadataModuleStorageEntryDefinitionPlain(sc.DecodeCompact(buffer))
+		key, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataModuleStorageEntryDefinition{}, err
+		}
+		return NewMetadataModuleStorageEntryDefinitionPlain(key), nil
 	case MetadataModuleStorageEntryDefinitionMap:
-		return NewMetadataModuleStorageEntryDefinitionMap(sc.DecodeSequenceWith(buffer, DecodeMetadataModuleStorageHashFunc), sc.DecodeCompact(buffer), sc.DecodeCompact(buffer))
+		storageHashFuncs, err := sc.DecodeSequenceWith(buffer, DecodeMetadataModuleStorageHashFunc)
+		if err != nil {
+			return MetadataModuleStorageEntryDefinition{}, err
+		}
+		key, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataModuleStorageEntryDefinition{}, err
+		}
+		value, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataModuleStorageEntryDefinition{}, err
+		}
+		return NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs, key, value), nil
 	default:
 		log.Critical("invalid MetadataModuleStorageEntryDefinition type")
 	}
@@ -248,13 +358,29 @@ func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) {
 	mmc.Docs.Encode(buffer)
 }
 
-func DecodeMetadataModuleConstant(buffer *bytes.Buffer) MetadataModuleConstant {
-	return MetadataModuleConstant{
-		Name:  sc.DecodeStr(buffer),
-		Type:  sc.DecodeCompact(buffer),
-		Value: sc.DecodeSequence[sc.U8](buffer),
-		Docs:  sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataModuleConstant(buffer *bytes.Buffer) (MetadataModuleConstant, error) {
+	name, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataModuleConstant{}, err
 	}
+	t, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return MetadataModuleConstant{}, err
+	}
+	val, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return MetadataModuleConstant{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataModuleConstant{}, err
+	}
+	return MetadataModuleConstant{
+		Name:  name,
+		Type:  t,
+		Value: val,
+		Docs:  docs,
+	}, nil
 }
 
 func (mmc MetadataModuleConstant) Bytes() []byte {
@@ -273,24 +399,27 @@ const (
 
 type MetadataModuleStorageHashFunc = sc.U8
 
-func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) MetadataModuleStorageHashFunc {
-	b := sc.DecodeU8(buffer)
+func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleStorageHashFunc, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataModuleStorageHashFunc(0), err
+	}
 
 	switch b {
 	case MetadataModuleStorageHashFuncBlake128:
-		return MetadataModuleStorageHashFuncBlake128
+		return MetadataModuleStorageHashFuncBlake128, nil
 	case MetadataModuleStorageHashFuncBlake256:
-		return MetadataModuleStorageHashFuncBlake256
+		return MetadataModuleStorageHashFuncBlake256, nil
 	case MetadataModuleStorageHashFuncMultiBlake128Concat:
-		return MetadataModuleStorageHashFuncMultiBlake128Concat
+		return MetadataModuleStorageHashFuncMultiBlake128Concat, nil
 	case MetadataModuleStorageHashFuncXX128:
-		return MetadataModuleStorageHashFuncXX128
+		return MetadataModuleStorageHashFuncXX128, nil
 	case MetadataModuleStorageHashFuncXX256:
-		return MetadataModuleStorageHashFuncXX256
+		return MetadataModuleStorageHashFuncXX256, nil
 	case MetadataModuleStorageHashFuncMultiXX64:
-		return MetadataModuleStorageHashFuncMultiXX64
+		return MetadataModuleStorageHashFuncMultiXX64, nil
 	case MetadataModuleStorageHashFuncIdentity:
-		return MetadataModuleStorageHashFuncIdentity
+		return MetadataModuleStorageHashFuncIdentity, nil
 
 	default:
 		log.Critical("invalid MetadataModuleStorageHashFunc type")

@@ -28,12 +28,27 @@ func (h Header) Bytes() []byte {
 	return buffer.Bytes()
 }
 
-func DecodeHeader(buffer *bytes.Buffer) Header {
-	parentHash := DecodeBlake2bHash(buffer)
-	blockNumber := sc.DecodeCompact(buffer)
-	stateRoot := DecodeH256(buffer)
-	extrinsicRoot := DecodeH256(buffer)
-	digest := DecodeDigest(buffer)
+func DecodeHeader(buffer *bytes.Buffer) (Header, error) {
+	parentHash, err := DecodeBlake2bHash(buffer)
+	if err != nil {
+		return Header{}, err
+	}
+	blockNumber, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return Header{}, err
+	}
+	stateRoot, err := DecodeH256(buffer)
+	if err != nil {
+		return Header{}, err
+	}
+	extrinsicRoot, err := DecodeH256(buffer)
+	if err != nil {
+		return Header{}, err
+	}
+	digest, err := DecodeDigest(buffer)
+	if err != nil {
+		return Header{}, err
+	}
 
 	return Header{
 		ParentHash:     parentHash,
@@ -41,5 +56,5 @@ func DecodeHeader(buffer *bytes.Buffer) Header {
 		StateRoot:      stateRoot,
 		ExtrinsicsRoot: extrinsicRoot,
 		Digest:         digest,
-	}
+	}, nil
 }

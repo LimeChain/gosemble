@@ -50,15 +50,21 @@ func (o DispatchOutcome) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func DecodeDispatchOutcome(buffer *bytes.Buffer) DispatchOutcome {
-	b := sc.DecodeU8(buffer)
+func DecodeDispatchOutcome(buffer *bytes.Buffer) (DispatchOutcome, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return DispatchOutcome{}, err
+	}
 
 	switch b {
 	case 0:
-		return NewDispatchOutcome(sc.Empty{})
+		return NewDispatchOutcome(sc.Empty{}), nil
 	case 1:
-		value := DecodeDispatchError(buffer)
-		return NewDispatchOutcome(value)
+		value, err := DecodeDispatchError(buffer)
+		if err != nil {
+			return DispatchOutcome{}, err
+		}
+		return NewDispatchOutcome(value), nil
 	default:
 		log.Critical(errDispatchOutcomeInvalid)
 	}
