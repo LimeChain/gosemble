@@ -53,7 +53,10 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	buffer := bytes.NewBuffer(b)
 
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
-	length := sc.DecodeU32(buffer)
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
@@ -83,7 +86,10 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	buffer := bytes.NewBuffer(b)
 
 	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
-	length := sc.DecodeU32(buffer)
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 

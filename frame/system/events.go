@@ -47,34 +47,40 @@ func newEventRemarked(moduleIndex sc.U8, sender types.PublicKey, hash types.H256
 	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
-	decodedModuleIndex := sc.DecodeU8(buffer)
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+	decodedModuleIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 	if decodedModuleIndex != moduleIndex {
 		log.Critical(errInvalidEventModule)
 	}
 
-	b := sc.DecodeU8(buffer)
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 
 	switch b {
 	case EventExtrinsicSuccess:
 		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo)
+		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo), nil
 	case EventExtrinsicFailed:
 		dispatchErr := types.DecodeDispatchError(buffer)
 		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo)
+		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo), nil
 	case EventCodeUpdated:
-		return newEventCodeUpdated(moduleIndex)
+		return newEventCodeUpdated(moduleIndex), nil
 	case EventNewAccount:
 		account := types.DecodePublicKey(buffer)
-		return newEventNewAccount(moduleIndex, account)
+		return newEventNewAccount(moduleIndex, account), nil
 	case EventKilledAccount:
 		account := types.DecodePublicKey(buffer)
-		return newEventKilledAccount(moduleIndex, account)
+		return newEventKilledAccount(moduleIndex, account), nil
 	case EventRemarked:
 		account := types.DecodePublicKey(buffer)
 		hash := types.DecodeH256(buffer)
-		return newEventRemarked(moduleIndex, account, hash)
+		return newEventRemarked(moduleIndex, account, hash), nil
 	default:
 		log.Critical(errInvalidEventType)
 	}

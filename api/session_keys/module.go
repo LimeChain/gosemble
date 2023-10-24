@@ -51,7 +51,10 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	seed := sc.DecodeOptionWith(buffer, sc.DecodeSequence[sc.U8])
+	seed, err := sc.DecodeOptionWith(buffer, sc.DecodeSequence[sc.U8])
+	if err != nil {
+		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+	}
 
 	var publicKeys []byte
 	for _, session := range m.sessions {
@@ -77,7 +80,10 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
-	sequence := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
+	sequence, err := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
+	if err != nil {
+		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+	}
 
 	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(sequence))
 	sessionKeys := sc.Sequence[types.SessionKey]{}

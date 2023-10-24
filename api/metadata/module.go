@@ -98,7 +98,10 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	version := sc.DecodeU32(buffer)
+	version, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+	}
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 

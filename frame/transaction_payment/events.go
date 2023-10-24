@@ -17,20 +17,32 @@ func NewEventTransactionFeePaid(moduleIndex sc.U8, account types.PublicKey, actu
 	return types.NewEvent(moduleIndex, EventTransactionFeePaid, account, actualFee, tip)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
-	decodedModuleIndex := sc.DecodeU8(buffer)
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+	decodedModuleIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 	if decodedModuleIndex != moduleIndex {
 		log.Critical("invalid transaction_payment.Event module")
 	}
 
-	b := sc.DecodeU8(buffer)
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 
 	switch b {
 	case EventTransactionFeePaid:
 		account := types.DecodePublicKey(buffer)
-		actualFee := sc.DecodeU128(buffer)
-		tip := sc.DecodeU128(buffer)
-		return NewEventTransactionFeePaid(moduleIndex, account, actualFee, tip)
+		actualFee, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		tip, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return NewEventTransactionFeePaid(moduleIndex, account, actualFee, tip), nil
 	default:
 		log.Critical("invalid transaction_payment.Event type")
 	}

@@ -80,8 +80,11 @@ func (m Module) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
-	slot := m.currentSlotFromDigests()
+func (m Module) OnInitialize(_ sc.U64) (primitives.Weight, error) {
+	slot, err := m.currentSlotFromDigests()
+	if err != nil {
+		return primitives.Weight{}, err
+	}
 
 	if slot.HasValue {
 		newSlot := slot.Value
@@ -109,9 +112,9 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 			*/
 		}
 
-		return m.constants.DbWeight.ReadsWrites(2, 1)
+		return m.constants.DbWeight.ReadsWrites(2, 1), nil
 	} else {
-		return m.constants.DbWeight.Reads(1)
+		return m.constants.DbWeight.Reads(1), nil
 	}
 }
 
@@ -231,7 +234,7 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m Module) currentSlotFromDigests() sc.Option[slot] {
+func (m Module) currentSlotFromDigests() (sc.Option[slot], error) {
 	digest := m.config.SystemDigest()
 
 	for keyDigest, dig := range digest {
@@ -241,13 +244,18 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 					buffer := &bytes.Buffer{}
 					buffer.Write(sc.SequenceU8ToBytes(digestItem.Payload))
 
-					return sc.NewOption[slot](sc.DecodeU64(buffer))
+					decodeResult, err := sc.DecodeU64(buffer)
+					if err != nil {
+						return sc.Option[slot]{}, err
+					}
+
+					return sc.NewOption[slot](decodeResult), nil
 				}
 			}
 		}
 	}
 
-	return sc.NewOption[slot](nil)
+	return sc.NewOption[slot](nil), nil
 }
 
 func (m Module) SlotDuration() sc.U64 {
