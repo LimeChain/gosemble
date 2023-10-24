@@ -53,26 +53,69 @@ func NewMetadataTypeDefinitionBitSequence(storeOrder, orderType sc.Compact) Meta
 	return sc.NewVaryingData(MetadataTypeDefinitionBitSequence, storeOrder, orderType)
 }
 
-func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) MetadataTypeDefinition {
-	b := sc.DecodeU8(buffer)
+func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataTypeDefinition{}, err
+	}
 
 	switch b {
 	case MetadataTypeDefinitionComposite:
-		return NewMetadataTypeDefinitionComposite(sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionField))
+		fields, err := sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionField)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionComposite(fields), nil
 	case MetadataTypeDefinitionVariant:
-		return NewMetadataTypeDefinitionVariant(sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionVariant))
+		variants, err := sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionVariant)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionVariant(variants), nil
 	case MetadataTypeDefinitionSequence:
-		return NewMetadataTypeDefinitionSequence(sc.DecodeCompact(buffer))
+		cmpct, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionSequence(cmpct), nil
 	case MetadataTypeDefinitionFixedSequence:
-		return NewMetadataTypeDefinitionFixedSequence(sc.DecodeU32(buffer), sc.DecodeCompact(buffer))
+		len, err := sc.DecodeU32(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		id, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionFixedSequence(len, id), nil
 	case MetadataTypeDefinitionTuple:
-		return NewMetadataTypeDefinitionTuple(sc.DecodeSequence[sc.Compact](buffer))
+		cmpcts, err := sc.DecodeSequence[sc.Compact](buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionTuple(cmpcts), nil
 	case MetadataTypeDefinitionPrimitive:
-		return NewMetadataTypeDefinitionPrimitive(DecodeMetadataDefinitionPrimitive(buffer))
+		prim, err := DecodeMetadataDefinitionPrimitive(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionPrimitive(prim), nil
 	case MetadataTypeDefinitionCompact:
-		return NewMetadataTypeDefinitionCompact(sc.DecodeCompact(buffer))
+		cmpct, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionCompact(cmpct), nil
 	case MetadataTypeDefinitionBitSequence:
-		return NewMetadataTypeDefinitionBitSequence(sc.DecodeCompact(buffer), sc.DecodeCompact(buffer))
+		storeOrder, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		orderType, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MetadataTypeDefinition{}, err
+		}
+		return NewMetadataTypeDefinitionBitSequence(storeOrder, orderType), nil
 	default:
 		log.Critical("invalid MetadataTypeDefinition type")
 	}
@@ -121,13 +164,30 @@ func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) {
 	mtdf.Docs.Encode(buffer)
 }
 
-func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) MetadataTypeDefinitionField {
-	return MetadataTypeDefinitionField{
-		Name:     sc.DecodeOption[sc.Str](buffer),
-		Type:     sc.DecodeCompact(buffer),
-		TypeName: sc.DecodeOption[sc.Str](buffer),
-		Docs:     sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefinitionField, error) {
+	name, err := sc.DecodeOption[sc.Str](buffer)
+	if err != nil {
+		return MetadataTypeDefinitionField{}, err
 	}
+	t, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return MetadataTypeDefinitionField{}, err
+	}
+	tName, err := sc.DecodeOption[sc.Str](buffer)
+	if err != nil {
+		return MetadataTypeDefinitionField{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataTypeDefinitionField{}, err
+	}
+
+	return MetadataTypeDefinitionField{
+		Name:     name,
+		Type:     t,
+		TypeName: tName,
+		Docs:     docs,
+	}, nil
 }
 
 func (mtdf MetadataTypeDefinitionField) Bytes() []byte {
@@ -161,13 +221,29 @@ func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) {
 	mdv.Docs.Encode(buffer)
 }
 
-func DecodeMetadataTypeDefinitionVariant(buffer *bytes.Buffer) MetadataDefinitionVariant {
-	return MetadataDefinitionVariant{
-		Name:   sc.DecodeStr(buffer),
-		Fields: sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionField),
-		Index:  sc.DecodeU8(buffer),
-		Docs:   sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataTypeDefinitionVariant(buffer *bytes.Buffer) (MetadataDefinitionVariant, error) {
+	name, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataDefinitionVariant{}, err
 	}
+	fields, err := sc.DecodeSequenceWith(buffer, DecodeMetadataTypeDefinitionField)
+	if err != nil {
+		return MetadataDefinitionVariant{}, err
+	}
+	idx, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataDefinitionVariant{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataDefinitionVariant{}, err
+	}
+	return MetadataDefinitionVariant{
+		Name:   name,
+		Fields: fields,
+		Index:  idx,
+		Docs:   docs,
+	}, nil
 }
 
 func (mdv MetadataDefinitionVariant) Bytes() []byte {
@@ -194,40 +270,43 @@ const (
 
 type MetadataDefinitionPrimitive = sc.U8
 
-func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) MetadataDefinitionPrimitive {
-	b := sc.DecodeU8(buffer)
+func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinitionPrimitive, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MetadataDefinitionPrimitive(0), err
+	}
 
 	switch b {
 	case MetadataDefinitionPrimitiveBoolean:
-		return MetadataDefinitionPrimitiveBoolean
+		return MetadataDefinitionPrimitiveBoolean, nil
 	case MetadataDefinitionPrimitiveChar:
-		return MetadataDefinitionPrimitiveChar
+		return MetadataDefinitionPrimitiveChar, nil
 	case MetadataDefinitionPrimitiveString:
-		return MetadataDefinitionPrimitiveString
+		return MetadataDefinitionPrimitiveString, nil
 	case MetadataDefinitionPrimitiveU8:
-		return MetadataDefinitionPrimitiveU8
+		return MetadataDefinitionPrimitiveU8, nil
 	case MetadataDefinitionPrimitiveU16:
-		return MetadataDefinitionPrimitiveU16
+		return MetadataDefinitionPrimitiveU16, nil
 	case MetadataDefinitionPrimitiveU32:
-		return MetadataDefinitionPrimitiveU32
+		return MetadataDefinitionPrimitiveU32, nil
 	case MetadataDefinitionPrimitiveU64:
-		return MetadataDefinitionPrimitiveU64
+		return MetadataDefinitionPrimitiveU64, nil
 	case MetadataDefinitionPrimitiveU128:
-		return MetadataDefinitionPrimitiveU128
+		return MetadataDefinitionPrimitiveU128, nil
 	case MetadataDefinitionPrimitiveU256:
-		return MetadataDefinitionPrimitiveU256
+		return MetadataDefinitionPrimitiveU256, nil
 	case MetadataDefinitionPrimitiveI8:
-		return MetadataDefinitionPrimitiveI8
+		return MetadataDefinitionPrimitiveI8, nil
 	case MetadataDefinitionPrimitiveI16:
-		return MetadataDefinitionPrimitiveI16
+		return MetadataDefinitionPrimitiveI16, nil
 	case MetadataDefinitionPrimitiveI32:
-		return MetadataDefinitionPrimitiveI32
+		return MetadataDefinitionPrimitiveI32, nil
 	case MetadataDefinitionPrimitiveI64:
-		return MetadataDefinitionPrimitiveI64
+		return MetadataDefinitionPrimitiveI64, nil
 	case MetadataDefinitionPrimitiveI128:
-		return MetadataDefinitionPrimitiveI128
+		return MetadataDefinitionPrimitiveI128, nil
 	case MetadataDefinitionPrimitiveI256:
-		return MetadataDefinitionPrimitiveI256
+		return MetadataDefinitionPrimitiveI256, nil
 
 	default:
 		log.Critical("invalid MetadataDefinitionPrimitive type")

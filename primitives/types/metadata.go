@@ -90,9 +90,17 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 
 	switch version {
 	case MetadataVersion14:
-		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}, nil
+		data14, err := DecodeRuntimeMetadataV14(buffer)
+		if err != nil {
+			return Metadata{}, err
+		}
+		return Metadata{Version: MetadataVersion14, DataV14: data14}, nil
 	case MetadataVersion15:
-		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}, nil
+		data15, err := DecodeRuntimeMetadataV15(buffer)
+		if err != nil {
+			return Metadata{}, err
+		}
+		return Metadata{Version: MetadataVersion15, DataV15: data15}, nil
 	default:
 		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
@@ -178,11 +186,15 @@ func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
 	if err != nil {
 		return MetadataType{}, err
 	}
+	def, err := DecodeMetadataTypeDefinition(buffer)
+	if err != nil {
+		return MetadataType{}, err
+	}
 	return MetadataType{
 		Id:         id,
 		Path:       path,
 		Params:     params,
-		Definition: DecodeMetadataTypeDefinition(buffer),
+		Definition: def,
 		Docs:       docs,
 	}, nil
 }

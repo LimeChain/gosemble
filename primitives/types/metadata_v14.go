@@ -20,13 +20,29 @@ func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) {
 	rm.Type.Encode(buffer)
 }
 
-func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) RuntimeMetadataV14 {
-	return RuntimeMetadataV14{
-		Types:     sc.DecodeSequenceWith(buffer, DecodeMetadataType),
-		Modules:   sc.DecodeSequenceWith(buffer, DecodeMetadataModuleV14),
-		Extrinsic: DecodeMetadataExtrinsicV14(buffer),
-		Type:      sc.DecodeCompact(buffer),
+func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) {
+	types, err := sc.DecodeSequenceWith(buffer, DecodeMetadataType)
+	if err != nil {
+		return RuntimeMetadataV14{}, err
 	}
+	modules, err := sc.DecodeSequenceWith(buffer, DecodeMetadataModuleV14)
+	if err != nil {
+		return RuntimeMetadataV14{}, err
+	}
+	extrinsic, err := DecodeMetadataExtrinsicV14(buffer)
+	if err != nil {
+		return RuntimeMetadataV14{}, err
+	}
+	t, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return RuntimeMetadataV14{}, err
+	}
+	return RuntimeMetadataV14{
+		Types:     types,
+		Modules:   modules,
+		Extrinsic: extrinsic,
+		Type:      t,
+	}, nil
 }
 
 func (rm RuntimeMetadataV14) Bytes() []byte {

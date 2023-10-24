@@ -23,11 +23,19 @@ func (ai ApiItem) Encode(buffer *bytes.Buffer) {
 	ai.Version.Encode(buffer)
 }
 
-func DecodeApiItem(buffer *bytes.Buffer) ApiItem {
-	return ApiItem{
-		Name:    sc.DecodeFixedSequence[sc.U8](8, buffer),
-		Version: sc.DecodeU32(buffer),
+func DecodeApiItem(buffer *bytes.Buffer) (ApiItem, error) {
+	name, err := sc.DecodeFixedSequence[sc.U8](8, buffer)
+	if err != nil {
+		return ApiItem{}, err
 	}
+	version, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return ApiItem{}, err
+	}
+	return ApiItem{
+		Name:    name,
+		Version: version,
+	}, nil
 }
 
 func (ai ApiItem) Bytes() []byte {
