@@ -36,30 +36,6 @@ func (di DispatchInfo) Bytes() []byte {
 	return sc.EncodedBytes(di)
 }
 
-// ExtractActualWeight Extract the actual weight from a dispatch result if any or fall back to the default weight.
-func ExtractActualWeight(result *DispatchResultWithPostInfo[PostDispatchInfo], info *DispatchInfo) Weight {
-	var pdi PostDispatchInfo
-	if result.HasError {
-		err := result.Err
-		pdi = err.PostInfo
-	} else {
-		pdi = result.Ok
-	}
-	return pdi.CalcActualWeight(info)
-}
-
-// ExtractActualPaysFee Extract the actual pays_fee from a dispatch result if any or fall back to the default weight.
-func ExtractActualPaysFee(result *DispatchResultWithPostInfo[PostDispatchInfo], info *DispatchInfo) Pays {
-	var pdi PostDispatchInfo
-	if result.HasError {
-		err := result.Err
-		pdi = err.PostInfo
-	} else {
-		pdi = result.Ok
-	}
-	return pdi.Pays(info)
-}
-
 // GetDispatchInfo returns the DispatchInfo of the given call.
 // Uses call's BaseWeight to calculate all the information in DispatchInfo
 func GetDispatchInfo(call Call) DispatchInfo {
