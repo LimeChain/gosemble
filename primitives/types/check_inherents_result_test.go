@@ -23,6 +23,12 @@ var (
 		data: map[[8]byte]sc.Sequence[sc.U8]{},
 	}
 
+	inherentDataOkWithIdent = InherentData{
+		data: map[[8]byte]sc.Sequence[sc.U8]{
+			inherentIdentifier: {1},
+		},
+	}
+
 	inherentDataErr = InherentData{
 		data: map[[8]byte]sc.Sequence[sc.U8]{
 			inherentIdentifier: {2},
@@ -35,6 +41,12 @@ var (
 		Okay:       true,
 		FatalError: false,
 		Errors:     inherentDataOk,
+	}
+
+	targetCheckInherentsResultOkWithIdent = CheckInherentsResult{
+		Okay:       true,
+		FatalError: false,
+		Errors:     inherentDataOkWithIdent,
 	}
 
 	targetCheckInherentsResultErr = CheckInherentsResult{
@@ -85,6 +97,12 @@ func Test_CheckInherentsResult_PutError(t *testing.T) {
 	assert.Equal(t, sc.Bool(false), targetCheckInherentsResultOk.Okay)
 	assert.Equal(t, sc.Bool(true), targetCheckInherentsResultOk.FatalError)
 	assert.Equal(t, inherentDataErr, targetCheckInherentsResultOk.Errors)
+}
+
+func Test_CheckInherentsResult_PutError_ExistingIdentifier(t *testing.T) {
+	err := targetCheckInherentsResultOkWithIdent.PutError(inherentIdentifier, NewInherentErrorApplication())
+
+	assert.Equal(t, NewInherentErrorInherentDataExists(sc.BytesToSequenceU8(inherentIdentifier[:])), err)
 }
 
 func Test_DecodeCheckInherentsResult(t *testing.T) {

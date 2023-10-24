@@ -36,28 +36,28 @@ func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) {
 	cir.Okay.Encode(buffer)
 	cir.FatalError.Encode(buffer)
 	cir.Errors.Encode(buffer)
-}
 
+}
 func (cir CheckInherentsResult) Bytes() []byte {
 	return sc.EncodedBytes(cir)
 }
 
-func (cir *CheckInherentsResult) PutError(inherentIdentifier [8]byte, er FatalError) error {
+func (cir *CheckInherentsResult) PutError(inherentIdentifier [8]byte, fatalError FatalError) error {
 	if cir.FatalError {
 		return NewInherentErrorFatalErrorReported()
 	}
 
-	if er.IsFatal() {
+	if fatalError.IsFatal() {
 		cir.Errors.Clear()
 	}
 
-	err := cir.Errors.Put(inherentIdentifier, er)
+	err := cir.Errors.Put(inherentIdentifier, fatalError)
 	if err != nil {
 		return err
 	}
 
 	cir.Okay = false
-	cir.FatalError = er.IsFatal()
+	cir.FatalError = fatalError.IsFatal()
 
 	return nil
 }
