@@ -182,11 +182,11 @@ func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
 	if err != nil {
 		return MetadataType{}, err
 	}
-	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	def, err := DecodeMetadataTypeDefinition(buffer)
 	if err != nil {
 		return MetadataType{}, err
 	}
-	def, err := DecodeMetadataTypeDefinition(buffer)
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
 	if err != nil {
 		return MetadataType{}, err
 	}

@@ -3,6 +3,7 @@ package grandpa
 import (
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -34,6 +35,9 @@ func (m Module) Item() primitives.ApiItem {
 }
 
 func (m Module) Authorities() int64 {
-	authorities := m.grandpa.Authorities()
+	authorities, err := m.grandpa.Authorities()
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	return m.memUtils.BytesToOffsetAndSize(authorities.Bytes())
 }

@@ -22,10 +22,14 @@ func (s SignatureEcdsa) Encode(buffer *bytes.Buffer) {
 	s.FixedSequence.Encode(buffer)
 }
 
-func DecodeSignatureEcdsa(buffer *bytes.Buffer) SignatureEcdsa {
+func DecodeSignatureEcdsa(buffer *bytes.Buffer) (SignatureEcdsa, error) {
 	s := SignatureEcdsa{}
-	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](signatureEcdsaLength, buffer)
-	return s
+	seq, err := sc.DecodeFixedSequence[sc.U8](signatureEcdsaLength, buffer)
+	if err != nil {
+		return SignatureEcdsa{}, err
+	}
+	s.FixedSequence = seq
+	return s, nil
 }
 
 func (s SignatureEcdsa) Bytes() []byte {

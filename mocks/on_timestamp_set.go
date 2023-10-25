@@ -9,6 +9,7 @@ type OnTimestampSet struct {
 	mock.Mock
 }
 
-func (m *OnTimestampSet) OnTimestampSet(n sc.U64) {
+func (m *OnTimestampSet) OnTimestampSet(n sc.U64) error {
 	m.Called(n)
+	return nil
 }

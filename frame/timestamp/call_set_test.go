@@ -66,7 +66,8 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 	compact := sc.ToCompact(sc.U8(5))
 	buf := bytes.NewBuffer(compact.Bytes())
 
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(compact), call.Args())
 }
@@ -89,7 +90,8 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 
 	buf := bytes.NewBuffer(compact.Bytes())
 
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	buf.Reset()
 	call.Encode(buf)

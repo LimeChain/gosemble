@@ -110,7 +110,10 @@ func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
 	case DispatchErrorTooManyConsumers:
 		return NewDispatchErrorTooManyConsumers(), nil
 	case DispatchErrorToken:
-		tokenError := DecodeTokenError(buffer)
+		tokenError, err := DecodeTokenError(buffer)
+		if err != nil {
+			return DispatchError{}, err
+		}
 		return NewDispatchErrorToken(tokenError), nil
 	case DispatchErrorArithmetic:
 		arithmeticError, err := DecodeArithmeticError(buffer)
@@ -119,7 +122,10 @@ func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
 		}
 		return NewDispatchErrorArithmetic(arithmeticError), nil
 	case DispatchErrorTransactional:
-		transactionalError := DecodeTransactionalError(buffer)
+		transactionalError, err := DecodeTransactionalError(buffer)
+		if err != nil {
+			return DispatchError{}, err
+		}
 		return NewDispatchErrorTransactional(transactionalError), nil
 	case DispatchErrorExhausted:
 		return NewDispatchErrorExhausted(), nil
@@ -184,7 +190,11 @@ func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer
 
 func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {
 	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
-	e.PostInfo = DecodePostDispatchInfo(buffer)
+	postInfo, err := DecodePostDispatchInfo(buffer)
+	if err != nil {
+		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
+	}
+	e.PostInfo = postInfo
 	dispatchError, err := DecodeDispatchError(buffer)
 	if err != nil {
 		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err

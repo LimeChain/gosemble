@@ -56,14 +56,34 @@ func (tx ValidTransaction) Encode(buffer *bytes.Buffer) {
 	tx.Propagate.Encode(buffer)
 }
 
-func DecodeValidTransaction(buffer *bytes.Buffer) ValidTransaction {
-	return ValidTransaction{
-		Priority:  sc.DecodeU64(buffer),
-		Requires:  sc.DecodeSequence[TransactionTag](buffer),
-		Provides:  sc.DecodeSequence[TransactionTag](buffer),
-		Longevity: sc.DecodeU64(buffer),
-		Propagate: sc.DecodeBool(buffer),
+func DecodeValidTransaction(buffer *bytes.Buffer) (ValidTransaction, error) {
+	priority, err := sc.DecodeU64(buffer)
+	if err != nil {
+		return ValidTransaction{}, err
 	}
+	requires, err := sc.DecodeSequence[TransactionTag](buffer)
+	if err != nil {
+		return ValidTransaction{}, err
+	}
+	provides, err := sc.DecodeSequence[TransactionTag](buffer)
+	if err != nil {
+		return ValidTransaction{}, err
+	}
+	longevity, err := sc.DecodeU64(buffer)
+	if err != nil {
+		return ValidTransaction{}, err
+	}
+	propagate, err := sc.DecodeBool(buffer)
+	if err != nil {
+		return ValidTransaction{}, err
+	}
+	return ValidTransaction{
+		Priority:  priority,
+		Requires:  requires,
+		Provides:  provides,
+		Longevity: longevity,
+		Propagate: propagate,
+	}, nil
 }
 
 func (tx ValidTransaction) Bytes() []byte {

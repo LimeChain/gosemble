@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -63,27 +64,47 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 
 	switch b {
 	case EventExtrinsicSuccess:
-		dispatchInfo := types.DecodeDispatchInfo(buffer)
+		dispatchInfo, err := types.DecodeDispatchInfo(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo), nil
 	case EventExtrinsicFailed:
-		dispatchErr := types.DecodeDispatchError(buffer)
-		dispatchInfo := types.DecodeDispatchInfo(buffer)
+		dispatchErr, err := types.DecodeDispatchError(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		dispatchInfo, err := types.DecodeDispatchInfo(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo), nil
 	case EventCodeUpdated:
 		return newEventCodeUpdated(moduleIndex), nil
 	case EventNewAccount:
-		account := types.DecodePublicKey(buffer)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		return newEventNewAccount(moduleIndex, account), nil
 	case EventKilledAccount:
-		account := types.DecodePublicKey(buffer)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		return newEventKilledAccount(moduleIndex, account), nil
 	case EventRemarked:
-		account := types.DecodePublicKey(buffer)
-		hash := types.DecodeH256(buffer)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		hash, err := types.DecodeH256(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		return newEventRemarked(moduleIndex, account, hash), nil
 	default:
 		log.Critical(errInvalidEventType)
+		return types.Event{}, errors.New(errInvalidEventType)
 	}
-
-	panic("unreachable")
 }

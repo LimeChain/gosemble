@@ -59,7 +59,8 @@ func Test_Call_ForceFree_DecodeArgs(t *testing.T) {
 	buf := bytes.NewBuffer(append(targetAddress.Bytes(), amount.Bytes()...))
 
 	target := setupCallForceFree()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(targetAddress, amount), call.Args())
 }
@@ -102,7 +103,8 @@ func Test_Call_ForceFree_EncodeWithArgs(t *testing.T) {
 	buf := bytes.NewBuffer(bArgs)
 
 	target := setupCallForceFree()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	buf.Reset()
 	call.Encode(buf)

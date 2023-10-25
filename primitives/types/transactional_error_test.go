@@ -20,7 +20,8 @@ func Test_DecodeTransactionalError_LimitReached(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	result := DecodeTransactionalError(buffer)
+	result, err := DecodeTransactionalError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTransactionalErrorLimitReached(), result)
 }
@@ -29,7 +30,8 @@ func Test_DecodeTransactionalError_NoLayer(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodeTransactionalError(buffer)
+	result, err := DecodeTransactionalError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTransactionalErrorNoLayer(), result)
 }

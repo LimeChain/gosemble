@@ -62,7 +62,7 @@ func newStorage() *storage {
 		Digest:             support.NewHashStorageValue(keySystem, keyDigest, types.DecodeDigest),
 		Events:             support.NewHashStorageValue(keySystem, keyEvents, types.DecodeEventRecord),
 		EventCount:         support.NewHashStorageValue(keySystem, keyEventCount, sc.DecodeU32),
-		EventTopics:        support.NewHashStorageMap[types.H256, sc.VaryingData](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) sc.VaryingData { return sc.NewVaryingData() }),
+		EventTopics:        support.NewHashStorageMap[types.H256, sc.VaryingData](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) (sc.VaryingData, error) { return sc.NewVaryingData(), nil }),
 		LastRuntimeUpgrade: support.NewHashStorageValue(keySystem, keyLastRuntimeUpgrade, types.DecodeLastRuntimeUpgradeInfo),
 		ExecutionPhase:     support.NewHashStorageValue(keySystem, keyExecutionPhase, types.DecodeExtrinsicPhase),
 	}

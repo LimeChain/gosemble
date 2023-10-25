@@ -88,7 +88,11 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(sequence))
 	sessionKeys := sc.Sequence[types.SessionKey]{}
 	for _, session := range m.sessions {
-		sessionKey := types.NewSessionKey(sc.FixedSequenceU8ToBytes(types.DecodePublicKey(buffer)), session.KeyTypeId())
+		pk, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+		}
+		sessionKey := types.NewSessionKey(sc.FixedSequenceU8ToBytes(pk), session.KeyTypeId())
 		sessionKeys = append(sessionKeys, sessionKey)
 	}
 

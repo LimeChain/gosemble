@@ -68,8 +68,8 @@ func (m *Call) WeighData(baseWeight types.Weight) types.Weight {
 	return args.Get(0).(types.Weight)
 }
 
-func (m *Call) DecodeArgs(buffer *bytes.Buffer) types.Call {
+func (m *Call) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	args := m.Called(buffer)
 
-	return args.Get(0).(types.Call)
+	return args.Get(0).(types.Call), nil
 }

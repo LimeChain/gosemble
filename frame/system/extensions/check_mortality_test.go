@@ -40,7 +40,8 @@ func Test_CheckMortality_Decode(t *testing.T) {
 
 	target := setupCheckMortality()
 
-	target.Decode(buffer)
+	err := target.Decode(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, era, target.era)
 }

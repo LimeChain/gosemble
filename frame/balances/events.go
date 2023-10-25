@@ -84,29 +84,44 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 
 	switch b {
 	case EventEndowed:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		freeBalance, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventEndowed(moduleIndex, account, freeBalance), nil
 	case EventDustLost:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventDustLost(moduleIndex, account, amount), nil
 	case EventTransfer:
-		from := primitives.DecodePublicKey(buffer)
-		to := primitives.DecodePublicKey(buffer)
+		from, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		to, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventTransfer(moduleIndex, from, to, amount), nil
 	case EventBalanceSet:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		free, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
@@ -117,44 +132,68 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventBalanceSet(moduleIndex, account, free, reserved), nil
 	case EventReserved:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventReserved(moduleIndex, account, amount), nil
 	case EventUnreserved:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventUnreserved(moduleIndex, account, amount), nil
 	case EventReserveRepatriated:
-		from := primitives.DecodePublicKey(buffer)
-		to := primitives.DecodePublicKey(buffer)
+		from, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		to, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
-		destinationStatus := types.DecodeBalanceStatus(buffer)
+		destinationStatus, err := types.DecodeBalanceStatus(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		return newEventReserveRepatriated(moduleIndex, from, to, amount, destinationStatus), nil
 	case EventDeposit:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventDeposit(moduleIndex, account, amount), nil
 	case EventWithdraw:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
 		return newEventWithdraw(moduleIndex, account, amount), nil
 	case EventSlashed:
-		account := primitives.DecodePublicKey(buffer)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
 		amount, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return primitives.Event{}, err

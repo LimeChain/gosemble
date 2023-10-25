@@ -34,7 +34,8 @@ func Test_Weight_Encode(t *testing.T) {
 func Test_DecodeWeight(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedWeightBytes)
 
-	result := DecodeWeight(buffer)
+	result, err := DecodeWeight(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetWeight, result)
 }

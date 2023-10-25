@@ -6,6 +6,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -53,15 +54,27 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
-	txSource := primitives.DecodeTransactionSource(buffer)
-	tx := m.decoder.DecodeUncheckedExtrinsic(buffer)
-	blockHash := primitives.DecodeBlake2bHash(buffer)
+	txSource, err := primitives.DecodeTransactionSource(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	tx, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	blockHash, err := primitives.DecodeBlake2bHash(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
 
-	ok, err := m.executive.ValidateTransaction(txSource, tx, blockHash)
+	ok, errTx := m.executive.ValidateTransaction(txSource, tx, blockHash)
 
 	var res primitives.TransactionValidityResult
-	if err != nil {
-		res = primitives.NewTransactionValidityResult(err)
+	if errTx != nil {
+		res = primitives.NewTransactionValidityResult(errTx)
 	} else {
 		res = primitives.NewTransactionValidityResult(ok)
 	}

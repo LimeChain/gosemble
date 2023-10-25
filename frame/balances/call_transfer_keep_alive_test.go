@@ -34,7 +34,8 @@ func Test_Call_TransferKeepAlive_DecodeArgs(t *testing.T) {
 	buf := bytes.NewBuffer(append(targetAddress.Bytes(), amount.Bytes()...))
 
 	target := setupCallTransferKeepAlive()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(targetAddress, amount), call.Args())
 }

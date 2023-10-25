@@ -67,7 +67,10 @@ func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) (ApplyExtrinsicResult, err
 		}
 		return NewApplyExtrinsicResult(value), nil
 	case 1:
-		value := DecodeTransactionValidityError(buffer)
+		value, err := DecodeTransactionValidityError(buffer)
+		if err != nil {
+			return nil, err
+		}
 		return NewApplyExtrinsicResult(value), nil
 	default:
 		log.Critical("invalid ApplyExtrinsicResult type")

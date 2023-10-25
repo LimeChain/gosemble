@@ -12,8 +12,12 @@ type AccountId struct {
 	Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
 }
 
-func DecodeAccountId(buffer *bytes.Buffer) AccountId {
-	return AccountId{DecodeAddress32(buffer)} // TODO: length 32 or 33 depending on algorithm
+func DecodeAccountId(buffer *bytes.Buffer) (AccountId, error) {
+	addr32, err := DecodeAddress32(buffer)
+	if err != nil {
+		return AccountId{}, err
+	}
+	return AccountId{addr32}, nil // TODO: length 32 or 33 depending on algorithm
 }
 
 // AccountIndex It's an account index.
@@ -28,8 +32,12 @@ func (a AccountRaw) Encode(buffer *bytes.Buffer) {
 	a.Sequence.Encode(buffer)
 }
 
-func DecodeAccountRaw(buffer *bytes.Buffer) AccountRaw {
-	return AccountRaw{sc.DecodeSequence[sc.U8](buffer)}
+func DecodeAccountRaw(buffer *bytes.Buffer) (AccountRaw, error) {
+	seq, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return AccountRaw{}, err
+	}
+	return AccountRaw{seq}, nil
 }
 
 // Address32 It's a 32 byte representation.
@@ -44,8 +52,12 @@ func NewAddress32(values ...sc.U8) Address32 {
 	return Address32{sc.NewFixedSequence(32, values...)}
 }
 
-func DecodeAddress32(buffer *bytes.Buffer) Address32 {
-	return Address32{sc.DecodeFixedSequence[sc.U8](32, buffer)}
+func DecodeAddress32(buffer *bytes.Buffer) (Address32, error) {
+	seq, err := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	if err != nil {
+		return Address32{}, err
+	}
+	return Address32{seq}, nil
 }
 
 // Address20 It's a 20 byte representation.
@@ -60,8 +72,12 @@ func NewAddress20(values ...sc.U8) Address20 {
 	return Address20{sc.NewFixedSequence(20, values...)}
 }
 
-func DecodeAddress20(buffer *bytes.Buffer) Address20 {
-	return Address20{sc.DecodeFixedSequence[sc.U8](20, buffer)}
+func DecodeAddress20(buffer *bytes.Buffer) (Address20, error) {
+	seq, err := sc.DecodeFixedSequence[sc.U8](20, buffer)
+	if err != nil {
+		return Address20{}, err
+	}
+	return Address20{seq}, nil
 }
 
 const (
@@ -96,22 +112,44 @@ func NewMultiAddress20(address Address20) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
 }
 
-func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
-	b := sc.DecodeU8(buffer)
+func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MultiAddress{}, err
+	}
 
 	switch b {
 	case MultiAddressId:
-		return NewMultiAddressId(DecodeAccountId(buffer))
+		accId, err := DecodeAccountId(buffer)
+		if err != nil {
+			return MultiAddress{}, err
+		}
+		return NewMultiAddressId(accId), nil
 	case MultiAddressIndex:
-		compact := sc.DecodeCompact(buffer)
+		compact, err := sc.DecodeCompact(buffer)
+		if err != nil {
+			return MultiAddress{}, err
+		}
 		index := sc.U32(compact.ToBigInt().Uint64())
-		return NewMultiAddressIndex(index)
+		return NewMultiAddressIndex(index), nil
 	case MultiAddressRaw:
-		return NewMultiAddressRaw(DecodeAccountRaw(buffer))
+		accRaw, err := DecodeAccountRaw(buffer)
+		if err != nil {
+			return MultiAddress{}, err
+		}
+		return NewMultiAddressRaw(accRaw), nil
 	case MultiAddress32:
-		return NewMultiAddress32(DecodeAddress32(buffer))
+		addr32, err := DecodeAddress32(buffer)
+		if err != nil {
+			return MultiAddress{}, err
+		}
+		return NewMultiAddress32(addr32), nil
 	case MultiAddress20:
-		return NewMultiAddress20(DecodeAddress20(buffer))
+		addr20, err := DecodeAddress20(buffer)
+		if err != nil {
+			return MultiAddress{}, err
+		}
+		return NewMultiAddress20(addr20), nil
 	default:
 		log.Critical("invalid MultiAddress type in Decode")
 	}

@@ -36,7 +36,11 @@ func DecodeDispatchInfo(buffer *bytes.Buffer) (DispatchInfo, error) {
 		return DispatchInfo{}, err
 	}
 	di.Class = class
-	di.PaysFee = DecodePays(buffer)
+	paysFee, err := DecodePays(buffer)
+	if err != nil {
+		return DispatchInfo{}, err
+	}
+	di.PaysFee = paysFee
 	return di, nil
 }
 

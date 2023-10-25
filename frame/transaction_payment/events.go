@@ -33,7 +33,10 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 
 	switch b {
 	case EventTransactionFeePaid:
-		account := types.DecodePublicKey(buffer)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
 		actualFee, err := sc.DecodeU128(buffer)
 		if err != nil {
 			return types.Event{}, err

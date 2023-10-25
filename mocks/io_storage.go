@@ -27,10 +27,10 @@ func (m *IoStorage) Exists(key []byte) bool {
 	return args.Get(0).(bool)
 }
 
-func (m *IoStorage) Get(key []byte) sc.Option[sc.Sequence[sc.U8]] {
+func (m *IoStorage) Get(key []byte) (sc.Option[sc.Sequence[sc.U8]], error) {
 	args := m.Called(key)
 
-	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]])
+	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
 }
 
 func (m *IoStorage) NextKey(key int64) int64 {
@@ -39,10 +39,10 @@ func (m *IoStorage) NextKey(key int64) int64 {
 	return args.Get(0).(int64)
 }
 
-func (m *IoStorage) Read(key []byte, valueOut []byte, offset int32) sc.Option[sc.U32] {
+func (m *IoStorage) Read(key []byte, valueOut []byte, offset int32) (sc.Option[sc.U32], error) {
 	args := m.Called(key, valueOut, offset)
 
-	return args.Get(0).(sc.Option[sc.U32])
+	return args.Get(0).(sc.Option[sc.U32]), nil
 }
 
 func (m *IoStorage) Root(version int32) []byte {

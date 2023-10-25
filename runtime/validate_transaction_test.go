@@ -75,7 +75,8 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 
 	buffer.Reset()
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
+	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
 }
@@ -187,7 +188,8 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 
 	buffer.Reset()
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
+	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		primitives.NewTransactionValidityResult(
@@ -255,7 +257,8 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 
 	buffer.Reset()
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
+	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		primitives.NewTransactionValidityResult(
@@ -338,7 +341,8 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 
 	buffer.Reset()
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
+	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
 	assert.Equal(t, sc.U64(15), transactionValidityResult.AsValidTransaction().Longevity)

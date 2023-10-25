@@ -41,13 +41,14 @@ func (m *AuraModule) KeyTypeId() [4]byte {
 	return args.Get(0).([4]byte)
 }
 
-func (m *AuraModule) OnInitialize(n sc.U64) primitives.Weight {
+func (m *AuraModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	args := m.Called(n)
-	return args.Get(0).(primitives.Weight)
+	return args.Get(0).(primitives.Weight), nil
 }
 
-func (m *AuraModule) OnTimestampSet(now sc.U64) {
+func (m *AuraModule) OnTimestampSet(now sc.U64) error {
 	m.Called(now)
+	return nil
 }
 
 func (m *AuraModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -60,14 +61,14 @@ func (m *AuraModule) SlotDuration() sc.U64 {
 	return args.Get(0).(sc.U64)
 }
 
-func (m *AuraModule) GetAuthorities() sc.Option[sc.Sequence[sc.U8]] {
+func (m *AuraModule) GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error) {
 	args := m.Called()
-	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]])
+	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
 }
 
-func (m *AuraModule) CreateInherent(inherent types.InherentData) sc.Option[types.Call] {
+func (m *AuraModule) CreateInherent(inherent types.InherentData) (sc.Option[types.Call], error) {
 	args := m.Called(inherent)
-	return args.Get(0).(sc.Option[types.Call])
+	return args.Get(0).(sc.Option[types.Call]), nil
 }
 
 func (m *AuraModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
@@ -90,8 +91,9 @@ func (m *AuraModule) OnRuntimeUpgrade() primitives.Weight {
 	return args.Get(0).(primitives.Weight)
 }
 
-func (m *AuraModule) OnFinalize(n sc.U64) {
+func (m *AuraModule) OnFinalize(n sc.U64) error {
 	m.Called()
+	return nil
 }
 
 func (m *AuraModule) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {

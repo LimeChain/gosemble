@@ -24,8 +24,13 @@ func (cm CheckMortality) Encode(buffer *bytes.Buffer) {
 	cm.era.Encode(buffer)
 }
 
-func (cm *CheckMortality) Decode(buffer *bytes.Buffer) {
-	cm.era = primitives.DecodeEra(buffer)
+func (cm *CheckMortality) Decode(buffer *bytes.Buffer) error {
+	era, err := primitives.DecodeEra(buffer)
+	if err != nil {
+		return err
+	}
+	cm.era = era
+	return nil
 }
 
 func (cm CheckMortality) Bytes() []byte {
@@ -33,19 +38,28 @@ func (cm CheckMortality) Bytes() []byte {
 }
 
 func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	current := cm.systemModule.StorageBlockNumber() // TODO: impl saturated_into::<u64>()
-	n := cm.era.Birth(current)                      // TODO: impl saturated_into::<T::BlockNumber>()
+	current, err := cm.systemModule.StorageBlockNumber() // TODO: impl saturated_into::<u64>()
+	if err != nil {
+		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
+	n := cm.era.Birth(current) // TODO: impl saturated_into::<T::BlockNumber>()
 
 	if !cm.systemModule.StorageBlockHashExists(n) {
 		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 	}
 
-	blockHash := cm.systemModule.StorageBlockHash(n)
+	blockHash, err := cm.systemModule.StorageBlockHash(n)
+	if err != nil {
+		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 	return sc.NewVaryingData(primitives.NewH256(blockHash.FixedSequence...)), nil
 }
 
 func (cm CheckMortality) Validate(_who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNum := cm.systemModule.StorageBlockNumber() // TODO: per module implementation
+	currentBlockNum, err := cm.systemModule.StorageBlockNumber() // TODO: per module implementation
+	if err != nil {
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 
 	validTill := cm.era.Death(currentBlockNum)
 

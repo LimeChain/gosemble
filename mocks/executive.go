@@ -10,12 +10,14 @@ type Executive struct {
 	mock.Mock
 }
 
-func (m *Executive) InitializeBlock(header primitives.Header) {
+func (m *Executive) InitializeBlock(header primitives.Header) error {
 	m.Called(header)
+	return nil
 }
 
-func (m *Executive) ExecuteBlock(block types.Block) {
+func (m *Executive) ExecuteBlock(block types.Block) error {
 	m.Called(block)
+	return nil
 }
 
 func (m *Executive) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
@@ -28,10 +30,10 @@ func (m *Executive) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dis
 	return args.Get(0).(primitives.DispatchOutcome), nil
 }
 
-func (m *Executive) FinalizeBlock() primitives.Header {
+func (m *Executive) FinalizeBlock() (primitives.Header, error) {
 	args := m.Called()
 
-	return args.Get(0).(primitives.Header)
+	return args.Get(0).(primitives.Header), nil
 }
 
 func (m *Executive) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {

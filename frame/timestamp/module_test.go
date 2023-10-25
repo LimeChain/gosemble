@@ -104,7 +104,8 @@ func Test_Module_CreateInherent(t *testing.T) {
 
 	mockStorageNow.On("Get").Return(ts)
 
-	result := target.CreateInherent(*data)
+	result, err := target.CreateInherent(*data)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 
@@ -120,7 +121,8 @@ func Test_Module_CreateInherent_MoreThanStorageTimestamp(t *testing.T) {
 
 	mockStorageNow.On("Get").Return(ts)
 
-	result := target.CreateInherent(*data)
+	result, err := target.CreateInherent(*data)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 

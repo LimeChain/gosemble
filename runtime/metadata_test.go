@@ -20,13 +20,15 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 	buffer := bytes.NewBuffer(bMetadata)
 
 	// Decode Compact Length
-	_ = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
 	bMetadataCopy := make([]byte, buffer.Len())
 	copy(bMetadataCopy, buffer.Bytes())
 
-	metadata := types.DecodeMetadata(buffer)
+	metadata, err := types.DecodeMetadata(buffer)
+	assert.Nil(t, err)
 
 	// Assert encoding of previously decoded
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
@@ -47,7 +49,8 @@ func Test_Metadata_Versions_Correct_Versions(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(metadataVersions)
 
-	versions := sc.DecodeSequence[sc.U32](buffer)
+	versions, err := sc.DecodeSequence[sc.U32](buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 
 	expectedVersions := sc.Sequence[sc.U32]{
@@ -69,20 +72,23 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 
 	resultOptionMetadataBuffer := bytes.NewBuffer(bMetadata)
 
-	optionMetadata := sc.DecodeOptionWith[sc.Sequence[sc.U8]](resultOptionMetadataBuffer, sc.DecodeSequence[sc.U8])
+	optionMetadata, err := sc.DecodeOptionWith[sc.Sequence[sc.U8]](resultOptionMetadataBuffer, sc.DecodeSequence[sc.U8])
+	assert.Nil(t, err)
 
 	metadataV14Bytes := optionMetadata.Value.Bytes()
 
 	buffer := bytes.NewBuffer(metadataV14Bytes)
 
 	// Decode Compact Length
-	_ = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
 	bMetadataCopy := make([]byte, buffer.Len())
 	copy(bMetadataCopy, buffer.Bytes())
 
-	metadata := types.DecodeMetadata(buffer)
+	metadata, err := types.DecodeMetadata(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
 
@@ -102,19 +108,22 @@ func Test_Metadata_At_Version_15(t *testing.T) {
 
 	resultOptionMetadataBuffer := bytes.NewBuffer(bMetadata)
 
-	optionMetadata := sc.DecodeOptionWith[sc.Sequence[sc.U8]](resultOptionMetadataBuffer, sc.DecodeSequence[sc.U8])
+	optionMetadata, err := sc.DecodeOptionWith[sc.Sequence[sc.U8]](resultOptionMetadataBuffer, sc.DecodeSequence[sc.U8])
+	assert.Nil(t, err)
 
 	metadataV15Bytes := optionMetadata.Value.Bytes()
 
 	buffer := bytes.NewBuffer(metadataV15Bytes)
 
 	// Decode Compact Length
-	_ = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 
 	bMetadataCopy := make([]byte, buffer.Len())
 	copy(bMetadataCopy, buffer.Bytes())
 
-	metadata := types.DecodeMetadata(buffer)
+	metadata, err := types.DecodeMetadata(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, bMetadataCopy, metadata.Bytes())
 }
@@ -129,7 +138,8 @@ func Test_Metadata_At_Version_UnsupportedVersion(t *testing.T) {
 
 	buffer := bytes.NewBuffer(bMetadata)
 
-	result := sc.DecodeOption[types.Metadata](buffer)
+	result, err := sc.DecodeOption[types.Metadata](buffer)
+	assert.Nil(t, err)
 
 	expectedResult := sc.Option[types.Metadata]{
 		HasValue: sc.Bool(false),

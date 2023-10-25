@@ -48,7 +48,8 @@ func Test_DecodeDispatchError(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := DecodeDispatchError(buffer)
+			result, err := DecodeDispatchError(buffer)
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})

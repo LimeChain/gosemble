@@ -47,16 +47,25 @@ func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
 	value.Encode(buffer)
 }
 
-func DecodeTransactionValidityError(buffer *bytes.Buffer) TransactionValidityError {
-	b := sc.DecodeU8(buffer)
+func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityError, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return TransactionValidityError{}, err
+	}
 
 	switch b {
 	case TransactionValidityErrorInvalidTransaction:
-		value := DecodeInvalidTransaction(buffer)
-		return NewTransactionValidityError(value)
+		value, err := DecodeInvalidTransaction(buffer)
+		if err != nil {
+			return TransactionValidityError{}, err
+		}
+		return NewTransactionValidityError(value), nil
 	case TransactionValidityErrorUnknownTransaction:
-		value := DecodeUnknownTransaction(buffer)
-		return NewTransactionValidityError(value)
+		value, err := DecodeUnknownTransaction(buffer)
+		if err != nil {
+			return TransactionValidityError{}, err
+		}
+		return NewTransactionValidityError(value), nil
 	default:
 		log.Critical(errInvalidTransactionValidityErrorType)
 	}

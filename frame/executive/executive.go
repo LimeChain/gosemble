@@ -13,10 +13,10 @@ import (
 )
 
 type Module interface {
-	InitializeBlock(header primitives.Header)
-	ExecuteBlock(block primitives.Block)
+	InitializeBlock(header primitives.Header) error
+	ExecuteBlock(block primitives.Block) error
 	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
-	FinalizeBlock() primitives.Header
+	FinalizeBlock() (primitives.Header, error)
 	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
 	OffchainWorker(header primitives.Header)
 }
@@ -39,38 +39,55 @@ func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic
 
 // InitializeBlock initialises a block with the given header,
 // starting the execution of a particular block.
-func (m module) InitializeBlock(header primitives.Header) {
+func (m module) InitializeBlock(header primitives.Header) error {
 	log.Trace("init_block")
 	m.system.ResetEvents()
 
 	weight := primitives.WeightZero()
-	if m.runtimeUpgrade() {
+	upgrade, err := m.runtimeUpgrade()
+	if err != nil {
+		return err
+	}
+	if upgrade {
 		weight = weight.SaturatingAdd(m.executeOnRuntimeUpgrade())
 	}
 
 	m.system.Initialize(header.Number, header.ParentHash, extractPreRuntimeDigest(header.Digest))
 
-	weight = weight.SaturatingAdd(m.runtimeExtrinsic.OnInitialize(header.Number))
+	onInit, err := m.runtimeExtrinsic.OnInitialize(header.Number)
+	if err != nil {
+		return err
+	}
+
+	weight = weight.SaturatingAdd(onInit)
 	weight = weight.SaturatingAdd(m.system.BlockWeights().BaseBlock)
 	// use in case of dynamic weight calculation
 	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
 
 	m.system.NoteFinishedInitialize()
+	return nil
 }
 
-func (m module) ExecuteBlock(block primitives.Block) {
+func (m module) ExecuteBlock(block primitives.Block) error {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
 	log.Trace("execute_block " + strconv.Itoa(int(block.Header().Number)))
 
 	m.InitializeBlock(block.Header())
 
-	m.initialChecks(block)
+	err := m.initialChecks(block)
+	if err != nil {
+		return err
+	}
 
 	m.executeExtrinsicsWithBookKeeping(block)
 
 	header := block.Header()
-	m.finalChecks(&header)
+	err = m.finalChecks(&header)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ApplyExtrinsic applies extrinsic outside the block execution function.
@@ -123,10 +140,13 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	return primitives.NewDispatchOutcome(nil), nil
 }
 
-func (m module) FinalizeBlock() primitives.Header {
+func (m module) FinalizeBlock() (primitives.Header, error) {
 	log.Trace("finalize_block")
 	m.system.NoteFinishedExtrinsics()
-	blockNumber := m.system.StorageBlockNumber()
+	blockNumber, err := m.system.StorageBlockNumber()
+	if err != nil {
+		return primitives.Header{}, err
+	}
 
 	m.idleAndFinalizeHook(blockNumber)
 
@@ -140,7 +160,10 @@ func (m module) FinalizeBlock() primitives.Header {
 // Changes made to storage should be discarded.
 func (m module) ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	log.Trace("validate_transaction")
-	currentBlockNumber := m.system.StorageBlockNumber()
+	currentBlockNumber, err := m.system.StorageBlockNumber()
+	if err != nil {
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 
 	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
 
@@ -148,9 +171,9 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
-	if err != nil {
-		return primitives.ValidTransaction{}, err
+	checked, errCheck := uxt.Check(primitives.DefaultAccountIdLookup())
+	if errCheck != nil {
+		return primitives.ValidTransaction{}, errCheck
 	}
 
 	log.Trace("dispatch_info")
@@ -176,8 +199,11 @@ func (m module) OffchainWorker(header primitives.Header) {
 	m.runtimeExtrinsic.OffchainWorker(header.Number)
 }
 
-func (m module) idleAndFinalizeHook(blockNumber sc.U64) {
-	weight := m.system.StorageBlockWeight()
+func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
+	weight, err := m.system.StorageBlockWeight()
+	if err != nil {
+		return err
+	}
 
 	maxWeight := m.system.BlockWeights().MaxBlock
 	remainingWeight := maxWeight.SaturatingSub(weight.Total())
@@ -188,6 +214,7 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) {
 	}
 
 	m.runtimeExtrinsic.OnFinalize(blockNumber)
+	return nil
 }
 
 func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) {
@@ -203,14 +230,17 @@ func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) {
 	m.idleAndFinalizeHook(block.Header().Number)
 }
 
-func (m module) initialChecks(block primitives.Block) {
+func (m module) initialChecks(block primitives.Block) error {
 	log.Trace("initial_checks")
 
 	header := block.Header()
 	blockNumber := header.Number
 
 	if blockNumber > 0 {
-		storageParentHash := m.system.StorageBlockHash(blockNumber - 1)
+		storageParentHash, err := m.system.StorageBlockHash(blockNumber - 1)
+		if err != nil {
+			return err
+		}
 
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
 			log.Critical("parent hash should be valid")
@@ -223,10 +253,14 @@ func (m module) initialChecks(block primitives.Block) {
 		// log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
 		log.Critical("invalid inherent position for extrinsic at index " + strconv.Itoa(int(inherentsAreFirst)))
 	}
+	return nil
 }
 
-func (m module) runtimeUpgrade() sc.Bool {
-	last := m.system.StorageLastRuntimeUpgrade()
+func (m module) runtimeUpgrade() (sc.Bool, error) {
+	last, err := m.system.StorageLastRuntimeUpgrade()
+	if err != nil {
+		return false, err
+	}
 
 	if m.system.Version().SpecVersion > last.SpecVersion ||
 		last.SpecName != m.system.Version().SpecName {
@@ -237,14 +271,17 @@ func (m module) runtimeUpgrade() sc.Bool {
 		}
 		m.system.StorageLastRuntimeUpgradeSet(current)
 
-		return true
+		return true, nil
 	}
 
-	return false
+	return false, nil
 }
 
-func (m module) finalChecks(header *primitives.Header) {
-	newHeader := m.system.Finalize()
+func (m module) finalChecks(header *primitives.Header) error {
+	newHeader, err := m.system.Finalize()
+	if err != nil {
+		return err
+	}
 
 	if len(header.Digest) != len(newHeader.Digest) {
 		log.Critical("Number of digest must match the calculated")
@@ -264,6 +301,7 @@ func (m module) finalChecks(header *primitives.Header) {
 	if !reflect.DeepEqual(header.ExtrinsicsRoot, newHeader.ExtrinsicsRoot) {
 		log.Critical("Transaction trie must be valid")
 	}
+	return nil
 }
 
 // executeOnRuntimeUpgrade - Execute all `OnRuntimeUpgrade` of this runtime, and return the aggregate weight.

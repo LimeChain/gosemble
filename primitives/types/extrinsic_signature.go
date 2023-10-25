@@ -22,15 +22,23 @@ func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) {
 	s.Extra.Encode(buffer)
 }
 
-func DecodeExtrinsicSignature(extra SignedExtra, buffer *bytes.Buffer) ExtrinsicSignature {
+func DecodeExtrinsicSignature(extra SignedExtra, buffer *bytes.Buffer) (ExtrinsicSignature, error) {
 	s := ExtrinsicSignature{}
-	s.Signer = DecodeMultiAddress(buffer)
-	s.Signature = DecodeMultiSignature(buffer)
+	signer, err := DecodeMultiAddress(buffer)
+	if err != nil {
+		return ExtrinsicSignature{}, err
+	}
+	s.Signer = signer
+	signature, err := DecodeMultiSignature(buffer)
+	if err != nil {
+		return ExtrinsicSignature{}, err
+	}
+	s.Signature = signature
 
 	s.Extra = extra
 	s.Extra.Decode(buffer)
 
-	return s
+	return s, nil
 }
 
 func (s ExtrinsicSignature) Bytes() []byte {

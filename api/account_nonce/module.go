@@ -5,6 +5,7 @@ import (
 
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -46,8 +47,17 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	publicKey := types.DecodePublicKey(buffer)
-	nonce := m.systemModule.Get(publicKey).Nonce
+	publicKey, err := types.DecodePublicKey(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	pk, err := m.systemModule.Get(publicKey)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	nonce := pk.Nonce
 
 	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
 }

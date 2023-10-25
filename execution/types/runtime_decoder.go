@@ -29,9 +29,15 @@ func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra) Run
 }
 
 func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, error) {
-	header := primitives.DecodeHeader(buffer)
-
-	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	header, err := primitives.DecodeHeader(buffer)
+	if err != nil {
+		return nil, err
+	}
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
+	length := compact.ToBigInt().Int64()
 	extrinsics := make([]types.UncheckedExtrinsic, length)
 
 	for i := 0; i < len(extrinsics); i++ {
@@ -49,7 +55,11 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
+	expectedLength := compact.ToBigInt().Int64()
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
@@ -61,7 +71,11 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
-		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(rd.extra, buffer))
+		sig, err := primitives.DecodeExtrinsicSignature(rd.extra, buffer)
+		if err != nil {
+			return nil, err
+		}
+		extSignature = sc.NewOption[primitives.ExtrinsicSignature](sig)
 	}
 
 	// Decodes the dispatch call, including its arguments.
@@ -104,7 +118,10 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, erro
 		log.Critical("function index [" + strconv.Itoa(int(functionIndex)) + "] for module [" + strconv.Itoa(int(moduleIndex)) + "] not found")
 	}
 
-	function = function.DecodeArgs(buffer)
+	function, err = function.DecodeArgs(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	return function, nil
 }

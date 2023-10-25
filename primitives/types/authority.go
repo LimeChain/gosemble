@@ -17,12 +17,16 @@ func (a Authority) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeAuthority(buffer *bytes.Buffer) (Authority, error) {
+	pk, err := DecodePublicKey(buffer)
+	if err != nil {
+		return Authority{}, err
+	}
 	weight, err := sc.DecodeU64(buffer)
 	if err != nil {
 		return Authority{}, err
 	}
 	return Authority{
-		Id:     DecodePublicKey(buffer),
+		Id:     pk,
 		Weight: weight,
 	}, nil
 }

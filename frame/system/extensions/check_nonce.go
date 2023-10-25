@@ -23,9 +23,13 @@ func (cn CheckNonce) Encode(buffer *bytes.Buffer) {
 	sc.ToCompact(cn.nonce).Encode(buffer)
 }
 
-func (cn *CheckNonce) Decode(buffer *bytes.Buffer) {
-	compactNonce := sc.DecodeCompact(buffer)
+func (cn *CheckNonce) Decode(buffer *bytes.Buffer) error {
+	compactNonce, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return err
+	}
 	cn.nonce = sc.U32(compactNonce.ToBigInt().Uint64())
+	return nil
 }
 
 func (cn CheckNonce) Bytes() []byte {
@@ -37,7 +41,10 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives
 }
 
 func (cn CheckNonce) Validate(who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	account := cn.systemModule.StorageAccount(who.FixedSequence)
+	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
+	if err != nil {
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 
 	if cn.nonce < account.Nonce {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
@@ -70,7 +77,10 @@ func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.Di
 }
 
 func (cn CheckNonce) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
-	account := cn.systemModule.StorageAccount(who.FixedSequence)
+	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
+	if err != nil {
+		return primitives.Pre{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 
 	if cn.nonce != account.Nonce {
 		var err primitives.TransactionValidityError

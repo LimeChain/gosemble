@@ -40,7 +40,8 @@ func Test_DecodeTokenError_NoFunds(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorNoFounds(), result)
 }
@@ -49,7 +50,8 @@ func Test_DecodeTokenError_WouldDie(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorWouldDie(), result)
 }
@@ -58,7 +60,8 @@ func Test_DecodeTokenError_BelowMinimum(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorBelowMinimum(), result)
 }
@@ -67,7 +70,8 @@ func Test_DecodeTokenError_CannotCreate(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(3)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorCannotCreate(), result)
 }
@@ -76,7 +80,8 @@ func Test_DecodeTokenError_UnknownAsset(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(4)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorUnknownAsset(), result)
 }
@@ -85,7 +90,8 @@ func Test_DecodeTokenError_Frozen(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorFrozen(), result)
 }
@@ -94,7 +100,8 @@ func Test_DecodeTokenError_Unsupported(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
 
-	result := DecodeTokenError(buffer)
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewTokenErrorUnsupported(), result)
 }

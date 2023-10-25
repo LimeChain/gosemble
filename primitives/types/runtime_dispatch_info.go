@@ -18,12 +18,24 @@ func (rdi RuntimeDispatchInfo) Encode(buffer *bytes.Buffer) {
 	rdi.PartialFee.Encode(buffer)
 }
 
-func DecodeRuntimeDispatchInfo(buffer *bytes.Buffer) RuntimeDispatchInfo {
+func DecodeRuntimeDispatchInfo(buffer *bytes.Buffer) (RuntimeDispatchInfo, error) {
 	rdi := RuntimeDispatchInfo{}
-	rdi.Weight = DecodeWeight(buffer)
-	rdi.Class = DecodeDispatchClass(buffer)
-	rdi.PartialFee = sc.DecodeU128(buffer)
-	return rdi
+	weight, err := DecodeWeight(buffer)
+	if err != nil {
+		return RuntimeDispatchInfo{}, err
+	}
+	class, err := DecodeDispatchClass(buffer)
+	if err != nil {
+		return RuntimeDispatchInfo{}, err
+	}
+	partialFee, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return RuntimeDispatchInfo{}, err
+	}
+	rdi.Weight = weight
+	rdi.Class = class
+	rdi.PartialFee = partialFee
+	return rdi, nil
 }
 
 func (rdi RuntimeDispatchInfo) Bytes() []byte {

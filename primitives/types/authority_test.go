@@ -43,7 +43,7 @@ func Test_Authority_Bytes(t *testing.T) {
 func Test_DecodeAuthority(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAuthorityBytes)
 
-	result := DecodeAuthority(buffer)
-
+	result, err := DecodeAuthority(buffer)
+	assert.NoError(t, err)
 	assert.Equal(t, targetAuthority, result)
 }

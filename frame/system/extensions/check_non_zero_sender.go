@@ -22,7 +22,7 @@ func (c CheckNonZeroAddress) AdditionalSigned() (primitives.AdditionalSigned, pr
 
 func (c CheckNonZeroAddress) Encode(*bytes.Buffer) {}
 
-func (c CheckNonZeroAddress) Decode(*bytes.Buffer) {}
+func (c CheckNonZeroAddress) Decode(*bytes.Buffer) error { return nil }
 
 func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)

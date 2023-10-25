@@ -134,13 +134,15 @@ func setup(minimumPeriod sc.U64) {
 	mockStorageCurrentSlot = new(mocks.StorageValue[sc.U64])
 	mockStorageAuthorities = new(mocks.StorageValue[sc.Sequence[sc.U8]])
 
+	digest := mockStorageDigest.Get
+
 	config := NewConfig(
 		keyType,
 		dbWeight,
 		minimumPeriod,
 		maxAuthorites,
 		allowMultipleBlocksPerSlot,
-		mockStorageDigest.Get,
+		digest,
 	)
 	module = New(moduleId, config)
 	module.storage.CurrentSlot = mockStorageCurrentSlot
@@ -211,7 +213,10 @@ func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
 	setup(timestampMinimumPeriod)
 	mockStorageDigest.On("Get").Return(types.Digest{})
 
-	assert.Equal(t, types.WeightFromParts(3000, 0), module.OnInitialize(blockNumber))
+	onInit, err := module.OnInitialize(blockNumber)
+	assert.Nil(t, err)
+
+	assert.Equal(t, types.WeightFromParts(3000, 0), onInit)
 	mockStorageDigest.AssertCalled(t, "Get")
 	mockStorageCurrentSlot.AssertNotCalled(t, "Put", mock.Anything)
 }
@@ -235,7 +240,10 @@ func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {
 	mockStorageCurrentSlot.On("Put", sc.U64(1)).Return()
 	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(3)))
 
-	assert.Equal(t, types.WeightFromParts(13_000, 0), module.OnInitialize(blockNumber))
+	onInit, err := module.OnInitialize(blockNumber)
+	assert.Nil(t, err)
+
+	assert.Equal(t, types.WeightFromParts(13_000, 0), onInit)
 	mockStorageDigest.AssertCalled(t, "Get")
 	mockStorageCurrentSlot.AssertCalled(t, "Put", sc.U64(1))
 }

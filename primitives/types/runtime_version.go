@@ -32,29 +32,67 @@ func (rv *RuntimeVersion) SetApis(apis sc.Sequence[ApiItem]) {
 	rv.Apis = apis
 }
 
-func DecodeRuntimeVersion(buffer *bytes.Buffer) RuntimeVersion {
+func DecodeRuntimeVersion(buffer *bytes.Buffer) (RuntimeVersion, error) {
 	var rv RuntimeVersion
 
-	rv.SpecName = sc.DecodeStr(buffer)
-	rv.ImplName = sc.DecodeStr(buffer)
-	rv.AuthoringVersion = sc.DecodeU32(buffer)
-	rv.SpecVersion = sc.DecodeU32(buffer)
-	rv.ImplVersion = sc.DecodeU32(buffer)
+	specName, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+	implName, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+	authVersion, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+	specVersion, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+	implVersion, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
 
-	apisLength := sc.DecodeCompact(buffer).ToBigInt().Uint64()
+	rv.SpecName = specName
+	rv.ImplName = implName
+	rv.AuthoringVersion = authVersion
+	rv.SpecVersion = specVersion
+	rv.ImplVersion = implVersion
+
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+
+	apisLength := compact.ToBigInt().Uint64()
 
 	if apisLength != 0 {
 		var apis []ApiItem
 		for i := 0; i < int(apisLength); i++ {
-			apis = append(apis, DecodeApiItem(buffer))
+			apiItem, err := DecodeApiItem(buffer)
+			if err != nil {
+				return RuntimeVersion{}, err
+			}
+			apis = append(apis, apiItem)
 		}
 		rv.Apis = apis
 	}
+	transactionVersion, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
+	stateVersion, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return RuntimeVersion{}, err
+	}
 
-	rv.TransactionVersion = sc.DecodeU32(buffer)
-	rv.StateVersion = sc.DecodeU8(buffer)
+	rv.TransactionVersion = transactionVersion
+	rv.StateVersion = stateVersion
 
-	return rv
+	return rv, nil
 }
 
 func (rv RuntimeVersion) Bytes() []byte {

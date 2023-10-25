@@ -68,14 +68,18 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (m Module) OnFinalize(_ sc.U64) {
-	value := m.storage.DidUpdate.TakeBytes()
+func (m Module) OnFinalize(_ sc.U64) error {
+	value, err := m.storage.DidUpdate.TakeBytes()
+	if err != nil {
+		return err
+	}
 	if value == nil {
 		log.Critical(errTimestampNotUpdated)
 	}
+	return nil
 }
 
-func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
+func (m Module) CreateInherent(inherent primitives.InherentData) (sc.Option[primitives.Call], error) {
 	inherentData := inherent.Get(inherentIdentifier)
 
 	if inherentData == nil {
@@ -84,14 +88,22 @@ func (m Module) CreateInherent(inherent primitives.InherentData) sc.Option[primi
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
-	ts := sc.DecodeU64(buffer)
+	ts, err := sc.DecodeU64(buffer)
+	if err != nil {
+		return sc.Option[primitives.Call]{}, err
+	}
 	// TODO: err if not able to parse it.
 
-	nextTimestamp := sc.Max64(ts, m.storage.Now.Get()+m.Constants.MinimumPeriod)
+	now, err := m.storage.Now.Get()
+	if err != nil {
+		return sc.Option[primitives.Call]{}, err
+	}
+
+	nextTimestamp := sc.Max64(ts, now+m.Constants.MinimumPeriod)
 
 	function := newCallSetWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
 
-	return sc.NewOption[primitives.Call](function)
+	return sc.NewOption[primitives.Call](function), nil
 }
 
 func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) primitives.FatalError {
@@ -112,10 +124,16 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(sc.SequenceU8ToBytes(inherentData))
-	ts := sc.DecodeU64(buffer)
+	ts, err := sc.DecodeU64(buffer)
+	if err != nil {
+		return primitives.NewInherentErrorFatalErrorReported()
+	}
 	// TODO: err if not able to parse it.
 
-	systemNow := m.storage.Now.Get()
+	systemNow, err := m.storage.Now.Get()
+	if err != nil {
+		return primitives.NewInherentErrorFatalErrorReported()
+	}
 
 	minimum := systemNow + m.Constants.MinimumPeriod
 	if t > ts+maxTimestampDriftMillis {

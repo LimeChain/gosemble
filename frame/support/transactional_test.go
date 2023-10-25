@@ -20,8 +20,10 @@ func Test_Transactional_GetTransactionLevel(t *testing.T) {
 	target := setupTransactional()
 
 	mockStorageValue.On("Get").Return(transactionLevel)
+	txLevel, err := target.GetTransactionLevel()
+	assert.NoError(t, err)
 
-	assert.Equal(t, transactionLevel, target.GetTransactionLevel())
+	assert.Equal(t, transactionLevel, txLevel)
 	mockStorageValue.AssertCalled(t, "Get")
 }
 
@@ -248,6 +250,7 @@ func setupTransactional() transactional[sc.U32, primitives.DispatchError] {
 	mockStorageValue = new(mocks.StorageValue[sc.U32])
 	mockTransactionBroker = new(mocks.IoTransactionBroker)
 
+	//target, _ := NewTransactional[sc.U32, primitives.DispatchError]().(transactional[sc.U32, primitives.DispatchError])
 	target := NewTransactional[sc.U32, primitives.DispatchError]().(transactional[sc.U32, primitives.DispatchError])
 	target.storage = mockStorageValue
 	target.transactionBroker = mockTransactionBroker

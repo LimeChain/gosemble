@@ -10,12 +10,12 @@ import (
 
 type RuntimeExtrinsic interface {
 	Module(index sc.U8) (module primitives.Module, isFound bool)
-	CreateInherents(inherentData primitives.InherentData) []byte
+	CreateInherents(inherentData primitives.InherentData) ([]byte, error)
 	CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult
 	EnsureInherentsAreFirst(block primitives.Block) int
-	OnInitialize(n sc.U64) primitives.Weight
+	OnInitialize(n sc.U64) (primitives.Weight, error)
 	OnRuntimeUpgrade() primitives.Weight
-	OnFinalize(n sc.U64)
+	OnFinalize(n sc.U64) error
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
 	Metadata() (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
@@ -38,12 +38,15 @@ func (re runtimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFoun
 	return primitives.GetModule(index, re.modules)
 }
 
-func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData) []byte {
+func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData) ([]byte, error) {
 	i := 0
 	var result []byte
 
 	for _, module := range re.modules {
-		inherent := module.CreateInherent(inherentData)
+		inherent, err := module.CreateInherent(inherentData)
+		if err != nil {
+			return []byte{}, err
+		}
 
 		if inherent.HasValue {
 			i++
@@ -53,10 +56,10 @@ func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData)
 	}
 
 	if i == 0 {
-		return []byte{}
+		return []byte{}, nil
 	}
 
-	return append(sc.ToCompact(i).Bytes(), result...)
+	return append(sc.ToCompact(i).Bytes(), result...), nil
 }
 
 func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
@@ -128,13 +131,17 @@ func (re runtimeExtrinsic) EnsureInherentsAreFirst(block primitives.Block) int {
 	return -1
 }
 
-func (re runtimeExtrinsic) OnInitialize(n sc.U64) primitives.Weight {
+func (re runtimeExtrinsic) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	weight := primitives.Weight{}
 	for _, m := range re.modules {
-		weight = weight.Add(m.OnInitialize(n))
+		init, err := m.OnInitialize(n)
+		if err != nil {
+			return primitives.Weight{}, err
+		}
+		weight = weight.Add(init)
 	}
 
-	return weight
+	return weight, nil
 }
 
 func (re runtimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
@@ -146,10 +153,11 @@ func (re runtimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 	return weight
 }
 
-func (re runtimeExtrinsic) OnFinalize(n sc.U64) {
+func (re runtimeExtrinsic) OnFinalize(n sc.U64) error {
 	for _, m := range re.modules {
 		m.OnFinalize(n)
 	}
+	return nil
 }
 
 func (re runtimeExtrinsic) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {

@@ -34,7 +34,8 @@ func Test_SignatureEcdsa_Encode(t *testing.T) {
 func Test_DecodeSignatureEcdsa(t *testing.T) {
 	buffer := bytes.NewBuffer(bytesSignatureEcdsa)
 
-	result := DecodeSignatureEcdsa(buffer)
+	result, err := DecodeSignatureEcdsa(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, signatureEcdsa, result)
 }

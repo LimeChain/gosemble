@@ -47,9 +47,13 @@ func newCallSetWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) p
 	return call
 }
 
-func (c callSet) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
-	c.Arguments = sc.NewVaryingData(sc.DecodeCompact(buffer))
-	return c
+func (c callSet) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
+	c.Arguments = sc.NewVaryingData(compact)
+	return c, nil
 }
 
 func (c callSet) Encode(buffer *bytes.Buffer) {
@@ -134,7 +138,10 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 		log.Critical(errTimestampUpdatedOnce)
 	}
 
-	previousTimestamp := c.storage.Now.Get()
+	previousTimestamp, err := c.storage.Now.Get()
+	if err != nil {
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
+	}
 
 	if !(previousTimestamp == 0 ||
 		now >= previousTimestamp+c.constants.MinimumPeriod) {

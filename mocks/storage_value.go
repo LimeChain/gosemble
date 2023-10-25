@@ -9,15 +9,15 @@ type StorageValue[T sc.Encodable] struct {
 	mock.Mock
 }
 
-func (m *StorageValue[T]) Get() T {
+func (m *StorageValue[T]) Get() (T, error) {
 	args := m.Called()
 
-	return args.Get(0).(T)
+	return args.Get(0).(T), nil
 }
 
-func (m *StorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
+func (m *StorageValue[T]) GetBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
 	args := m.Called()
-	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]])
+	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
 }
 
 func (m *StorageValue[T]) Exists() bool {
@@ -38,20 +38,20 @@ func (m *StorageValue[T]) Append(value T) {
 	m.Called(value)
 }
 
-func (m *StorageValue[T]) Take() T {
+func (m *StorageValue[T]) Take() (T, error) {
 	args := m.Called()
 
-	return args.Get(0).(T)
+	return args.Get(0).(T), nil
 }
 
-func (m *StorageValue[T]) TakeBytes() []byte {
+func (m *StorageValue[T]) TakeBytes() ([]byte, error) {
 	args := m.Called()
 
-	return args.Get(0).([]byte)
+	return args.Get(0).([]byte), nil
 }
 
-func (m *StorageValue[T]) DecodeLen() sc.Option[sc.U64] {
+func (m *StorageValue[T]) DecodeLen() (sc.Option[sc.U64], error) {
 	args := m.Called()
 
-	return args.Get(0).(sc.Option[sc.U64])
+	return args.Get(0).(sc.Option[sc.U64]), nil
 }

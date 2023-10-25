@@ -24,9 +24,13 @@ func newCallRemark(moduleId sc.U8, functionId sc.U8) primitives.Call {
 	return call
 }
 
-func (c callRemark) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
-	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
-	return c
+func (c callRemark) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	args, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return nil, err
+	}
+	c.Arguments = sc.NewVaryingData(args)
+	return c, nil
 }
 
 func (c callRemark) Encode(buffer *bytes.Buffer) {

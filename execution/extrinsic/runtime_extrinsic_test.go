@@ -152,7 +152,8 @@ func Test_RuntimeExtrinsic_CreateInherents(t *testing.T) {
 	mockModuleTwo.On("CreateInherent", inherentData).Return(sc.NewOption[primitives.Call](mockCallTwo))
 	mockCallTwo.On("Encode", buffer).Return()
 
-	result := target.CreateInherents(inherentData)
+	result, err := target.CreateInherents(inherentData)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 
@@ -171,7 +172,8 @@ func Test_RuntimeExtrinsic_CreateInherents_Empty(t *testing.T) {
 	mockModuleOne.On("CreateInherent", inherentData).Return(emptyCall)
 	mockModuleTwo.On("CreateInherent", inherentData).Return(emptyCall)
 
-	result := target.CreateInherents(inherentData)
+	result, err := target.CreateInherents(inherentData)
+	assert.Nil(t, err)
 
 	assert.Equal(t, []byte{}, result)
 
@@ -340,7 +342,8 @@ func Test_RuntimeExtrinsic_OnInitialize(t *testing.T) {
 	mockModuleOne.On("OnInitialize", blockNumber).Return(weightOne)
 	mockModuleTwo.On("OnInitialize", blockNumber).Return(weightTwo)
 
-	result := target.OnInitialize(blockNumber)
+	result, err := target.OnInitialize(blockNumber)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 	mockModuleOne.AssertCalled(t, "OnInitialize", blockNumber)

@@ -21,11 +21,19 @@ func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) {
 	pdi.PaysFee.Encode(buffer)
 }
 
-func DecodePostDispatchInfo(buffer *bytes.Buffer) PostDispatchInfo {
+func DecodePostDispatchInfo(buffer *bytes.Buffer) (PostDispatchInfo, error) {
 	pdi := PostDispatchInfo{}
-	pdi.ActualWeight = sc.DecodeOptionWith(buffer, DecodeWeight)
-	pdi.PaysFee = sc.DecodeU8(buffer)
-	return pdi
+	actualWeight, err := sc.DecodeOptionWith(buffer, DecodeWeight)
+	if err != nil {
+		return PostDispatchInfo{}, err
+	}
+	pdi.ActualWeight = actualWeight
+	paysFee, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return PostDispatchInfo{}, err
+	}
+	pdi.PaysFee = paysFee
+	return pdi, nil
 }
 
 func (pdi PostDispatchInfo) Bytes() []byte {

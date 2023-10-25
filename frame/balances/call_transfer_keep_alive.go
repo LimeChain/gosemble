@@ -25,12 +25,20 @@ func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primit
 	return call
 }
 
-func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	addr, err := types.DecodeMultiAddress(buffer)
+	if err != nil {
+		return nil, err
+	}
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
 	c.Arguments = sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeCompact(buffer),
+		addr,
+		compact,
 	)
-	return c
+	return c, nil
 }
 
 func (c callTransferKeepAlive) Encode(buffer *bytes.Buffer) {

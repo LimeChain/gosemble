@@ -15,11 +15,11 @@ type HashStorageValue[T sc.Encodable] struct {
 	hashing io.Hashing
 }
 
-func NewHashStorageValue[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T) StorageValue[T] {
+func NewHashStorageValue[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) (T, error)) StorageValue[T] {
 	return NewHashStorageValueWithDefault(prefix, name, decodeFunc, nil)
 }
 
-func NewHashStorageValueWithDefault[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) T, defaultValue *T) StorageValue[T] {
+func NewHashStorageValueWithDefault[T sc.Encodable](prefix []byte, name []byte, decodeFunc func(buffer *bytes.Buffer) (T, error), defaultValue *T) StorageValue[T] {
 	return HashStorageValue[T]{
 		baseStorage: newBaseStorage[T](decodeFunc, defaultValue),
 		prefix:      prefix,
@@ -28,11 +28,11 @@ func NewHashStorageValueWithDefault[T sc.Encodable](prefix []byte, name []byte, 
 	}
 }
 
-func (hsv HashStorageValue[T]) Get() T {
+func (hsv HashStorageValue[T]) Get() (T, error) {
 	return hsv.baseStorage.get(hsv.key())
 }
 
-func (hsv HashStorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
+func (hsv HashStorageValue[T]) GetBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
 	return hsv.baseStorage.getBytes(hsv.key())
 }
 
@@ -52,15 +52,15 @@ func (hsv HashStorageValue[T]) Append(value T) {
 	hsv.baseStorage.append(hsv.key(), value)
 }
 
-func (hsv HashStorageValue[T]) Take() T {
+func (hsv HashStorageValue[T]) Take() (T, error) {
 	return hsv.baseStorage.take(hsv.key())
 }
 
-func (hsv HashStorageValue[T]) TakeBytes() []byte {
+func (hsv HashStorageValue[T]) TakeBytes() ([]byte, error) {
 	return hsv.baseStorage.takeBytes(hsv.key())
 }
 
-func (hsv HashStorageValue[T]) DecodeLen() sc.Option[sc.U64] {
+func (hsv HashStorageValue[T]) DecodeLen() (sc.Option[sc.U64], error) {
 	return hsv.baseStorage.decodeLen(hsv.key())
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -51,11 +52,23 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	call := m.decoder.DecodeCall(buffer)
-	length := sc.DecodeU32(buffer)
+	call, err := m.decoder.DecodeCall(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	partialFee := m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
+	partialFee, err := m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
 		Weight:     dispatchInfo.Weight,
@@ -77,11 +90,23 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	call := m.decoder.DecodeCall(buffer)
-	length := sc.DecodeU32(buffer)
+	call, err := m.decoder.DecodeCall(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
-	feeDetails := m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
+	feeDetails, err := m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
+	if err != nil {
+		log.Critical(err.Error())
+		return 0
+	}
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
 }

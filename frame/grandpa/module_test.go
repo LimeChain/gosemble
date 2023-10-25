@@ -86,7 +86,8 @@ func Test_Module_Authorities_Success(t *testing.T) {
 
 	mockStorageAuthorities.On("Get").Return(storageAuthorites)
 
-	result := target.Authorities()
+	result, err := target.Authorities()
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectAuthorites, result)
 	mockStorageAuthorities.AssertCalled(t, "Get")
@@ -106,7 +107,8 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 
 	mockStorageAuthorities.On("Get").Return(storageAuthorites)
 
-	result := target.Authorities()
+	result, err := target.Authorities()
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.Sequence[primitives.Authority]{}, result)
 	mockStorageAuthorities.AssertCalled(t, "Get")

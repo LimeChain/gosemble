@@ -23,12 +23,24 @@ func (pdc PerDispatchClass[T]) Encode(buffer *bytes.Buffer) {
 	pdc.Mandatory.Encode(buffer)
 }
 
-func DecodePerDispatchClass[T sc.Encodable](buffer *bytes.Buffer, decodeFunc func(buffer *bytes.Buffer) T) PerDispatchClass[T] {
-	return PerDispatchClass[T]{
-		Normal:      decodeFunc(buffer),
-		Operational: decodeFunc(buffer),
-		Mandatory:   decodeFunc(buffer),
+func DecodePerDispatchClass[T sc.Encodable](buffer *bytes.Buffer, decodeFunc func(buffer *bytes.Buffer) (T, error)) (PerDispatchClass[T], error) {
+	normal, err := decodeFunc(buffer)
+	if err != nil {
+		return PerDispatchClass[T]{}, err
 	}
+	operational, err := decodeFunc(buffer)
+	if err != nil {
+		return PerDispatchClass[T]{}, err
+	}
+	mandatory, err := decodeFunc(buffer)
+	if err != nil {
+		return PerDispatchClass[T]{}, err
+	}
+	return PerDispatchClass[T]{
+		Normal:      normal,
+		Operational: operational,
+		Mandatory:   mandatory,
+	}, nil
 }
 
 func (pdc PerDispatchClass[T]) Bytes() []byte {
