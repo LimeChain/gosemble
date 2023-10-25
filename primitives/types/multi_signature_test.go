@@ -8,7 +8,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_EncodeMultiSignature(t *testing.T) {
+var (
+	multiSignatureEd25519 = NewMultiSignatureEd25519(signatureEd25519)
+	multiSignatureSr25519 = NewMultiSignatureSr25519(signatureSr25519)
+	multiSignatureEcdsa   = NewMultiSignatureEcdsa(signatureEcdsa)
+)
+
+func Test_NewMultiSignatureEd25519(t *testing.T) {
+	expect := MultiSignature{sc.NewVaryingData(MultiSignatureEd25519, signatureEd25519)}
+
+	assert.Equal(t, expect, NewMultiSignatureEd25519(signatureEd25519))
+}
+
+func Test_NewMultiSignatureSr25519(t *testing.T) {
+	expect := MultiSignature{sc.NewVaryingData(MultiSignatureSr25519, signatureSr25519)}
+
+	assert.Equal(t, expect, NewMultiSignatureSr25519(signatureSr25519))
+}
+
+func Test_NewMultiSignatureEcdsa(t *testing.T) {
+	expect := MultiSignature{sc.NewVaryingData(MultiSignatureEcdsa, signatureEcdsa)}
+
+	assert.Equal(t, expect, NewMultiSignatureEcdsa(signatureEcdsa))
+}
+
+func Test_MultiSignature_Encode(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       MultiSignature
@@ -75,4 +99,85 @@ func Test_DecodeMultiSignature(t *testing.T) {
 			assert.Equal(t, testExample.expectation, result)
 		})
 	}
+}
+
+func Test_DecodeMultiSignature_Panics(t *testing.T) {
+	buffer := &bytes.Buffer{}
+	buffer.WriteByte(3)
+
+	assert.PanicsWithValue(t, "invalid MultiSignature type in Decode: 3", func() {
+		DecodeMultiSignature(buffer)
+	})
+}
+
+func Test_MultiSignature_IsEd25519_True(t *testing.T) {
+	assert.True(t, multiSignatureEd25519.IsEd25519())
+}
+
+func Test_MultiSignature_IsEd25519_False(t *testing.T) {
+	assert.False(t, multiSignatureSr25519.IsEd25519())
+	assert.False(t, multiSignatureEcdsa.IsEd25519())
+}
+
+func Test_MultiSignature_IsSr25519_True(t *testing.T) {
+	assert.True(t, multiSignatureSr25519.IsSr25519())
+}
+
+func Test_MultiSignature_IsSr25519_False(t *testing.T) {
+	assert.False(t, multiSignatureEd25519.IsSr25519())
+	assert.False(t, multiSignatureEcdsa.IsSr25519())
+}
+
+func Test_MultiSignature_IsEcdsa_True(t *testing.T) {
+	assert.True(t, multiSignatureEcdsa.IsEcdsa())
+}
+
+func Test_MultiSignature_IsEcdsa_False(t *testing.T) {
+	assert.False(t, multiSignatureEd25519.IsEcdsa())
+	assert.False(t, multiSignatureSr25519.IsEcdsa())
+}
+
+func Test_MultiSignature_AsEd25519(t *testing.T) {
+	result := multiSignatureEd25519.AsEd25519()
+
+	assert.Equal(t, signatureEd25519, result)
+}
+
+func Test_MultiSignature_AsEd25519_Panics(t *testing.T) {
+	assert.PanicsWithValue(t, "not Ed25519 signature type", func() {
+		multiSignatureEcdsa.AsEd25519()
+	})
+	assert.PanicsWithValue(t, "not Ed25519 signature type", func() {
+		multiSignatureSr25519.AsEd25519()
+	})
+}
+
+func Test_MultiSignature_AsSr25519(t *testing.T) {
+	result := multiSignatureSr25519.AsSr25519()
+
+	assert.Equal(t, signatureSr25519, result)
+}
+
+func Test_MultiSignature_AsSr25519_Panics(t *testing.T) {
+	assert.PanicsWithValue(t, "not Sr25519 signature type", func() {
+		multiSignatureEcdsa.AsSr25519()
+	})
+	assert.PanicsWithValue(t, "not Sr25519 signature type", func() {
+		multiSignatureEd25519.AsSr25519()
+	})
+}
+
+func Test_MultiSignature_AsEcdsa(t *testing.T) {
+	result := multiSignatureEcdsa.AsEcdsa()
+
+	assert.Equal(t, signatureEcdsa, result)
+}
+
+func Test_MultiSignature_AsEcdsa_Panics(t *testing.T) {
+	assert.PanicsWithValue(t, "not Ecdsa signature type", func() {
+		multiSignatureSr25519.AsEcdsa()
+	})
+	assert.PanicsWithValue(t, "not Ecdsa signature type", func() {
+		multiSignatureEd25519.AsEcdsa()
+	})
 }

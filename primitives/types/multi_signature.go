@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -29,7 +30,7 @@ func NewMultiSignatureEcdsa(signature SignatureEcdsa) MultiSignature {
 	return MultiSignature{sc.NewVaryingData(MultiSignatureEcdsa, signature)}
 }
 
-func (s MultiSignature) IsEd25519() sc.Bool {
+func (s MultiSignature) IsEd25519() bool {
 	switch s.VaryingData[0] {
 	case MultiSignatureEd25519:
 		return true
@@ -42,13 +43,13 @@ func (s MultiSignature) AsEd25519() SignatureEd25519 {
 	if s.IsEd25519() {
 		return s.VaryingData[1].(SignatureEd25519)
 	} else {
-		log.Critical("not a Ed25519 signature type")
+		log.Critical("not Ed25519 signature type")
 	}
 
 	panic("unreachable")
 }
 
-func (s MultiSignature) IsSr25519() sc.Bool {
+func (s MultiSignature) IsSr25519() bool {
 	switch s.VaryingData[0] {
 	case MultiSignatureSr25519:
 		return true
@@ -61,13 +62,13 @@ func (s MultiSignature) AsSr25519() SignatureSr25519 {
 	if s.IsSr25519() {
 		return s.VaryingData[1].(SignatureSr25519)
 	} else {
-		log.Critical("not a Sr25519 signature type")
+		log.Critical("not Sr25519 signature type")
 	}
 
 	panic("unreachable")
 }
 
-func (s MultiSignature) IsEcdsa() sc.Bool {
+func (s MultiSignature) IsEcdsa() bool {
 	switch s.VaryingData[0] {
 	case MultiSignatureEcdsa:
 		return true
@@ -78,9 +79,9 @@ func (s MultiSignature) IsEcdsa() sc.Bool {
 
 func (s MultiSignature) AsEcdsa() SignatureEcdsa {
 	if s.IsEcdsa() {
-		return s.VaryingData[0].(SignatureEcdsa)
+		return s.VaryingData[1].(SignatureEcdsa)
 	} else {
-		log.Critical("not a Ecdsa signature type")
+		log.Critical("not Ecdsa signature type")
 	}
 
 	panic("unreachable")
@@ -97,7 +98,7 @@ func DecodeMultiSignature(buffer *bytes.Buffer) MultiSignature {
 	case MultiSignatureEcdsa:
 		return NewMultiSignatureEcdsa(DecodeSignatureEcdsa(buffer))
 	default:
-		log.Critical("invalid MultiSignature type in Decode: " + string(b))
+		log.Critical("invalid MultiSignature type in Decode: " + strconv.Itoa(int(b)))
 	}
 
 	panic("unreachable")
