@@ -246,10 +246,10 @@ func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) (types.B
 	liquid := sc.SaturatingSubU128(accountData.Free, sc.Max128(accountData.FeeFrozen, accountData.MiscFrozen))
 	canDecProviders, err := t.storedMap.CanDecProviders(who)
 	if err != nil {
-
+		return types.Balance{}, err
 	}
 	if canDecProviders && !keepAlive {
-		return types.Balance{}, err
+		return liquid, nil
 	}
 
 	mustRemainToExist := sc.SaturatingSubU128(t.constants.ExistentialDeposit, accountData.Total().Sub(liquid))
