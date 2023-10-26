@@ -38,6 +38,7 @@ func (m Module) Authorities() int64 {
 	authorities, err := m.grandpa.Authorities()
 	if err != nil {
 		log.Critical(err.Error())
+		return 0
 	}
 	return m.memUtils.BytesToOffsetAndSize(authorities.Bytes())
 }

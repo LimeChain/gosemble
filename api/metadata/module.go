@@ -100,7 +100,8 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	version, err := sc.DecodeU32(buffer)
 	if err != nil {
-		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+		log.Critical(err.Error())
+		return 0
 	}
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)

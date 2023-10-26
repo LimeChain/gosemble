@@ -134,15 +134,13 @@ func setup(minimumPeriod sc.U64) {
 	mockStorageCurrentSlot = new(mocks.StorageValue[sc.U64])
 	mockStorageAuthorities = new(mocks.StorageValue[sc.Sequence[sc.U8]])
 
-	digest := mockStorageDigest.Get
-
 	config := NewConfig(
 		keyType,
 		dbWeight,
 		minimumPeriod,
 		maxAuthorites,
 		allowMultipleBlocksPerSlot,
-		digest,
+		mockStorageDigest.Get,
 	)
 	module = New(moduleId, config)
 	module.storage.CurrentSlot = mockStorageCurrentSlot

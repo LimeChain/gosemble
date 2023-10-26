@@ -22,12 +22,11 @@ type checkedExtrinsic struct {
 }
 
 func NewCheckedExtrinsic(signer sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
-	transactional := support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError]()
 	return checkedExtrinsic{
 		signer:        signer,
 		function:      function,
 		extra:         extra,
-		transactional: transactional,
+		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](),
 	}
 }
 

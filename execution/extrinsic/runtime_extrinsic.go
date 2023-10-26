@@ -155,7 +155,10 @@ func (re runtimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 
 func (re runtimeExtrinsic) OnFinalize(n sc.U64) error {
 	for _, m := range re.modules {
-		m.OnFinalize(n)
+		err := m.OnFinalize(n)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

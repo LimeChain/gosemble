@@ -142,13 +142,19 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 
 func (m module) FinalizeBlock() (primitives.Header, error) {
 	log.Trace("finalize_block")
-	m.system.NoteFinishedExtrinsics()
+	err := m.system.NoteFinishedExtrinsics()
+	if err != nil {
+		return primitives.Header{}, err
+	}
 	blockNumber, err := m.system.StorageBlockNumber()
 	if err != nil {
 		return primitives.Header{}, err
 	}
 
-	m.idleAndFinalizeHook(blockNumber)
+	err = m.idleAndFinalizeHook(blockNumber)
+	if err != nil {
+		return primitives.Header{}, err
+	}
 
 	return m.system.Finalize()
 }
@@ -210,10 +216,16 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
 
 	if remainingWeight.AllGt(primitives.WeightZero()) {
 		usedWeight := m.runtimeExtrinsic.OnIdle(blockNumber, remainingWeight)
-		m.system.RegisterExtraWeightUnchecked(usedWeight, primitives.NewDispatchClassMandatory())
+		err = m.system.RegisterExtraWeightUnchecked(usedWeight, primitives.NewDispatchClassMandatory())
+		if err != nil {
+			return err
+		}
 	}
 
-	m.runtimeExtrinsic.OnFinalize(blockNumber)
+	err = m.runtimeExtrinsic.OnFinalize(blockNumber)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
