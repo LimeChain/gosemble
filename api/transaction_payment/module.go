@@ -56,12 +56,10 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
@@ -71,7 +69,6 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 		partialFee, err = m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 		if err != nil {
 			log.Critical(err.Error())
-			return 0
 		}
 	}
 
@@ -98,12 +95,10 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
@@ -113,7 +108,6 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 		feeDetails, err = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 		if err != nil {
 			log.Critical(err.Error())
-			return 0
 		}
 	} else {
 		feeDetails = tx_types.FeeDetails{

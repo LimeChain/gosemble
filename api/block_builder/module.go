@@ -63,7 +63,6 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	uxt, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	ok, errApplyExtr := m.executive.ApplyExtrinsic(uxt)
@@ -87,7 +86,6 @@ func (m Module) FinalizeBlock() int64 {
 	header, err := m.executive.FinalizeBlock()
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	encodedHeader := header.Bytes()
 	return m.memUtils.BytesToOffsetAndSize(encodedHeader)
@@ -107,13 +105,11 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	result, err := m.runtimeExtrinsic.CreateInherents(*inherentData)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(result)
@@ -133,7 +129,6 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	block, err := m.decoder.DecodeBlock(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	inherentData, err := primitives.DecodeInherentData(buffer)

@@ -49,7 +49,6 @@ func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	header, err := primitives.DecodeHeader(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return
 	}
 	m.executive.OffchainWorker(header)
 }

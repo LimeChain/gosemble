@@ -67,7 +67,6 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	header, err := primitives.DecodeHeader(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return
 	}
 	m.executive.InitializeBlock(header)
 }
@@ -84,7 +83,6 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	block, err := m.decoder.DecodeBlock(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return
 	}
 	m.executive.ExecuteBlock(block)
 }

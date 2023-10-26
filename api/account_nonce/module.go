@@ -50,12 +50,10 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	publicKeyDec, err := types.DecodePublicKey(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	pk, err := m.systemModule.Get(publicKeyDec)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	nonce := pk.Nonce
 

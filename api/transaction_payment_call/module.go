@@ -55,19 +55,16 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	call, err := m.decoder.DecodeCall(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
 	partialFee, err := m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
@@ -93,19 +90,16 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	call, err := m.decoder.DecodeCall(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
 	feeDetails, err := m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())

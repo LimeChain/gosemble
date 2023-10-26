@@ -57,17 +57,14 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	txSource, err := primitives.DecodeTransactionSource(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	tx, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 	blockHash, err := primitives.DecodeBlake2bHash(buffer)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	ok, errTx := m.executive.ValidateTransaction(txSource, tx, blockHash)

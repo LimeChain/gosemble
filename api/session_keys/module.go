@@ -53,7 +53,7 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 	seed, err := sc.DecodeOptionWith(buffer, sc.DecodeSequence[sc.U8])
 	if err != nil {
-		return m.memUtils.BytesToOffsetAndSize([]byte(err.Error()))
+		log.Critical(err.Error())
 	}
 
 	var publicKeys []byte
@@ -83,7 +83,6 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	sequence, err := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(sequence))
@@ -92,7 +91,6 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 		pk, err := types.DecodePublicKey(buffer)
 		if err != nil {
 			log.Critical(err.Error())
-			return 0
 		}
 		sessionKey := types.NewSessionKey(sc.FixedSequenceU8ToBytes(pk), session.KeyTypeId())
 		sessionKeys = append(sessionKeys, sessionKey)

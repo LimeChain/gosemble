@@ -41,7 +41,6 @@ func (m Module) Authorities() int64 {
 	authorities, err := m.aura.GetAuthorities()
 	if err != nil {
 		log.Critical(err.Error())
-		return 0
 	}
 
 	if !authorities.HasValue {
