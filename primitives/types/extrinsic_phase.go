@@ -44,7 +44,7 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
 	case PhaseInitialization:
 		return NewExtrinsicPhaseInitialization()
 	default:
-		log.Critical("invalid Phase type")
+		log.Critical("invalid ExtrinsicPhase type")
 	}
 
 	panic("unreachable")
