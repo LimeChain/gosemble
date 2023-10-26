@@ -1,88 +1,91 @@
 package types
 
-// TODO:
-// import (
-// 	"encoding/hex"
-// 	"testing"
+import (
+	"bytes"
+	"encoding/hex"
+	"testing"
 
-// 	sc "github.com/LimeChain/goscale"
-// 	"github.com/stretchr/testify/assert"
-// )
+	sc "github.com/LimeChain/goscale"
+	"github.com/stretchr/testify/assert"
+)
 
-// func Test_UsingEncoded_SignedPayload256(t *testing.T) {
-// 	blockHash, _ := hex.DecodeString("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
+var (
+	expectedSignedPayloadBytes, _ = hex.DecodeString("01020304010002010002")
 
-// 	signedPayload := SignedPayload{
-// 		Call: sc.NewFixedSequence(241, []sc.U8{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}...),
-// 		Extra: SignedExtra{
-// 			Era:   NewImmortalEra(),
-// 			Nonce: 0,
-// 			Fee:   0,
-// 		},
-// 		AdditionalSigned: AdditionalSigned{
-// 			SpecVersion:        100,
-// 			TransactionVersion: 1,
-// 			GenesisHash:        H256{FixedSequence: sc.BytesToFixedSequenceU8(blockHash)},
-// 			BlockHash:          H256{FixedSequence: sc.BytesToFixedSequenceU8(blockHash)},
-// 		},
-// 	}
-// 	t.Log(len(signedPayload.Bytes()))
+	expectedAdditionalSigned = sc.NewVaryingData(sc.U16(1), sc.U8(2))
 
-// 	var testExamples = []struct {
-// 		label       string
-// 		input       SignedPayload
-// 		expectation []byte
-// 	}{
-// 		{
-// 			label:       "UsingEncoded SignedPayload()",
-// 			input:       signedPayload,
-// 			expectation: []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x64, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0},
-// 		},
-// 	}
+	expectedTransactionValidityErr = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+)
 
-// 	for _, testExample := range testExamples {
-// 		t.Run(testExample.label, func(t *testing.T) {
-// 			enc := sc.SequenceU8ToBytes(testExample.input.UsingEncoded())
-// 			assert.Equal(t, testExample.expectation, enc)
-// 		})
-// 	}
-// }
+var (
+	call1 = testCall{
+		Callable: Callable{
+			ModuleId:   1,
+			FunctionId: 2,
+			Arguments:  sc.NewVaryingData(sc.U8(3), sc.U8(4)),
+		},
+	}
 
-// func Test_UsingEncoded_SignedPayload257(t *testing.T) {
-// 	blockHash, _ := hex.DecodeString("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
+	extraCheckOk  = NewTestExtraCheck(false, sc.U16(1), sc.U8(2))
+	extraCheckErr = NewTestExtraCheck(true, sc.U16(5))
 
-// 	signedPayload := SignedPayload{
-// 		Call: sc.NewFixedSequence(246, []sc.U8{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}...),
-// 		Extra: SignedExtra{
-// 			Era:   NewImmortalEra(),
-// 			Nonce: 0,
-// 			Fee:   0,
-// 		},
-// 		AdditionalSigned: AdditionalSigned{
-// 			SpecVersion:        100,
-// 			TransactionVersion: 1,
-// 			GenesisHash:        H256{FixedSequence: sc.BytesToFixedSequenceU8(blockHash)},
-// 			BlockHash:          H256{FixedSequence: sc.BytesToFixedSequenceU8(blockHash)},
-// 		},
-// 	}
-// 	t.Log(len(signedPayload.Bytes()))
+	extraChecksWithOk1 = []SignedExtension{
+		extraCheckOk,
+	}
 
-// 	var testExamples = []struct {
-// 		label       string
-// 		input       SignedPayload
-// 		expectation []byte
-// 	}{
-// 		{
-// 			label:       "UsingEncoded SignedPayload()",
-// 			input:       signedPayload,
-// 			expectation: []byte{0xa0, 0x85, 0x35, 0xe9, 0x46, 0xe0, 0x95, 0x7c, 0x1a, 0x2d, 0x2c, 0x4c, 0x18, 0x38, 0x67, 0x65, 0xb7, 0x33, 0x2d, 0x5a, 0x5e, 0x88, 0x4d, 0x54, 0xb6, 0x48, 0xd8, 0xa8, 0x1c, 0x2b, 0x9, 0xc0},
-// 		},
-// 	}
+	extraChecksWithErr1 = []SignedExtension{
+		extraCheckOk,
+		extraCheckErr,
+	}
 
-// 	for _, testExample := range testExamples {
-// 		t.Run(testExample.label, func(t *testing.T) {
-// 			enc := sc.SequenceU8ToBytes(testExample.input.UsingEncoded())
-// 			assert.Equal(t, testExample.expectation, enc)
-// 		})
-// 	}
-// }
+	signedExtraWithOk  = NewSignedExtra(extraChecksWithOk1)
+	signedExtraWithErr = NewSignedExtra(extraChecksWithErr1)
+)
+
+var (
+	targetSignedPayload = signedPayload{
+		call:             call1,
+		extra:            signedExtraWithOk,
+		additionalSigned: expectedAdditionalSigned,
+	}
+)
+
+func Test_NewSignedPayload_Ok(t *testing.T) {
+	result, err := NewSignedPayload(call1, signedExtraWithOk)
+
+	assert.Nil(t, err)
+	assert.Equal(t, targetSignedPayload, result)
+}
+
+func Test_NewSignedPayload_Err(t *testing.T) {
+	result, err := NewSignedPayload(call1, signedExtraWithErr)
+
+	expectedSignedPayload := signedPayload{}
+
+	assert.Equal(t, expectedTransactionValidityErr, err)
+	assert.Equal(t, expectedSignedPayload, result)
+}
+
+func Test_SignedPayload_Encode(t *testing.T) {
+	buf := &bytes.Buffer{}
+
+	targetSignedPayload.Encode(buf)
+
+	assert.Equal(t, expectedSignedPayloadBytes, buf.Bytes())
+}
+
+func Test_SignedPayload_Bytes(t *testing.T) {
+	assert.Equal(t, expectedSignedPayloadBytes, targetSignedPayload.Bytes())
+}
+
+func Test_SignedPayload_AdditionalSigned(t *testing.T) {
+	assert.Equal(t, expectedAdditionalSigned, targetSignedPayload.AdditionalSigned())
+}
+
+func Test_SignedPayload_Call(t *testing.T) {
+	assert.Equal(t, call1, targetSignedPayload.Call())
+}
+
+func Test_SignedPayload_Extra(t *testing.T) {
+	assert.Equal(t, signedExtraWithOk, targetSignedPayload.Extra())
+}
