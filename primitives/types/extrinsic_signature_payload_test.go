@@ -18,7 +18,7 @@ var (
 )
 
 var (
-	call1 = testCall{
+	dispatchCall = testCall{
 		Callable: Callable{
 			ModuleId:   1,
 			FunctionId: 2,
@@ -26,8 +26,8 @@ var (
 		},
 	}
 
-	extraCheckOk  = NewTestExtraCheck(false, sc.U16(1), sc.U8(2))
-	extraCheckErr = NewTestExtraCheck(true, sc.U16(5))
+	extraCheckOk  = newTestExtraCheck(false, sc.U16(1), sc.U8(2))
+	extraCheckErr = newTestExtraCheck(true, sc.U16(5))
 
 	extraChecksWithOk1 = []SignedExtension{
 		extraCheckOk,
@@ -44,21 +44,21 @@ var (
 
 var (
 	targetSignedPayload = signedPayload{
-		call:             call1,
+		call:             dispatchCall,
 		extra:            signedExtraWithOk,
 		additionalSigned: expectedAdditionalSigned,
 	}
 )
 
 func Test_NewSignedPayload_Ok(t *testing.T) {
-	result, err := NewSignedPayload(call1, signedExtraWithOk)
+	result, err := NewSignedPayload(dispatchCall, signedExtraWithOk)
 
 	assert.Nil(t, err)
 	assert.Equal(t, targetSignedPayload, result)
 }
 
 func Test_NewSignedPayload_Err(t *testing.T) {
-	result, err := NewSignedPayload(call1, signedExtraWithErr)
+	result, err := NewSignedPayload(dispatchCall, signedExtraWithErr)
 
 	expectedSignedPayload := signedPayload{}
 
@@ -83,7 +83,7 @@ func Test_SignedPayload_AdditionalSigned(t *testing.T) {
 }
 
 func Test_SignedPayload_Call(t *testing.T) {
-	assert.Equal(t, call1, targetSignedPayload.Call())
+	assert.Equal(t, dispatchCall, targetSignedPayload.Call())
 }
 
 func Test_SignedPayload_Extra(t *testing.T) {
