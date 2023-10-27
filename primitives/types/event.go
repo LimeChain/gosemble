@@ -37,3 +37,15 @@ func DecodeEventRecord(buffer *bytes.Buffer) EventRecord {
 		Topics: sc.DecodeSequence[H256](buffer),
 	}
 }
+
+// func DecodeEvents(buffer *bytes.Buffer) sc.Sequence[EventRecord] {
+// 	compactSize := sc.DecodeCompact(buffer)
+// 	size := int(compactSize.ToBigInt().Int64())
+
+// 	sequence := make(sc.Sequence[EventRecord], size)
+// 	for i := 0; i < size; i++ {
+// 		sequence[i] = DecodeEventRecord(buffer)
+// 	}
+
+// 	return sequence
+// }

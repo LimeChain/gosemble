@@ -11,7 +11,7 @@ type testExtraCheck struct {
 	HasError bool
 }
 
-func NewTestExtraCheck(hasError bool, values ...sc.Encodable) SignedExtension {
+func newTestExtraCheck(hasError bool, values ...sc.Encodable) SignedExtension {
 	return testExtraCheck{
 		Values:   values,
 		HasError: hasError,
@@ -72,5 +72,15 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 }
 
 func (e testExtraCheck) Metadata() (MetadataType, MetadataSignedExtension) {
-	return MetadataType{}, MetadataSignedExtension{}
+	id := 123456
+	typ := 789
+	docs := "TestExtraCheck"
+
+	return NewMetadataTypeWithPath(
+			id,
+			docs,
+			sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
+			NewMetadataTypeDefinitionCompact(sc.ToCompact(id)),
+		),
+		NewMetadataSignedExtension(sc.Str(docs), id, typ)
 }

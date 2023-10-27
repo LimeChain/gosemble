@@ -24,6 +24,39 @@ var (
 	expectedTransactionValidityError = NewTransactionValidityError(
 		NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)),
 	)
+
+	testExtraCheckMetadataType = MetadataType{
+		Id:         sc.ToCompact(123456),
+		Path:       sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
+		Params:     sc.Sequence[MetadataTypeParameter]{},
+		Definition: sc.VaryingData{sc.U8(6), sc.ToCompact(123456)},
+		Docs:       sc.Sequence[sc.Str]{"TestExtraCheck"},
+	}
+
+	signedExtraMetadataType = MetadataType{
+		Id:         sc.ToCompact(97),
+		Path:       sc.Sequence[sc.Str]{},
+		Params:     sc.Sequence[MetadataTypeParameter]{},
+		Definition: sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(123456), sc.ToCompact(123456)}},
+		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
+	}
+
+	expectedMetadataTypes = sc.Sequence[MetadataType]{
+		testExtraCheckMetadataType,
+		testExtraCheckMetadataType,
+		signedExtraMetadataType,
+	}
+
+	metadataSignedExtension = MetadataSignedExtension{
+		Identifier:       "TestExtraCheck",
+		Type:             sc.ToCompact(123456),
+		AdditionalSigned: sc.ToCompact(789),
+	}
+
+	expectedMetadataSignedExtensions = sc.Sequence[MetadataSignedExtension]{
+		metadataSignedExtension,
+		metadataSignedExtension,
+	}
 )
 
 var (
@@ -36,9 +69,9 @@ var (
 	postInfo       = &PostDispatchInfo{}
 	dispatchResult = &DispatchResult{}
 
-	extraCheckOk1  = NewTestExtraCheck(false, sc.U16(1), sc.U8(2))
-	extraCheckOk2  = NewTestExtraCheck(false, sc.U16(3), sc.U8(4))
-	extraCheckErr1 = NewTestExtraCheck(true, sc.U16(5), sc.U8(6))
+	extraCheckOk1  = newTestExtraCheck(false, sc.U16(1), sc.U8(2))
+	extraCheckOk2  = newTestExtraCheck(false, sc.U16(3), sc.U8(4))
+	extraCheckErr1 = newTestExtraCheck(true, sc.U16(5), sc.U8(6))
 
 	extraChecksWithOk = []SignedExtension{
 		extraCheckOk1,
@@ -169,4 +202,11 @@ func Test_SignedExtra_PostDispatch_Err(t *testing.T) {
 	err := targetSignedExtraErr.PostDispatch(pre, info, postInfo, length, dispatchResult)
 
 	assert.Equal(t, expectedTransactionValidityError, err)
+}
+
+func Test_SignedExtra_Metadata(t *testing.T) {
+	metadataTypes, metadataSignedExtensions := targetSignedExtraOk.Metadata()
+
+	assert.Equal(t, expectedMetadataTypes, metadataTypes)
+	assert.Equal(t, expectedMetadataSignedExtensions, metadataSignedExtensions)
 }
