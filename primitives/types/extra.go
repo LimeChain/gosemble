@@ -9,7 +9,6 @@ import (
 
 type SignedExtra interface {
 	sc.Encodable
-
 	Decode(buffer *bytes.Buffer)
 
 	AdditionalSigned() (AdditionalSigned, TransactionValidityError)
@@ -39,14 +38,14 @@ func (e signedExtra) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func (e signedExtra) Bytes() []byte {
-	return sc.EncodedBytes(e)
-}
-
 func (e signedExtra) Decode(buffer *bytes.Buffer) {
 	for _, extra := range e.extras {
 		extra.Decode(buffer)
 	}
+}
+
+func (e signedExtra) Bytes() []byte {
+	return sc.EncodedBytes(e)
 }
 
 func (e signedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {

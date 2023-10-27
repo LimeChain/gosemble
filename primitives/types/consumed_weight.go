@@ -47,7 +47,7 @@ func (cw *ConsumedWeight) Get(class DispatchClass) *Weight {
 // Saturates on overflow.
 func (cw ConsumedWeight) Total() Weight {
 	sum := WeightZero()
-	for _, class := range DispatchClassAll() {
+	for _, class := range []DispatchClass{NewDispatchClassNormal(), NewDispatchClassOperational(), NewDispatchClassMandatory()} {
 		sum = sum.SaturatingAdd(*cw.Get(class))
 	}
 	return sum
@@ -69,18 +69,18 @@ func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
 // CheckedAccrue Try to increase the weight of the given class. Saturates at the numeric bounds.
 func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (sc.Empty, error) {
 	weightForClass := cw.Get(class)
-
 	refTime, err := sc.CheckedAddU64(weightForClass.RefTime, weight.RefTime)
 	if err != nil {
 		return sc.Empty{}, err
 	}
+
+	weightForClass.RefTime = refTime
 
 	proofSize, err := sc.CheckedAddU64(weightForClass.ProofSize, weight.ProofSize)
 	if err != nil {
 		return sc.Empty{}, err
 	}
 
-	weightForClass.RefTime = refTime
 	weightForClass.ProofSize = proofSize
 
 	return sc.Empty{}, nil
