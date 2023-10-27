@@ -28,6 +28,7 @@ var (
 
 var (
 	pre            = sc.Option[sc.Sequence[Pre]]{}
+	preWithValue   = sc.NewOption[sc.Sequence[Pre]](sc.Sequence[Pre]{Pre{}, Pre{}})
 	who            = Address32{}
 	call           = testCall{}
 	info           = &DispatchInfo{}
@@ -150,6 +151,18 @@ func Test_SignedExtra_PostDispatch_Ok(t *testing.T) {
 	err := targetSignedExtraOk.PostDispatch(pre, info, postInfo, length, dispatchResult)
 
 	assert.Nil(t, err)
+}
+
+func Test_SignedExtra_PostDispatch_PreWithValue_Ok(t *testing.T) {
+	err := targetSignedExtraOk.PostDispatch(preWithValue, info, postInfo, length, dispatchResult)
+
+	assert.Nil(t, err)
+}
+
+func Test_SignedExtra_PostDispatch_PreWithValue_Err(t *testing.T) {
+	err := targetSignedExtraErr.PostDispatch(preWithValue, info, postInfo, length, dispatchResult)
+
+	assert.Equal(t, expectedTransactionValidityError, err)
 }
 
 func Test_SignedExtra_PostDispatch_Err(t *testing.T) {

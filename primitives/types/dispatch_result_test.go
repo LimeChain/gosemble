@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	postDispatchInfo2 = PostDispatchInfo{
+	postDispatchInfoWithFee = PostDispatchInfo{
 		ActualWeight: sc.NewOption[Weight](WeightFromParts(1, 2)),
 		PaysFee:      PaysYes,
 	}
@@ -16,7 +16,7 @@ var (
 	dispatchError = NewDispatchErrorBadOrigin()
 
 	dispatchErrorWithPostInfo = DispatchErrorWithPostInfo[PostDispatchInfo]{
-		PostInfo: postDispatchInfo2,
+		PostInfo: postDispatchInfoWithFee,
 		Error:    dispatchError,
 	}
 )
