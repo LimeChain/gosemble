@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	hash512Sequence  = sc.BytesToFixedSequenceU8(append(hash256.ToBytes(), hash256.ToBytes()...))
+	hash512Sequence = sc.BytesToFixedSequenceU8(append(hash256.ToBytes(), hash256.ToBytes()...))
+
 	expectedH512Hash = H512{hash512Sequence}
 )
 
