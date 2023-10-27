@@ -24,6 +24,7 @@ var (
 			},
 		},
 	}
+
 	targetHeader = Header{
 		ParentHash:     NewBlake2bHash(sc.BytesToFixedSequenceU8(parentHash.ToBytes())...),
 		Number:         1,
