@@ -261,7 +261,7 @@ func Test_Module_StorageBlockNumberSet(t *testing.T) {
 
 func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
 	lrui := primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: sc.ToCompact(sc.U32(1)),
+		SpecVersion: 1,
 		SpecName:    "test",
 	}
 	target := setupModule()
@@ -276,7 +276,7 @@ func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
 
 func Test_Module_StorageLastRuntimeUpgradeSet(t *testing.T) {
 	lrui := primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: sc.ToCompact(sc.U32(1)),
+		SpecVersion: 1,
 		SpecName:    "test",
 	}
 	target := setupModule()

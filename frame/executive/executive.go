@@ -228,11 +228,11 @@ func (m module) initialChecks(block primitives.Block) {
 func (m module) runtimeUpgrade() sc.Bool {
 	last := m.system.StorageLastRuntimeUpgrade()
 
-	if m.system.Version().SpecVersion > sc.U32(last.SpecVersion.ToBigInt().Uint64()) ||
+	if m.system.Version().SpecVersion > last.SpecVersion ||
 		last.SpecName != m.system.Version().SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{
-			SpecVersion: sc.ToCompact(m.system.Version().SpecVersion),
+			SpecVersion: m.system.Version().SpecVersion,
 			SpecName:    m.system.Version().SpecName,
 		}
 		m.system.StorageLastRuntimeUpgradeSet(current)
