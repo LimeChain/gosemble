@@ -29,6 +29,15 @@ var (
 	}
 
 	expectedH512Hash = H512{sc.FixedSequence[sc.U8](hash512Bytes)}
+
+	blake2bHashBytes = []sc.U8{
+		0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37,
+		0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37,
+		0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37, 0x37,
+		0x37, 0x37,
+	}
+
+	expectedBlake2bHash = Blake2bHash{sc.FixedSequence[sc.U8](blake2bHashBytes)}
 )
 
 func Test_NewHash256(t *testing.T) {
@@ -89,4 +98,34 @@ func Test_Hash512_Decode(t *testing.T) {
 
 func Test_Hash512_Bytes(t *testing.T) {
 	assert.Equal(t, sc.FixedSequenceU8ToBytes(hash512Bytes), expectedH512Hash.Bytes())
+}
+
+func Test_NewBlake2bHash(t *testing.T) {
+	result := NewBlake2bHash(blake2bHashBytes...)
+
+	assert.Equal(t, expectedBlake2bHash, result)
+}
+
+func Test_NewBlake2bHash_InvalidLength(t *testing.T) {
+	assert.PanicsWithValue(t, "Blake2bHash should be of size 32", func() {
+		NewBlake2bHash(blake2bHashBytes[1:32]...)
+	})
+}
+
+func Test_Blake2bHash_Encode(t *testing.T) {
+	buf := &bytes.Buffer{}
+	expectedBlake2bHash.Encode(buf)
+
+	assert.Equal(t, sc.FixedSequenceU8ToBytes(blake2bHashBytes), buf.Bytes())
+}
+
+func Test_Blake2bHash_Decode(t *testing.T) {
+	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(blake2bHashBytes))
+	result := DecodeBlake2bHash(buffer)
+
+	assert.Equal(t, expectedBlake2bHash, result)
+}
+
+func Test_Blake2bHash_Bytes(t *testing.T) {
+	assert.Equal(t, sc.FixedSequenceU8ToBytes(blake2bHashBytes), expectedBlake2bHash.Bytes())
 }
