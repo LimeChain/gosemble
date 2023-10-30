@@ -79,7 +79,8 @@ func Test_DecodeInvalidTransaction_Call(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionCall(), result)
 }
@@ -88,7 +89,8 @@ func Test_DecodeInvalidTransaction_Payment(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionPayment(), result)
 }
@@ -97,7 +99,8 @@ func Test_DecodeInvalidTransaction_Future(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionFuture(), result)
 }
@@ -106,7 +109,8 @@ func Test_DecodeInvalidTransaction_Stale(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(3)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionStale(), result)
 }
@@ -115,7 +119,8 @@ func Test_DecodeInvalidTransaction_BadProof(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(4)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadProof(), result)
 }
@@ -124,7 +129,8 @@ func Test_DecodeInvalidTransaction_AncientBirthBlock(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionAncientBirthBlock(), result)
 }
@@ -133,7 +139,8 @@ func Test_DecodeInvalidTransaction_ExhaustsResources(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionExhaustsResources(), result)
 }
@@ -144,7 +151,8 @@ func Test_DecodeInvalidTransaction_Custom(t *testing.T) {
 	buffer.WriteByte(7)
 	buffer.WriteByte(byte(customError))
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionCustom(customError), result)
 }
@@ -153,7 +161,8 @@ func Test_DecodeInvalidTransaction_BadMandatory(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(8)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadMandatory(), result)
 }
@@ -162,7 +171,8 @@ func Test_DecodeInvalidTransaction_MandatoryValidation(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(9)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionMandatoryValidation(), result)
 }
@@ -171,7 +181,8 @@ func Test_DecodeInvalidTransaction_BadSigner(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(10)
 
-	result := DecodeInvalidTransaction(buffer)
+	result, err := DecodeInvalidTransaction(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadSigner(), result)
 }

@@ -135,12 +135,12 @@ func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error
 		return constants.Zero, nil
 	}
 
-	seq, err := c.storedMap.Get(who.FixedSequence)
+	account, err := c.storedMap.Get(who.FixedSequence)
 	if err != nil {
 		return sc.U128{}, err
 	}
 
-	totalBalance := seq.Data.Total()
+	totalBalance := account.Data.Total()
 	if totalBalance.Eq(constants.Zero) {
 		return value, nil
 	}

@@ -140,7 +140,12 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	previousTimestamp, err := c.storage.Now.Get()
 	if err != nil {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+			HasError: true,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: primitives.NewDispatchErrorOther(sc.Str(err.Error())),
+			},
+		}
 	}
 
 	if !(previousTimestamp == 0 ||

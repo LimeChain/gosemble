@@ -17,7 +17,7 @@ func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo, error) {
-	specVersion, err:= sc.DecodeCompact(buffer)
+	specVersion, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return LastRuntimeUpgradeInfo{}, err
 	}
@@ -27,7 +27,7 @@ func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo,
 	}
 	return LastRuntimeUpgradeInfo{
 		SpecVersion: sc.U32(specVersion.ToBigInt().Uint64()),
-		SpecName:   specName ,
+		SpecName:    specName,
 	}, nil
 }
 

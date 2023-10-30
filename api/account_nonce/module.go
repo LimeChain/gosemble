@@ -51,11 +51,11 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	pk, err := m.systemModule.Get(publicKeyDec)
+	account, err := m.systemModule.Get(publicKeyDec)
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	nonce := pk.Nonce
+	nonce := account.Nonce
 
 	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
 }

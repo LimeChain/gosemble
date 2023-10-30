@@ -33,7 +33,7 @@ func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) 
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}
@@ -41,7 +41,7 @@ func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) 
 		Types:     types,
 		Modules:   modules,
 		Extrinsic: extrinsic,
-		Type:      t,
+		Type:      typeId,
 	}, nil
 }
 

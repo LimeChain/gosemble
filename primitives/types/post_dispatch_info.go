@@ -22,18 +22,18 @@ func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodePostDispatchInfo(buffer *bytes.Buffer) (PostDispatchInfo, error) {
-	pdi := PostDispatchInfo{}
 	actualWeight, err := sc.DecodeOptionWith(buffer, DecodeWeight)
 	if err != nil {
 		return PostDispatchInfo{}, err
 	}
-	pdi.ActualWeight = actualWeight
 	paysFee, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return PostDispatchInfo{}, err
 	}
-	pdi.PaysFee = paysFee
-	return pdi, nil
+	return PostDispatchInfo{
+		ActualWeight: actualWeight,
+		PaysFee:      paysFee,
+	}, nil
 }
 
 func (pdi PostDispatchInfo) Bytes() []byte {

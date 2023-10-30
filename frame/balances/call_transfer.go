@@ -237,11 +237,11 @@ func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountD
 }
 
 func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) (types.Balance, error) {
-	ad, err := t.storedMap.Get(who.FixedSequence)
+	account, err := t.storedMap.Get(who.FixedSequence)
 	if err != nil {
 		return types.Balance{}, err
 	}
-	accountData := ad.Data
+	accountData := account.Data
 
 	liquid := sc.SaturatingSubU128(accountData.Free, sc.Max128(accountData.FeeFrozen, accountData.MiscFrozen))
 	canDecProviders, err := t.storedMap.CanDecProviders(who)

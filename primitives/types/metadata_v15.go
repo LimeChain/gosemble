@@ -39,7 +39,7 @@ func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) 
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
@@ -60,7 +60,7 @@ func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) 
 		Types:      types,
 		Modules:    modules,
 		Extrinsic:  extrinsic,
-		Type:       t,
+		Type:       typeId,
 		Apis:       apis,
 		OuterEnums: outerEnums,
 		Custom:     customMd,
@@ -158,13 +158,13 @@ func DecodeRuntimeApiMethodParamMetadata(buffer *bytes.Buffer) (RuntimeApiMethod
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
 	return RuntimeApiMethodParamMetadata{
 		Name: name,
-		Type: t,
+		Type: typeId,
 	}, nil
 }
 
