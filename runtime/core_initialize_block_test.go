@@ -52,7 +52,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	assert.NoError(t, err)
 
 	lrui := types.LastRuntimeUpgradeInfo{
-		SpecVersion: sc.ToCompact(constants.SpecVersion),
+		SpecVersion: constants.SpecVersion,
 		SpecName:    constants.SpecName,
 	}
 	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))

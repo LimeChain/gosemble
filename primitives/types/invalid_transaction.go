@@ -146,7 +146,3 @@ func DecodeInvalidTransaction(buffer *bytes.Buffer) InvalidTransaction {
 
 	panic("unreachable")
 }
-
-func (e InvalidTransaction) Bytes() []byte {
-	return sc.EncodedBytes(e)
-}
