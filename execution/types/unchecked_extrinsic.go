@@ -34,6 +34,7 @@ type uncheckedExtrinsic struct {
 	extra             primitives.SignedExtra
 	initializePayload PayloadInitializer
 	crypto            io.Crypto
+	hashing           io.Hashing
 }
 
 // NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
@@ -45,6 +46,7 @@ func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.Extrins
 		extra:             extra,
 		initializePayload: primitives.NewSignedPayload,
 		crypto:            io.NewCrypto(),
+		hashing:           io.NewHashing(),
 	}
 }
 
@@ -106,7 +108,7 @@ func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (primitiv
 			return nil, err
 		}
 
-		if !uxt.verify(signature, rawPayload.UsingEncoded(), signerAddress) {
+		if !uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress) {
 			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
@@ -141,4 +143,15 @@ func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc
 	log.Critical("invalid MultiSignature type in Verify")
 
 	panic("unreachable")
+}
+
+func (uxt uncheckedExtrinsic) usingEncoded(sp primitives.SignedPayload) sc.Sequence[sc.U8] {
+	enc := sp.Bytes()
+
+	if len(enc) > 256 {
+		hash := uxt.hashing.Blake256(enc)
+		return sc.BytesToSequenceU8(hash)
+	} else {
+		return sc.BytesToSequenceU8(enc)
+	}
 }
