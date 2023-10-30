@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	expectedaccountRawBytes, _ = hex.DecodeString("84010000000000000000010000000000000000000100000000000000000001000000")
+	expectedAccountRawBytes, _ = hex.DecodeString("84010000000000000000010000000000000000000100000000000000000001000000")
 )
 
 var (
@@ -30,11 +30,11 @@ func Test_AccountRaw_Encode(t *testing.T) {
 
 	accountRaw.Encode(buffer)
 
-	assert.Equal(t, expectedaccountRawBytes, buffer.Bytes())
+	assert.Equal(t, expectedAccountRawBytes, buffer.Bytes())
 }
 
 func Test_DecodeAccountRaw(t *testing.T) {
-	buffer := bytes.NewBuffer(expectedaccountRawBytes)
+	buffer := bytes.NewBuffer(expectedAccountRawBytes)
 
 	result := DecodeAccountRaw(buffer)
 
