@@ -119,7 +119,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) MultiAddress {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAccountId() sc.Bool {
+func (a MultiAddress) IsAccountId() bool {
 	switch a.VaryingData[0] {
 	case MultiAddressId:
 		return true
@@ -138,7 +138,7 @@ func (a MultiAddress) AsAccountId() AccountId {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAccountIndex() sc.Bool {
+func (a MultiAddress) IsAccountIndex() bool {
 	switch a.VaryingData[0] {
 	case MultiAddressIndex:
 		return true
@@ -159,7 +159,7 @@ func (a MultiAddress) AsAccountIndex() AccountIndex {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsRaw() sc.Bool {
+func (a MultiAddress) IsRaw() bool {
 	switch a.VaryingData[0] {
 	case MultiAddressRaw:
 		return true
@@ -178,7 +178,7 @@ func (a MultiAddress) AsRaw() AccountRaw {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAddress32() sc.Bool {
+func (a MultiAddress) IsAddress32() bool {
 	switch a.VaryingData[0] {
 	case MultiAddress32:
 		return true
@@ -197,7 +197,7 @@ func (a MultiAddress) AsAddress32() Address32 {
 	panic("unreachable")
 }
 
-func (a MultiAddress) IsAddress20() sc.Bool {
+func (a MultiAddress) IsAddress20() bool {
 	switch a.VaryingData[0] {
 	case MultiAddress20:
 		return true

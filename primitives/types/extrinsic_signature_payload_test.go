@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	expectedSignedPayloadBytes, _ = hex.DecodeString("01020304010002010002")
+	expectedSignedPayloadBytes, _ = hex.DecodeString("01020304000100000001000000")
 
-	expectedAdditionalSigned = sc.NewVaryingData(sc.U16(1), sc.U8(2))
+	expectedAdditionalSigned = sc.NewVaryingData(sc.U32(1))
 
 	expectedTransactionValidityErr = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 )
@@ -26,8 +26,8 @@ var (
 		},
 	}
 
-	extraCheckOk  = newTestExtraCheck(false, sc.U16(1), sc.U8(2))
-	extraCheckErr = newTestExtraCheck(true, sc.U16(5))
+	extraCheckOk  = newTestExtraCheck(false, sc.U32(1))
+	extraCheckErr = newTestExtraCheck(true, sc.U32(5))
 
 	extraChecksWithOk1 = []SignedExtension{
 		extraCheckOk,

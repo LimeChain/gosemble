@@ -7,42 +7,44 @@ import (
 )
 
 type testExtraCheck struct {
-	Values   []sc.Encodable
-	HasError bool
+	hasError sc.Bool
+	value    sc.U32
 }
 
-func newTestExtraCheck(hasError bool, values ...sc.Encodable) SignedExtension {
-	return testExtraCheck{
-		Values:   values,
-		HasError: hasError,
+func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
+	return &testExtraCheck{
+		hasError: hasError,
+		value:    value,
 	}
 }
 
 func (e testExtraCheck) Encode(buffer *bytes.Buffer) {
-	for _, value := range e.Values {
-		value.Encode(buffer)
-	}
+	e.hasError.Encode(buffer)
+	e.value.Encode(buffer)
 }
 
 func (e testExtraCheck) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
 
-func (e testExtraCheck) Decode(buffer *bytes.Buffer) {}
+func (e *testExtraCheck) Decode(buffer *bytes.Buffer) {
+	e.hasError = sc.DecodeBool(buffer)
+	e.value = sc.DecodeU32(buffer)
+}
 
 func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
-	if e.HasError {
+	if e.hasError {
 		return nil, NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 	}
 
-	return sc.NewVaryingData(e.Values...), nil
+	return sc.NewVaryingData(e.value), nil
 }
 
 func (e testExtraCheck) Validate(who Address32, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
-	if e.HasError {
+	if e.hasError {
 		return ValidTransaction{}, NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 	}
 
@@ -64,7 +66,7 @@ func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, lengt
 }
 
 func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
-	if e.HasError {
+	if e.hasError {
 		return NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 	}
 
