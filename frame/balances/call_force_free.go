@@ -28,17 +28,17 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 }
 
 func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	address, err := types.DecodeMultiAddress(buffer)
+	who, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	u128, err := sc.DecodeU128(buffer)
+	amount, err := sc.DecodeU128(buffer)
 	if err != nil {
 		return nil, err
 	}
 	c.Arguments = sc.NewVaryingData(
-		address,
-		u128,
+		who,
+		amount,
 	)
 	return c, nil
 }

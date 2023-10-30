@@ -26,22 +26,22 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 }
 
 func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	addr1, err := types.DecodeMultiAddress(buffer)
+	source, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	addr2, err := types.DecodeMultiAddress(buffer)
+	dest, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	compact, err := sc.DecodeCompact(buffer)
+	value, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return nil, err
 	}
 	c.Arguments = sc.NewVaryingData(
-		addr1,
-		addr2,
-		compact,
+		source,
+		dest,
+		value,
 	)
 	return c, nil
 }

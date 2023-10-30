@@ -22,10 +22,14 @@ func (h H512) Encode(buffer *bytes.Buffer) {
 	h.FixedSequence.Encode(buffer)
 }
 
-func DecodeH512(buffer *bytes.Buffer) H512 {
+func DecodeH512(buffer *bytes.Buffer) (H512, error) {
 	h := H512{}
-	h.FixedSequence = sc.DecodeFixedSequence[sc.U8](64, buffer)
-	return h
+	fixedSequence, err := sc.DecodeFixedSequence[sc.U8](64, buffer)
+	if err != nil {
+		return H512{}, err
+	}
+	h.FixedSequence = fixedSequence
+	return h, nil
 }
 
 func (h H512) Bytes() []byte {

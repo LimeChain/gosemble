@@ -27,9 +27,18 @@ func (e testExtraCheck) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
 
-func (e *testExtraCheck) Decode(buffer *bytes.Buffer) {
-	e.hasError = sc.DecodeBool(buffer)
-	e.value = sc.DecodeU32(buffer)
+func (e *testExtraCheck) Decode(buffer *bytes.Buffer) error {
+	hasError, err := sc.DecodeBool(buffer)
+	if err != nil {
+		return err
+	}
+	e.hasError = hasError
+	value, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return err
+	}
+	e.value = value
+	return nil
 }
 
 func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {

@@ -29,17 +29,17 @@ func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 }
 
 func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	addr, err := types.DecodeMultiAddress(buffer)
+	dest, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	compact, err := sc.DecodeCompact(buffer)
+	balance, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return nil, err
 	}
 	c.Arguments = sc.NewVaryingData(
-		addr,
-		compact,
+		dest,
+		balance,
 	)
 	return c, nil
 }

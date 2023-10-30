@@ -32,23 +32,23 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 }
 
 func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
-	addr, err := types.DecodeMultiAddress(buffer)
+	targetAddress, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	compact1, err := sc.DecodeCompact(buffer)
+	newFree, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return nil, err
 	}
-	compact2, err := sc.DecodeCompact(buffer)
+	newReserved, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return nil, err
 	}
 
 	c.Arguments = sc.NewVaryingData(
-		addr,
-		compact1,
-		compact2,
+		targetAddress,
+		newFree,
+		newReserved,
 	)
 	return c, nil
 }

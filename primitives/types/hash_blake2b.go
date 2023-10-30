@@ -22,10 +22,14 @@ func (h Blake2bHash) Encode(buffer *bytes.Buffer) {
 	h.FixedSequence.Encode(buffer)
 }
 
-func DecodeBlake2bHash(buffer *bytes.Buffer) Blake2bHash {
+func DecodeBlake2bHash(buffer *bytes.Buffer) (Blake2bHash, error) {
 	h := Blake2bHash{}
-	h.FixedSequence = sc.DecodeFixedSequence[sc.U8](32, buffer)
-	return h
+	fixedSequence, err := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	if err != nil {
+		return Blake2bHash{}, err
+	}
+	h.FixedSequence = fixedSequence
+	return h, nil
 }
 
 func (h Blake2bHash) Bytes() []byte {

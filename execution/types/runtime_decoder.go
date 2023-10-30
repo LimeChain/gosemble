@@ -55,11 +55,11 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	compact, err := sc.DecodeCompact(buffer)
+	expectedLenCompact, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return nil, err
 	}
-	expectedLength := compact.ToBigInt().Int64()
+	expectedLength := expectedLenCompact.ToBigInt().Int64()
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
