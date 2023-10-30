@@ -3,7 +3,6 @@ package mocks
 import (
 	"bytes"
 
-	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -34,9 +33,4 @@ func (sp *SignedPayload) Call() primitives.Call {
 func (sp *SignedPayload) Extra() primitives.SignedExtra {
 	args := sp.Called()
 	return args.Get(0).(primitives.SignedExtra)
-}
-
-func (sp *SignedPayload) UsingEncoded() sc.Sequence[sc.U8] {
-	args := sp.Called()
-	return args.Get(0).(sc.Sequence[sc.U8])
 }
