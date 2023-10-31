@@ -88,7 +88,7 @@ func Test_CheckNonce_Validate_WithRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
@@ -115,7 +115,7 @@ func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
@@ -134,7 +134,7 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
@@ -164,7 +164,7 @@ func Test_CheckNonce_PreDispatch_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 	mockModule.On("StorageAccountSet", oneAddress.FixedSequence, expectAccountInfo).Return()
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
@@ -186,7 +186,7 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
@@ -207,7 +207,7 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo)
+	mockModule.On("StorageAccount", oneAddress.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 

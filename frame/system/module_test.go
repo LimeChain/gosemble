@@ -209,7 +209,7 @@ func Test_Module_StorageBlockHash(t *testing.T) {
 	key := sc.U64(0)
 	target := setupModule()
 
-	mockStorageBlockHash.On("Get", key).Return(parentHash)
+	mockStorageBlockHash.On("Get", key).Return(parentHash, nil)
 
 	result, err := target.StorageBlockHash(key)
 	assert.Nil(t, err)
@@ -296,7 +296,7 @@ func Test_Module_StorageLastRuntimeUpgradeSet(t *testing.T) {
 func Test_Module_StorageAccount(t *testing.T) {
 	target := setupModule()
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.StorageAccount(targetAccount.FixedSequence)
 	assert.Nil(t, err)
@@ -537,11 +537,11 @@ func Test_Module_Finalize_RemovePreviousHash(t *testing.T) {
 	mockStorageExecutionPhase.On("Clear").Return()
 	mockStorageAllExtrinsicsLen.On("Clear").Return()
 
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
-	mockStorageParentHash.On("Get").Return(parentHash)
-	mockStorageDigest.On("Get").Return(digest)
-	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount)
-	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes)
+	mockStorageBlockNumber.On("Get").Return(blockNumber, nil)
+	mockStorageParentHash.On("Get").Return(parentHash, nil)
+	mockStorageDigest.On("Get").Return(digest, nil)
+	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount, nil)
+	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes, nil)
 	mockIoTrie.On("Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion)).Return(extrinsicRoot)
 	mockStorageBlockHash.On("Remove", sc.U64(1)).Return()
 	mockIoStorage.On("Root", int32(version.StateVersion)).Return(storageRoot)
@@ -585,11 +585,11 @@ func Test_Module_Finalize_Success(t *testing.T) {
 	mockStorageExecutionPhase.On("Clear").Return()
 	mockStorageAllExtrinsicsLen.On("Clear").Return()
 
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
-	mockStorageParentHash.On("Get").Return(parentHash)
-	mockStorageDigest.On("Get").Return(digest)
-	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount)
-	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes)
+	mockStorageBlockNumber.On("Get").Return(blockNumber, nil)
+	mockStorageParentHash.On("Get").Return(parentHash, nil)
+	mockStorageDigest.On("Get").Return(digest, nil)
+	mockStorageExtrinsicCount.On("Take").Return(extrinsicCount, nil)
+	mockStorageExtrinsicData.On("TakeBytes", sc.U32(0)).Return(extrinsicDataBytes, nil)
 	mockIoTrie.On("Blake2256OrderedRoot", blakeArgs, int32(constants.StorageVersion)).Return(extrinsicRoot)
 	mockIoStorage.On("Root", int32(version.StateVersion)).Return(storageRoot)
 
@@ -615,7 +615,7 @@ func Test_Module_NoteFinishedExtrinsics(t *testing.T) {
 	extrinsicIndex := sc.U32(4)
 	target := setupModule()
 
-	mockStorageExtrinsicIndex.On("Take").Return(extrinsicIndex)
+	mockStorageExtrinsicIndex.On("Take").Return(extrinsicIndex, nil)
 	mockStorageExtrinsicCount.On("Put", extrinsicIndex).Return()
 	mockStorageExecutionPhase.On("Put", primitives.NewExtrinsicPhaseFinalization()).Return()
 
@@ -644,7 +644,7 @@ func Test_Module_CanDecProviders_ZeroConsumer(t *testing.T) {
 	target := setupModule()
 	accountInfo := primitives.AccountInfo{}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.CanDecProviders(targetAccount)
 	assert.Nil(t, err)
@@ -660,7 +660,7 @@ func Test_Module_CanDecProviders_Providers(t *testing.T) {
 		Providers: 3,
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.CanDecProviders(targetAccount)
 	assert.Nil(t, err)
@@ -675,7 +675,7 @@ func Test_Module_CanDecProviders_False(t *testing.T) {
 		Consumers: 2,
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.CanDecProviders(targetAccount)
 	assert.Nil(t, err)
@@ -696,7 +696,7 @@ func Test_Module_TryMutateExists_Error(t *testing.T) {
 		return expectResult
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)
@@ -721,7 +721,7 @@ func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
 		return expectResult
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)
@@ -754,13 +754,13 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Suc
 		return expectResult
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 	mockStorageAccount.
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
 			mockTypeMutateOptionAccountInfo).
-		Return(mockResult)
+		Return(mockResult, nil)
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)
@@ -801,13 +801,13 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing
 		return sc.Result[sc.Encodable]{}
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 	mockStorageAccount.
 		On(
 			"TryMutateExists",
 			targetAccount.FixedSequence,
 			mockTypeMutateOptionAccountInfo).
-		Return(mockResult)
+		Return(mockResult, nil)
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)
@@ -840,17 +840,17 @@ func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 		return expectResult
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{Value: primitives.IncRefStatusExisted}).Once()
+		Return(sc.Result[sc.Encodable]{Value: primitives.IncRefStatusExisted}, nil).Once()
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{Value: sc.NewU128(2)}).Once()
+		Return(sc.Result[sc.Encodable]{Value: sc.NewU128(2)}, nil).Once()
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)
@@ -880,12 +880,12 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 		return expectResult
 	}
 
-	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo)
+	mockStorageAccount.On("Get", targetAccount.FixedSequence).Return(accountInfo, nil)
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccount.FixedSequence,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{})
+		Return(sc.Result[sc.Encodable]{}, nil)
 
 	result, err := target.TryMutateExists(targetAccount, f)
 	assert.Nil(t, err)

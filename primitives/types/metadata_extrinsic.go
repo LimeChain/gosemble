@@ -19,7 +19,7 @@ func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) {
 }
 
 func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, error) {
-	t, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataExtrinsicV14{}, err
 	}
@@ -33,7 +33,7 @@ func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, err
 	}
 
 	return MetadataExtrinsicV14{
-		Type:             t,
+		Type:             typeId,
 		Version:          version,
 		SignedExtensions: se,
 	}, nil
@@ -66,34 +66,34 @@ func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) (MetadataExtrinsicV15, err
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	addr, err := sc.DecodeCompact(buffer)
+	addrTypeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	call, err := sc.DecodeCompact(buffer)
+	callTypeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	sig, err := sc.DecodeCompact(buffer)
+	sigTypeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	extra, err := sc.DecodeCompact(buffer)
+	extraTypeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	se, err := sc.DecodeSequenceWith(buffer, DecodeMetadataSignedExtension)
+	seTypeId, err := sc.DecodeSequenceWith(buffer, DecodeMetadataSignedExtension)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
 
 	return MetadataExtrinsicV15{
 		Version:          version,
-		Address:          addr,
-		Call:             call,
-		Signature:        sig,
-		Extra:            extra,
-		SignedExtensions: se,
+		Address:          addrTypeId,
+		Call:             callTypeId,
+		Signature:        sigTypeId,
+		Extra:            extraTypeId,
+		SignedExtensions: seTypeId,
 	}, nil
 }
 
@@ -126,7 +126,7 @@ func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtensio
 	if err != nil {
 		return MetadataSignedExtension{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact(buffer)
 	if err != nil {
 		return MetadataSignedExtension{}, err
 	}
@@ -136,7 +136,7 @@ func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtensio
 	}
 	return MetadataSignedExtension{
 		Identifier:       id,
-		Type:             t,
+		Type:             typeId,
 		AdditionalSigned: as,
 	}, nil
 }

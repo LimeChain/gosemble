@@ -10,6 +10,9 @@ type OnTimestampSet struct {
 }
 
 func (m *OnTimestampSet) OnTimestampSet(n sc.U64) error {
-	m.Called(n)
-	return nil
+	args := m.Called(n)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
 }

@@ -236,7 +236,7 @@ func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {
 	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)))
 	mockStorageCurrentSlot.On("Get").Return(sc.U64(0))
 	mockStorageCurrentSlot.On("Put", sc.U64(1)).Return()
-	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(3)))
+	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(3)), nil)
 
 	onInit, err := module.OnInitialize(blockNumber)
 	assert.Nil(t, err)

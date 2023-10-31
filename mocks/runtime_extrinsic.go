@@ -18,7 +18,10 @@ func (re *RuntimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFou
 
 func (re *RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData) ([]byte, error) {
 	args := re.Called(inherentData)
-	return args.Get(0).([]byte), nil
+	if args.Get(1) == nil {
+		return args.Get(0).([]byte), nil
+	}
+	return args.Get(0).([]byte), args.Get(1).(error)
 }
 
 func (re *RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
@@ -33,7 +36,10 @@ func (re *RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {
 
 func (re *RuntimeExtrinsic) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	args := re.Called(n)
-	return args.Get(0).(primitives.Weight), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Weight), nil
+	}
+	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
 func (re *RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
@@ -42,8 +48,11 @@ func (re *RuntimeExtrinsic) OnRuntimeUpgrade() primitives.Weight {
 }
 
 func (re *RuntimeExtrinsic) OnFinalize(n sc.U64) error {
-	re.Called(n)
-	return nil
+	args := re.Called(n)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
 }
 
 func (re *RuntimeExtrinsic) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {

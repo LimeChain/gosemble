@@ -81,11 +81,11 @@ func DecodeEra(buffer *bytes.Buffer) (Era, error) {
 	if firstByte == 0 {
 		return NewImmortalEra(), nil
 	} else {
-		dec8, err := sc.DecodeU8(buffer)
+		nextByte, err := sc.DecodeU8(buffer)
 		if err != nil {
 			return Era{}, err
 		}
-		encoded := sc.U64(firstByte) + (sc.U64(dec8) << 8)
+		encoded := sc.U64(firstByte) + (sc.U64(nextByte) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
 		quantizeFactor := sc.Max64(period>>12, 1)
 		phase := (encoded >> 4) * quantizeFactor

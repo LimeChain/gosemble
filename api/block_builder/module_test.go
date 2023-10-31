@@ -57,7 +57,7 @@ func Test_Module_ApplyExtrinsic_Success(t *testing.T) {
 	bExtrinsicResult := primitives.NewApplyExtrinsicResult(outcome).Bytes()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
 	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", bExtrinsicResult).Return(ptrAndSize)
 
@@ -79,7 +79,7 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	bExtrinsicResult := primitives.NewApplyExtrinsicResult(validityError).Bytes()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
 	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, validityError)
 	mockMemoryUtils.On("BytesToOffsetAndSize", bExtrinsicResult).Return(ptrAndSize)
 
@@ -106,7 +106,7 @@ func Test_Module_FinalizeBlock(t *testing.T) {
 		ExtrinsicsRoot: primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicsRoot)},
 	}
 
-	mockExecutive.On("FinalizeBlock").Return(header)
+	mockExecutive.On("FinalizeBlock").Return(header, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", header.Bytes()).Return(ptrAndSize)
 
 	result := target.FinalizeBlock()
@@ -124,7 +124,7 @@ func Test_Module_InherentExtrinsics_Success(t *testing.T) {
 	bCreate := []byte{1}
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
-	mockRuntimeExtrinsic.On("CreateInherents", *inherentData).Return(bCreate)
+	mockRuntimeExtrinsic.On("CreateInherents", *inherentData).Return(bCreate, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", bCreate).Return(ptrAndSize)
 
 	result := target.InherentExtrinsics(dataPtr, dataLen)
@@ -162,7 +162,7 @@ func Test_Module_CheckInherents_Success(t *testing.T) {
 	checkResult := primitives.NewCheckInherentsResult()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
-	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block)
+	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block, nil)
 	mockRuntimeExtrinsic.On("CheckInherents", *inherentData, block).Return(checkResult)
 	mockMemoryUtils.On("BytesToOffsetAndSize", checkResult.Bytes()).Return(ptrAndSize)
 
@@ -183,7 +183,7 @@ func Test_Module_CheckInherents_InvalidInherentData(t *testing.T) {
 	bufferData := bytes.NewBuffer(bytesInvalidInherentData)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bytesInvalidInherentData)
-	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block)
+	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block, nil)
 
 	assert.PanicsWithValue(t,
 		io.EOF.Error(),

@@ -24,7 +24,7 @@ func Test_CheckGenesis_AdditionalSigned(t *testing.T) {
 		)}
 	target := setupCheckGenesis()
 
-	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash, nil)
 
 	result, err := target.AdditionalSigned()
 

@@ -17,17 +17,29 @@ func (m *StoredMap) DepositEvent(event types.Event) {
 func (m *StoredMap) Get(key types.PublicKey) (types.AccountInfo, error) {
 	args := m.Called(key)
 
-	return args.Get(0).(types.AccountInfo), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(types.AccountInfo), nil
+	}
+
+	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
 func (m *StoredMap) CanDecProviders(who types.Address32) (bool, error) {
 	args := m.Called(who)
 
-	return args.Get(0).(bool), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(bool), nil
+	}
+
+	return args.Get(0).(bool), args.Get(1).(error)
 }
 
 func (m *StoredMap) TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	args := m.Called(who, f)
 
-	return args.Get(0).(sc.Result[sc.Encodable]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Result[sc.Encodable]), nil
+	}
+
+	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
 }

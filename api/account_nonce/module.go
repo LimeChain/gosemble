@@ -47,11 +47,11 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	publicKeyDec, err := types.DecodePublicKey(buffer)
+	publicKey, err := types.DecodePublicKey(buffer)
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	account, err := m.systemModule.Get(publicKeyDec)
+	account, err := m.systemModule.Get(publicKey)
 	if err != nil {
 		log.Critical(err.Error())
 	}

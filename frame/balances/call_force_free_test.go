@@ -141,7 +141,7 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	mutateResult := sc.Result[sc.Encodable]{HasError: false, Value: actual}
 	event := newEventUnreserved(moduleId, targetAddress.AsAddress32().FixedSequence, actual)
 
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
+	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
 	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
 		mockTypeMutateAccountDataBool).
@@ -209,7 +209,7 @@ func Test_Call_ForceFree_Dispatch_ZeroTotalStorageBalance(t *testing.T) {
 	target := setupCallForceFree()
 	accountInfo := primitives.AccountInfo{Data: primitives.AccountData{}}
 
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
+	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
 
 	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
@@ -223,7 +223,7 @@ func Test_Call_ForceFree_Dispatch_Mutation_Fails(t *testing.T) {
 	target := setupCallForceFree()
 	mutateResult := sc.Result[sc.Encodable]{HasError: true}
 
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
+	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
 	mockMutator.On("tryMutateAccount",
 		targetAddress.AsAddress32(),
 		mockTypeMutateAccountDataBool,

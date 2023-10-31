@@ -41,17 +41,29 @@ func (m *StorageValue[T]) Append(value T) {
 func (m *StorageValue[T]) Take() (T, error) {
 	args := m.Called()
 
-	return args.Get(0).(T), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(T), nil
+	}
+
+	return args.Get(0).(T), args.Get(1).(error)
 }
 
 func (m *StorageValue[T]) TakeBytes() ([]byte, error) {
 	args := m.Called()
 
-	return args.Get(0).([]byte), nil
+	if args.Error(1) == nil {
+		return args.Get(0).([]byte), nil
+	}
+
+	return args.Get(0).([]byte), args.Error(1).(error)
 }
 
 func (m *StorageValue[T]) DecodeLen() (sc.Option[sc.U64], error) {
 	args := m.Called()
 
-	return args.Get(0).(sc.Option[sc.U64]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[sc.U64]), nil
+	}
+
+	return args.Get(0).(sc.Option[sc.U64]), args.Get(1).(error)
 }

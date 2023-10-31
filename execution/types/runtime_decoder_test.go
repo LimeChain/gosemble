@@ -91,7 +91,7 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", decodeBlockBuff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", decodeBlockBuff).Return(mockCallOne, nil)
 	result, err := target.DecodeBlock(decodeBlockBuff)
 	assert.NoError(t, err)
 
@@ -141,7 +141,7 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 	result, err := target.DecodeBlock(buff)
 	assert.NoError(t, err)
 
@@ -183,7 +183,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
 	result, err := target.DecodeUncheckedExtrinsic(buff)
 	assert.NoError(t, err)
@@ -212,7 +212,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
 	result, err := target.DecodeUncheckedExtrinsic(buff)
 	assert.NoError(t, err)
@@ -260,7 +260,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
 	assert.PanicsWithValue(t, "invalid length prefix", func() {
 		target.DecodeUncheckedExtrinsic(buff)
@@ -327,7 +327,7 @@ func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
 		buf.ReadByte()
 		buf.ReadByte()
 		buf.ReadByte()
-	}).Return(mockCallOne)
+	}).Return(mockCallOne, nil)
 
 	_, err := target.DecodeCall(buf)
 	assert.NoError(t, err)

@@ -76,7 +76,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 func Test_Module_OnFinalize_Nil(t *testing.T) {
 	target := setupModule()
 
-	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil))
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), nil)
 
 	assert.PanicsWithValue(t, errTimestampNotUpdated, func() {
 		target.OnFinalize(ts)
@@ -88,7 +88,7 @@ func Test_Module_OnFinalize_Nil(t *testing.T) {
 func Test_Module_OnFinalize(t *testing.T) {
 	target := setupModule()
 
-	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"))
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"), nil)
 
 	target.OnFinalize(ts)
 

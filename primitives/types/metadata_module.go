@@ -81,7 +81,7 @@ func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
-	idx, err := sc.DecodeU8(buffer)
+	index, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
@@ -96,7 +96,7 @@ func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
 		Event:     event,
 		Constants: constants,
 		Error:     e,
-		Index:     idx,
+		Index:     index,
 		Docs:      docs,
 	}, nil
 }
@@ -153,7 +153,7 @@ func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
-	idx, err := sc.DecodeU8(buffer)
+	index, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
@@ -164,7 +164,7 @@ func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
 		Event:     event,
 		Constants: constants,
 		Error:     e,
-		Index:     idx,
+		Index:     index,
 	}, nil
 }
 

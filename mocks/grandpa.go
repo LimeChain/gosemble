@@ -43,7 +43,10 @@ func (m *GrandpaModule) KeyTypeId() [4]byte {
 
 func (m *GrandpaModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	args := m.Called(n)
-	return args.Get(0).(primitives.Weight), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Weight), nil
+	}
+	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
 func (m *GrandpaModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -53,13 +56,18 @@ func (m *GrandpaModule) Metadata() (sc.Sequence[primitives.MetadataType], primit
 
 func (m *GrandpaModule) Authorities() (sc.Sequence[primitives.Authority], error) {
 	args := m.Called()
-	return args.Get(0).(sc.Sequence[primitives.Authority]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Sequence[primitives.Authority]), nil
+	}
+	return args.Get(0).(sc.Sequence[primitives.Authority]), args.Get(1).(error)
 }
 
 func (m *GrandpaModule) CreateInherent(inherent types.InherentData) (sc.Option[types.Call], error) {
 	args := m.Called(inherent)
-
-	return args.Get(0).(sc.Option[types.Call]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[types.Call]), nil
+	}
+	return args.Get(0).(sc.Option[types.Call]), args.Get(1).(error)
 }
 
 func (m *GrandpaModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
@@ -83,8 +91,11 @@ func (m *GrandpaModule) OnRuntimeUpgrade() primitives.Weight {
 }
 
 func (m *GrandpaModule) OnFinalize(n sc.U64) error {
-	m.Called(n)
-	return nil
+	args := m.Called(n)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
 }
 
 func (m *GrandpaModule) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {

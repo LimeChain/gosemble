@@ -268,7 +268,7 @@ func Test_transfer_sanityChecks_Success(t *testing.T) {
 	expected := sc.Result[sc.Encodable]{}
 
 	mockMutator.On("ensureCanWithdraw", targetAddress.AsAddress32(), targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(true)
+	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(true, nil)
 
 	result := target.sanityChecks(targetAddress.AsAddress32(), fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
 
@@ -365,7 +365,7 @@ func Test_transfer_sanityChecks_KeepAlive(t *testing.T) {
 		}),
 	}
 	mockMutator.On("ensureCanWithdraw", targetAddress.AsAddress32(), targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(false)
+	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(false, nil)
 
 	result := target.sanityChecks(targetAddress.AsAddress32(), fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
 
@@ -378,8 +378,8 @@ func Test_transfer_sanityChecks_KeepAlive(t *testing.T) {
 
 func Test_transfer_reducibleBalance_NotKeepAlive(t *testing.T) {
 	target := setupTransfer()
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(true)
+	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(true, nil)
 
 	result, err := target.reducibleBalance(targetAddress.AsAddress32(), false)
 	assert.Nil(t, err)
@@ -391,8 +391,8 @@ func Test_transfer_reducibleBalance_NotKeepAlive(t *testing.T) {
 
 func Test_transfer_reducibleBalance_KeepAlive(t *testing.T) {
 	target := setupTransfer()
-	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(false)
+	mockStoredMap.On("Get", targetAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", targetAddress.AsAddress32()).Return(false, nil)
 
 	result, err := target.reducibleBalance(targetAddress.AsAddress32(), true)
 	assert.Nil(t, err)

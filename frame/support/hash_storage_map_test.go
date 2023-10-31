@@ -30,7 +30,7 @@ func Test_HashStorageMap_Get(t *testing.T) {
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
-	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
 	result, err := target.Get(keyValue)
 	assert.NoError(t, err)
@@ -90,8 +90,7 @@ func Test_HashStorageMap_TakeBytes(t *testing.T) {
 	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(
 		sc.NewOption[sc.Sequence[sc.U8]](
 			sc.BytesToSequenceU8(storageValue.Bytes()),
-		),
-	)
+		), nil)
 	mockStorage.On("Clear", concatHashStorageMapKeyKey).Return()
 
 	result, err := target.TakeBytes(keyValue)
@@ -114,7 +113,7 @@ func Test_HashStorageMap_TakeBytes_Nil(t *testing.T) {
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
 	mockStorage.On("Clear", concatHashStorageMapKeyKey)
-	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
 	result, err := target.TakeBytes(keyValue)
 	assert.NoError(t, err)
@@ -175,8 +174,7 @@ func Test_HashStorageMap_Mutate(t *testing.T) {
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
 	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(
 		sc.NewOption[sc.Sequence[sc.U8]](
-			sc.BytesToSequenceU8(storageValue.Bytes())),
-	)
+			sc.BytesToSequenceU8(storageValue.Bytes())), nil)
 	mockStorage.On("Set", concatHashStorageMapKeyKey, storageValue.Bytes()).Return()
 
 	result, err := target.Mutate(keyValue, func(s *sc.U32) sc.Result[sc.Encodable] {
@@ -204,7 +202,7 @@ func Test_HashStorageMap_Mutate_Error(t *testing.T) {
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
-	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
 	result, err := target.Mutate(keyValue, func(s *sc.U32) sc.Result[sc.Encodable] {
 		return expect
@@ -233,8 +231,7 @@ func Test_HashStorageMap_TryMutateExists(t *testing.T) {
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
 	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(
 		sc.NewOption[sc.Sequence[sc.U8]](
-			sc.BytesToSequenceU8(storageValue.Bytes())),
-	)
+			sc.BytesToSequenceU8(storageValue.Bytes())), nil)
 	mockStorage.On("Set", concatHashStorageMapKeyKey, storageValue.Bytes()).Return()
 
 	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) sc.Result[sc.Encodable] {
@@ -264,7 +261,7 @@ func Test_HashStorageMap_TryMutateExists_Error(t *testing.T) {
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
-	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
 	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) sc.Result[sc.Encodable] {
 		assert.Equal(t, &expectOption, option)

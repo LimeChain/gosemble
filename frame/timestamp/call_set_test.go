@@ -165,7 +165,7 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 	mockStorageNow.On("Get").Return(sc.U64(0))
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
-	mockOnTimestampSet.On("OnTimestampSet", now).Return()
+	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
 	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
@@ -183,7 +183,7 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 	mockStorageNow.On("Get").Return(now - c.MinimumPeriod)
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
-	mockOnTimestampSet.On("OnTimestampSet", now).Return()
+	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
 	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 

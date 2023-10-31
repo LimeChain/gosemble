@@ -11,13 +11,19 @@ type Executive struct {
 }
 
 func (m *Executive) InitializeBlock(header primitives.Header) error {
-	m.Called(header)
-	return nil
+	args := m.Called(header)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
 }
 
 func (m *Executive) ExecuteBlock(block types.Block) error {
-	m.Called(block)
-	return nil
+	args := m.Called(block)
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
 }
 
 func (m *Executive) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
@@ -33,7 +39,11 @@ func (m *Executive) ApplyExtrinsic(uxt types.UncheckedExtrinsic) (primitives.Dis
 func (m *Executive) FinalizeBlock() (primitives.Header, error) {
 	args := m.Called()
 
-	return args.Get(0).(primitives.Header), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Header), nil
+	}
+
+	return args.Get(0).(primitives.Header), args.Get(1).(error)
 }
 
 func (m *Executive) ValidateTransaction(source primitives.TransactionSource, uxt types.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {

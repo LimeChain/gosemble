@@ -90,17 +90,17 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 
 	switch version {
 	case MetadataVersion14:
-		data14, err := DecodeRuntimeMetadataV14(buffer)
+		data, err := DecodeRuntimeMetadataV14(buffer)
 		if err != nil {
 			return Metadata{}, err
 		}
-		return Metadata{Version: MetadataVersion14, DataV14: data14}, nil
+		return Metadata{Version: MetadataVersion14, DataV14: data}, nil
 	case MetadataVersion15:
-		data15, err := DecodeRuntimeMetadataV15(buffer)
+		data, err := DecodeRuntimeMetadataV15(buffer)
 		if err != nil {
 			return Metadata{}, err
 		}
-		return Metadata{Version: MetadataVersion15, DataV15: data15}, nil
+		return Metadata{Version: MetadataVersion15, DataV15: data}, nil
 	default:
 		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")

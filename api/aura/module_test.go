@@ -46,7 +46,7 @@ func Test_Item(t *testing.T) {
 func Test_Authorities_None(t *testing.T) {
 	setup()
 
-	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](nil))
+	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{0}).Return(int64(0))
 
 	target.Authorities()
@@ -60,7 +60,7 @@ func Test_Authorities_Some(t *testing.T) {
 
 	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](
 		sc.Sequence[sc.U8]{sc.U8(1), sc.U8(2), sc.U8(3)},
-	))
+	), nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{1, 2, 3}).Return(int64(13))
 
 	target.Authorities()

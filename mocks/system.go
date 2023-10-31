@@ -13,7 +13,10 @@ type SystemModule struct {
 
 func (m *SystemModule) CreateInherent(inherent primitives.InherentData) (sc.Option[primitives.Call], error) {
 	args := m.Called(inherent)
-	return args.Get(0).(sc.Option[primitives.Call]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[primitives.Call]), nil
+	}
+	return args.Get(0).(sc.Option[primitives.Call]), args.Get(1).(error)
 }
 
 func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) primitives.FatalError {
@@ -33,7 +36,10 @@ func (m *SystemModule) IsInherent(call primitives.Call) bool {
 
 func (m *SystemModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	args := m.Called(n)
-	return args.Get(0).(primitives.Weight), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Weight), nil
+	}
+	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
 func (m *SystemModule) OnRuntimeUpgrade() primitives.Weight {
@@ -100,7 +106,10 @@ func (m *SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPost
 
 func (m *SystemModule) Finalize() (primitives.Header, error) {
 	args := m.Called()
-	return args.Get(0).(primitives.Header), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Header), nil
+	}
+	return args.Get(0).(primitives.Header), args.Get(1).(error)
 }
 
 func (m *SystemModule) NoteFinishedExtrinsics() error {
@@ -114,12 +123,18 @@ func (m *SystemModule) ResetEvents() {
 
 func (m *SystemModule) Get(key primitives.PublicKey) (primitives.AccountInfo, error) {
 	args := m.Called(key)
-	return args.Get(0).(primitives.AccountInfo), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.AccountInfo), nil
+	}
+	return args.Get(0).(primitives.AccountInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) CanDecProviders(who primitives.Address32) (bool, error) {
 	args := m.Called(who)
-	return args.Get(0).(bool), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(bool), nil
+	}
+	return args.Get(0).(bool), args.Get(1).(error)
 }
 
 func (m *SystemModule) DepositEvent(event primitives.Event) {
@@ -133,7 +148,10 @@ func (m *SystemModule) Mutate(who primitives.Address32, f func(who *primitives.A
 
 func (m *SystemModule) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	args := m.Called(who, f)
-	return args.Get(0).(sc.Result[sc.Encodable]), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Result[sc.Encodable]), nil
+	}
+	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
 }
 
 func (m *SystemModule) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
@@ -183,7 +201,10 @@ func (m *SystemModule) StorageDigest() (types.Digest, error) {
 
 func (m *SystemModule) StorageBlockWeight() (primitives.ConsumedWeight, error) {
 	args := m.Called()
-	return args.Get(0).(primitives.ConsumedWeight), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.ConsumedWeight), nil
+	}
+	return args.Get(0).(primitives.ConsumedWeight), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
@@ -192,7 +213,10 @@ func (m *SystemModule) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
 
 func (m *SystemModule) StorageBlockHash(key sc.U64) (types.Blake2bHash, error) {
 	args := m.Called(key)
-	return args.Get(0).(types.Blake2bHash), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Blake2bHash), nil
+	}
+	return args.Get(0).(types.Blake2bHash), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
@@ -207,7 +231,10 @@ func (m *SystemModule) StorageBlockHashExists(key sc.U64) bool {
 
 func (m *SystemModule) StorageBlockNumber() (sc.U64, error) {
 	args := m.Called()
-	return args.Get(0).(sc.U64), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.U64), nil
+	}
+	return args.Get(0).(sc.U64), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockNumberSet(blockNumber sc.U64) {
@@ -216,7 +243,10 @@ func (m *SystemModule) StorageBlockNumberSet(blockNumber sc.U64) {
 
 func (m *SystemModule) StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error) {
 	args := m.Called()
-	return args.Get(0).(types.LastRuntimeUpgradeInfo), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(types.LastRuntimeUpgradeInfo), nil
+	}
+	return args.Get(0).(types.LastRuntimeUpgradeInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
@@ -225,7 +255,10 @@ func (m *SystemModule) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgrad
 
 func (m *SystemModule) StorageAccount(key types.PublicKey) (types.AccountInfo, error) {
 	args := m.Called(key)
-	return args.Get(0).(types.AccountInfo), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(types.AccountInfo), nil
+	}
+	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
@@ -234,7 +267,10 @@ func (m *SystemModule) StorageAccountSet(key types.PublicKey, value types.Accoun
 
 func (m *SystemModule) StorageAllExtrinsicsLen() (sc.U32, error) {
 	args := m.Called()
-	return args.Get(0).(sc.U32), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.U32), nil
+	}
+	return args.Get(0).(sc.U32), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {

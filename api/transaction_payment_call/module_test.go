@@ -70,12 +70,12 @@ func Test_Module_QueryCallInfo(t *testing.T) {
 	bufferCall := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall)
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
-	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee)
+	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", runtimeDispatchInfo.Bytes()).Return(ptrAndSize)
 
 	result := target.QueryCallInfo(dataPtr, dataLen)
@@ -106,12 +106,12 @@ func Test_Module_QueryCallFeeDetails(t *testing.T) {
 	bufferCall := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall)
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
-	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails)
+	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", feeDetails.Bytes()).Return(ptrAndSize)
 
 	result := target.QueryCallFeeDetails(dataPtr, dataLen)
