@@ -34,7 +34,8 @@ func Test_DecodeDispatchInfo(t *testing.T) {
 	buf := &bytes.Buffer{}
 	buf.Write(expectedDispatchInfoBytes)
 
-	result := DecodeDispatchInfo(buf)
+	result, err := DecodeDispatchInfo(buf)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetDispatchInfo, result)
 }

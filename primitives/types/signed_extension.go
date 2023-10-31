@@ -11,7 +11,7 @@ import (
 type SignedExtension interface {
 	sc.Encodable
 
-	Decode(buffer *bytes.Buffer)
+	Decode(buffer *bytes.Buffer) error
 
 	// Unique identifier of this signed extension.
 	//

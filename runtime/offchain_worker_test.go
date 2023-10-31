@@ -27,7 +27,8 @@ func Test_Offchain_Worker(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesSlotDuration)
 
-	slotDuration := sc.DecodeU64(buffer)
+	slotDuration, err := sc.DecodeU64(buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 
 	slot := sc.U64(time.UnixMilli()) / slotDuration

@@ -2,9 +2,11 @@ package types
 
 import (
 	"bytes"
+	"errors"
+	"strconv"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"strconv"
 )
 
 const (
@@ -70,24 +72,38 @@ func (m Metadata) Encode(buffer *bytes.Buffer) {
 	}
 }
 
-func DecodeMetadata(buffer *bytes.Buffer) Metadata {
+func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-	metaReserved := sc.DecodeU32(buffer)
+	metaReserved, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return Metadata{}, err
+	}
 	if metaReserved != MetadataReserved {
 		log.Critical("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
-		return Metadata{}
+		return Metadata{}, errors.New("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 	}
 
-	version := sc.DecodeU8(buffer)
+	version, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return Metadata{}, err
+	}
 
 	switch version {
 	case MetadataVersion14:
-		return Metadata{Version: MetadataVersion14, DataV14: DecodeRuntimeMetadataV14(buffer)}
+		data, err := DecodeRuntimeMetadataV14(buffer)
+		if err != nil {
+			return Metadata{}, err
+		}
+		return Metadata{Version: MetadataVersion14, DataV14: data}, nil
 	case MetadataVersion15:
-		return Metadata{Version: MetadataVersion15, DataV15: DecodeRuntimeMetadataV15(buffer)}
+		data, err := DecodeRuntimeMetadataV15(buffer)
+		if err != nil {
+			return Metadata{}, err
+		}
+		return Metadata{Version: MetadataVersion15, DataV15: data}, nil
 	default:
 		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
-		return Metadata{}
+		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 	}
 }
 
@@ -153,14 +169,34 @@ func (mt MetadataType) Encode(buffer *bytes.Buffer) {
 	mt.Docs.Encode(buffer)
 }
 
-func DecodeMetadataType(buffer *bytes.Buffer) MetadataType {
-	return MetadataType{
-		Id:         sc.DecodeCompact(buffer),
-		Path:       sc.DecodeSequence[sc.Str](buffer),
-		Params:     sc.DecodeSequenceWith(buffer, DecodeMetadataTypeParameter),
-		Definition: DecodeMetadataTypeDefinition(buffer),
-		Docs:       sc.DecodeSequence[sc.Str](buffer),
+func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
+	id, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return MetadataType{}, err
 	}
+	path, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataType{}, err
+	}
+	params, err := sc.DecodeSequenceWith(buffer, DecodeMetadataTypeParameter)
+	if err != nil {
+		return MetadataType{}, err
+	}
+	def, err := DecodeMetadataTypeDefinition(buffer)
+	if err != nil {
+		return MetadataType{}, err
+	}
+	docs, err := sc.DecodeSequence[sc.Str](buffer)
+	if err != nil {
+		return MetadataType{}, err
+	}
+	return MetadataType{
+		Id:         id,
+		Path:       path,
+		Params:     params,
+		Definition: def,
+		Docs:       docs,
+	}, nil
 }
 
 func (mt MetadataType) Bytes() []byte {
@@ -198,11 +234,19 @@ func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) {
 	mtp.Type.Encode(buffer)
 }
 
-func DecodeMetadataTypeParameter(buffer *bytes.Buffer) MetadataTypeParameter {
-	return MetadataTypeParameter{
-		Text: sc.DecodeStr(buffer),
-		Type: sc.DecodeOption[sc.Compact](buffer),
+func DecodeMetadataTypeParameter(buffer *bytes.Buffer) (MetadataTypeParameter, error) {
+	text, err := sc.DecodeStr(buffer)
+	if err != nil {
+		return MetadataTypeParameter{}, err
 	}
+	t, err := sc.DecodeOption[sc.Compact](buffer)
+	if err != nil {
+		return MetadataTypeParameter{}, err
+	}
+	return MetadataTypeParameter{
+		Text: text,
+		Type: t,
+	}, nil
 }
 
 func (mtp MetadataTypeParameter) Bytes() []byte {

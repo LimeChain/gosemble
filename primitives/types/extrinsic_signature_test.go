@@ -71,7 +71,8 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 		},
 	)
 
-	result := DecodeExtrinsicSignature(signedExtraTemplate, buffer)
+	result, err := DecodeExtrinsicSignature(signedExtraTemplate, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, targetExtrinsicSignature, result)
 }

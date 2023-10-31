@@ -147,12 +147,13 @@ func Test_RuntimeExtrinsic_CreateInherents(t *testing.T) {
 	bytesExtrinsic := append(sc.ToCompact(buffer.Len()).Bytes(), buffer.Bytes()...)
 	expect := append(sc.ToCompact(2).Bytes(), append(bytesExtrinsic, bytesExtrinsic...)...) // two modules, including each extrinsic's bytes
 
-	mockModuleOne.On("CreateInherent", inherentData).Return(sc.NewOption[primitives.Call](mockCallOne))
+	mockModuleOne.On("CreateInherent", inherentData).Return(sc.NewOption[primitives.Call](mockCallOne), nil)
 	mockCallOne.On("Encode", buffer).Return()
-	mockModuleTwo.On("CreateInherent", inherentData).Return(sc.NewOption[primitives.Call](mockCallTwo))
+	mockModuleTwo.On("CreateInherent", inherentData).Return(sc.NewOption[primitives.Call](mockCallTwo), nil)
 	mockCallTwo.On("Encode", buffer).Return()
 
-	result := target.CreateInherents(inherentData)
+	result, err := target.CreateInherents(inherentData)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 
@@ -168,10 +169,11 @@ func Test_RuntimeExtrinsic_CreateInherents_Empty(t *testing.T) {
 	inherentData := *primitives.NewInherentData()
 	emptyCall := sc.NewOption[primitives.Call](nil)
 
-	mockModuleOne.On("CreateInherent", inherentData).Return(emptyCall)
-	mockModuleTwo.On("CreateInherent", inherentData).Return(emptyCall)
+	mockModuleOne.On("CreateInherent", inherentData).Return(emptyCall, nil)
+	mockModuleTwo.On("CreateInherent", inherentData).Return(emptyCall, nil)
 
-	result := target.CreateInherents(inherentData)
+	result, err := target.CreateInherents(inherentData)
+	assert.Nil(t, err)
 
 	assert.Equal(t, []byte{}, result)
 
@@ -337,10 +339,11 @@ func Test_RuntimeExtrinsic_OnInitialize(t *testing.T) {
 
 	expect := weightOne.Add(weightTwo)
 
-	mockModuleOne.On("OnInitialize", blockNumber).Return(weightOne)
-	mockModuleTwo.On("OnInitialize", blockNumber).Return(weightTwo)
+	mockModuleOne.On("OnInitialize", blockNumber).Return(weightOne, nil)
+	mockModuleTwo.On("OnInitialize", blockNumber).Return(weightTwo, nil)
 
-	result := target.OnInitialize(blockNumber)
+	result, err := target.OnInitialize(blockNumber)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 	mockModuleOne.AssertCalled(t, "OnInitialize", blockNumber)
@@ -365,8 +368,8 @@ func Test_RuntimeExtrinsic_OnRuntimeUpgrade(t *testing.T) {
 func Test_RuntimeExtrinsic_OnFinalize(t *testing.T) {
 	target := setupRuntimeExtrinsic()
 
-	mockModuleOne.On("OnFinalize", blockNumber).Return()
-	mockModuleTwo.On("OnFinalize", blockNumber).Return()
+	mockModuleOne.On("OnFinalize", blockNumber).Return(nil)
+	mockModuleTwo.On("OnFinalize", blockNumber).Return(nil)
 
 	target.OnFinalize(blockNumber)
 

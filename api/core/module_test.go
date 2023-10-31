@@ -80,7 +80,7 @@ func Test_Module_InitializeBlock(t *testing.T) {
 	}
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(header.Bytes())
-	mockExecutive.On("InitializeBlock", header).Return()
+	mockExecutive.On("InitializeBlock", header).Return(nil)
 
 	target.InitializeBlock(dataPtr, dataLen)
 
@@ -95,8 +95,8 @@ func Test_Module_ExecuteBlock(t *testing.T) {
 	buffer := bytes.NewBuffer(bBlock)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bBlock)
-	mockRuntimeDecoder.On("DecodeBlock", buffer).Return(block)
-	mockExecutive.On("ExecuteBlock", block).Return()
+	mockRuntimeDecoder.On("DecodeBlock", buffer).Return(block, nil)
+	mockExecutive.On("ExecuteBlock", block).Return(nil)
 
 	target.ExecuteBlock(dataPtr, dataLen)
 

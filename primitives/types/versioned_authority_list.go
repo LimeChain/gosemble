@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -15,11 +16,19 @@ func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) {
 	val.AuthorityList.Encode(buffer)
 }
 
-func DecodeVersionedAuthorityList(buffer *bytes.Buffer) VersionedAuthorityList {
-	return VersionedAuthorityList{
-		Version:       sc.DecodeU8(buffer),
-		AuthorityList: sc.DecodeSequenceWith(buffer, DecodeAuthority),
+func DecodeVersionedAuthorityList(buffer *bytes.Buffer) (VersionedAuthorityList, error) {
+	version, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return VersionedAuthorityList{}, err
 	}
+	authList, err := sc.DecodeSequenceWith(buffer, DecodeAuthority)
+	if err != nil {
+		return VersionedAuthorityList{}, err
+	}
+	return VersionedAuthorityList{
+		Version:       version,
+		AuthorityList: authList,
+	}, nil
 }
 
 func (val VersionedAuthorityList) Bytes() []byte {

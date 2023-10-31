@@ -15,25 +15,40 @@ const (
 
 type Digest = sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
 
-func DecodeDigest(buffer *bytes.Buffer) Digest {
-	compactSize := sc.DecodeCompact(buffer)
+func DecodeDigest(buffer *bytes.Buffer) (Digest, error) {
+	compactSize, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return Digest{}, err
+	}
 	size := int(compactSize.ToBigInt().Int64())
 
 	decoder := sc.Decoder{Reader: buffer}
 
 	result := Digest{}
 	for i := 0; i < size; i++ {
-		digestType := decoder.DecodeByte()
+		digestType, err := decoder.DecodeByte()
+		if err != nil {
+			return Digest{}, err
+		}
 
 		switch digestType {
 		case DigestTypeConsensusMessage:
-			consensusDigest := DecodeDigestItem(buffer)
+			consensusDigest, err := DecodeDigestItem(buffer)
+			if err != nil {
+				return Digest{}, err
+			}
 			result[DigestTypeConsensusMessage] = append(result[DigestTypeConsensusMessage], consensusDigest)
 		case DigestTypeSeal:
-			seal := DecodeDigestItem(buffer)
+			seal, err := DecodeDigestItem(buffer)
+			if err != nil {
+				return Digest{}, err
+			}
 			result[DigestTypeSeal] = append(result[DigestTypeSeal], seal)
 		case DigestTypePreRuntime:
-			preRuntimeDigest := DecodeDigestItem(buffer)
+			preRuntimeDigest, err := DecodeDigestItem(buffer)
+			if err != nil {
+				return Digest{}, err
+			}
 			result[DigestTypePreRuntime] = append(result[DigestTypePreRuntime], preRuntimeDigest)
 		case DigestTypeRuntimeEnvironmentUpgraded:
 			sc.DecodeU8(buffer)
@@ -41,5 +56,5 @@ func DecodeDigest(buffer *bytes.Buffer) Digest {
 		}
 	}
 
-	return result
+	return result, nil
 }

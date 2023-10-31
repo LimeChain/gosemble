@@ -15,10 +15,14 @@ func (p Perbill) Encode(buffer *bytes.Buffer) {
 	p.Percentage.Encode(buffer)
 }
 
-func DecodePerbill(buffer *bytes.Buffer) Perbill {
+func DecodePerbill(buffer *bytes.Buffer) (Perbill, error) {
 	p := Perbill{}
-	p.Percentage = sc.DecodeU32(buffer)
-	return p
+	percent, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return Perbill{}, err
+	}
+	p.Percentage = percent
+	return p, nil
 }
 
 func (p Perbill) Bytes() []byte {

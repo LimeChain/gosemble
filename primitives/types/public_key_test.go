@@ -14,7 +14,8 @@ func Test_DecodePublicKey(t *testing.T) {
 	expect := sc.BytesToFixedSequenceU8(bytesPublicKey)
 
 	buffer := bytes.NewBuffer(bytesPublicKey)
-	result := DecodePublicKey(buffer)
+	result, err := DecodePublicKey(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 }

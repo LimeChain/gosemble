@@ -22,10 +22,14 @@ func (s SignatureSr25519) Encode(buffer *bytes.Buffer) {
 	s.FixedSequence.Encode(buffer)
 }
 
-func DecodeSignatureSr25519(buffer *bytes.Buffer) SignatureSr25519 {
+func DecodeSignatureSr25519(buffer *bytes.Buffer) (SignatureSr25519, error) {
 	s := SignatureSr25519{}
-	s.FixedSequence = sc.DecodeFixedSequence[sc.U8](signatureSr25519Length, buffer)
-	return s
+	seq, err := sc.DecodeFixedSequence[sc.U8](signatureSr25519Length, buffer)
+	if err != nil {
+		return SignatureSr25519{}, nil
+	}
+	s.FixedSequence = seq
+	return s, nil
 }
 
 func (s SignatureSr25519) Bytes() []byte {

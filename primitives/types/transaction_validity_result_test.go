@@ -79,7 +79,8 @@ func Test_DecodeTransactionValidityResult(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := DecodeTransactionValidityResult(buffer)
+			result, err := DecodeTransactionValidityResult(buffer)
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expect, result)
 		})

@@ -37,7 +37,8 @@ func Test_Call_ForceTransfer_DecodeArgs(t *testing.T) {
 	buf.Write(amount.Bytes())
 
 	target := setupCallForceTransfer()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(fromAddress, toAddress, amount), call.Args())
 }

@@ -25,7 +25,8 @@ func Test_System_DecodeEvent_ExtrinsicSuccess(t *testing.T) {
 	buffer.Write(EventExtrinsicSuccess.Bytes())
 	buffer.Write(dispatchInfo.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventExtrinsicSuccess, dispatchInfo),
@@ -46,7 +47,8 @@ func Test_System_DecodeEvent_ExtrinsicFailed(t *testing.T) {
 	buffer.Write(dispatchError.Bytes())
 	buffer.Write(dispatchInfo.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventExtrinsicFailed, dispatchError, dispatchInfo),
@@ -59,7 +61,8 @@ func Test_System_DecodeEvent_CodeUpdated(t *testing.T) {
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventCodeUpdated.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventCodeUpdated),
@@ -73,7 +76,8 @@ func Test_System_DecodeEvent_NewAccount(t *testing.T) {
 	buffer.Write(EventNewAccount.Bytes())
 	buffer.Write(targetAccount.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventNewAccount, targetAccount.FixedSequence),
@@ -87,7 +91,8 @@ func Test_System_DecodeEvent_KilledAccount(t *testing.T) {
 	buffer.Write(EventKilledAccount.Bytes())
 	buffer.Write(targetAccount.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventKilledAccount, targetAccount.FixedSequence),
@@ -104,7 +109,8 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	buffer.Write(targetAccount.Bytes())
 	buffer.Write(hash.Bytes())
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventRemarked, targetAccount.FixedSequence, hash),

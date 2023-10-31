@@ -28,14 +28,34 @@ func (ai AccountInfo) Bytes() []byte {
 	return sc.EncodedBytes(ai)
 }
 
-func DecodeAccountInfo(buffer *bytes.Buffer) AccountInfo {
-	return AccountInfo{
-		Nonce:       sc.DecodeU32(buffer),
-		Consumers:   sc.DecodeU32(buffer),
-		Providers:   sc.DecodeU32(buffer),
-		Sufficients: sc.DecodeU32(buffer),
-		Data:        DecodeAccountData(buffer),
+func DecodeAccountInfo(buffer *bytes.Buffer) (AccountInfo, error) {
+	nonce, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return AccountInfo{}, err
 	}
+	consumers, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+	providers, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+	sufficients, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+	data, err := DecodeAccountData(buffer)
+	if err != nil {
+		return AccountInfo{}, err
+	}
+	return AccountInfo{
+		Nonce:       nonce,
+		Consumers:   consumers,
+		Providers:   providers,
+		Sufficients: sufficients,
+		Data:        data,
+	}, nil
 }
 
 func (ai AccountInfo) Frozen(reasons Reasons) sc.U128 {

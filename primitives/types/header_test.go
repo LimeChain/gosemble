@@ -45,7 +45,8 @@ func Test_Header_Encode(t *testing.T) {
 func Test_Header_Decode(t *testing.T) {
 	buf := bytes.NewBuffer(expectBytesHeader)
 
-	result := DecodeHeader(buf)
+	result, err := DecodeHeader(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, targetHeader.ParentHash, result.ParentHash)
 	assert.Equal(t, targetHeader.Number, result.Number)

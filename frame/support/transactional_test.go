@@ -20,8 +20,10 @@ func Test_Transactional_GetTransactionLevel(t *testing.T) {
 	target := setupTransactional()
 
 	mockStorageValue.On("Get").Return(transactionLevel)
+	txLevel, err := target.GetTransactionLevel()
+	assert.NoError(t, err)
 
-	assert.Equal(t, transactionLevel, target.GetTransactionLevel())
+	assert.Equal(t, transactionLevel, txLevel)
 	mockStorageValue.AssertCalled(t, "Get")
 }
 

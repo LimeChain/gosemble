@@ -34,7 +34,8 @@ func Test_SignatureSr25519_Encode(t *testing.T) {
 func Test_DecodeSignatureSr25519(t *testing.T) {
 	buffer := bytes.NewBuffer(bytesSignatureSr25519)
 
-	result := DecodeSignatureSr25519(buffer)
+	result, err := DecodeSignatureSr25519(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, signatureSr25519, result)
 }

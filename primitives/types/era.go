@@ -72,19 +72,26 @@ func (e Era) Encode(buffer *bytes.Buffer) {
 	buffer.Write(encoded.Bytes())
 }
 
-func DecodeEra(buffer *bytes.Buffer) Era {
-	firstByte := sc.DecodeU8(buffer)
+func DecodeEra(buffer *bytes.Buffer) (Era, error) {
+	firstByte, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return Era{}, err
+	}
 
 	if firstByte == 0 {
-		return NewImmortalEra()
+		return NewImmortalEra(), nil
 	} else {
-		encoded := sc.U64(firstByte) + (sc.U64(sc.DecodeU8(buffer)) << 8)
+		nextByte, err := sc.DecodeU8(buffer)
+		if err != nil {
+			return Era{}, err
+		}
+		encoded := sc.U64(firstByte) + (sc.U64(nextByte) << 8)
 		period := sc.U64(2 << (encoded % (1 << 4)))
 		quantizeFactor := sc.Max64(period>>12, 1)
 		phase := (encoded >> 4) * quantizeFactor
 
 		if period >= 4 && phase < period {
-			return NewMortalEra(period, phase)
+			return NewMortalEra(period, phase), nil
 		} else {
 			log.Critical("invalid period and phase")
 		}

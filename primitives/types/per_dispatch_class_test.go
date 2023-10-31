@@ -30,7 +30,8 @@ func Test_PerDispatchClass_Encode(t *testing.T) {
 func Test_DecodePerDispatchClass(t *testing.T) {
 	buf := bytes.NewBuffer(expectedPerDispatchClassBytes)
 
-	result := DecodePerDispatchClass(buf, sc.DecodeU8)
+	result, err := DecodePerDispatchClass(buf, sc.DecodeU8)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetPerDispatchClass, result)
 }

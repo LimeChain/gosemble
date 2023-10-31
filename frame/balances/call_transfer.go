@@ -28,12 +28,20 @@ func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 	return call
 }
 
-func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	dest, err := types.DecodeMultiAddress(buffer)
+	if err != nil {
+		return nil, err
+	}
+	balance, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
 	c.Arguments = sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeCompact(buffer),
+		dest,
+		balance,
 	)
-	return c
+	return c, nil
 }
 
 func (c callTransfer) Encode(buffer *bytes.Buffer) {
@@ -204,8 +212,15 @@ func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountD
 		}
 	}
 
+	canDecProviders, err := t.storedMap.CanDecProviders(from)
+	if err != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value:    types.NewDispatchErrorOther(sc.Str(err.Error())),
+		}
+	}
 	allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
-	allowDeath = allowDeath && t.storedMap.CanDecProviders(from)
+	allowDeath = allowDeath && canDecProviders
 
 	if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
 		return sc.Result[sc.Encodable]{
@@ -221,14 +236,22 @@ func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountD
 	return sc.Result[sc.Encodable]{}
 }
 
-func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) types.Balance {
-	accountData := t.storedMap.Get(who.FixedSequence).Data
+func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) (types.Balance, error) {
+	account, err := t.storedMap.Get(who.FixedSequence)
+	if err != nil {
+		return types.Balance{}, err
+	}
+	accountData := account.Data
 
 	liquid := sc.SaturatingSubU128(accountData.Free, sc.Max128(accountData.FeeFrozen, accountData.MiscFrozen))
-	if t.storedMap.CanDecProviders(who) && !keepAlive {
-		return liquid
+	canDecProviders, err := t.storedMap.CanDecProviders(who)
+	if err != nil {
+		return types.Balance{}, err
+	}
+	if canDecProviders && !keepAlive {
+		return liquid, nil
 	}
 
 	mustRemainToExist := sc.SaturatingSubU128(t.constants.ExistentialDeposit, accountData.Total().Sub(liquid))
-	return sc.SaturatingSubU128(liquid, mustRemainToExist)
+	return sc.SaturatingSubU128(liquid, mustRemainToExist), nil
 }

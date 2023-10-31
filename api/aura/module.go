@@ -4,6 +4,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -37,7 +38,10 @@ func (m Module) Item() primitives.ApiItem {
 // Authorities returns current set of AuRa (Authority Round) authorities.
 // Returns a pointer-size of the SCALE-encoded set of authorities.
 func (m Module) Authorities() int64 {
-	authorities := m.aura.GetAuthorities()
+	authorities, err := m.aura.GetAuthorities()
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	if !authorities.HasValue {
 		return m.memUtils.BytesToOffsetAndSize([]byte{0})

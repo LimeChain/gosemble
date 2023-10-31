@@ -46,7 +46,8 @@ func Test_ValidTransaction_Encode(t *testing.T) {
 func Test_DecodeValidTransaction(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesValidTransaction)
 
-	result := DecodeValidTransaction(buffer)
+	result, err := DecodeValidTransaction(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetValidTransaction, result)
 }

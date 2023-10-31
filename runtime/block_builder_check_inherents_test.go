@@ -49,7 +49,8 @@ func Test_CheckInherents(t *testing.T) {
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesCheckInherentsResult)
-	checkInherentsResult := types.DecodeCheckInherentsResult(buffer)
+	checkInherentsResult, err := types.DecodeCheckInherentsResult(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedCheckInherentsResult, checkInherentsResult)
 }

@@ -36,7 +36,8 @@ func Test_AccountRaw_Encode(t *testing.T) {
 func Test_DecodeAccountRaw(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAccountRawBytes)
 
-	result := DecodeAccountRaw(buffer)
+	result, err := DecodeAccountRaw(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, accountRaw, result)
 }
@@ -56,7 +57,8 @@ func Test_NewAddress32_Panic(t *testing.T) {
 func Test_DecodeAddress32(t *testing.T) {
 	buffer := bytes.NewBuffer(addr32Bytes)
 
-	result := DecodeAddress32(buffer)
+	result, err := DecodeAddress32(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, address32, result)
 }
@@ -70,7 +72,8 @@ func Test_NewAddress20(t *testing.T) {
 func Test_DecodeAddress20(t *testing.T) {
 	buffer := bytes.NewBuffer(addr20Bytes)
 
-	result := DecodeAddress20(buffer)
+	result, err := DecodeAddress20(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, address20, result)
 }
@@ -142,7 +145,8 @@ func Test_DecodeMultiAddress(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := bytes.NewBuffer(testExample.input)
 
-			result := DecodeMultiAddress(buffer)
+			result, err := DecodeMultiAddress(buffer)
+			assert.Nil(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})

@@ -108,7 +108,8 @@ func Test_CheckInherentsResult_PutError_ExistingIdentifier(t *testing.T) {
 func Test_DecodeCheckInherentsResult(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedCheckInherentsResultErrBytes)
 
-	result := DecodeCheckInherentsResult(buffer)
+	result, err := DecodeCheckInherentsResult(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetCheckInherentsResultErr, result)
 }

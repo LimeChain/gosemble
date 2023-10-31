@@ -20,7 +20,8 @@ func Test_DecodePays_Yes(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	result := DecodePays(buffer)
+	result, err := DecodePays(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewPaysYes(), result)
 }
@@ -29,7 +30,8 @@ func Test_DecodePays_No(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodePays(buffer)
+	result, err := DecodePays(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewPaysNo(), result)
 }

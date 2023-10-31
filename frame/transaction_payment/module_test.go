@@ -230,7 +230,8 @@ func Test_ComputeFee_TipOnlyNoFee(t *testing.T) {
 		PaysFee: primitives.NewPaysNo(),
 	}
 
-	fee := target.ComputeFee(0, info, sc.NewU128(15))
+	fee, err := target.ComputeFee(0, info, sc.NewU128(15))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertNotCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(15), fee)
@@ -247,7 +248,8 @@ func Test_ComputeFee_NoTipOnlyBaseFee(t *testing.T) {
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
 
-	fee := target.ComputeFee(0, info, sc.NewU128(0))
+	fee, err := target.ComputeFee(0, info, sc.NewU128(0))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(100), fee)
@@ -264,7 +266,8 @@ func Test_ComputeFee_TipPlusBaseFee(t *testing.T) {
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(2))
 
-	fee := target.ComputeFee(0, info, sc.NewU128(69))
+	fee, err := target.ComputeFee(0, info, sc.NewU128(69))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(169), fee)
@@ -281,7 +284,8 @@ func Test_ComputeFee_ByteFeePlusBaseFee(t *testing.T) {
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
 
-	fee := target.ComputeFee(42, info, sc.NewU128(0))
+	fee, err := target.ComputeFee(42, info, sc.NewU128(0))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(142), fee)
@@ -298,7 +302,8 @@ func Test_ComputeFee_WeightFeePlusBaseFee(t *testing.T) {
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
 
-	fee := target.ComputeFee(0, info, sc.NewU128(0))
+	fee, err := target.ComputeFee(0, info, sc.NewU128(0))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(100), fee)
@@ -315,7 +320,8 @@ func Test_ComputeFeeDetails(t *testing.T) {
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
 
-	result := target.ComputeFeeDetails(5, info, sc.NewU128(3))
+	result, err := target.ComputeFeeDetails(5, info, sc.NewU128(3))
+	assert.NoError(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(3), result.Tip)
@@ -339,7 +345,8 @@ func Test_ComputeActualFee(t *testing.T) {
 	}
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
 
-	result := target.ComputeActualFee(0, info, postInfo, sc.NewU128(0))
+	result, err := target.ComputeActualFee(0, info, postInfo, sc.NewU128(0))
+	assert.Nil(t, err)
 
 	mockNextFeeMultiplier.AssertCalled(t, "Get")
 	assert.Equal(t, sc.NewU128(100), result)

@@ -62,14 +62,19 @@ func (m *Call) PaysFee(baseWeight types.Weight) types.Pays {
 
 	return args.Get(0).(types.Pays)
 }
+
 func (m *Call) WeighData(baseWeight types.Weight) types.Weight {
 	args := m.Called(baseWeight)
 
 	return args.Get(0).(types.Weight)
 }
 
-func (m *Call) DecodeArgs(buffer *bytes.Buffer) types.Call {
+func (m *Call) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	args := m.Called(buffer)
 
-	return args.Get(0).(types.Call)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Call), nil
+	}
+
+	return args.Get(0).(types.Call), args.Get(1).(error)
 }

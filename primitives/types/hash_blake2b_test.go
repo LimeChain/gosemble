@@ -38,7 +38,8 @@ func Test_Blake2bHash_Encode(t *testing.T) {
 
 func Test_Blake2bHash_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(blake2bHashSequence))
-	result := DecodeBlake2bHash(buffer)
+	result, err := DecodeBlake2bHash(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedBlake2bHash, result)
 }

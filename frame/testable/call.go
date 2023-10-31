@@ -24,9 +24,13 @@ func newCallTest(moduleId, functionId sc.U8) primitives.Call {
 	return call
 }
 
-func (c callTest) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
-	c.Arguments = sc.NewVaryingData(sc.DecodeSequence[sc.U8](buffer))
-	return c
+func (c callTest) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	args, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return nil, err
+	}
+	c.Arguments = sc.NewVaryingData(args)
+	return c, nil
 }
 
 func (c callTest) Encode(buffer *bytes.Buffer) {

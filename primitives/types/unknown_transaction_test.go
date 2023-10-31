@@ -26,7 +26,8 @@ func Test_DecodeUnknownTransaction_CannotLookup(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	result := DecodeUnknownTransaction(buffer)
+	result, err := DecodeUnknownTransaction(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewUnknownTransactionCannotLookup(), result)
 }
@@ -35,7 +36,8 @@ func Test_DecodeUnknownTransaction_NoUnsignedValidator(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodeUnknownTransaction(buffer)
+	result, err := DecodeUnknownTransaction(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewUnknownTransactionNoUnsignedValidator(), result)
 }
@@ -47,7 +49,8 @@ func Test_DecodeUnknownTransaction_CustomUnknownTransaction(t *testing.T) {
 	buffer.WriteByte(2)
 	buffer.WriteByte(byte(unknownTxId))
 
-	result := DecodeUnknownTransaction(buffer)
+	result, err := DecodeUnknownTransaction(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewUnknownTransactionCustomUnknownTransaction(unknownTxId), result)
 }

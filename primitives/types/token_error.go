@@ -48,24 +48,27 @@ func NewTokenErrorUnsupported() TokenError {
 	return sc.NewVaryingData(TokenErrorUnsupported)
 }
 
-func DecodeTokenError(buffer *bytes.Buffer) TokenError {
-	b := sc.DecodeU8(buffer)
+func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return TokenError{}, err
+	}
 
 	switch b {
 	case TokenErrorNoFunds:
-		return NewTokenErrorNoFounds()
+		return NewTokenErrorNoFounds(), nil
 	case TokenErrorWouldDie:
-		return NewTokenErrorWouldDie()
+		return NewTokenErrorWouldDie(), nil
 	case TokenErrorBelowMinimum:
-		return NewTokenErrorBelowMinimum()
+		return NewTokenErrorBelowMinimum(), nil
 	case TokenErrorCannotCreate:
-		return NewTokenErrorCannotCreate()
+		return NewTokenErrorCannotCreate(), nil
 	case TokenErrorUnknownAsset:
-		return NewTokenErrorUnknownAsset()
+		return NewTokenErrorUnknownAsset(), nil
 	case TokenErrorFrozen:
-		return NewTokenErrorFrozen()
+		return NewTokenErrorFrozen(), nil
 	case TokenErrorUnsupported:
-		return NewTokenErrorUnsupported()
+		return NewTokenErrorUnsupported(), nil
 	default:
 		log.Critical("invalid TokenError type")
 	}

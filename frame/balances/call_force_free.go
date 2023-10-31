@@ -27,12 +27,20 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 	return call
 }
 
-func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	who, err := types.DecodeMultiAddress(buffer)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return nil, err
+	}
 	c.Arguments = sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeU128(buffer),
+		who,
+		amount,
 	)
-	return c
+	return c, nil
 }
 
 func (c callForceFree) Encode(buffer *bytes.Buffer) {
@@ -122,14 +130,19 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
+func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
-		return constants.Zero
+		return constants.Zero, nil
 	}
 
-	totalBalance := c.storedMap.Get(who.FixedSequence).Data.Total()
+	account, err := c.storedMap.Get(who.FixedSequence)
+	if err != nil {
+		return sc.U128{}, err
+	}
+
+	totalBalance := account.Data.Total()
 	if totalBalance.Eq(constants.Zero) {
-		return value
+		return value, nil
 	}
 
 	result := c.accountMutator.tryMutateAccount(
@@ -140,13 +153,13 @@ func (c callForceFree) force(who types.Address32, value sc.U128) sc.U128 {
 	)
 
 	if result.HasError {
-		return value
+		return value, nil
 	}
 
 	actual := result.Value.(sc.U128)
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
 
-	return value.Sub(actual)
+	return value.Sub(actual), nil
 }
 
 // removeReserveAndFree frees reserved value from the account.

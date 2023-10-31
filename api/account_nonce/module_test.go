@@ -44,7 +44,7 @@ func Test_Module_AccountNonce(t *testing.T) {
 	expect := int64(7)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(1)).Return(publicKey.Bytes())
-	mockSystem.On("Get", publicKey).Return(accountInfo)
+	mockSystem.On("Get", publicKey).Return(accountInfo, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", nonce.Bytes()).Return(expect)
 
 	result := target.AccountNonce(0, 1)

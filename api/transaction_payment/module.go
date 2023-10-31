@@ -9,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	tx_types "github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -52,14 +53,23 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
-	length := sc.DecodeU32(buffer)
+	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
 	partialFee := sc.NewU128(0)
 	if ext.IsSigned() {
-		partialFee = m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
+		partialFee, err = m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
@@ -82,14 +92,23 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	ext := m.decoder.DecodeUncheckedExtrinsic(buffer)
-	length := sc.DecodeU32(buffer)
+	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	length, err := sc.DecodeU32(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
 
 	var feeDetails tx_types.FeeDetails
 	if ext.IsSigned() {
-		feeDetails = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
+		feeDetails, err = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	} else {
 		feeDetails = tx_types.FeeDetails{
 			InclusionFee: sc.NewOption[tx_types.InclusionFee](nil),

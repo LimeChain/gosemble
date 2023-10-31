@@ -37,7 +37,8 @@ func Test_DigestItem_Bytes(t *testing.T) {
 func Test_DecodeDigestItem(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedDigestItemBytes)
 
-	result := DecodeDigestItem(buffer)
+	result, err := DecodeDigestItem(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetDigestItem, result)
 }

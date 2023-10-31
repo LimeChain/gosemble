@@ -15,11 +15,14 @@ const (
 
 type BalanceStatus = sc.U8
 
-func DecodeBalanceStatus(buffer *bytes.Buffer) sc.U8 {
-	value := sc.DecodeU8(buffer)
+func DecodeBalanceStatus(buffer *bytes.Buffer) (sc.U8, error) {
+	value, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return sc.U8(0), err
+	}
 	switch value {
 	case BalanceStatusFree, BalanceStatusReserved:
-		return value
+		return value, nil
 	default:
 		log.Critical("invalid balance status type")
 	}

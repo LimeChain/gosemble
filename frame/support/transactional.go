@@ -32,14 +32,15 @@ type transactional[T sc.Encodable, E types.DispatchError] struct {
 }
 
 func NewTransactional[T sc.Encodable, E types.DispatchError]() Transactional[T, E] {
+	storageVal := NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32)
 	return transactional[T, E]{
-		storage:           NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32),
+		storage:           storageVal,
 		transactionBroker: io.NewTransactionBroker(),
 	}
 }
 
 // GetTransactionLevel returns the current number of nested transactional layers.
-func (t transactional[T, E]) GetTransactionLevel() Layer {
+func (t transactional[T, E]) GetTransactionLevel() (Layer, error) {
 	return t.storage.Get()
 }
 
@@ -57,7 +58,10 @@ func (t transactional[T, E]) KillTransactionLevel() {
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
 func (t transactional[T, E]) IncTransactionLevel() error {
-	existingLevels := t.GetTransactionLevel()
+	existingLevels, err := t.GetTransactionLevel()
+	if err != nil {
+		return err
+	}
 	if existingLevels >= TransactionalLimit {
 		return errTransactionalLimitReached
 	}
@@ -66,8 +70,11 @@ func (t transactional[T, E]) IncTransactionLevel() error {
 	return nil
 }
 
-func (t transactional[T, E]) DecTransactionLevel() {
-	existingLevels := t.GetTransactionLevel()
+func (t transactional[T, E]) DecTransactionLevel() error {
+	existingLevels, err := t.GetTransactionLevel()
+	if err != nil {
+		return err
+	}
 	if existingLevels == 0 {
 		log.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
 	} else if existingLevels == 1 {
@@ -77,6 +84,7 @@ func (t transactional[T, E]) DecTransactionLevel() {
 		// Cannot underflow because of checks above.
 		t.SetTransactionLevel(existingLevels - 1)
 	}
+	return nil
 }
 
 // WithTransaction executes the supplied function in a new storage transaction.

@@ -26,12 +26,20 @@ func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.S
 	return call
 }
 
-func (c callTransferAll) DecodeArgs(buffer *bytes.Buffer) primitives.Call {
+func (c callTransferAll) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	dest, err := types.DecodeMultiAddress(buffer)
+	if err != nil {
+		return nil, err
+	}
+	keepAlive, err := sc.DecodeBool(buffer)
+	if err != nil {
+		return nil, err
+	}
 	c.Arguments = sc.NewVaryingData(
-		types.DecodeMultiAddress(buffer),
-		sc.DecodeBool(buffer),
+		dest,
+		keepAlive,
 	)
-	return c
+	return c, nil
 }
 
 func (c callTransferAll) Encode(buffer *bytes.Buffer) {
@@ -109,10 +117,13 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 	}
 
 	transactor := origin.AsSigned()
-	reducibleBalance := c.reducibleBalance(transactor, keepAlive)
-
-	to, err := types.DefaultAccountIdLookup().Lookup(dest)
+	reducibleBalance, err := c.reducibleBalance(transactor, keepAlive)
 	if err != nil {
+		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
+	}
+
+	to, errLookup := types.DefaultAccountIdLookup().Lookup(dest)
+	if errLookup != nil {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Debug(fmt.Sprintf("Failed to lookup [%s]", dest.Bytes()))
 		log.Debug("Failed to lookup [" + string(dest.Bytes()) + "]")

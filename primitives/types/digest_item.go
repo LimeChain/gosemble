@@ -23,9 +23,17 @@ func (di DigestItem) Bytes() []byte {
 	return buffer.Bytes()
 }
 
-func DecodeDigestItem(buffer *bytes.Buffer) DigestItem {
-	return DigestItem{
-		Engine:  sc.DecodeFixedSequence[sc.U8](4, buffer),
-		Payload: sc.DecodeSequence[sc.U8](buffer),
+func DecodeDigestItem(buffer *bytes.Buffer) (DigestItem, error) {
+	engine, err := sc.DecodeFixedSequence[sc.U8](4, buffer)
+	if err != nil {
+		return DigestItem{}, err
 	}
+	payload, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return DigestItem{}, err
+	}
+	return DigestItem{
+		Engine:  engine,
+		Payload: payload,
+	}, nil
 }

@@ -11,9 +11,12 @@ type SystemModule struct {
 	mock.Mock
 }
 
-func (m *SystemModule) CreateInherent(inherent primitives.InherentData) sc.Option[primitives.Call] {
+func (m *SystemModule) CreateInherent(inherent primitives.InherentData) (sc.Option[primitives.Call], error) {
 	args := m.Called(inherent)
-	return args.Get(0).(sc.Option[primitives.Call])
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[primitives.Call]), nil
+	}
+	return args.Get(0).(sc.Option[primitives.Call]), args.Get(1).(error)
 }
 
 func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) primitives.FatalError {
@@ -31,9 +34,12 @@ func (m *SystemModule) IsInherent(call primitives.Call) bool {
 	return args.Get(0).(bool)
 }
 
-func (m *SystemModule) OnInitialize(n sc.U64) primitives.Weight {
+func (m *SystemModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	args := m.Called(n)
-	return args.Get(0).(primitives.Weight)
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Weight), nil
+	}
+	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
 func (m *SystemModule) OnRuntimeUpgrade() primitives.Weight {
@@ -41,8 +47,9 @@ func (m *SystemModule) OnRuntimeUpgrade() primitives.Weight {
 	return args.Get(0).(primitives.Weight)
 }
 
-func (m *SystemModule) OnFinalize(n sc.U64) {
+func (m *SystemModule) OnFinalize(n sc.U64) error {
 	m.Called(n)
+	return nil
 }
 
 func (m *SystemModule) OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight {
@@ -78,43 +85,56 @@ func (m *SystemModule) Initialize(blockNumber sc.U64, parentHash primitives.Blak
 	m.Called(blockNumber, parentHash, digest)
 }
 
-func (m *SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
+func (m *SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error {
 	m.Called(weight, class)
+	return nil
 }
 
 func (m *SystemModule) NoteFinishedInitialize() {
 	m.Called()
 }
 
-func (m *SystemModule) NoteExtrinsic(encodedExt []byte) {
+func (m *SystemModule) NoteExtrinsic(encodedExt []byte) error {
 	m.Called(encodedExt)
+	return nil
 }
 
-func (m *SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
+func (m *SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
 	m.Called(r, info)
+	return nil
 }
 
-func (m *SystemModule) Finalize() primitives.Header {
+func (m *SystemModule) Finalize() (primitives.Header, error) {
 	args := m.Called()
-	return args.Get(0).(primitives.Header)
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.Header), nil
+	}
+	return args.Get(0).(primitives.Header), args.Get(1).(error)
 }
 
-func (m *SystemModule) NoteFinishedExtrinsics() {
+func (m *SystemModule) NoteFinishedExtrinsics() error {
 	m.Called()
+	return nil
 }
 
 func (m *SystemModule) ResetEvents() {
 	m.Called()
 }
 
-func (m *SystemModule) Get(key primitives.PublicKey) primitives.AccountInfo {
+func (m *SystemModule) Get(key primitives.PublicKey) (primitives.AccountInfo, error) {
 	args := m.Called(key)
-	return args.Get(0).(primitives.AccountInfo)
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.AccountInfo), nil
+	}
+	return args.Get(0).(primitives.AccountInfo), args.Get(1).(error)
 }
 
-func (m *SystemModule) CanDecProviders(who primitives.Address32) bool {
+func (m *SystemModule) CanDecProviders(who primitives.Address32) (bool, error) {
 	args := m.Called(who)
-	return args.Get(0).(bool)
+	if args.Get(1) == nil {
+		return args.Get(0).(bool), nil
+	}
+	return args.Get(0).(bool), args.Get(1).(error)
 }
 
 func (m *SystemModule) DepositEvent(event primitives.Event) {
@@ -126,9 +146,12 @@ func (m *SystemModule) Mutate(who primitives.Address32, f func(who *primitives.A
 	return args.Get(0).(sc.Result[sc.Encodable])
 }
 
-func (m *SystemModule) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m *SystemModule) TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	args := m.Called(who, f)
-	return args.Get(0).(sc.Result[sc.Encodable])
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Result[sc.Encodable]), nil
+	}
+	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
 }
 
 func (m *SystemModule) AccountTryMutateExists(who primitives.Address32, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
@@ -171,23 +194,29 @@ func (m *SystemModule) BlockHashCount() sc.U64 {
 	return args.Get(0).(sc.U64)
 }
 
-func (m *SystemModule) StorageDigest() types.Digest {
+func (m *SystemModule) StorageDigest() (types.Digest, error) {
 	args := m.Called()
-	return args.Get(0).(types.Digest)
+	return args.Get(0).(types.Digest), nil
 }
 
-func (m *SystemModule) StorageBlockWeight() primitives.ConsumedWeight {
+func (m *SystemModule) StorageBlockWeight() (primitives.ConsumedWeight, error) {
 	args := m.Called()
-	return args.Get(0).(primitives.ConsumedWeight)
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.ConsumedWeight), nil
+	}
+	return args.Get(0).(primitives.ConsumedWeight), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
 	m.Called(weight)
 }
 
-func (m *SystemModule) StorageBlockHash(key sc.U64) types.Blake2bHash {
+func (m *SystemModule) StorageBlockHash(key sc.U64) (types.Blake2bHash, error) {
 	args := m.Called(key)
-	return args.Get(0).(types.Blake2bHash)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Blake2bHash), nil
+	}
+	return args.Get(0).(types.Blake2bHash), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockHashSet(key sc.U64, value types.Blake2bHash) {
@@ -200,36 +229,48 @@ func (m *SystemModule) StorageBlockHashExists(key sc.U64) bool {
 	return args.Get(0).(bool)
 }
 
-func (m *SystemModule) StorageBlockNumber() sc.U64 {
+func (m *SystemModule) StorageBlockNumber() (sc.U64, error) {
 	args := m.Called()
-	return args.Get(0).(sc.U64)
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.U64), nil
+	}
+	return args.Get(0).(sc.U64), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageBlockNumberSet(blockNumber sc.U64) {
 	m.Called(blockNumber)
 }
 
-func (m *SystemModule) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
+func (m *SystemModule) StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error) {
 	args := m.Called()
-	return args.Get(0).(types.LastRuntimeUpgradeInfo)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.LastRuntimeUpgradeInfo), nil
+	}
+	return args.Get(0).(types.LastRuntimeUpgradeInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) {
 	m.Called(lrui)
 }
 
-func (m *SystemModule) StorageAccount(key types.PublicKey) types.AccountInfo {
+func (m *SystemModule) StorageAccount(key types.PublicKey) (types.AccountInfo, error) {
 	args := m.Called(key)
-	return args.Get(0).(types.AccountInfo)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.AccountInfo), nil
+	}
+	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
 	m.Called(key, value)
 }
 
-func (m *SystemModule) StorageAllExtrinsicsLen() sc.U32 {
+func (m *SystemModule) StorageAllExtrinsicsLen() (sc.U32, error) {
 	args := m.Called()
-	return args.Get(0).(sc.U32)
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.U32), nil
+	}
+	return args.Get(0).(sc.U32), args.Get(1).(error)
 }
 
 func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {

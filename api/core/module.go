@@ -6,6 +6,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
@@ -63,7 +64,10 @@ func (m Module) Version() int64 {
 func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
-	header := primitives.DecodeHeader(buffer)
+	header, err := primitives.DecodeHeader(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	m.executive.InitializeBlock(header)
 }
 
@@ -76,6 +80,9 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
-	block := m.decoder.DecodeBlock(buffer)
+	block, err := m.decoder.DecodeBlock(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	m.executive.ExecuteBlock(block)
 }

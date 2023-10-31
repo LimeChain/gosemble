@@ -113,33 +113,39 @@ func NewInvalidTransactionBadSigner() InvalidTransaction {
 	return InvalidTransaction{sc.NewVaryingData(InvalidTransactionBadSigner)}
 }
 
-func DecodeInvalidTransaction(buffer *bytes.Buffer) InvalidTransaction {
-	b := sc.DecodeU8(buffer)
+func DecodeInvalidTransaction(buffer *bytes.Buffer) (InvalidTransaction, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return InvalidTransaction{}, err
+	}
 
 	switch b {
 	case InvalidTransactionCall:
-		return NewInvalidTransactionCall()
+		return NewInvalidTransactionCall(), nil
 	case InvalidTransactionPayment:
-		return NewInvalidTransactionPayment()
+		return NewInvalidTransactionPayment(), nil
 	case InvalidTransactionFuture:
-		return NewInvalidTransactionFuture()
+		return NewInvalidTransactionFuture(), nil
 	case InvalidTransactionStale:
-		return NewInvalidTransactionStale()
+		return NewInvalidTransactionStale(), nil
 	case InvalidTransactionBadProof:
-		return NewInvalidTransactionBadProof()
+		return NewInvalidTransactionBadProof(), nil
 	case InvalidTransactionAncientBirthBlock:
-		return NewInvalidTransactionAncientBirthBlock()
+		return NewInvalidTransactionAncientBirthBlock(), nil
 	case InvalidTransactionExhaustsResources:
-		return NewInvalidTransactionExhaustsResources()
+		return NewInvalidTransactionExhaustsResources(), nil
 	case InvalidTransactionCustom:
-		v := sc.DecodeU8(buffer)
-		return NewInvalidTransactionCustom(v)
+		v, err := sc.DecodeU8(buffer)
+		if err != nil {
+			return InvalidTransaction{}, err
+		}
+		return NewInvalidTransactionCustom(v), nil
 	case InvalidTransactionBadMandatory:
-		return NewInvalidTransactionBadMandatory()
+		return NewInvalidTransactionBadMandatory(), nil
 	case InvalidTransactionMandatoryValidation:
-		return NewInvalidTransactionMandatoryValidation()
+		return NewInvalidTransactionMandatoryValidation(), nil
 	case InvalidTransactionBadSigner:
-		return NewInvalidTransactionBadSigner()
+		return NewInvalidTransactionBadSigner(), nil
 	default:
 		log.Critical("invalid InvalidTransaction type")
 	}

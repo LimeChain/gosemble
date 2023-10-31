@@ -7,13 +7,13 @@ type OnRuntimeUpgrade interface {
 }
 
 type OnInitialize interface {
-	OnInitialize(n sc.U64) Weight
+	OnInitialize(n sc.U64) (Weight, error)
 }
 
 type DispatchModule interface {
 	OnInitialize
 	OnRuntimeUpgrade
-	OnFinalize(n sc.U64)
+	OnFinalize(n sc.U64) error
 	OnIdle(n sc.U64, remainingWeight Weight) Weight
 	OffchainWorker(n sc.U64)
 }

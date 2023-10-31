@@ -17,5 +17,5 @@ type Call interface {
 	ClassifyDispatch(baseWeight Weight) DispatchClass
 	PaysFee(baseWeight Weight) Pays
 	WeighData(baseWeight Weight) Weight
-	DecodeArgs(buffer *bytes.Buffer) Call
+	DecodeArgs(buffer *bytes.Buffer) (Call, error)
 }

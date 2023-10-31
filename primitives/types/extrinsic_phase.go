@@ -32,17 +32,23 @@ func NewExtrinsicPhaseInitialization() ExtrinsicPhase {
 	return sc.NewVaryingData(PhaseInitialization)
 }
 
-func DecodeExtrinsicPhase(buffer *bytes.Buffer) ExtrinsicPhase {
-	b := sc.DecodeU8(buffer)
+func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return ExtrinsicPhase{}, err
+	}
 
 	switch b {
 	case PhaseApplyExtrinsic:
-		index := sc.DecodeU32(buffer)
-		return NewExtrinsicPhaseApply(index)
+		index, err := sc.DecodeU32(buffer)
+		if err != nil {
+			return ExtrinsicPhase{}, err
+		}
+		return NewExtrinsicPhaseApply(index), nil
 	case PhaseFinalization:
-		return NewExtrinsicPhaseFinalization()
+		return NewExtrinsicPhaseFinalization(), nil
 	case PhaseInitialization:
-		return NewExtrinsicPhaseInitialization()
+		return NewExtrinsicPhaseInitialization(), nil
 	default:
 		log.Critical("invalid ExtrinsicPhase type")
 	}

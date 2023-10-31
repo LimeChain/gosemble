@@ -38,7 +38,8 @@ func Test_Hash256_Encode(t *testing.T) {
 
 func Test_Hash256_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(hash256Sequence))
-	result := DecodeH256(buffer)
+	result, err := DecodeH256(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedH256Hash, result)
 }

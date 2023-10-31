@@ -66,7 +66,8 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 	compact := sc.ToCompact(sc.U8(5))
 	buf := bytes.NewBuffer(compact.Bytes())
 
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(compact), call.Args())
 }
@@ -89,7 +90,8 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 
 	buf := bytes.NewBuffer(compact.Bytes())
 
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	buf.Reset()
 	call.Encode(buf)
@@ -163,7 +165,7 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 	mockStorageNow.On("Get").Return(sc.U64(0))
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
-	mockOnTimestampSet.On("OnTimestampSet", now).Return()
+	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
 	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
@@ -181,7 +183,7 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 	mockStorageNow.On("Get").Return(now - c.MinimumPeriod)
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
-	mockOnTimestampSet.On("OnTimestampSet", now).Return()
+	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
 	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 

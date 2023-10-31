@@ -87,16 +87,31 @@ func (s MultiSignature) AsEcdsa() SignatureEcdsa {
 	panic("unreachable")
 }
 
-func DecodeMultiSignature(buffer *bytes.Buffer) MultiSignature {
-	b := sc.DecodeU8(buffer)
+func DecodeMultiSignature(buffer *bytes.Buffer) (MultiSignature, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return MultiSignature{}, err
+	}
 
 	switch b {
 	case MultiSignatureEd25519:
-		return NewMultiSignatureEd25519(DecodeSignatureEd25519(buffer))
+		ed25519, err := DecodeSignatureEd25519(buffer)
+		if err != nil {
+			return MultiSignature{}, err
+		}
+		return NewMultiSignatureEd25519(ed25519), nil
 	case MultiSignatureSr25519:
-		return NewMultiSignatureSr25519(DecodeSignatureSr25519(buffer))
+		sr25519, err := DecodeSignatureSr25519(buffer)
+		if err != nil {
+			return MultiSignature{}, err
+		}
+		return NewMultiSignatureSr25519(sr25519), nil
 	case MultiSignatureEcdsa:
-		return NewMultiSignatureEcdsa(DecodeSignatureEcdsa(buffer))
+		ecdsa, err := DecodeSignatureEcdsa(buffer)
+		if err != nil {
+			return MultiSignature{}, err
+		}
+		return NewMultiSignatureEcdsa(ecdsa), nil
 	default:
 		log.Critical("invalid MultiSignature type in Decode: " + strconv.Itoa(int(b)))
 	}

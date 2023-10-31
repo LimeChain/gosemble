@@ -42,13 +42,30 @@ func (cl WeightsPerClass) Encode(buffer *bytes.Buffer) {
 	cl.Reserved.Encode(buffer)
 }
 
-func DecodeWeightsPerClass(buffer *bytes.Buffer) WeightsPerClass {
+func DecodeWeightsPerClass(buffer *bytes.Buffer) (WeightsPerClass, error) {
 	cl := WeightsPerClass{}
-	cl.BaseExtrinsic = DecodeWeight(buffer)
-	cl.MaxExtrinsic = sc.DecodeOptionWith(buffer, DecodeWeight)
-	cl.MaxTotal = sc.DecodeOptionWith(buffer, DecodeWeight)
-	cl.Reserved = sc.DecodeOptionWith(buffer, DecodeWeight)
-	return cl
+	baseExtrinsic, err := DecodeWeight(buffer)
+	if err != nil {
+		return WeightsPerClass{}, err
+	}
+	maxExtrinsic, err := sc.DecodeOptionWith(buffer, DecodeWeight)
+	if err != nil {
+		return WeightsPerClass{}, err
+	}
+	maxTotal, err := sc.DecodeOptionWith(buffer, DecodeWeight)
+	if err != nil {
+		return WeightsPerClass{}, err
+	}
+	reserved, err := sc.DecodeOptionWith(buffer, DecodeWeight)
+	if err != nil {
+		return WeightsPerClass{}, err
+	}
+
+	cl.BaseExtrinsic = baseExtrinsic
+	cl.MaxExtrinsic = maxExtrinsic
+	cl.MaxTotal = maxTotal
+	cl.Reserved = reserved
+	return cl, nil
 }
 
 func (cl WeightsPerClass) Bytes() []byte {

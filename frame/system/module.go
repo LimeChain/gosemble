@@ -28,17 +28,17 @@ type Module interface {
 	primitives.Module
 
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
-	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass)
+	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()
-	NoteExtrinsic(encodedExt []byte)
-	NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo)
-	Finalize() primitives.Header
-	NoteFinishedExtrinsics()
+	NoteExtrinsic(encodedExt []byte) error
+	NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error
+	Finalize() (primitives.Header, error)
+	NoteFinishedExtrinsics() error
 	ResetEvents()
-	Get(key primitives.PublicKey) primitives.AccountInfo
-	CanDecProviders(who primitives.Address32) bool
+	Get(key primitives.PublicKey) (primitives.AccountInfo, error)
+	CanDecProviders(who primitives.Address32) (bool, error)
 	DepositEvent(event primitives.Event)
-	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
 	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
@@ -47,24 +47,24 @@ type Module interface {
 	DbWeight() types.RuntimeDbWeight
 	Version() types.RuntimeVersion
 
-	StorageDigest() types.Digest
+	StorageDigest() (types.Digest, error)
 
-	StorageBlockWeight() primitives.ConsumedWeight
+	StorageBlockWeight() (primitives.ConsumedWeight, error)
 	StorageBlockWeightSet(weight primitives.ConsumedWeight)
 
-	StorageBlockHash(key sc.U64) types.Blake2bHash
+	StorageBlockHash(key sc.U64) (types.Blake2bHash, error)
 	StorageBlockHashSet(key sc.U64, value types.Blake2bHash)
 	StorageBlockHashExists(key sc.U64) bool
 
-	StorageBlockNumber() sc.U64
+	StorageBlockNumber() (sc.U64, error)
 
-	StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo
+	StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error)
 	StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo)
 
-	StorageAccount(key types.PublicKey) types.AccountInfo
+	StorageAccount(key types.PublicKey) (types.AccountInfo, error)
 	StorageAccountSet(key types.PublicKey, value types.AccountInfo)
 
-	StorageAllExtrinsicsLen() sc.U32
+	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
 }
 
@@ -138,11 +138,11 @@ func (m module) Version() types.RuntimeVersion {
 	return m.constants.Version
 }
 
-func (m module) StorageDigest() types.Digest {
+func (m module) StorageDigest() (types.Digest, error) {
 	return m.storage.Digest.Get()
 }
 
-func (m module) StorageBlockWeight() primitives.ConsumedWeight {
+func (m module) StorageBlockWeight() (primitives.ConsumedWeight, error) {
 	return m.storage.BlockWeight.Get()
 }
 
@@ -150,7 +150,7 @@ func (m module) StorageBlockWeightSet(weight primitives.ConsumedWeight) {
 	m.storage.BlockWeight.Put(weight)
 }
 
-func (m module) StorageBlockHash(key sc.U64) types.Blake2bHash {
+func (m module) StorageBlockHash(key sc.U64) (types.Blake2bHash, error) {
 	return m.storage.BlockHash.Get(key)
 }
 
@@ -162,7 +162,7 @@ func (m module) StorageBlockHashExists(key sc.U64) bool {
 	return m.storage.BlockHash.Exists(key)
 }
 
-func (m module) StorageBlockNumber() sc.U64 {
+func (m module) StorageBlockNumber() (sc.U64, error) {
 	return m.storage.BlockNumber.Get()
 }
 
@@ -170,7 +170,7 @@ func (m module) StorageBlockNumberSet(blockNumber sc.U64) {
 	m.storage.BlockNumber.Put(blockNumber)
 }
 
-func (m module) StorageLastRuntimeUpgrade() types.LastRuntimeUpgradeInfo {
+func (m module) StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error) {
 	return m.storage.LastRuntimeUpgrade.Get()
 }
 
@@ -178,7 +178,7 @@ func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) 
 	m.storage.LastRuntimeUpgrade.Put(lrui)
 }
 
-func (m module) StorageAccount(key types.PublicKey) types.AccountInfo {
+func (m module) StorageAccount(key types.PublicKey) (types.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
@@ -186,7 +186,7 @@ func (m module) StorageAccountSet(key types.PublicKey, value types.AccountInfo) 
 	m.storage.Account.Put(key, value)
 }
 
-func (m module) StorageAllExtrinsicsLen() sc.U32 {
+func (m module) StorageAllExtrinsicsLen() (sc.U32, error) {
 	return m.storage.AllExtrinsicsLen.Get()
 }
 
@@ -219,10 +219,14 @@ func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash
 // of block weight is more than the block weight limit. This is what the _unchecked_.
 //
 // Another potential use-case could be for the `on_initialize` and `on_finalize` hooks.
-func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) {
-	currentWeight := m.storage.BlockWeight.Get()
+func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error {
+	currentWeight, err := m.storage.BlockWeight.Get()
+	if err != nil {
+		return err
+	}
 	currentWeight.Accrue(weight, class)
 	m.storage.BlockWeight.Put(currentWeight)
+	return nil
 }
 
 func (m module) NoteFinishedInitialize() {
@@ -233,9 +237,13 @@ func (m module) NoteFinishedInitialize() {
 //
 // This is required to be called before applying an extrinsic. The data will used
 // in [`finalize`] to calculate the correct extrinsics root.
-func (m module) NoteExtrinsic(encodedExt []byte) {
-	extrinsicIndex := m.storage.ExtrinsicIndex.Get()
+func (m module) NoteExtrinsic(encodedExt []byte) error {
+	extrinsicIndex, err := m.storage.ExtrinsicIndex.Get()
+	if err != nil {
+		return err
+	}
 	m.storage.ExtrinsicData.Put(extrinsicIndex, sc.BytesToSequenceU8(encodedExt))
+	return nil
 }
 
 // NoteAppliedExtrinsic - To be called immediately after an extrinsic has been applied.
@@ -243,14 +251,17 @@ func (m module) NoteExtrinsic(encodedExt []byte) {
 // Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
-func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) {
+func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
 	baseWeight := m.BlockWeights().Get(info.Class).BaseExtrinsic
 	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
 	if r.HasError {
 		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
-		blockNum := m.StorageBlockNumber()
+		blockNum, err := m.StorageBlockNumber()
+		if err != nil {
+			return err
+		}
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
@@ -258,26 +269,46 @@ func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
 
-	nextExtrinsicIndex := m.storage.ExtrinsicIndex.Get() + 1
+	nextExtrinsicIndex, err := m.storage.ExtrinsicIndex.Get()
+	if err != nil {
+		return err
+	}
+	nextExtrinsicIndex = nextExtrinsicIndex + 1
 	m.storage.ExtrinsicIndex.Put(nextExtrinsicIndex)
 	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseApply(nextExtrinsicIndex))
+	return nil
 }
 
-func (m module) Finalize() primitives.Header {
+func (m module) Finalize() (primitives.Header, error) {
 	m.storage.ExecutionPhase.Clear()
 	m.storage.AllExtrinsicsLen.Clear()
 
-	blockNumber := m.StorageBlockNumber()
-	parentHash := m.storage.ParentHash.Get()
-	digest := m.StorageDigest()
-	extrinsicCount := m.storage.ExtrinsicCount.Take()
+	blockNumber, err := m.StorageBlockNumber()
+	if err != nil {
+		return primitives.Header{}, err
+	}
+	parentHash, err := m.storage.ParentHash.Get()
+	if err != nil {
+		return primitives.Header{}, err
+	}
+	digest, err := m.StorageDigest()
+	if err != nil {
+		return primitives.Header{}, err
+	}
+	extrinsicCount, err := m.storage.ExtrinsicCount.Take()
+	if err != nil {
+		return primitives.Header{}, err
+	}
 
 	var extrinsics []byte
 
 	for i := 0; i < int(extrinsicCount); i++ {
 		sci := sc.U32(i)
 
-		extrinsic := m.storage.ExtrinsicData.TakeBytes(sci)
+		extrinsic, err := m.storage.ExtrinsicData.TakeBytes(sci)
+		if err != nil {
+			return primitives.Header{}, err
+		}
 		extrinsics = append(extrinsics, extrinsic...)
 	}
 
@@ -286,7 +317,10 @@ func (m module) Finalize() primitives.Header {
 		append(sc.ToCompact(uint64(extrinsicCount)).Bytes(), extrinsics...),
 		constants.StorageVersion)
 	buf.Write(extrinsicsRootBytes)
-	extrinsicsRoot := primitives.DecodeH256(buf)
+	extrinsicsRoot, err := primitives.DecodeH256(buf)
+	if err != nil {
+		return primitives.Header{}, err
+	}
 	buf.Reset()
 
 	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
@@ -297,7 +331,10 @@ func (m module) Finalize() primitives.Header {
 
 	storageRootBytes := m.ioStorage.Root(int32(m.constants.Version.StateVersion))
 	buf.Write(storageRootBytes)
-	storageRoot := primitives.DecodeH256(buf)
+	storageRoot, err := primitives.DecodeH256(buf)
+	if err != nil {
+		return primitives.Header{}, err
+	}
 	buf.Reset()
 
 	return primitives.Header{
@@ -306,13 +343,17 @@ func (m module) Finalize() primitives.Header {
 		ParentHash:     parentHash,
 		Number:         blockNumber,
 		Digest:         digest,
-	}
+	}, nil
 }
 
-func (m module) NoteFinishedExtrinsics() {
-	extrinsicIndex := m.storage.ExtrinsicIndex.Take()
+func (m module) NoteFinishedExtrinsics() error {
+	extrinsicIndex, err := m.storage.ExtrinsicIndex.Take()
+	if err != nil {
+		return err
+	}
 	m.storage.ExtrinsicCount.Put(extrinsicIndex)
 	m.storage.ExecutionPhase.Put(primitives.NewExtrinsicPhaseFinalization())
+	return nil
 }
 
 func (m module) ResetEvents() {
@@ -321,14 +362,17 @@ func (m module) ResetEvents() {
 	m.storage.EventTopics.Clear(sc.U32(math.MaxUint32))
 }
 
-func (m module) Get(key primitives.PublicKey) primitives.AccountInfo {
+func (m module) Get(key primitives.PublicKey) (primitives.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
-func (m module) CanDecProviders(who primitives.Address32) bool {
-	acc := m.Get(who.FixedSequence)
+func (m module) CanDecProviders(who primitives.Address32) (bool, error) {
+	acc, err := m.Get(who.FixedSequence)
+	if err != nil {
+		return false, err
+	}
 
-	return acc.Consumers == 0 || acc.Providers > 1
+	return acc.Consumers == 0 || acc.Providers > 1, nil
 }
 
 // DepositEvent deposits an event into block's event record.
@@ -336,8 +380,11 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.AccountData) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	account := m.Get(who.FixedSequence)
+func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+	account, err := m.Get(who.FixedSequence)
+	if err != nil {
+		return sc.Result[sc.Encodable]{}, err
+	}
 	wasProviding := false
 	if !reflect.DeepEqual(account.Data, primitives.AccountData{}) {
 		wasProviding = true
@@ -350,41 +397,47 @@ func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.Acc
 
 	result := f(someData)
 	if result.HasError {
-		return result
+		return result, nil
 	}
 
 	isProviding := !reflect.DeepEqual(*someData, primitives.AccountData{})
 
 	if !wasProviding && isProviding {
-		m.incProviders(who)
+		_, err := m.incProviders(who)
+		if err != nil {
+			return sc.Result[sc.Encodable]{}, err
+		}
 	} else if wasProviding && !isProviding {
 		status, err := m.decProviders(who)
 		if err != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value:    err,
-			}
+			}, nil
 		}
 		if status == primitives.DecRefStatusExists {
-			return result
+			return result, nil
 		}
 	} else if !wasProviding && !isProviding {
-		return result
+		return result, nil
 	}
 
-	m.storage.Account.Mutate(who.FixedSequence, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
+	_, err = m.storage.Account.Mutate(who.FixedSequence, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return mutateAccount(a, someData)
 	})
+	if err != nil {
+		return sc.Result[sc.Encodable]{}, err
+	}
 
-	return result
+	return result, nil
 }
 
-func (m module) incProviders(who primitives.Address32) primitives.IncRefStatus {
-	result := m.storage.Account.Mutate(who.FixedSequence, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+func (m module) incProviders(who primitives.Address32) (primitives.IncRefStatus, error) {
+	result, err := m.storage.Account.Mutate(who.FixedSequence, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return m.incrementProviders(who, account)
 	})
 
-	return result.Value.(primitives.IncRefStatus)
+	return result.Value.(primitives.IncRefStatus), err
 }
 
 func (m module) decrementProviders(who primitives.Address32, maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
@@ -447,9 +500,13 @@ func (m module) incrementProviders(who primitives.Address32, account *primitives
 }
 
 func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
-	result := m.storage.Account.TryMutateExists(who.FixedSequence, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+	result, err := m.storage.Account.TryMutateExists(who.FixedSequence, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 		return m.decrementProviders(who, maybeAccount)
 	})
+
+	if err != nil {
+		return primitives.DecRefStatus(0), primitives.NewDispatchErrorOther(sc.Str(err.Error()))
+	}
 
 	if result.HasError {
 		return sc.U8(0), result.Value.(primitives.DispatchError)
@@ -465,22 +522,32 @@ func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus,
 // It is expected that light-clients could subscribe to this topics.
 //
 // NOTE: Events not registered at the genesis block and quietly omitted.
-func (m module) depositEventIndexed(topics []primitives.H256, event primitives.Event) {
-	blockNumber := m.StorageBlockNumber()
+func (m module) depositEventIndexed(topics []primitives.H256, event primitives.Event) error {
+	blockNumber, err := m.StorageBlockNumber()
+	if err != nil {
+		return err
+	}
 	if blockNumber == 0 {
-		return
+		return nil
+	}
+	phase, err := m.storage.ExecutionPhase.Get()
+	if err != nil {
+		return err
 	}
 
 	eventRecord := primitives.EventRecord{
-		Phase:  m.storage.ExecutionPhase.Get(),
+		Phase:  phase,
 		Event:  event,
 		Topics: topics,
 	}
 
-	oldEventCount := m.storage.EventCount.Get()
+	oldEventCount, err := m.storage.EventCount.Get()
+	if err != nil {
+		return err
+	}
 	newEventCount, err := sc.CheckedAddU32(oldEventCount, 1)
 	if err != nil {
-		return
+		return err
 	}
 
 	m.storage.EventCount.Put(newEventCount)
@@ -491,6 +558,7 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	for _, topic := range topics {
 		m.storage.EventTopics.Append(topic, topicValue)
 	}
+	return nil
 }
 
 func (m module) onCreatedAccount(who primitives.Address32) {

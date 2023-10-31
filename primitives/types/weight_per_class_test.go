@@ -33,7 +33,8 @@ func Test_WeightPerClass_Encode(t *testing.T) {
 func Test_DecodeWeightPerClass(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesWeightPerClass)
 
-	result := DecodeWeightsPerClass(buffer)
+	result, err := DecodeWeightsPerClass(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetWeightPerClass, result)
 }

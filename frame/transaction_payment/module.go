@@ -11,9 +11,9 @@ import (
 type Module interface {
 	primitives.Module
 
-	ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance
-	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) types.FeeDetails
-	ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance
+	ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) (primitives.Balance, error)
+	ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) (types.FeeDetails, error)
+	ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) (primitives.Balance, error)
 	OperationalFeeMultiplier() sc.U8
 }
 
@@ -183,26 +183,31 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) primitives.Balance {
-	return m.ComputeFeeDetails(len, info, tip).FinalFee()
+func (m module) ComputeFee(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) (primitives.Balance, error) {
+	fee, err := m.ComputeFeeDetails(len, info, tip)
+	return fee.FinalFee(), err
 }
 
-func (m module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) types.FeeDetails {
+func (m module) ComputeFeeDetails(len sc.U32, info primitives.DispatchInfo, tip primitives.Balance) (types.FeeDetails, error) {
 	return m.computeFeeRaw(len, info.Weight, tip, info.PaysFee, info.Class)
 }
 
-func (m module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) primitives.Balance {
-	return m.computeActualFeeDetails(len, info, postInfo, tip).FinalFee()
+func (m module) ComputeActualFee(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) (primitives.Balance, error) {
+	fee, err := m.computeActualFeeDetails(len, info, postInfo, tip)
+	return fee.FinalFee(), err
 }
 
-func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) types.FeeDetails {
+func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo, postInfo primitives.PostDispatchInfo, tip primitives.Balance) (types.FeeDetails, error) {
 	return m.computeFeeRaw(len, postInfo.CalcActualWeight(&info), tip, postInfo.Pays(&info), info.Class)
 }
 
-func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) types.FeeDetails {
+func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) (types.FeeDetails, error) {
 	if paysFee[0] == primitives.PaysYes { // TODO: type safety
 		unadjustedWeightFee := m.weightToFee(weight)
-		multiplier := m.storage.NextFeeMultiplier.Get()
+		multiplier, err := m.storage.NextFeeMultiplier.Get()
+		if err != nil {
+			return types.FeeDetails{}, err
+		}
 		// Storage value is FixedU128, which is different from U128.
 		// It implements a decimal fixed point number, which is `1 / VALUE`
 		// Example: FixedU128, VALUE is 1_000_000_000_000_000_000.
@@ -219,13 +224,13 @@ func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 		return types.FeeDetails{
 			InclusionFee: inclusionFee,
 			Tip:          tip,
-		}
+		}, nil
 	}
 
 	return types.FeeDetails{
 		InclusionFee: sc.NewOption[types.InclusionFee](nil),
 		Tip:          tip,
-	}
+	}, nil
 }
 
 func (m module) lengthToFee(length sc.U32) primitives.Balance {

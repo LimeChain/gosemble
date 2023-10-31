@@ -54,7 +54,7 @@ func Test_Authorities_None(t *testing.T) {
 		},
 	}
 
-	mockGrandpa.On("Authorities").Return(authorities)
+	mockGrandpa.On("Authorities").Return(authorities, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", authorities.Bytes()).Return(int64(13))
 
 	target.Authorities()

@@ -122,7 +122,10 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 	buffer.Reset()
 	buffer.Write(bytesRuntimeDispatchInfo)
 
-	return primitives.DecodeRuntimeDispatchInfo(buffer)
+	dispatchInfo, err := primitives.DecodeRuntimeDispatchInfo(buffer)
+	assert.Nil(t, err)
+
+	return dispatchInfo
 }
 
 func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint64) []byte {

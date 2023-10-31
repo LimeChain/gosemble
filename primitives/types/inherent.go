@@ -5,7 +5,7 @@ import sc "github.com/LimeChain/goscale"
 // ProvideInherent is an interface, implemented by modules in order to create and validate inherent calls/extrinsics.
 type InherentProvider interface {
 	// CreateInherent creates an inherent call based on InherentData.
-	CreateInherent(inherent InherentData) sc.Option[Call]
+	CreateInherent(inherent InherentData) (sc.Option[Call], error)
 	// CheckInherent validates if the provided call is valid and exists in InherentData.
 	CheckInherent(call Call, data InherentData) FatalError
 	// InherentIdentifier returns the identifier for the specific inherent call. Must be included in InherentData.
@@ -23,8 +23,8 @@ func NewDefaultProvideInherent() DefaultInherentProvider {
 	return DefaultInherentProvider{}
 }
 
-func (dp DefaultInherentProvider) CreateInherent(inherent InherentData) sc.Option[Call] {
-	return sc.NewOption[Call](nil)
+func (dp DefaultInherentProvider) CreateInherent(inherent InherentData) (sc.Option[Call], error) {
+	return sc.NewOption[Call](nil), nil
 }
 
 func (dp DefaultInherentProvider) CheckInherent(call Call, data InherentData) FatalError {

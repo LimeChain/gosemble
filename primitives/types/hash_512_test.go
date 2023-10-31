@@ -35,7 +35,8 @@ func Test_Hash512_Encode(t *testing.T) {
 
 func Test_Hash512_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(hash512Sequence))
-	result := DecodeH512(buffer)
+	result, err := DecodeH512(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedH512Hash, result)
 }

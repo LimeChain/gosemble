@@ -20,10 +20,14 @@ func (fd FeeDetails) Bytes() []byte {
 	return sc.EncodedBytes(fd)
 }
 
-func DecodeFeeDetails(buffer *bytes.Buffer) FeeDetails {
-	return FeeDetails{
-		InclusionFee: sc.DecodeOptionWith(buffer, DecodeInclusionFee),
+func DecodeFeeDetails(buffer *bytes.Buffer) (FeeDetails, error) {
+	inclFee, err := sc.DecodeOptionWith(buffer, DecodeInclusionFee)
+	if err != nil {
+		return FeeDetails{}, err
 	}
+	return FeeDetails{
+		InclusionFee: inclFee,
+	}, nil
 }
 
 func (fd FeeDetails) FinalFee() primitives.Balance {

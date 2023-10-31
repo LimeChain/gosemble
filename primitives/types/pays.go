@@ -25,14 +25,17 @@ func NewPaysNo() Pays {
 	return sc.NewVaryingData(PaysNo)
 }
 
-func DecodePays(buffer *bytes.Buffer) Pays {
-	b := sc.DecodeU8(buffer)
+func DecodePays(buffer *bytes.Buffer) (Pays, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return Pays{}, err
+	}
 
 	switch b {
 	case PaysYes:
-		return NewPaysYes()
+		return NewPaysYes(), nil
 	case PaysNo:
-		return NewPaysNo()
+		return NewPaysNo(), nil
 	default:
 		log.Critical("invalid Pays type")
 	}

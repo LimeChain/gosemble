@@ -43,7 +43,8 @@ func Test_Call_SetBalance_DecodeArgs(t *testing.T) {
 	buf.Write(reserveAmount.Bytes())
 
 	target := setupCallSetBalance()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(targetAddress, freeAmount, reserveAmount), call.Args())
 }

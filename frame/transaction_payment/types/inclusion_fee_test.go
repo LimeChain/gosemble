@@ -42,7 +42,8 @@ func Test_InclusionFee_Bytes(t *testing.T) {
 }
 
 func Test_DecodeInclusionFee(t *testing.T) {
-	result := DecodeInclusionFee(bytes.NewBuffer(expectedInclusionFeeBytes))
+	result, err := DecodeInclusionFee(bytes.NewBuffer(expectedInclusionFeeBytes))
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetInclusionFee, result)
 }

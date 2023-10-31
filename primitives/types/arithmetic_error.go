@@ -27,16 +27,19 @@ func NewArithmeticErrorDivisionByZero() ArithmeticError {
 	return sc.NewVaryingData(ArithmeticErrorDivisionByZero)
 }
 
-func DecodeArithmeticError(buffer *bytes.Buffer) ArithmeticError {
-	b := sc.DecodeU8(buffer)
+func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return ArithmeticError{}, err
+	}
 
 	switch b {
 	case ArithmeticErrorUnderflow:
-		return NewArithmeticErrorUnderflow()
+		return NewArithmeticErrorUnderflow(), nil
 	case ArithmeticErrorOverflow:
-		return NewArithmeticErrorOverflow()
+		return NewArithmeticErrorOverflow(), nil
 	case ArithmeticErrorDivisionByZero:
-		return NewArithmeticErrorDivisionByZero()
+		return NewArithmeticErrorDivisionByZero(), nil
 	default:
 		log.Critical("invalid ArithmeticError type")
 	}

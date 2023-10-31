@@ -34,17 +34,23 @@ func NewUnknownTransactionCustomUnknownTransaction(unknown sc.U8) UnknownTransac
 	return UnknownTransaction{sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)}
 }
 
-func DecodeUnknownTransaction(buffer *bytes.Buffer) UnknownTransaction {
-	b := sc.DecodeU8(buffer)
+func DecodeUnknownTransaction(buffer *bytes.Buffer) (UnknownTransaction, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return UnknownTransaction{}, err
+	}
 
 	switch b {
 	case UnknownTransactionCannotLookup:
-		return NewUnknownTransactionCannotLookup()
+		return NewUnknownTransactionCannotLookup(), nil
 	case UnknownTransactionNoUnsignedValidator:
-		return NewUnknownTransactionNoUnsignedValidator()
+		return NewUnknownTransactionNoUnsignedValidator(), nil
 	case UnknownTransactionCustomUnknownTransaction:
-		v := sc.DecodeU8(buffer)
-		return NewUnknownTransactionCustomUnknownTransaction(v)
+		v, err := sc.DecodeU8(buffer)
+		if err != nil {
+			return UnknownTransaction{}, err
+		}
+		return NewUnknownTransactionCustomUnknownTransaction(v), nil
 	default:
 		log.Critical("invalid UnknownTransaction type")
 	}

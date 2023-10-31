@@ -122,7 +122,10 @@ func (m Module) ensureCanWithdraw(who primitives.Address32, amount sc.U128, reas
 		return nil
 	}
 
-	accountInfo := m.Config.StoredMap.Get(who.FixedSequence)
+	accountInfo, err := m.Config.StoredMap.Get(who.FixedSequence)
+	if err != nil {
+		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
+	}
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Gt(newBalance) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
@@ -152,12 +155,18 @@ func (m Module) tryMutateAccount(who primitives.Address32, f func(who *primitive
 }
 
 func (m Module) tryMutateAccountWithDust(who primitives.Address32, f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	result := m.Config.StoredMap.TryMutateExists(
+	result, err := m.Config.StoredMap.TryMutateExists(
 		who,
 		func(maybeAccount *primitives.AccountData) sc.Result[sc.Encodable] {
 			return m.mutateAccount(maybeAccount, f)
 		},
 	)
+	if err != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value:    primitives.NewDispatchErrorOther(sc.Str(err.Error())),
+		}
+	}
 	if result.HasError {
 		return result
 	}

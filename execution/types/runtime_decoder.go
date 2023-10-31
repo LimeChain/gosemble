@@ -11,9 +11,9 @@ import (
 )
 
 type RuntimeDecoder interface {
-	DecodeBlock(buffer *bytes.Buffer) primitives.Block
-	DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitives.UncheckedExtrinsic
-	DecodeCall(buffer *bytes.Buffer) primitives.Call
+	DecodeBlock(buffer *bytes.Buffer) (primitives.Block, error)
+	DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primitives.UncheckedExtrinsic, error)
+	DecodeCall(buffer *bytes.Buffer) (primitives.Call, error)
 }
 
 type runtimeDecoder struct {
@@ -28,24 +28,38 @@ func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra) Run
 	}
 }
 
-func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) primitives.Block {
-	header := primitives.DecodeHeader(buffer)
-
-	length := sc.DecodeCompact(buffer).ToBigInt().Int64()
+func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, error) {
+	header, err := primitives.DecodeHeader(buffer)
+	if err != nil {
+		return nil, err
+	}
+	compact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
+	length := compact.ToBigInt().Int64()
 	extrinsics := make([]types.UncheckedExtrinsic, length)
 
 	for i := 0; i < len(extrinsics); i++ {
-		extrinsics[i] = rd.DecodeUncheckedExtrinsic(buffer)
+		extrinsic, err := rd.DecodeUncheckedExtrinsic(buffer)
+		if err != nil {
+			return nil, err
+		}
+		extrinsics[i] = extrinsic
 	}
 
-	return NewBlock(header, extrinsics)
+	return NewBlock(header, extrinsics), nil
 }
 
-func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitives.UncheckedExtrinsic {
+func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primitives.UncheckedExtrinsic, error) {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLength := sc.DecodeCompact(buffer).ToBigInt().Int64()
+	expectedLenCompact, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return nil, err
+	}
+	expectedLength := expectedLenCompact.ToBigInt().Int64()
 	beforeLength := buffer.Len()
 
 	version, _ := buffer.ReadByte()
@@ -57,11 +71,18 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
-		extSignature = sc.NewOption[primitives.ExtrinsicSignature](primitives.DecodeExtrinsicSignature(rd.extra, buffer))
+		sig, err := primitives.DecodeExtrinsicSignature(rd.extra, buffer)
+		if err != nil {
+			return nil, err
+		}
+		extSignature = sc.NewOption[primitives.ExtrinsicSignature](sig)
 	}
 
 	// Decodes the dispatch call, including its arguments.
-	function := rd.DecodeCall(buffer)
+	function, err := rd.DecodeCall(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	afterLength := buffer.Len()
 
@@ -69,12 +90,19 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) primitiv
 		log.Critical("invalid length prefix")
 	}
 
-	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra)
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra), nil
 }
 
-func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
-	moduleIndex := sc.DecodeU8(buffer)
-	functionIndex := sc.DecodeU8(buffer)
+func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, error) {
+	moduleIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	functionIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	module, ok := primitives.GetModule(moduleIndex, rd.modules)
 	if !ok {
@@ -90,7 +118,10 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) primitives.Call {
 		log.Critical("function index [" + strconv.Itoa(int(functionIndex)) + "] for module [" + strconv.Itoa(int(moduleIndex)) + "] not found")
 	}
 
-	function = function.DecodeArgs(buffer)
+	function, err = function.DecodeArgs(buffer)
+	if err != nil {
+		return nil, err
+	}
 
-	return function
+	return function, nil
 }

@@ -14,7 +14,8 @@ func Test_DecodeEvent(t *testing.T) {
 	expectedEvent := NewEventTransactionFeePaid(moduleId, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
 	expectedEvent.Encode(buffer)
 
-	result := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, expectedEvent, result)
 }

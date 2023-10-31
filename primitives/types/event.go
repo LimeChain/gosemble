@@ -30,12 +30,20 @@ func (er EventRecord) Bytes() []byte {
 	return sc.EncodedBytes(er)
 }
 
-func DecodeEventRecord(buffer *bytes.Buffer) EventRecord {
-	return EventRecord{
-		Phase:  DecodeExtrinsicPhase(buffer),
-		Event:  nil, // TODO:
-		Topics: sc.DecodeSequence[H256](buffer),
+func DecodeEventRecord(buffer *bytes.Buffer) (EventRecord, error) {
+	phase, err := DecodeExtrinsicPhase(buffer)
+	if err != nil {
+		return EventRecord{}, nil
 	}
+	topics, err := sc.DecodeSequence[H256](buffer)
+	if err != nil {
+		return EventRecord{}, nil
+	}
+	return EventRecord{
+		Phase:  phase,
+		Event:  nil, // TODO:
+		Topics: topics,
+	}, nil
 }
 
 // func DecodeEvents(buffer *bytes.Buffer) sc.Sequence[EventRecord] {

@@ -40,7 +40,8 @@ func Test_CheckMortality_Decode(t *testing.T) {
 
 	target := setupCheckMortality()
 
-	target.Decode(buffer)
+	err := target.Decode(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, era, target.era)
 }
@@ -66,9 +67,9 @@ func Test_CheckMortality_AdditionalSigned_Success(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(true)
-	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash, nil)
 
 	result, err := target.AdditionalSigned()
 
@@ -86,7 +87,7 @@ func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(false)
 
 	result, err := target.AdditionalSigned()
@@ -107,7 +108,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
 	result, err := target.Validate(constants.OneAddress, nil, nil, sc.Compact{})
 
@@ -130,7 +131,7 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 
 	blockNumber := sc.U64(1)
 
-	mockModule.On("StorageBlockNumber").Return(blockNumber)
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
 	result, err := target.PreDispatch(constants.OneAddress, nil, nil, sc.Compact{})
 

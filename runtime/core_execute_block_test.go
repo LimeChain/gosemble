@@ -38,7 +38,8 @@ func Test_BlockExecution(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesSlotDuration)
 
-	slotDuration := sc.DecodeU64(buffer)
+	slotDuration, err := sc.DecodeU64(buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 
 	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
@@ -105,7 +106,8 @@ func Test_BlockExecution(t *testing.T) {
 
 	buffer.Write([]byte{inherentExt[0]})
 
-	totalInherents := sc.DecodeCompact(buffer)
+	totalInherents, err := sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
 
@@ -157,7 +159,8 @@ func Test_ExecuteBlock(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesSlotDuration)
 
-	slotDuration := sc.DecodeU64(buffer)
+	slotDuration, err := sc.DecodeU64(buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 
 	slot := sc.U64(dateTime.UnixMilli()) / slotDuration
@@ -183,7 +186,8 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	buffer.Write([]byte{inherentExt[0]})
 
-	totalInherents := sc.DecodeCompact(buffer)
+	totalInherents, err := sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
 

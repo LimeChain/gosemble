@@ -56,7 +56,8 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesRuntimeDispatchInfo)
 
-	rdi := primitives.DecodeRuntimeDispatchInfo(buffer)
+	rdi, err := primitives.DecodeRuntimeDispatchInfo(buffer)
+	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
 		Weight:     primitives.WeightFromParts(2_091_000, 0),
@@ -90,7 +91,8 @@ func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesRuntimeDispatchInfo)
 
-	rdi := primitives.DecodeRuntimeDispatchInfo(buffer)
+	rdi, err := primitives.DecodeRuntimeDispatchInfo(buffer)
+	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
 		Weight:     primitives.WeightFromParts(2_091_000, 0),
@@ -141,7 +143,8 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := types.DecodeFeeDetails(buffer)
+	fd, err := types.DecodeFeeDetails(buffer)
+	assert.Nil(t, err)
 
 	expectedFd := types.FeeDetails{
 		InclusionFee: sc.NewOption[types.InclusionFee](
@@ -177,7 +180,8 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := types.DecodeFeeDetails(buffer)
+	fd, err := types.DecodeFeeDetails(buffer)
+	assert.Nil(t, err)
 
 	expectedFd := types.FeeDetails{
 		InclusionFee: sc.NewOption[types.InclusionFee](nil),
@@ -209,7 +213,8 @@ func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesRuntimeDispatchInfo)
 
-	rdi := primitives.DecodeRuntimeDispatchInfo(buffer)
+	rdi, err := primitives.DecodeRuntimeDispatchInfo(buffer)
+	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
 		Weight:     primitives.WeightFromParts(2_091_000, 0),
@@ -243,7 +248,8 @@ func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(bytesFeeDetails)
 
-	fd := types.DecodeFeeDetails(buffer)
+	fd, err := types.DecodeFeeDetails(buffer)
+	assert.Nil(t, err)
 
 	expectedFd := types.FeeDetails{
 		InclusionFee: sc.NewOption[types.InclusionFee](

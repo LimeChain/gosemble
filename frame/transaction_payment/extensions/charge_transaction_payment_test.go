@@ -122,7 +122,7 @@ func Test_AdditionalSigned(t *testing.T) {
 func Test_Validate_Error(t *testing.T) {
 	setup(txFee)
 
-	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee)
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, nil)
 	mockOnChargeTransaction.On("WithdrawFee", whoAddr, mockCall, &info, txTip, txFee).
 		Return(sc.NewOption[types.Balance](nil), invalidTransactionPaymentError)
 
@@ -146,7 +146,7 @@ func Test_Validate_Mandatory(t *testing.T) {
 	expectedValidTransaction := types.DefaultValidTransaction()
 	expectedValidTransaction.Priority = sc.U64(33)
 
-	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee)
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, nil)
 	mockOnChargeTransaction.On("WithdrawFee", whoAddr, mockCall, &info, txTip, txFee).
 		Return(sc.NewOption[types.Balance](sc.NewU128(1)), nil)
 	mockSystemModule.On("BlockWeights").Return(blockWeights)
@@ -168,7 +168,7 @@ func Test_Validate_Operational_NoError(t *testing.T) {
 	expectedValidTransaction := types.DefaultValidTransaction()
 	expectedValidTransaction.Priority = sc.U64(42)
 
-	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee)
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, nil)
 	mockOnChargeTransaction.On("WithdrawFee", whoAddr, mockCall, &info, txTip, txFee).
 		Return(sc.NewOption[types.Balance](sc.NewU128(1)), nil)
 	mockSystemModule.On("BlockWeights").Return(blockWeights)
@@ -200,7 +200,7 @@ func Test_PreDispatch_Success(t *testing.T) {
 	imbalance := sc.NewOption[types.Balance](sc.NewU128(1))
 	expectedResult := sc.NewVaryingData(txFee, whoAddr, imbalance)
 
-	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee)
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, nil)
 	mockOnChargeTransaction.On("WithdrawFee", whoAddr, mockCall, &info, txTip, txFee).Return(imbalance, nil)
 
 	res, err := targetChargeTxPayment.PreDispatch(whoAddr, mockCall, &info, sc.ToCompact(extLen))
@@ -214,7 +214,7 @@ func Test_PreDispatch_Success(t *testing.T) {
 func Test_PreDispatch_Error(t *testing.T) {
 	setup(txFee)
 
-	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee)
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, nil)
 	mockOnChargeTransaction.On("WithdrawFee", whoAddr, mockCall, &info, txTip, txFee).
 		Return(sc.NewOption[types.Balance](nil), invalidTransactionPaymentError)
 
@@ -250,7 +250,7 @@ func Test_PostDispatch_Some(t *testing.T) {
 	)
 
 	actualFee := sc.NewU128(1)
-	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee)
+	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee, nil)
 	mockOnChargeTransaction.On("CorrectAndDepositFee", whoAddr, actualFee, txTip, txImbalance).Return(nil)
 	mockTxPaymentModule.On("GetIndex").Return(sc.U8(0))
 	mockSystemModule.On("DepositEvent", mock.Anything)
@@ -275,7 +275,7 @@ func Test_PostDispatch_CorrectAndDepositFeeError(t *testing.T) {
 	)
 
 	actualFee := sc.NewU128(1)
-	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee)
+	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee, nil)
 	mockOnChargeTransaction.On("CorrectAndDepositFee", whoAddr, actualFee, txTip, txImbalance).
 		Return(invalidTransactionPaymentError)
 

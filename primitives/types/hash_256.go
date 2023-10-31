@@ -22,10 +22,14 @@ func (h H256) Encode(buffer *bytes.Buffer) {
 	h.FixedSequence.Encode(buffer)
 }
 
-func DecodeH256(buffer *bytes.Buffer) H256 {
+func DecodeH256(buffer *bytes.Buffer) (H256, error) {
 	h := H256{}
-	h.FixedSequence = sc.DecodeFixedSequence[sc.U8](32, buffer)
-	return h
+	fixedSequence, err := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	if err != nil {
+		return H256{}, err
+	}
+	h.FixedSequence = fixedSequence
+	return h, nil
 }
 
 func (h H256) Bytes() []byte {
