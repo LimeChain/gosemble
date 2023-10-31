@@ -35,7 +35,9 @@ func Test_DecodeDispatchClass_Normal(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDispatchClass.Encode(buf)
 
-	assert.Equal(t, targetDispatchClass, DecodeDispatchClass(buf))
+	dispatchClass, err := DecodeDispatchClass(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDispatchClass, dispatchClass)
 }
 
 func Test_DecodeDispatchClass_Operational(t *testing.T) {
@@ -44,7 +46,9 @@ func Test_DecodeDispatchClass_Operational(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDispatchClass.Encode(buf)
 
-	assert.Equal(t, targetDispatchClass, DecodeDispatchClass(buf))
+	dispatchClass, err := DecodeDispatchClass(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDispatchClass, dispatchClass)
 }
 
 func Test_DecodeDispatchClass_Mandatory(t *testing.T) {
@@ -53,7 +57,9 @@ func Test_DecodeDispatchClass_Mandatory(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDispatchClass.Encode(buf)
 
-	assert.Equal(t, targetDispatchClass, DecodeDispatchClass(buf))
+	dispatchClass, err := DecodeDispatchClass(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDispatchClass, dispatchClass)
 }
 
 func Test_DecodeDispatchClass_Panic(t *testing.T) {

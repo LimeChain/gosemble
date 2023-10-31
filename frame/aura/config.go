@@ -11,10 +11,10 @@ type Config struct {
 	MinimumPeriod              sc.U64
 	MaxAuthorities             sc.U32
 	AllowMultipleBlocksPerSlot bool
-	SystemDigest               func() primitives.Digest
+	SystemDigest               func() (primitives.Digest, error)
 }
 
-func NewConfig(keyType primitives.PublicKeyType, dbWeight primitives.RuntimeDbWeight, minimumPeriod sc.U64, maxAuthorities sc.U32, allowMultipleBlocksPerSlot bool, systemDigest func() primitives.Digest) *Config {
+func NewConfig(keyType primitives.PublicKeyType, dbWeight primitives.RuntimeDbWeight, minimumPeriod sc.U64, maxAuthorities sc.U32, allowMultipleBlocksPerSlot bool, systemDigest func() (primitives.Digest, error)) *Config {
 	return &Config{
 		KeyType:                    keyType,
 		DbWeight:                   dbWeight,

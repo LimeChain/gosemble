@@ -29,12 +29,15 @@ func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
 
 	buffer := bytes.NewBuffer(result)
 
-	seq := sc.DecodeSequence[sc.U8](buffer)
+	seq, err := sc.DecodeSequence[sc.U8](buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(seq))
 
-	auraKey := types.DecodePublicKey(buffer)
-	grandpaKey := types.DecodePublicKey(buffer)
+	auraKey, err := types.DecodePublicKey(buffer)
+	assert.Nil(t, err)
+	grandpaKey, err := types.DecodePublicKey(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, rt.Keystore().Aura.PublicKeys()[0].Encode(), auraKey.Bytes())
 	assert.Equal(t, rt.Keystore().Gran.PublicKeys()[0].Encode(), grandpaKey.Bytes())

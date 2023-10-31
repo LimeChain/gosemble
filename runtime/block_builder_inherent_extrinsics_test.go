@@ -35,12 +35,14 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write([]byte{inherentExt[0]})
 
-	totalInherents := sc.DecodeCompact(buffer)
+	totalInherents, err := sc.DecodeCompact(buffer)
+	assert.Nil(t, err)
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
 
 	buffer.Write(inherentExt[1:])
-	extrinsic := decoder.DecodeUncheckedExtrinsic(buffer)
+	extrinsic, err := decoder.DecodeUncheckedExtrinsic(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expectedExtrinsicBytes, extrinsic.Bytes())
 }

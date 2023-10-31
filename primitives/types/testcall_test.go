@@ -34,6 +34,6 @@ func (c testCall) WeighData(baseWeight Weight) Weight {
 	return baseWeight
 }
 
-func (c testCall) DecodeArgs(buffer *bytes.Buffer) Call {
-	return c
+func (c testCall) DecodeArgs(buffer *bytes.Buffer) (Call, error) {
+	return c, nil
 }

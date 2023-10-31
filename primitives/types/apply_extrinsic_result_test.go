@@ -69,7 +69,8 @@ func Test_DecodeApplyExtrinsicResult(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := DecodeApplyExtrinsicResult(buffer)
+			result, err := DecodeApplyExtrinsicResult(buffer)
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})

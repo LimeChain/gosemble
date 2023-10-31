@@ -42,7 +42,8 @@ func Test_ApiItem_Encode(t *testing.T) {
 func Test_ApiItem_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesApiItem)
 
-	result := DecodeApiItem(buffer)
+	result, err := DecodeApiItem(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, apiItem, result)
 }

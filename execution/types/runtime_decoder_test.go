@@ -67,7 +67,8 @@ func Test_RuntimeDecoder_DecodeBlock_ZeroExtrinsicsEmptyBody(t *testing.T) {
 	lenExtrinsics := sc.ToCompact(0).Bytes()
 	buff := bytes.NewBuffer(append(header.Bytes(), lenExtrinsics...))
 
-	resultBlock := target.DecodeBlock(buff)
+	resultBlock, err := target.DecodeBlock(buff)
+	assert.NoError(t, err)
 
 	expectedBlock := NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
 
@@ -90,8 +91,9 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", decodeBlockBuff).Return(mockCallOne)
-	result := target.DecodeBlock(decodeBlockBuff)
+	mockCallOne.On("DecodeArgs", decodeBlockBuff).Return(mockCallOne, nil)
+	result, err := target.DecodeBlock(decodeBlockBuff)
+	assert.NoError(t, err)
 
 	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{
 		NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra),
@@ -139,8 +141,9 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
-	result := target.DecodeBlock(buff)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
+	result, err := target.DecodeBlock(buff)
+	assert.NoError(t, err)
 
 	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{}
 	for i := 0; i < totalExtrinsicsInBlock; i++ {
@@ -180,9 +183,10 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
-	result := target.DecodeUncheckedExtrinsic(buff)
+	result, err := target.DecodeUncheckedExtrinsic(buff)
+	assert.NoError(t, err)
 
 	expectedUnsignedExtrinsic := NewUncheckedExtrinsic(version, sc.Option[primitives.ExtrinsicSignature]{}, mockCallOne, mockSignedExtra)
 
@@ -208,9 +212,10 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
-	result := target.DecodeUncheckedExtrinsic(buff)
+	result, err := target.DecodeUncheckedExtrinsic(buff)
+	assert.NoError(t, err)
 
 	expectedSignedExtrinsicsBytesAfterDecode := NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra)
 
@@ -255,7 +260,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing
 
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
-	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne)
+	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
 	assert.PanicsWithValue(t, "invalid length prefix", func() {
 		target.DecodeUncheckedExtrinsic(buff)
@@ -322,9 +327,10 @@ func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
 		buf.ReadByte()
 		buf.ReadByte()
 		buf.ReadByte()
-	}).Return(mockCallOne)
+	}).Return(mockCallOne, nil)
 
-	target.DecodeCall(buf)
+	_, err := target.DecodeCall(buf)
+	assert.NoError(t, err)
 
 	mockModuleOne.AssertCalled(t, "GetIndex")
 	mockModuleOne.AssertCalled(t, "Functions")

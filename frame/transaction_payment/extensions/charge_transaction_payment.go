@@ -30,8 +30,14 @@ func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) {
 	sc.Compact(ctp.fee).Encode(buffer)
 }
 
-func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) {
-	ctp.fee = sc.U128(sc.DecodeCompact(buffer))
+func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) error {
+	fee, err := sc.DecodeCompact(buffer)
+	if err != nil {
+		return err
+	}
+
+	ctp.fee = sc.U128(fee)
+	return nil
 }
 
 func (ctp ChargeTransactionPayment) Bytes() []byte {
@@ -75,11 +81,14 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		who := preValue[1].(primitives.Address32)
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
-		actualFee := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
-
-		err := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
+		actualFee, err := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
 		if err != nil {
-			return err
+			return primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		}
+
+		errFee := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
+		if errFee != nil {
+			return errFee
 		}
 
 		ctp.systemModule.DepositEvent(
@@ -168,11 +177,14 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 func (ctp ChargeTransactionPayment) withdrawFee(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
 	tip := ctp.fee
-	fee := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
-
-	imbalance, err := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)
+	fee, err := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 	if err != nil {
-		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), err
+		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
+
+	imbalance, errWithdraw := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)
+	if errWithdraw != nil {
+		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), errWithdraw
 	}
 
 	return fee, imbalance, nil

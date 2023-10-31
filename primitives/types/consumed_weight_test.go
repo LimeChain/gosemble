@@ -32,7 +32,9 @@ func Test_ConsumedWeight_Encode(t *testing.T) {
 func Test_DecodeConsumedWeight(t *testing.T) {
 	buf := bytes.NewBuffer(expectedConsumedWeightBytes)
 
-	assert.Equal(t, targetConsumedWeight, DecodeConsumedWeight(buf))
+	result, err := DecodeConsumedWeight(buf)
+	assert.Nil(t, err)
+	assert.Equal(t, targetConsumedWeight, result)
 }
 
 func Test_ConsumedWeight_Bytes(t *testing.T) {

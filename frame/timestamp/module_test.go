@@ -76,7 +76,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 func Test_Module_OnFinalize_Nil(t *testing.T) {
 	target := setupModule()
 
-	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil))
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), nil)
 
 	assert.PanicsWithValue(t, errTimestampNotUpdated, func() {
 		target.OnFinalize(ts)
@@ -88,7 +88,7 @@ func Test_Module_OnFinalize_Nil(t *testing.T) {
 func Test_Module_OnFinalize(t *testing.T) {
 	target := setupModule()
 
-	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"))
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"), nil)
 
 	target.OnFinalize(ts)
 
@@ -104,7 +104,8 @@ func Test_Module_CreateInherent(t *testing.T) {
 
 	mockStorageNow.On("Get").Return(ts)
 
-	result := target.CreateInherent(*data)
+	result, err := target.CreateInherent(*data)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 
@@ -120,7 +121,8 @@ func Test_Module_CreateInherent_MoreThanStorageTimestamp(t *testing.T) {
 
 	mockStorageNow.On("Get").Return(ts)
 
-	result := target.CreateInherent(*data)
+	result, err := target.CreateInherent(*data)
+	assert.Nil(t, err)
 
 	assert.Equal(t, expect, result)
 

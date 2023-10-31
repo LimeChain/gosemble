@@ -32,7 +32,8 @@ func Test_RuntimeDispatchInfo_Encode(t *testing.T) {
 func Test_DecodeRuntimeDispatchInfo(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesRuntimeDispatchInfo)
 
-	result := DecodeRuntimeDispatchInfo(buffer)
+	result, err := DecodeRuntimeDispatchInfo(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, runtimeDispatchInfo, result)
 }

@@ -31,7 +31,8 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(bytesSlotDuration)
 
-	slotDuration := sc.DecodeU64(buffer)
+	slotDuration, err := sc.DecodeU64(buffer)
+	assert.Nil(t, err)
 	buffer.Reset()
 
 	slot := sc.U64(time) / slotDuration
@@ -334,8 +335,8 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 
 	buffer := &bytes.Buffer{}
 	buffer.Write(encTransactionValidityResult)
-	transactionValidityResult := primitives.DecodeTransactionValidityResult(buffer)
-
+	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
+	assert.Nil(t, err)
 	assert.Equal(t,
 		primitives.NewTransactionValidityResult(
 			primitives.NewTransactionValidityError(

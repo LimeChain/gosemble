@@ -25,7 +25,9 @@ func Test_Decode_DigestTypeConsensusMessage(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDigest.Encode(buf)
 
-	assert.Equal(t, targetDigest, DecodeDigest(buf))
+	digest, err := DecodeDigest(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDigest, digest)
 }
 
 func Test_Decode_DigestTypeSeal(t *testing.T) {
@@ -35,7 +37,9 @@ func Test_Decode_DigestTypeSeal(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDigest.Encode(buf)
 
-	assert.Equal(t, targetDigest, DecodeDigest(buf))
+	digest, err := DecodeDigest(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDigest, digest)
 }
 
 func Test_Decode_DigestTypePreRuntime(t *testing.T) {
@@ -45,7 +49,9 @@ func Test_Decode_DigestTypePreRuntime(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDigest.Encode(buf)
 
-	assert.Equal(t, targetDigest, DecodeDigest(buf))
+	digest, err := DecodeDigest(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDigest, digest)
 }
 
 func Test_Decode_DigestTypeRuntimeEnvironmentUpgraded(t *testing.T) {
@@ -54,5 +60,7 @@ func Test_Decode_DigestTypeRuntimeEnvironmentUpgraded(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDigest.Encode(buf)
 
-	assert.Equal(t, targetDigest, DecodeDigest(buf))
+	digest, err := DecodeDigest(buf)
+	assert.NoError(t, err)
+	assert.Equal(t, targetDigest, digest)
 }

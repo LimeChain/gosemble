@@ -34,7 +34,8 @@ func Test_DecodeExtrinsicPhase_ApplyExtrinsic(t *testing.T) {
 	buffer.WriteByte(0)
 	buffer.Write(index.Bytes())
 
-	result := DecodeExtrinsicPhase(buffer)
+	result, err := DecodeExtrinsicPhase(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseApply(index), result)
 }
@@ -43,7 +44,8 @@ func Test_DecodeExtrinsicPhase_Finalization(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	result := DecodeExtrinsicPhase(buffer)
+	result, err := DecodeExtrinsicPhase(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseFinalization(), result)
 }
@@ -52,7 +54,8 @@ func Test_DecodeExtrinsicPhase_Initialization(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
 
-	result := DecodeExtrinsicPhase(buffer)
+	result, err := DecodeExtrinsicPhase(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseInitialization(), result)
 }

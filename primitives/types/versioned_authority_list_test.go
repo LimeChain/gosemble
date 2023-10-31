@@ -47,7 +47,8 @@ func Test_VersionedAuthorityList_Encode(t *testing.T) {
 func Test_DecodeVersionedAuthorityList(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesVersionedAuthorityList)
 
-	result := DecodeVersionedAuthorityList(buffer)
+	result, err := DecodeVersionedAuthorityList(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetVersionedAuthorityList, result)
 }

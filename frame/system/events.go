@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -47,37 +48,63 @@ func newEventRemarked(moduleIndex sc.U8, sender types.PublicKey, hash types.H256
 	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) types.Event {
-	decodedModuleIndex := sc.DecodeU8(buffer)
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+	decodedModuleIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 	if decodedModuleIndex != moduleIndex {
 		log.Critical(errInvalidEventModule)
 	}
 
-	b := sc.DecodeU8(buffer)
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return types.Event{}, err
+	}
 
 	switch b {
 	case EventExtrinsicSuccess:
-		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo)
+		dispatchInfo, err := types.DecodeDispatchInfo(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo), nil
 	case EventExtrinsicFailed:
-		dispatchErr := types.DecodeDispatchError(buffer)
-		dispatchInfo := types.DecodeDispatchInfo(buffer)
-		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo)
+		dispatchErr, err := types.DecodeDispatchError(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		dispatchInfo, err := types.DecodeDispatchInfo(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventExtrinsicFailed(moduleIndex, dispatchErr, dispatchInfo), nil
 	case EventCodeUpdated:
-		return newEventCodeUpdated(moduleIndex)
+		return newEventCodeUpdated(moduleIndex), nil
 	case EventNewAccount:
-		account := types.DecodePublicKey(buffer)
-		return newEventNewAccount(moduleIndex, account)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventNewAccount(moduleIndex, account), nil
 	case EventKilledAccount:
-		account := types.DecodePublicKey(buffer)
-		return newEventKilledAccount(moduleIndex, account)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventKilledAccount(moduleIndex, account), nil
 	case EventRemarked:
-		account := types.DecodePublicKey(buffer)
-		hash := types.DecodeH256(buffer)
-		return newEventRemarked(moduleIndex, account, hash)
+		account, err := types.DecodePublicKey(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		hash, err := types.DecodeH256(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventRemarked(moduleIndex, account, hash), nil
 	default:
 		log.Critical(errInvalidEventType)
+		return types.Event{}, errors.New(errInvalidEventType)
 	}
-
-	panic("unreachable")
 }

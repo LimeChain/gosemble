@@ -26,7 +26,7 @@ func NewCheckWeight(systemModule system.Module) CheckWeight {
 
 func (cw CheckWeight) Encode(*bytes.Buffer) {}
 
-func (cw CheckWeight) Decode(*bytes.Buffer) {}
+func (cw CheckWeight) Decode(*bytes.Buffer) error { return nil }
 
 func (cw CheckWeight) Bytes() []byte {
 	return sc.EncodedBytes(cw)
@@ -55,7 +55,10 @@ func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitive
 func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
-		currentWeight := cw.systemModule.StorageBlockWeight()
+		currentWeight, err := cw.systemModule.StorageBlockWeight()
+		if err != nil {
+			return primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		}
 		currentWeight.Reduce(unspent, info.Class)
 		cw.systemModule.StorageBlockWeightSet(currentWeight)
 	}
@@ -110,7 +113,10 @@ func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Com
 // Upon successes, it returns the new block length as a `Result`.
 func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
 	lengthLimit := cw.systemModule.BlockLength()
-	currentLen := cw.systemModule.StorageAllExtrinsicsLen()
+	currentLen, err := cw.systemModule.StorageAllExtrinsicsLen()
+	if err != nil {
+		return 0, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
 	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
@@ -138,7 +144,10 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 // Upon successes, it returns the new block weight as a `Result`.
 func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
 	maximumWeight := cw.systemModule.BlockWeights()
-	allWeight := cw.systemModule.StorageBlockWeight()
+	allWeight, err := cw.systemModule.StorageBlockWeight()
+	if err != nil {
+		return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
 }
 

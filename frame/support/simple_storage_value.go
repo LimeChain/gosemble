@@ -12,18 +12,18 @@ type SimpleStorageValue[T sc.Encodable] struct {
 	key []byte
 }
 
-func NewSimpleStorageValue[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) T) StorageValue[T] {
+func NewSimpleStorageValue[T sc.Encodable](key []byte, decodeFunc func(buffer *bytes.Buffer) (T, error)) StorageValue[T] {
 	return SimpleStorageValue[T]{
 		baseStorage: newBaseStorage[T](decodeFunc, nil),
 		key:         key,
 	}
 }
 
-func (ssv SimpleStorageValue[T]) Get() T {
+func (ssv SimpleStorageValue[T]) Get() (T, error) {
 	return ssv.baseStorage.get(ssv.key)
 }
 
-func (ssv SimpleStorageValue[T]) GetBytes() sc.Option[sc.Sequence[sc.U8]] {
+func (ssv SimpleStorageValue[T]) GetBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
 	return ssv.baseStorage.getBytes(ssv.key)
 }
 
@@ -43,14 +43,14 @@ func (ssv SimpleStorageValue[T]) Append(value T) {
 	ssv.baseStorage.append(ssv.key, value)
 }
 
-func (ssv SimpleStorageValue[T]) TakeBytes() []byte {
+func (ssv SimpleStorageValue[T]) TakeBytes() ([]byte, error) {
 	return ssv.baseStorage.takeBytes(ssv.key)
 }
 
-func (ssv SimpleStorageValue[T]) Take() T {
+func (ssv SimpleStorageValue[T]) Take() (T, error) {
 	return ssv.baseStorage.take(ssv.key)
 }
 
-func (ssv SimpleStorageValue[T]) DecodeLen() sc.Option[sc.U64] {
+func (ssv SimpleStorageValue[T]) DecodeLen() (sc.Option[sc.U64], error) {
 	return ssv.baseStorage.decodeLen(ssv.key)
 }

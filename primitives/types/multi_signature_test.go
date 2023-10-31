@@ -94,7 +94,8 @@ func Test_DecodeMultiSignature(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
 
-			result := DecodeMultiSignature(buffer)
+			result, err := DecodeMultiSignature(buffer)
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})

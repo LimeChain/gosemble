@@ -63,7 +63,7 @@ func Test_Module_ValidateTransaction_Success(t *testing.T) {
 	assert.Nil(t, err)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
 	mockExecutive.On("ValidateTransaction", txSource, mockUxt, blockHash).Return(validTx, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", validitySuccessResult.Bytes()).Return(ptrAndSize)
 
@@ -85,7 +85,7 @@ func Test_Module_ValidateTransaction_Fails(t *testing.T) {
 	assert.Nil(t, err)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
 	mockExecutive.On("ValidateTransaction", txSource, mockUxt, blockHash).
 		Return(primitives.ValidTransaction{}, txValidityError)
 	mockMemoryUtils.On("BytesToOffsetAndSize", validityFailResult.Bytes()).Return(ptrAndSize)

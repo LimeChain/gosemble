@@ -21,14 +21,17 @@ func NewCheckGenesis(module system.Module) CheckGenesis {
 
 func (cg CheckGenesis) Encode(*bytes.Buffer) {}
 
-func (cg CheckGenesis) Decode(*bytes.Buffer) {}
+func (cg CheckGenesis) Decode(*bytes.Buffer) error { return nil }
 
 func (cg CheckGenesis) Bytes() []byte {
 	return sc.EncodedBytes(cg)
 }
 
 func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	hash := cg.module.StorageBlockHash(0)
+	hash, err := cg.module.StorageBlockHash(0)
+	if err != nil {
+		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+	}
 
 	return sc.NewVaryingData(primitives.H256(hash)), nil
 }

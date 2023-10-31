@@ -1,37 +1,77 @@
 package types
 
 import (
+	"strconv"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	mockAuraModule      *mocks.AuraModule
-	mockSystemModule    *mocks.SystemModule
-	mockGrandpaModule   *mocks.GrandpaModule
-	mockTxPaymentModule *mocks.TransactionPaymentModule
-	modules             = []Module{mockAuraModule, mockSystemModule, mockGrandpaModule, mockTxPaymentModule}
+const (
+	numModules = 4
 )
 
+var (
+	mockAuraModule      Module
+	mockSystemModule    Module
+	mockGrandpaModule   Module
+	mockTxPaymentModule Module
+	modules             []Module
+)
+
+type module struct {
+	Module
+	Index sc.U8
+}
+
+func newTestModule(index sc.U8) Module {
+	return module{
+		Index: index,
+	}
+}
+
+func (m module) GetIndex() sc.U8 {
+	return m.Index
+}
+
 func setup() {
-	mockAuraModule = new(mocks.AuraModule)
-	mockSystemModule = new(mocks.SystemModule)
-	mockGrandpaModule = new(mocks.GrandpaModule)
-	mockTxPaymentModule = new(mocks.TransactionPaymentModule)
+	mockAuraModule = newTestModule(sc.U8(0))
+	mockSystemModule = newTestModule(sc.U8(1))
+	mockGrandpaModule = newTestModule(sc.U8(2))
+	mockTxPaymentModule = newTestModule(sc.U8(3))
+	modules = []Module{mockAuraModule, mockSystemModule, mockGrandpaModule, mockTxPaymentModule}
 }
 
 func Test_GetModule(t *testing.T) {
 	setup()
-	mockAuraModule.On("GetIndex").Return(sc.U8(0))
-	mockAuraModule.On("GetIndex").Return(sc.U8(1))
-	mockAuraModule.On("GetIndex").Return(sc.U8(2))
-	mockAuraModule.On("GetIndex").Return(sc.U8(3))
-	for i := 0; i < 4; i++ {
-		m, ok := GetModule(0, modules)
+	for i := 0; i < numModules; i++ {
+		m, ok := GetModule(sc.U8(i), modules)
 		assert.True(t, ok)
-		assert.Equal(t, m.GetIndex(), i)
+		assert.Equal(t, m.GetIndex(), sc.U8(i))
+		assert.Equal(t, m, modules[i])
 	}
+}
+
+func Test_GetModule_FailWhenNonExistent(t *testing.T) {
+	setup()
+	m, ok := GetModule(sc.U8(numModules), modules)
+	assert.False(t, ok)
+	assert.Nil(t, m)
+}
+
+func Test_MustGetModule(t *testing.T) {
+	setup()
+	for i := 0; i < numModules; i++ {
+		m := MustGetModule(sc.U8(i), modules)
+		assert.Equal(t, m.GetIndex(), sc.U8(i))
+		assert.Equal(t, m, modules[i])
+	}
+}
+
+func Test_MustGetModule_PanicWhenNonExistent(t *testing.T) {
+	setup()
+	assert.PanicsWithValue(t, "module ["+strconv.Itoa(int(numModules))+"] not found.", func() {
+		MustGetModule(sc.U8(numModules), modules)
+	})
 }

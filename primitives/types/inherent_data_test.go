@@ -56,13 +56,15 @@ func Test_InherentData_Decode(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(result.data[key0]))
 
-	decodedValue0 := sc.DecodeSequence[sc.I32](buffer)
+	decodedValue0, err := sc.DecodeSequence[sc.I32](buffer)
+	assert.NoError(t, err)
 	assert.Equal(t, value0, decodedValue0)
 
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(result.data[key1]))
 
-	decodedValue1 := sc.DecodeU32(buffer)
+	decodedValue1, err := sc.DecodeU32(buffer)
+	assert.NoError(t, err)
 	assert.Equal(t, value1, decodedValue1)
 }
 

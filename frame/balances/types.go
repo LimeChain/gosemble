@@ -23,11 +23,15 @@ func newNegativeImbalance(balance types.Balance, totalIssuance support.StorageVa
 	return negativeImbalance{balance, totalIssuance}
 }
 
-func (ni negativeImbalance) Drop() {
-	issuance := ni.totalIssuance.Get()
+func (ni negativeImbalance) Drop() error {
+	issuance, err := ni.totalIssuance.Get()
+	if err != nil {
+		return err
+	}
 	sub := sc.SaturatingSubU128(issuance, ni.Balance)
 
 	ni.totalIssuance.Put(sub)
+	return nil
 }
 
 type positiveImbalance struct {
@@ -39,11 +43,15 @@ func newPositiveImbalance(balance types.Balance, totalIssuance support.StorageVa
 	return positiveImbalance{balance, totalIssuance}
 }
 
-func (pi positiveImbalance) Drop() {
-	issuance := pi.totalIssuance.Get()
+func (pi positiveImbalance) Drop() error {
+	issuance, err := pi.totalIssuance.Get()
+	if err != nil {
+		return err
+	}
 	add := sc.SaturatingAddU128(issuance, pi.Balance)
 
 	pi.totalIssuance.Put(add)
+	return nil
 }
 
 type dustCleaner struct {

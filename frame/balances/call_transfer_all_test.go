@@ -34,7 +34,8 @@ func Test_Call_TransferAll_DecodeArgs(t *testing.T) {
 	buf := bytes.NewBuffer(append(targetAddress.Bytes(), keepAlive.Bytes()...))
 
 	target := setupCallTransferAll()
-	call := target.DecodeArgs(buf)
+	call, err := target.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(targetAddress, keepAlive), call.Args())
 }
@@ -99,8 +100,8 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
-	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
+	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true, nil)
 	mockMutator.On("tryMutateAccountWithDust",
 		toAddress.AsAddress32(),
 		mockTypeMutateAccountDataBool,
@@ -170,8 +171,8 @@ func Test_Call_TransferAll_Dispatch_CannotLookup(t *testing.T) {
 			Error: primitives.NewDispatchErrorCannotLookup(),
 		},
 	}
-	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
+	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true, nil)
 
 	result := target.Dispatch(
 		primitives.NewRawOriginSigned(fromAddress.AsAddress32()),
@@ -192,8 +193,8 @@ func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
-	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo)
-	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true)
+	mockStoredMap.On("Get", fromAddress.AsAddress32().FixedSequence).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAddress32()).Return(true, nil)
 	mockMutator.On(
 		"tryMutateAccountWithDust",
 		toAddress.AsAddress32(),

@@ -35,7 +35,8 @@ func Test_Call_Remark_DecodeArgs_Success(t *testing.T) {
 	buf := bytes.NewBuffer(seq.Bytes())
 
 	call := newCallRemark(moduleId, functionRemarkIndex)
-	call = call.DecodeArgs(buf)
+	call, err := call.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(seq), call.Args())
 }
@@ -59,7 +60,8 @@ func Test_Call_Remark_EncodeWithArgs(t *testing.T) {
 	buf := bytes.NewBuffer(seq.Bytes())
 
 	call := newCallRemark(moduleId, functionRemarkIndex)
-	call = call.DecodeArgs(buf)
+	call, err := call.DecodeArgs(buf)
+	assert.Nil(t, err)
 
 	buf.Reset()
 	call.Encode(buf)
@@ -114,7 +116,8 @@ func Test_Call_Remark_BaseWeight_EmptyArgs(t *testing.T) {
 func Test_Call_Remark_BaseWeight_WithArgs(t *testing.T) {
 	seq := sc.BytesToSequenceU8([]byte{1})
 	call := newCallRemark(moduleId, functionRemarkIndex)
-	call = call.DecodeArgs(bytes.NewBuffer(seq.Bytes()))
+	call, err := call.DecodeArgs(bytes.NewBuffer(seq.Bytes()))
+	assert.Nil(t, err)
 
 	assert.Equal(t, primitives.WeightFromParts(2_091_362, 0), call.BaseWeight())
 }

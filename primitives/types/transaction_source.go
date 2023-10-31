@@ -50,16 +50,19 @@ func NewTransactionSourceExternal() TransactionSource {
 	return sc.NewVaryingData(TransactionSourceExternal)
 }
 
-func DecodeTransactionSource(buffer *bytes.Buffer) TransactionSource {
-	b := sc.DecodeU8(buffer)
+func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return TransactionSource{}, err
+	}
 
 	switch b {
 	case TransactionSourceInBlock:
-		return NewTransactionSourceInBlock()
+		return NewTransactionSourceInBlock(), nil
 	case TransactionSourceLocal:
-		return NewTransactionSourceLocal()
+		return NewTransactionSourceLocal(), nil
 	case TransactionSourceExternal:
-		return NewTransactionSourceExternal()
+		return NewTransactionSourceExternal(), nil
 	default:
 		log.Critical("invalid TransactionSource type")
 	}

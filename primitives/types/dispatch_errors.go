@@ -80,41 +80,59 @@ func NewDispatchErrorUnavailable() DispatchError {
 	return sc.NewVaryingData(DispatchErrorUnavailable)
 }
 
-func DecodeDispatchError(buffer *bytes.Buffer) DispatchError {
-	b := sc.DecodeU8(buffer)
+func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	switch b {
 	case DispatchErrorOther:
-		value := sc.DecodeStr(buffer)
-		return NewDispatchErrorOther(value)
+		value, err := sc.DecodeStr(buffer)
+		if err != nil {
+			return nil, err
+		}
+		return NewDispatchErrorOther(value), nil
 	case DispatchErrorCannotLookup:
-		return NewDispatchErrorCannotLookup()
+		return NewDispatchErrorCannotLookup(), nil
 	case DispatchErrorBadOrigin:
-		return NewDispatchErrorBadOrigin()
+		return NewDispatchErrorBadOrigin(), nil
 	case DispatchErrorModule:
-		module := DecodeCustomModuleError(buffer)
-		return NewDispatchErrorModule(module)
+		module, err := DecodeCustomModuleError(buffer)
+		if err != nil {
+			return DispatchError{}, err
+		}
+		return NewDispatchErrorModule(module), nil
 	case DispatchErrorConsumerRemaining:
-		return NewDispatchErrorConsumerRemaining()
+		return NewDispatchErrorConsumerRemaining(), nil
 	case DispatchErrorNoProviders:
-		return NewDispatchErrorNoProviders()
+		return NewDispatchErrorNoProviders(), nil
 	case DispatchErrorTooManyConsumers:
-		return NewDispatchErrorTooManyConsumers()
+		return NewDispatchErrorTooManyConsumers(), nil
 	case DispatchErrorToken:
-		tokenError := DecodeTokenError(buffer)
-		return NewDispatchErrorToken(tokenError)
+		tokenError, err := DecodeTokenError(buffer)
+		if err != nil {
+			return DispatchError{}, err
+		}
+		return NewDispatchErrorToken(tokenError), nil
 	case DispatchErrorArithmetic:
-		arithmeticError := DecodeArithmeticError(buffer)
-		return NewDispatchErrorArithmetic(arithmeticError)
+		arithmeticError, err := DecodeArithmeticError(buffer)
+		if err != nil {
+			return nil, err
+		}
+		return NewDispatchErrorArithmetic(arithmeticError), nil
 	case DispatchErrorTransactional:
-		transactionalError := DecodeTransactionalError(buffer)
-		return NewDispatchErrorTransactional(transactionalError)
+		transactionalError, err := DecodeTransactionalError(buffer)
+		if err != nil {
+			return DispatchError{}, err
+		}
+		return NewDispatchErrorTransactional(transactionalError), nil
 	case DispatchErrorExhausted:
-		return NewDispatchErrorExhausted()
+		return NewDispatchErrorExhausted(), nil
 	case DispatchErrorCorruption:
-		return NewDispatchErrorCorruption()
+		return NewDispatchErrorCorruption(), nil
 	case DispatchErrorUnavailable:
-		return NewDispatchErrorUnavailable()
+		return NewDispatchErrorUnavailable(), nil
 	default:
 		log.Critical("invalid DispatchError type")
 	}
@@ -135,12 +153,20 @@ func (e CustomModuleError) Encode(buffer *bytes.Buffer) {
 	//e.Message.Encode(buffer) // Skipped in codec
 }
 
-func DecodeCustomModuleError(buffer *bytes.Buffer) CustomModuleError {
+func DecodeCustomModuleError(buffer *bytes.Buffer) (CustomModuleError, error) {
 	e := CustomModuleError{}
-	e.Index = sc.DecodeU8(buffer)
-	e.Error = sc.DecodeU32(buffer)
+	idx, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return CustomModuleError{}, err
+	}
+	e.Index = idx
+	decodedErr, err := sc.DecodeU32(buffer)
+	if err != nil {
+		return CustomModuleError{}, err
+	}
+	e.Error = decodedErr
 	//e.Message = sc.DecodeOption[sc.Str](buffer) // Skipped in codec
-	return e
+	return e, nil
 }
 
 func (e CustomModuleError) Bytes() []byte {
@@ -162,11 +188,19 @@ func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer
 	e.Error.Encode(buffer)
 }
 
-func DecodeErrorWithPostInfo(buffer *bytes.Buffer) DispatchErrorWithPostInfo[PostDispatchInfo] {
+func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {
 	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
-	e.PostInfo = DecodePostDispatchInfo(buffer)
-	e.Error = DecodeDispatchError(buffer)
-	return e
+	postInfo, err := DecodePostDispatchInfo(buffer)
+	if err != nil {
+		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
+	}
+	e.PostInfo = postInfo
+	dispatchError, err := DecodeDispatchError(buffer)
+	if err != nil {
+		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
+	}
+	e.Error = dispatchError
+	return e, nil
 }
 
 func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {

@@ -43,14 +43,25 @@ func (r TransactionValidityResult) Encode(buffer *bytes.Buffer) {
 	r[0].Encode(buffer)
 }
 
-func DecodeTransactionValidityResult(buffer *bytes.Buffer) TransactionValidityResult {
-	b := sc.DecodeU8(buffer)
+func DecodeTransactionValidityResult(buffer *bytes.Buffer) (TransactionValidityResult, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return TransactionValidityResult{}, err
+	}
 
 	switch b {
 	case TransactionValidityResultValid:
-		return NewTransactionValidityResult(DecodeValidTransaction(buffer))
+		val, err := DecodeValidTransaction(buffer)
+		if err != nil {
+			return TransactionValidityResult{}, err
+		}
+		return NewTransactionValidityResult(val), nil
 	case TransactionValidityResultError:
-		return NewTransactionValidityResult(DecodeTransactionValidityError(buffer))
+		val, err := DecodeTransactionValidityError(buffer)
+		if err != nil {
+			return TransactionValidityResult{}, err
+		}
+		return NewTransactionValidityResult(val), nil
 	default:
 		log.Critical(errInvalidTransactionValidityResultType)
 	}

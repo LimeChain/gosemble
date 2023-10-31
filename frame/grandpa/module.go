@@ -35,7 +35,7 @@ type GrandpaModule interface {
 
 	KeyType() primitives.PublicKeyType
 	KeyTypeId() [4]byte
-	Authorities() sc.Sequence[primitives.Authority]
+	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
 type Module struct {
@@ -80,18 +80,21 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Authorities() sc.Sequence[primitives.Authority] {
-	versionedAuthorityList := m.storage.Authorities.Get()
+func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
+	versionedAuthorityList, err := m.storage.Authorities.Get()
+	if err != nil {
+		return nil, err
+	}
 
 	authorities := versionedAuthorityList.AuthorityList
 	if versionedAuthorityList.Version != AuthorityVersion {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
 		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]")
-		return sc.Sequence[primitives.Authority]{}
+		return sc.Sequence[primitives.Authority]{}, nil
 	}
 
-	return authorities
+	return authorities, nil
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

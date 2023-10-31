@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	expectedSignedExtraOkBytes, _ = hex.DecodeString("010002030004")
+	expectedSignedExtraOkBytes, _ = hex.DecodeString("00010000000003000000")
 
 	expectedValidTransaction = ValidTransaction{
 		Priority:  TransactionPriority(2),
@@ -69,9 +69,9 @@ var (
 	postInfo       = &PostDispatchInfo{}
 	dispatchResult = &DispatchResult{}
 
-	extraCheckOk1  = newTestExtraCheck(false, sc.U16(1), sc.U8(2))
-	extraCheckOk2  = newTestExtraCheck(false, sc.U16(3), sc.U8(4))
-	extraCheckErr1 = newTestExtraCheck(true, sc.U16(5), sc.U8(6))
+	extraCheckOk1  = newTestExtraCheck(false, sc.U32(1))
+	extraCheckOk2  = newTestExtraCheck(false, sc.U32(3))
+	extraCheckErr1 = newTestExtraCheck(true, sc.U32(5))
 
 	extraChecksWithOk = []SignedExtension{
 		extraCheckOk1,
@@ -115,7 +115,7 @@ func Test_SignedExtra_Decode(t *testing.T) {
 func Test_SignedExtra_AdditionalSigned_Ok(t *testing.T) {
 	result, err := targetSignedExtraOk.AdditionalSigned()
 
-	assert.Equal(t, AdditionalSigned{sc.U16(1), sc.U8(2), sc.U16(3), sc.U8(4)}, result)
+	assert.Equal(t, AdditionalSigned{sc.U32(1), sc.U32(3)}, result)
 	assert.Nil(t, err)
 }
 

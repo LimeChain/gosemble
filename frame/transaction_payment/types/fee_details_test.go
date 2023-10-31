@@ -40,7 +40,8 @@ func Test_FeeDetails_Bytes(t *testing.T) {
 }
 
 func Test_FeeDetails_DecodeFeeDetails(t *testing.T) {
-	result := DecodeFeeDetails(bytes.NewBuffer(expectedFeeDetailsBytes))
+	result, err := DecodeFeeDetails(bytes.NewBuffer(expectedFeeDetailsBytes))
+	assert.NoError(t, err)
 
 	expectedFeeDetails := FeeDetails{
 		InclusionFee: sc.NewOption[InclusionFee](InclusionFee{

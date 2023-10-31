@@ -25,14 +25,17 @@ func NewTransactionalErrorNoLayer() TransactionalError {
 	return sc.NewVaryingData(TransactionalErrorNoLayer)
 }
 
-func DecodeTransactionalError(buffer *bytes.Buffer) TransactionalError {
-	b := sc.DecodeU8(buffer)
+func DecodeTransactionalError(buffer *bytes.Buffer) (TransactionalError, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return TransactionalError{}, err
+	}
 
 	switch b {
 	case TransactionalErrorLimitReached:
-		return NewTransactionalErrorLimitReached()
+		return NewTransactionalErrorLimitReached(), nil
 	case TransactionalErrorNoLayer:
-		return NewTransactionalErrorNoLayer()
+		return NewTransactionalErrorNoLayer(), nil
 	default:
 		log.Critical("invalid TransactionalError type")
 	}

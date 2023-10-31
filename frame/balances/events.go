@@ -68,59 +68,137 @@ func newEventSlashed(moduleIndex sc.U8, account primitives.PublicKey, amount pri
 	return primitives.NewEvent(moduleIndex, EventSlashed, account, amount)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) primitives.Event {
-	decodedModuleIndex := sc.DecodeU8(buffer)
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
+	decodedModuleIndex, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return primitives.Event{}, err
+	}
 	if decodedModuleIndex != moduleIndex {
 		log.Critical(errInvalidEventModule)
 	}
 
-	b := sc.DecodeU8(buffer)
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return primitives.Event{}, err
+	}
 
 	switch b {
 	case EventEndowed:
-		account := primitives.DecodePublicKey(buffer)
-		freeBalance := sc.DecodeU128(buffer)
-		return newEventEndowed(moduleIndex, account, freeBalance)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		freeBalance, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventEndowed(moduleIndex, account, freeBalance), nil
 	case EventDustLost:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventDustLost(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventDustLost(moduleIndex, account, amount), nil
 	case EventTransfer:
-		from := primitives.DecodePublicKey(buffer)
-		to := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventTransfer(moduleIndex, from, to, amount)
+		from, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		to, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventTransfer(moduleIndex, from, to, amount), nil
 	case EventBalanceSet:
-		account := primitives.DecodePublicKey(buffer)
-		free := sc.DecodeU128(buffer)
-		reserved := sc.DecodeU128(buffer)
-		return newEventBalanceSet(moduleIndex, account, free, reserved)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		free, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		reserved, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventBalanceSet(moduleIndex, account, free, reserved), nil
 	case EventReserved:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventReserved(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventReserved(moduleIndex, account, amount), nil
 	case EventUnreserved:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventUnreserved(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventUnreserved(moduleIndex, account, amount), nil
 	case EventReserveRepatriated:
-		from := primitives.DecodePublicKey(buffer)
-		to := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		destinationStatus := types.DecodeBalanceStatus(buffer)
-		return newEventReserveRepatriated(moduleIndex, from, to, amount, destinationStatus)
+		from, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		to, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		destinationStatus, err := types.DecodeBalanceStatus(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventReserveRepatriated(moduleIndex, from, to, amount, destinationStatus), nil
 	case EventDeposit:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventDeposit(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventDeposit(moduleIndex, account, amount), nil
 	case EventWithdraw:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventWithdraw(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventWithdraw(moduleIndex, account, amount), nil
 	case EventSlashed:
-		account := primitives.DecodePublicKey(buffer)
-		amount := sc.DecodeU128(buffer)
-		return newEventSlashed(moduleIndex, account, amount)
+		account, err := primitives.DecodePublicKey(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		amount, err := sc.DecodeU128(buffer)
+		if err != nil {
+			return primitives.Event{}, err
+		}
+		return newEventSlashed(moduleIndex, account, amount), nil
 	default:
 		log.Critical(errInvalidEventType)
 	}

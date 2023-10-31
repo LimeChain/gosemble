@@ -73,14 +73,14 @@ func Test_Module_QueryInfo_Signed(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
 	mockUxt.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
 	mockUxt.On("IsSigned").Return(true)
-	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee)
+	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", runtimeDispatchInfo.Bytes()).Return(ptrAndSize)
 
 	result := target.QueryInfo(dataPtr, dataLen)
@@ -110,7 +110,7 @@ func Test_Module_QueryInfo_Unsigned(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
 	mockUxt.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
@@ -149,14 +149,14 @@ func Test_Module_QueryFeeDetails_Signed(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
 	mockUxt.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
 	mockUxt.On("IsSigned").Return(true)
-	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails)
+	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", feeDetails.Bytes()).Return(ptrAndSize)
 
 	result := target.QueryFeeDetails(dataPtr, dataLen)
@@ -183,7 +183,7 @@ func Test_Module_QueryFeeDetails_Unsigned(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(length.Bytes())
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
-	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
 	mockUxt.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)

@@ -45,7 +45,8 @@ func Test_AccountInfo_Bytes(t *testing.T) {
 func Test_DecodeAccountInfo(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAccountInfoBytes)
 
-	result := DecodeAccountInfo(buffer)
+	result, err := DecodeAccountInfo(buffer)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetAccountInfo, result)
 }

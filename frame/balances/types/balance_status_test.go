@@ -28,7 +28,8 @@ func Test_DecodeBalanceStatus(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			result := DecodeBalanceStatus(bytes.NewBuffer(testExample.input))
+			result, err := DecodeBalanceStatus(bytes.NewBuffer(testExample.input))
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})

@@ -11,9 +11,12 @@ type TransactionPaymentModule struct {
 	mock.Mock
 }
 
-func (m *TransactionPaymentModule) CreateInherent(inherent types.InherentData) sc.Option[types.Call] {
+func (m *TransactionPaymentModule) CreateInherent(inherent types.InherentData) (sc.Option[types.Call], error) {
 	args := m.Called(inherent)
-	return args.Get(0).(sc.Option[types.Call])
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[types.Call]), nil
+	}
+	return args.Get(0).(sc.Option[types.Call]), args.Get(1).(error)
 }
 
 func (m *TransactionPaymentModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
@@ -31,9 +34,12 @@ func (m *TransactionPaymentModule) IsInherent(call types.Call) bool {
 	return args.Bool(0)
 }
 
-func (m *TransactionPaymentModule) OnInitialize(n sc.U64) types.Weight {
+func (m *TransactionPaymentModule) OnInitialize(n sc.U64) (types.Weight, error) {
 	args := m.Called(n)
-	return args.Get(0).(types.Weight)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Weight), nil
+	}
+	return args.Get(0).(types.Weight), args.Get(1).(error)
 }
 
 func (m *TransactionPaymentModule) OnRuntimeUpgrade() types.Weight {
@@ -41,8 +47,9 @@ func (m *TransactionPaymentModule) OnRuntimeUpgrade() types.Weight {
 	return args.Get(0).(types.Weight)
 }
 
-func (m *TransactionPaymentModule) OnFinalize(n sc.U64) {
+func (m *TransactionPaymentModule) OnFinalize(n sc.U64) error {
 	m.Called(n)
+	return nil
 }
 
 func (m *TransactionPaymentModule) OnIdle(n sc.U64, remainingWeight types.Weight) types.Weight {
@@ -79,19 +86,28 @@ func (m *TransactionPaymentModule) Metadata() (sc.Sequence[types.MetadataType], 
 	return args.Get(0).(sc.Sequence[types.MetadataType]), args.Get(1).(types.MetadataModule)
 }
 
-func (m *TransactionPaymentModule) ComputeFee(len sc.U32, info types.DispatchInfo, tip types.Balance) types.Balance {
+func (m *TransactionPaymentModule) ComputeFee(len sc.U32, info types.DispatchInfo, tip types.Balance) (types.Balance, error) {
 	args := m.Called(len, info, tip)
-	return args.Get(0).(types.Balance)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Balance), nil
+	}
+	return args.Get(0).(types.Balance), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info types.DispatchInfo, tip types.Balance) tx_types.FeeDetails {
+func (m *TransactionPaymentModule) ComputeFeeDetails(len sc.U32, info types.DispatchInfo, tip types.Balance) (tx_types.FeeDetails, error) {
 	args := m.Called(len, info, tip)
-	return args.Get(0).(tx_types.FeeDetails)
+	if args.Get(1) == nil {
+		return args.Get(0).(tx_types.FeeDetails), nil
+	}
+	return args.Get(0).(tx_types.FeeDetails), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) ComputeActualFee(len sc.U32, info types.DispatchInfo, postInfo types.PostDispatchInfo, tip types.Balance) types.Balance {
+func (m *TransactionPaymentModule) ComputeActualFee(len sc.U32, info types.DispatchInfo, postInfo types.PostDispatchInfo, tip types.Balance) (types.Balance, error) {
 	args := m.Called(len, info, postInfo, tip)
-	return args.Get(0).(types.Balance)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.Balance), nil
+	}
+	return args.Get(0).(types.Balance), args.Get(1).(error)
 }
 
 func (m *TransactionPaymentModule) OperationalFeeMultiplier() sc.U8 {

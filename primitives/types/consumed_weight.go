@@ -14,12 +14,24 @@ func (cw ConsumedWeight) Encode(buffer *bytes.Buffer) {
 	PerDispatchClass[Weight](cw).Encode(buffer)
 }
 
-func DecodeConsumedWeight(buffer *bytes.Buffer) ConsumedWeight {
-	return ConsumedWeight{
-		Normal:      DecodeWeight(buffer),
-		Operational: DecodeWeight(buffer),
-		Mandatory:   DecodeWeight(buffer),
+func DecodeConsumedWeight(buffer *bytes.Buffer) (ConsumedWeight, error) {
+	normal, err := DecodeWeight(buffer)
+	if err != nil {
+		return ConsumedWeight{}, err
 	}
+	operational, err := DecodeWeight(buffer)
+	if err != nil {
+		return ConsumedWeight{}, err
+	}
+	mandatory, err := DecodeWeight(buffer)
+	if err != nil {
+		return ConsumedWeight{}, err
+	}
+	return ConsumedWeight{
+		Normal:      normal,
+		Operational: operational,
+		Mandatory:   mandatory,
+	}, nil
 }
 
 func (cw ConsumedWeight) Bytes() []byte {

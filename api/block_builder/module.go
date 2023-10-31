@@ -60,12 +60,15 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	uxt := m.decoder.DecodeUncheckedExtrinsic(buffer)
-
-	ok, err := m.executive.ApplyExtrinsic(uxt)
-	var applyExtrinsicResult primitives.ApplyExtrinsicResult
+	uxt, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
-		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(err)
+		log.Critical(err.Error())
+	}
+
+	ok, errApplyExtr := m.executive.ApplyExtrinsic(uxt)
+	var applyExtrinsicResult primitives.ApplyExtrinsicResult
+	if errApplyExtr != nil {
+		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(errApplyExtr)
 	} else {
 		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(ok)
 	}
@@ -80,7 +83,10 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 // Returns a pointer-size of the SCALE-encoded header for this block.
 // [Specification](https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block)
 func (m Module) FinalizeBlock() int64 {
-	header := m.executive.FinalizeBlock()
+	header, err := m.executive.FinalizeBlock()
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	encodedHeader := header.Bytes()
 	return m.memUtils.BytesToOffsetAndSize(encodedHeader)
 }
@@ -101,7 +107,10 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	result := m.runtimeExtrinsic.CreateInherents(*inherentData)
+	result, err := m.runtimeExtrinsic.CreateInherents(*inherentData)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	return m.memUtils.BytesToOffsetAndSize(result)
 }
@@ -117,7 +126,10 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	block := m.decoder.DecodeBlock(buffer)
+	block, err := m.decoder.DecodeBlock(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {

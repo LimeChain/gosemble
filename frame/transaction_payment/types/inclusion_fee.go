@@ -31,12 +31,24 @@ func (i InclusionFee) Bytes() []byte {
 	return sc.EncodedBytes(i)
 }
 
-func DecodeInclusionFee(buffer *bytes.Buffer) InclusionFee {
-	return InclusionFee{
-		BaseFee:           sc.DecodeU128(buffer),
-		LenFee:            sc.DecodeU128(buffer),
-		AdjustedWeightFee: sc.DecodeU128(buffer),
+func DecodeInclusionFee(buffer *bytes.Buffer) (InclusionFee, error) {
+	baseFee, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return InclusionFee{}, err
 	}
+	lenFee, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return InclusionFee{}, err
+	}
+	adjustedWeightFee, err := sc.DecodeU128(buffer)
+	if err != nil {
+		return InclusionFee{}, err
+	}
+	return InclusionFee{
+		BaseFee:           baseFee,
+		LenFee:            lenFee,
+		AdjustedWeightFee: adjustedWeightFee,
+	}, nil
 }
 
 func (i InclusionFee) InclusionFee() primitives.Balance {

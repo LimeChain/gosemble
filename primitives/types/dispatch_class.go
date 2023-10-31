@@ -47,16 +47,19 @@ func NewDispatchClassMandatory() DispatchClass {
 	return DispatchClass{sc.NewVaryingData(DispatchClassMandatory)}
 }
 
-func DecodeDispatchClass(buffer *bytes.Buffer) DispatchClass {
-	b := sc.DecodeU8(buffer)
+func DecodeDispatchClass(buffer *bytes.Buffer) (DispatchClass, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return DispatchClass{}, err
+	}
 
 	switch b {
 	case DispatchClassNormal:
-		return NewDispatchClassNormal()
+		return NewDispatchClassNormal(), nil
 	case DispatchClassOperational:
-		return NewDispatchClassOperational()
+		return NewDispatchClassOperational(), nil
 	case DispatchClassMandatory:
-		return NewDispatchClassMandatory()
+		return NewDispatchClassMandatory(), nil
 	default:
 		log.Critical("invalid DispatchClass type")
 	}

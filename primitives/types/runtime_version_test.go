@@ -65,7 +65,8 @@ func Test_RuntimeVersion_Encode(t *testing.T) {
 func Test_DecodeRuntimeVersion(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesRuntimeVersion)
 
-	result := DecodeRuntimeVersion(buffer)
+	result, err := DecodeRuntimeVersion(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, runtimeVersion, result)
 }

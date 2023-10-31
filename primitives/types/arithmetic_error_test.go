@@ -39,7 +39,8 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			result := DecodeArithmeticError(bytes.NewBuffer(testExample.input))
+			result, err := DecodeArithmeticError(bytes.NewBuffer(testExample.input))
+			assert.NoError(t, err)
 
 			assert.Equal(t, result, testExample.expectation)
 		})

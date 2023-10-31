@@ -27,9 +27,9 @@ type AuraModule interface {
 
 	KeyType() primitives.PublicKeyType
 	KeyTypeId() [4]byte
-	OnTimestampSet(now sc.U64)
+	OnTimestampSet(now sc.U64) error
 	SlotDuration() sc.U64
-	GetAuthorities() sc.Option[sc.Sequence[sc.U8]]
+	GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error)
 }
 
 type Module struct {
@@ -80,13 +80,19 @@ func (m Module) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
-	slot := m.currentSlotFromDigests()
+func (m Module) OnInitialize(_ sc.U64) (primitives.Weight, error) {
+	slot, err := m.currentSlotFromDigests()
+	if err != nil {
+		return primitives.Weight{}, err
+	}
 
 	if slot.HasValue {
 		newSlot := slot.Value
 
-		currentSlot := m.storage.CurrentSlot.Get()
+		currentSlot, err := m.storage.CurrentSlot.Get()
+		if err != nil {
+			return primitives.Weight{}, err
+		}
 
 		if currentSlot >= newSlot {
 			log.Critical(errSlotMustIncrease)
@@ -94,7 +100,10 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 
 		m.storage.CurrentSlot.Put(newSlot)
 
-		totalAuthorities := m.storage.Authorities.DecodeLen()
+		totalAuthorities, err := m.storage.Authorities.DecodeLen()
+		if err != nil {
+			return primitives.Weight{}, err
+		}
 		if totalAuthorities.HasValue {
 			_ = currentSlot % totalAuthorities.Value
 
@@ -109,13 +118,13 @@ func (m Module) OnInitialize(_ sc.U64) primitives.Weight {
 			*/
 		}
 
-		return m.constants.DbWeight.ReadsWrites(2, 1)
+		return m.constants.DbWeight.ReadsWrites(2, 1), nil
 	} else {
-		return m.constants.DbWeight.Reads(1)
+		return m.constants.DbWeight.Reads(1), nil
 	}
 }
 
-func (m Module) OnTimestampSet(now sc.U64) {
+func (m Module) OnTimestampSet(now sc.U64) error {
 	slotDuration := m.SlotDuration()
 	if slotDuration == 0 {
 		log.Critical(errSlotDurationZero)
@@ -123,10 +132,14 @@ func (m Module) OnTimestampSet(now sc.U64) {
 
 	timestampSlot := now / slotDuration
 
-	currentSlot := m.storage.CurrentSlot.Get()
+	currentSlot, err := m.storage.CurrentSlot.Get()
+	if err != nil {
+		return err
+	}
 	if currentSlot != timestampSlot {
 		log.Critical(errTimestampSlotMismatch)
 	}
+	return nil
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -231,8 +244,11 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m Module) currentSlotFromDigests() sc.Option[slot] {
-	digest := m.config.SystemDigest()
+func (m Module) currentSlotFromDigests() (sc.Option[slot], error) {
+	digest, err := m.config.SystemDigest()
+	if err != nil {
+		return sc.Option[slot]{}, err
+	}
 
 	for keyDigest, dig := range digest {
 		if keyDigest == primitives.DigestTypePreRuntime {
@@ -241,19 +257,24 @@ func (m Module) currentSlotFromDigests() sc.Option[slot] {
 					buffer := &bytes.Buffer{}
 					buffer.Write(sc.SequenceU8ToBytes(digestItem.Payload))
 
-					return sc.NewOption[slot](sc.DecodeU64(buffer))
+					decodeResult, err := sc.DecodeU64(buffer)
+					if err != nil {
+						return sc.Option[slot]{}, err
+					}
+
+					return sc.NewOption[slot](decodeResult), nil
 				}
 			}
 		}
 	}
 
-	return sc.NewOption[slot](nil)
+	return sc.NewOption[slot](nil), nil
 }
 
 func (m Module) SlotDuration() sc.U64 {
 	return m.constants.MinimumPeriod * 2
 }
 
-func (m Module) GetAuthorities() sc.Option[sc.Sequence[sc.U8]] {
+func (m Module) GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error) {
 	return m.storage.Authorities.GetBytes()
 }

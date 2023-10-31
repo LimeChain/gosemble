@@ -5,6 +5,7 @@ import (
 
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
@@ -45,6 +46,9 @@ func (m Module) Item() types.ApiItem {
 func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
-	header := primitives.DecodeHeader(buffer)
+	header, err := primitives.DecodeHeader(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	m.executive.OffchainWorker(header)
 }

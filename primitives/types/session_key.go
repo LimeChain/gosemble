@@ -23,11 +23,19 @@ func (sk SessionKey) Encode(buffer *bytes.Buffer) {
 	sk.TypeId.Encode(buffer)
 }
 
-func DecodeSessionKey(buffer *bytes.Buffer) SessionKey {
-	return SessionKey{
-		Key:    sc.DecodeSequence[sc.U8](buffer),
-		TypeId: sc.DecodeFixedSequence[sc.U8](4, buffer),
+func DecodeSessionKey(buffer *bytes.Buffer) (SessionKey, error) {
+	key, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		return SessionKey{}, err
 	}
+	typeId, err := sc.DecodeFixedSequence[sc.U8](4, buffer)
+	if err != nil {
+		return SessionKey{}, err
+	}
+	return SessionKey{
+		Key:    key,
+		TypeId: typeId,
+	}, nil
 }
 
 func (sk SessionKey) Bytes() []byte {

@@ -24,21 +24,27 @@ func Test_DecodeTransactionSource_InBlock(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
 
-	assert.Equal(t, NewTransactionSourceInBlock(), DecodeTransactionSource(buffer))
+	txSource, err := DecodeTransactionSource(buffer)
+	assert.NoError(t, err)
+	assert.Equal(t, NewTransactionSourceInBlock(), txSource)
 }
 
 func Test_DecodeTransactionSource_Local(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
 
-	assert.Equal(t, NewTransactionSourceLocal(), DecodeTransactionSource(buffer))
+	txSource, err := DecodeTransactionSource(buffer)
+	assert.NoError(t, err)
+	assert.Equal(t, NewTransactionSourceLocal(), txSource)
 }
 
 func Test_DecodeTransactionSource_External(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
 
-	assert.Equal(t, NewTransactionSourceExternal(), DecodeTransactionSource(buffer))
+	txSource, err := DecodeTransactionSource(buffer)
+	assert.NoError(t, err)
+	assert.Equal(t, NewTransactionSourceExternal(), txSource)
 }
 
 func Test_DecodeTransactionSource_Panics(t *testing.T) {
