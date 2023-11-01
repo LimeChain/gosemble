@@ -13,11 +13,7 @@ const (
 )
 
 var (
-	mockAuraModule      Module
-	mockSystemModule    Module
-	mockGrandpaModule   Module
-	mockTxPaymentModule Module
-	modules             []Module
+	modules []Module
 )
 
 type module struct {
@@ -36,11 +32,7 @@ func (m module) GetIndex() sc.U8 {
 }
 
 func setup() {
-	mockAuraModule = newTestModule(sc.U8(0))
-	mockSystemModule = newTestModule(sc.U8(1))
-	mockGrandpaModule = newTestModule(sc.U8(2))
-	mockTxPaymentModule = newTestModule(sc.U8(3))
-	modules = []Module{mockAuraModule, mockSystemModule, mockGrandpaModule, mockTxPaymentModule}
+	modules = []Module{newTestModule(sc.U8(0)), newTestModule(sc.U8(1)), newTestModule(sc.U8(2)), newTestModule(sc.U8(3))}
 }
 
 func Test_GetModule(t *testing.T) {
