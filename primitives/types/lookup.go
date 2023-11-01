@@ -6,17 +6,17 @@ type AccountIdLookup interface {
 	Lookup(a MultiAddress) (Address32, TransactionValidityError)
 }
 
-// AccountIdLookup A lookup implementation returning the `AccountId` from a `MultiAddress`.
-type accountIdLookup struct { // TODO: make it generic [AccountId, AccountIndex]
-	// TODO: PhantomData[(AccountId, AccountIndex)]
-}
+//// AccountIdLookup A lookup implementation returning the `AccountId` from a `MultiAddress`.
+//type accountIdLookup struct { // TODO: make it generic [AccountId, AccountIndex]
+//	// TODO: PhantomData[(AccountId, AccountIndex)]
+//}
 
-func DefaultAccountIdLookup() accountIdLookup {
-	return accountIdLookup{}
-}
+//func DefaultAccountIdLookup() accountIdLookup {
+//	return accountIdLookup{}
+//}
 
 // TODO: MultiAddress[AccountId, AccountIndex]
-func (l accountIdLookup) Lookup(a MultiAddress) (Address32, TransactionValidityError) {
+func Lookup(a MultiAddress) (Address32, TransactionValidityError) {
 	address := lookupAddress(a)
 	if address.HasValue {
 		return address.Value, nil
