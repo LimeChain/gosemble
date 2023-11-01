@@ -8,35 +8,35 @@ import (
 )
 
 var (
-	signerAccountId = NewMultiAddressId(
+	multiAddressId = NewMultiAddressId(
 		AccountId{
 			Address32: NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...),
 		},
 	)
-	signerAddress32 = NewMultiAddress32(
+	multiAddress32 = NewMultiAddress32(
 		Address32{
 			sc.BytesToFixedSequenceU8(signerAddressBytes),
 		},
 	)
-	signerAccountIndex  = NewMultiAddressIndex(accountIndex)
+	multiAddressIndex   = NewMultiAddressIndex(accountIndex)
 	expectedAccountId   = NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
 	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 )
 
 func Test_Lookup_AccountId(t *testing.T) {
-	result, err := Lookup(signerAccountId)
+	result, err := Lookup(multiAddressId)
 	assert.Nil(t, err)
 	assert.Equal(t, result, expectedAccountId)
 }
 
 func Test_Lookup_Address32(t *testing.T) {
-	result, err := Lookup(signerAddress32)
+	result, err := Lookup(multiAddress32)
 	assert.Nil(t, err)
 	assert.Equal(t, result, expectedAccountId)
 }
 
 func Test_Lookup_AccountIndex(t *testing.T) {
-	result, err := Lookup(signerAccountIndex)
+	result, err := Lookup(multiAddressIndex)
 	assert.Equal(t, err, NewTransactionValidityError(NewUnknownTransactionCannotLookup()))
 	assert.Equal(t, result, Address32{})
 }
