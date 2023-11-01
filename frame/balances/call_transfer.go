@@ -133,7 +133,7 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 		return types.NewDispatchErrorBadOrigin()
 	}
 
-	to, err := types.DefaultAccountIdLookup().Lookup(dest)
+	to, err := types.Lookup(dest)
 	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}

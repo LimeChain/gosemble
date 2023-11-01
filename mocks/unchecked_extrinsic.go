@@ -41,8 +41,8 @@ func (uxt *UncheckedExtrinsic) IsSigned() bool {
 	return args.Get(0).(bool)
 }
 
-func (uxt *UncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
-	args := uxt.Called(lookup)
+func (uxt *UncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
+	args := uxt.Called()
 
 	var arg0 primitives.CheckedExtrinsic
 	var arg1 primitives.TransactionValidityError

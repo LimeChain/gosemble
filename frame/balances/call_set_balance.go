@@ -132,7 +132,7 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		return types.NewDispatchErrorBadOrigin()
 	}
 
-	address, err := types.DefaultAccountIdLookup().Lookup(who)
+	address, err := types.Lookup(who)
 	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}

@@ -118,11 +118,11 @@ func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.Mu
 		return types.NewDispatchErrorBadOrigin()
 	}
 
-	sourceAddress, err := types.DefaultAccountIdLookup().Lookup(source)
+	sourceAddress, err := types.Lookup(source)
 	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}
-	destinationAddress, err := types.DefaultAccountIdLookup().Lookup(dest)
+	destinationAddress, err := types.Lookup(dest)
 	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}

@@ -122,7 +122,7 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
 
-	to, errLookup := types.DefaultAccountIdLookup().Lookup(dest)
+	to, errLookup := types.Lookup(dest)
 	if errLookup != nil {
 		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		// log.Debug(fmt.Sprintf("Failed to lookup [%s]", dest.Bytes()))
