@@ -94,11 +94,11 @@ func (uxt uncheckedExtrinsic) IsSigned() bool {
 	return bool(uxt.signature.HasValue)
 }
 
-func (uxt uncheckedExtrinsic) Check(lookup primitives.AccountIdLookup) (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
+func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
 	if uxt.signature.HasValue {
 		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
-		signerAddress, err := lookup.Lookup(signer)
+		signerAddress, err := primitives.Lookup(signer)
 		if err != nil {
 			return nil, err
 		}

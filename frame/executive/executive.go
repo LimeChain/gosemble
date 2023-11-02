@@ -101,7 +101,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	log.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
-	checked, err := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, err := uxt.Check()
 	if err != nil {
 		return primitives.DispatchOutcome{}, err
 	}
@@ -177,7 +177,7 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
 	log.Trace("check")
-	checked, errCheck := uxt.Check(primitives.DefaultAccountIdLookup())
+	checked, errCheck := uxt.Check()
 	if errCheck != nil {
 		return primitives.ValidTransaction{}, errCheck
 	}

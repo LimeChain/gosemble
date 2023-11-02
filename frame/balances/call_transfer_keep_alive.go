@@ -113,7 +113,7 @@ func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest ty
 	}
 	transactor := origin.AsSigned()
 
-	address, err := types.DefaultAccountIdLookup().Lookup(dest)
+	address, err := types.Lookup(dest)
 	if err != nil {
 		return types.NewDispatchErrorCannotLookup()
 	}

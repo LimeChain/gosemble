@@ -65,8 +65,6 @@ var (
 
 	unsignedValidator primitives.UnsignedValidator
 
-	defaultAccountIdLookup = primitives.DefaultAccountIdLookup()
-
 	txSource = primitives.NewTransactionSourceExternal()
 
 	defaultDigest = primitives.Digest{}
@@ -319,7 +317,7 @@ func Test_Executive_ApplyExtrinsic_UnknownTransactionCannotLookupError(t *testin
 	setup()
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(nil, unknownTransactionCannotLookupError)
+	mockUncheckedExtrinsic.On("Check").Return(nil, unknownTransactionCannotLookupError)
 
 	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
 
@@ -331,7 +329,7 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionExhaustsResourcesError(t *t
 	setup()
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
@@ -360,7 +358,7 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testin
 	}
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
@@ -381,7 +379,7 @@ func Test_Executive_ApplyExtrinsic_Success(t *testing.T) {
 	setup()
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
@@ -440,14 +438,14 @@ func Test_Executive_ValidateTransaction_UnknownTransactionCannotLookupError(t *t
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(nil, unknownTransactionCannotLookupError)
+	mockUncheckedExtrinsic.On("Check").Return(nil, unknownTransactionCannotLookupError)
 
 	outcome, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
 
 	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
 	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check", defaultAccountIdLookup)
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 	mockCheckedExtrinsic.AssertNotCalled(t, "Validate", unsignedValidator, txSource, &dispatchInfo, encodedExtrinsicLen)
 	assert.Equal(t, defaultValidTransaction, outcome)
 	assert.Equal(t, unknownTransactionCannotLookupError, err)
@@ -465,7 +463,7 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, nil)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -477,7 +475,7 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
 	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check", defaultAccountIdLookup)
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 	mockCheckedExtrinsic.AssertCalled(t, "Function")
 	mockCall.AssertCalled(t, "BaseWeight")
 	mockCall.AssertCalled(t, "WeighData", baseWeight)
@@ -494,7 +492,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check", defaultAccountIdLookup).Return(mockCheckedExtrinsic, transactionValidityError)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, transactionValidityError)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -508,7 +506,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
 	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check", defaultAccountIdLookup)
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 	mockCheckedExtrinsic.AssertCalled(t, "Function")
 	mockCall.AssertCalled(t, "BaseWeight")
 	mockCall.AssertCalled(t, "WeighData", baseWeight)
