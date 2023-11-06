@@ -45,7 +45,10 @@ func (m Module) Name() string {
 }
 
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	hash, err := hashing.MustBlake2b8([]byte(ApiModuleName))
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
@@ -68,9 +71,15 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	ok, errApplyExtr := m.executive.ApplyExtrinsic(uxt)
 	var applyExtrinsicResult primitives.ApplyExtrinsicResult
 	if errApplyExtr != nil {
-		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(errApplyExtr)
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(errApplyExtr)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	} else {
-		applyExtrinsicResult = primitives.NewApplyExtrinsicResult(ok)
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(ok)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	}
 
 	buffer.Reset()

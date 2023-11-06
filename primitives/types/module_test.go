@@ -55,7 +55,9 @@ func Test_GetModule_FailWhenNonExistent(t *testing.T) {
 func Test_MustGetModule(t *testing.T) {
 	setup()
 	for i := 0; i < numModules; i++ {
-		m := MustGetModule(sc.U8(i), modules)
+		m, err := MustGetModule(sc.U8(i), modules)
+
+		assert.NoError(t, err)
 		assert.Equal(t, m.GetIndex(), sc.U8(i))
 		assert.Equal(t, m, modules[i])
 	}

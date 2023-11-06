@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -37,8 +36,6 @@ func DecodePays(buffer *bytes.Buffer) (Pays, error) {
 	case PaysNo:
 		return NewPaysNo(), nil
 	default:
-		log.Critical("invalid Pays type")
+		return nil, NewTypeError("Pays")
 	}
-
-	panic("unreachable")
 }

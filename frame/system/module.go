@@ -115,7 +115,9 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 }
 
 func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// TODO https://github.com/LimeChain/gosemble/issues/271
+	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
 }
 
 func (m module) BlockHashCount() sc.U64 {
@@ -224,7 +226,10 @@ func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class pri
 	if err != nil {
 		return err
 	}
-	currentWeight.Accrue(weight, class)
+	err = currentWeight.Accrue(weight, class)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	m.storage.BlockWeight.Put(currentWeight)
 	return nil
 }
@@ -252,7 +257,12 @@ func (m module) NoteExtrinsic(encodedExt []byte) error {
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
 func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
-	baseWeight := m.BlockWeights().Get(info.Class).BaseExtrinsic
+	dispatchClass, err := m.BlockWeights().Get(info.Class)
+	if err != nil {
+		return err
+	}
+
+	baseWeight := dispatchClass.BaseExtrinsic
 	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 

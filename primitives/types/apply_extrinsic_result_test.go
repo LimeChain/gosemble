@@ -7,6 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	invalidTransactionCall, _ = NewTransactionValidityError(NewInvalidTransactionCall())
+
+	dispatchOutcome, _             = NewDispatchOutcome(nil)
+	dispatchOutcomeBadOriginErr, _ = NewDispatchOutcome(NewDispatchErrorBadOrigin())
+
+	applyExtrinsicResultOutcome, _      = NewApplyExtrinsicResult(dispatchOutcome)
+	applyExtrinsicResultBadOriginErr, _ = NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
+	applyExtrinsicResultInvalidCall, _  = NewApplyExtrinsicResult(invalidTransactionCall)
+)
+
 func Test_EncodeApplyExtrinsicResult(t *testing.T) {
 	var testExamples = []struct {
 		label       string
@@ -15,17 +26,17 @@ func Test_EncodeApplyExtrinsicResult(t *testing.T) {
 	}{
 		{
 			label:       "Encode ApplyExtrinsicResult(NewDispatchOutcome(None))",
-			input:       NewApplyExtrinsicResult(NewDispatchOutcome(nil)),
+			input:       applyExtrinsicResultOutcome,
 			expectation: []byte{0x00, 0x00},
 		},
 		{
 			label:       "Encode ApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin))",
-			input:       NewApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin())),
+			input:       applyExtrinsicResultBadOriginErr,
 			expectation: []byte{0x00, 0x01, 0x02},
 		},
 		{
 			label:       "Encode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall))",
-			input:       NewApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall())),
+			input:       applyExtrinsicResultInvalidCall,
 			expectation: []byte{0x01, 0x00, 0x00},
 		},
 	}
@@ -49,17 +60,17 @@ func Test_DecodeApplyExtrinsicResult(t *testing.T) {
 	}{
 		{
 			label:       "Decode ApplyExtrinsicResult(NewDispatchOutcome(None))",
-			expectation: NewApplyExtrinsicResult(NewDispatchOutcome(nil)),
+			expectation: applyExtrinsicResultOutcome,
 			input:       []byte{0x00, 0x00},
 		},
 		{
 			label:       "Decode ApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin))",
-			expectation: NewApplyExtrinsicResult(NewDispatchOutcome(NewDispatchErrorBadOrigin())),
+			expectation: applyExtrinsicResultBadOriginErr,
 			input:       []byte{0x00, 0x01, 0x02},
 		},
 		{
 			label:       "Decode ApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall)",
-			expectation: NewApplyExtrinsicResult(NewTransactionValidityError(NewInvalidTransactionCall())),
+			expectation: applyExtrinsicResultInvalidCall,
 			input:       []byte{0x01, 0x00, 0x00},
 		},
 	}

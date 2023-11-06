@@ -17,21 +17,21 @@ const (
 )
 
 var (
-	unknownTransactionCannotLookupError = types.NewTransactionValidityError(
+	unknownTransactionCannotLookupError, _ = types.NewTransactionValidityError(
 		types.NewUnknownTransactionCannotLookup(),
 	)
-	invalidTransactionAncientBirthBlockError = types.NewTransactionValidityError(
+	invalidTransactionAncientBirthBlockError, _ = types.NewTransactionValidityError(
 		types.NewInvalidTransactionAncientBirthBlock(),
 	)
-	invalidTransactionBadProofError = types.NewTransactionValidityError(
+	invalidTransactionBadProofError, _ = types.NewTransactionValidityError(
 		types.NewInvalidTransactionBadProof(),
 	)
 
 	signerAddressBytes = []byte{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
-	signerAddress = types.NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
-	signer        = types.NewMultiAddressId(types.AccountId{Address32: signerAddress})
+	signerAddress, _ = types.NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
+	signer           = types.NewMultiAddressId(types.AccountId{Address32: signerAddress})
 
 	signatureBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

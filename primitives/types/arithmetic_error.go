@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -41,8 +40,6 @@ func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
 	case ArithmeticErrorDivisionByZero:
 		return NewArithmeticErrorDivisionByZero(), nil
 	default:
-		log.Critical("invalid ArithmeticError type")
+		return nil, NewTypeError("ArithmeticError")
 	}
-
-	panic("unreachable")
 }

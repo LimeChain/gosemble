@@ -36,11 +36,13 @@ func Test_DecodeTransactionalError_NoLayer(t *testing.T) {
 	assert.Equal(t, NewTransactionalErrorNoLayer(), result)
 }
 
-func Test_DecodeTransactionalError_Panics(t *testing.T) {
+func Test_DecodeTransactionalError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
 
-	assert.PanicsWithValue(t, "invalid TransactionalError type", func() {
-		DecodeTransactionalError(buffer)
-	})
+	res, err := DecodeTransactionalError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionalError' type", err.Error())
+	assert.Nil(t, res)
 }

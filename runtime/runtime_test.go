@@ -12,6 +12,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/balances"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -60,6 +61,56 @@ var (
 			14, 65, 42, 225, 201, 143, 136, 213, 59, 228, 216, 80, 47, 172, 87, 31, 63, 25, 201, 202, 175, 40, 26,
 			103, 51, 25, 36, 30, 12, 80, 149, 166, 131, 173, 52, 49, 98, 4, 8, 138, 54, 164, 189, 134},
 	}
+)
+
+var (
+	invalidTransactionStaleErr, _             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFutureErr, _            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionBadProofErr, _          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+	invalidTransactionExhaustsResourcesErr, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	unknownTransactionNoUnsignedValidator, _  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	invalidTransactionMandatoryValidation, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+)
+
+var (
+	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr)
+	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr)
+	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr)
+	transactionValidityResultNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityResult(unknownTransactionNoUnsignedValidator)
+	transactionValidityResultMandatoryValidationErr, _ = primitives.NewTransactionValidityResult(invalidTransactionMandatoryValidation)
+
+	dispatchOutcome, _             = primitives.NewDispatchOutcome(nil)
+	dispatchOutcomeBadOriginErr, _ = primitives.NewDispatchOutcome(primitives.NewDispatchErrorBadOrigin())
+
+	dispatchOutcomeCustomModuleErr, _ = primitives.NewDispatchOutcome(
+		primitives.NewDispatchErrorModule(
+			primitives.CustomModuleError{
+				Index: BalancesIndex,
+				Error: sc.U32(balances.ErrorInsufficientBalance),
+			}))
+
+	dispatchOutcomeExistentialDepositErr, _ = primitives.NewDispatchOutcome(
+		primitives.NewDispatchErrorModule(
+			primitives.CustomModuleError{
+				Index: BalancesIndex,
+				Error: sc.U32(balances.ErrorExistentialDeposit),
+			}))
+
+	dispatchOutcomeKeepAliveErr, _ = primitives.NewDispatchOutcome(
+		primitives.NewDispatchErrorModule(
+			primitives.CustomModuleError{
+				Index: BalancesIndex,
+				Error: sc.U32(balances.ErrorKeepAlive),
+			}))
+
+	applyExtrinsicResultOutcome, _              = primitives.NewApplyExtrinsicResult(dispatchOutcome)
+	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr)
+	applyExtrinsicResultBadOriginErr, _         = primitives.NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
+	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr)
+
+	applyExtrinsicResultCustomModuleErr, _       = primitives.NewApplyExtrinsicResult(dispatchOutcomeCustomModuleErr)
+	applyExtrinsicResultExistentialDepositErr, _ = primitives.NewApplyExtrinsicResult(dispatchOutcomeExistentialDepositErr)
+	applyExtrinsicResultKeepAliveErr, _          = primitives.NewApplyExtrinsicResult(dispatchOutcomeKeepAliveErr)
 )
 
 func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {

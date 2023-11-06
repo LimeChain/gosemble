@@ -21,19 +21,17 @@ type DispatchOutcome sc.VaryingData //  = sc.Result[sc.Empty, DispatchError]
 
 var errDispatchOutcomeInvalid = "invalid DispatchOutcome type"
 
-func NewDispatchOutcome(value sc.Encodable) DispatchOutcome {
+func NewDispatchOutcome(value sc.Encodable) (DispatchOutcome, error) {
 	// None 			   = 0 - Extrinsic is valid and was submitted successfully.
 	// DispatchError = 1 - Possible errors while dispatching the extrinsic.
 	switch value.(type) {
 	case DispatchError:
-		return DispatchOutcome(sc.NewVaryingData(value))
+		return DispatchOutcome(sc.NewVaryingData(value)), nil
 	case sc.Empty, nil:
-		return DispatchOutcome(sc.NewVaryingData(sc.Empty{}))
+		return DispatchOutcome(sc.NewVaryingData(sc.Empty{})), nil
 	default:
-		log.Critical(errDispatchOutcomeInvalid)
+		return DispatchOutcome{}, NewTypeError("DispatchOutcome")
 	}
-
-	panic("unreachable")
 }
 
 func (o DispatchOutcome) Encode(buffer *bytes.Buffer) {
@@ -58,18 +56,16 @@ func DecodeDispatchOutcome(buffer *bytes.Buffer) (DispatchOutcome, error) {
 
 	switch b {
 	case 0:
-		return NewDispatchOutcome(sc.Empty{}), nil
+		return NewDispatchOutcome(sc.Empty{})
 	case 1:
 		value, err := DecodeDispatchError(buffer)
 		if err != nil {
 			return DispatchOutcome{}, err
 		}
-		return NewDispatchOutcome(value), nil
+		return NewDispatchOutcome(value)
 	default:
-		log.Critical(errDispatchOutcomeInvalid)
+		return DispatchOutcome{}, NewTypeError("DispatchOutcome")
 	}
-
-	panic("unreachable")
 }
 
 func (o DispatchOutcome) Bytes() []byte {

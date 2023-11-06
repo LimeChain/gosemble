@@ -55,11 +55,13 @@ func Test_DecodeUnknownTransaction_CustomUnknownTransaction(t *testing.T) {
 	assert.Equal(t, NewUnknownTransactionCustomUnknownTransaction(unknownTxId), result)
 }
 
-func Test_DecodeUnknownTransaction_Panics(t *testing.T) {
+func Test_DecodeUnknownTransaction_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
 
-	assert.PanicsWithValue(t, "invalid UnknownTransaction type", func() {
-		DecodeUnknownTransaction(buffer)
-	})
+	res, err := DecodeUnknownTransaction(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'UnknownTransaction' type", err.Error())
+	assert.Equal(t, UnknownTransaction{}, res)
 }

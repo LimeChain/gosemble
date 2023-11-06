@@ -127,17 +127,26 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if res.HasError && dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
-		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
+	if res.HasError && isMandatoryDispatch(dispatchInfo) {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		invalidTransactionBadMandatory, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
+		return primitives.DispatchOutcome{}, invalidTransactionBadMandatory
 	}
 
-	m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
+	noteErr := m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
+	if noteErr != nil {
+		log.Critical(noteErr.Error())
+	}
 
 	if res.HasError {
-		return primitives.NewDispatchOutcome(res.Err.Error), nil
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		dispatchOutcome, _ := primitives.NewDispatchOutcome(res.Err.Error)
+		return dispatchOutcome, nil
 	}
 
-	return primitives.NewDispatchOutcome(nil), nil
+	// TODO https://github.com/LimeChain/gosemble/issues/271
+	dispatchOutcome, _ := primitives.NewDispatchOutcome(nil)
+	return dispatchOutcome, nil
 }
 
 func (m module) FinalizeBlock() (primitives.Header, error) {
@@ -168,7 +177,9 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	log.Trace("validate_transaction")
 	currentBlockNumber, err := m.system.StorageBlockNumber()
 	if err != nil {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return primitives.ValidTransaction{}, transactionValidityError
 	}
 
 	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
@@ -185,8 +196,10 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 
-	if dispatchInfo.Class.Is(primitives.DispatchClassMandatory) {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+	if isMandatoryDispatch(dispatchInfo) {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		invalidTransactionMandatoryValidation, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+		return primitives.ValidTransaction{}, invalidTransactionMandatoryValidation
 	}
 
 	log.Trace("validate")
@@ -198,7 +211,10 @@ func (m module) OffchainWorker(header primitives.Header) {
 	m.system.Initialize(header.Number, header.ParentHash, header.Digest)
 
 	hash := m.hashing.Blake256(header.Bytes())
-	blockHash := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
+	blockHash, err := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	m.system.StorageBlockHashSet(header.Number, blockHash)
 
@@ -212,7 +228,12 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
 	}
 
 	maxWeight := m.system.BlockWeights().MaxBlock
-	remainingWeight := maxWeight.SaturatingSub(weight.Total())
+
+	total, totalErr := weight.Total()
+	if totalErr != nil {
+		log.Critical(totalErr.Error())
+	}
+	remainingWeight := maxWeight.SaturatingSub(total)
 
 	if remainingWeight.AllGt(primitives.WeightZero()) {
 		usedWeight := m.runtimeExtrinsic.OnIdle(blockNumber, remainingWeight)
@@ -332,4 +353,12 @@ func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
 	}
 
 	return result
+}
+
+func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) sc.Bool {
+	isMandatory, err := dispatchInfo.Class.Is(primitives.DispatchClassMandatory)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	return isMandatory
 }

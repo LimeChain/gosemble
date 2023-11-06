@@ -21,9 +21,7 @@ var (
 		Propagate: true,
 	}
 
-	expectedTransactionValidityError = NewTransactionValidityError(
-		NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)),
-	)
+	expectedTransactionValidityError, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 
 	testExtraCheckMetadataType = MetadataType{
 		Id:         sc.ToCompact(123456),

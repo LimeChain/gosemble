@@ -8,10 +8,7 @@ import (
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
-	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/frame/balances"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -72,10 +69,7 @@ func Test_Balances_Transfer_Success(t *testing.T) {
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultOutcome.Bytes(), res)
 
 	bobHash, _ := common.Blake2b128(bob.AsID[:])
 	keyStorageAccountBob := append(keySystemHash, keyAccountHash...)
@@ -176,16 +170,7 @@ func Test_Balances_Transfer_Invalid_InsufficientBalance(t *testing.T) {
 	assert.NoError(t, err)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
-	expectedResult :=
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewDispatchOutcome(
-				primitives.NewDispatchErrorModule(
-					primitives.CustomModuleError{
-						Index: BalancesIndex,
-						Error: sc.U32(balances.ErrorInsufficientBalance),
-					})))
-
-	assert.Equal(t, expectedResult.Bytes(), res)
+	assert.Equal(t, applyExtrinsicResultCustomModuleErr.Bytes(), res)
 }
 
 func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
@@ -239,14 +224,5 @@ func Test_Balances_Transfer_Invalid_ExistentialDeposit(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 
-	expectedResult :=
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewDispatchOutcome(
-				primitives.NewDispatchErrorModule(
-					primitives.CustomModuleError{
-						Index: BalancesIndex,
-						Error: sc.U32(balances.ErrorExistentialDeposit),
-					})))
-
-	assert.Equal(t, expectedResult.Bytes(), res)
+	assert.Equal(t, applyExtrinsicResultExistentialDepositErr.Bytes(), res)
 }

@@ -88,10 +88,10 @@ func Test_InherentError_Error_ErrorApplication(t *testing.T) {
 	)
 }
 
-func Test_InherentError_Error_Panics(t *testing.T) {
-	err := InherentError{sc.NewVaryingData(sc.U8(4))}
+func Test_InherentError_Error_TypeError(t *testing.T) {
+	inherentError := InherentError{sc.NewVaryingData(sc.U8(4))}
 
-	assert.PanicsWithValue(t, "invalid inherent error", func() {
-		_ = err.Error()
-	})
+	err := inherentError.Error()
+
+	assert.Equal(t, "not a valid 'InherentError' type", err)
 }

@@ -8,9 +8,6 @@ import (
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
-	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/frame/balances"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -69,10 +66,7 @@ func Test_Balances_TransferAll_Success_AllowDeath(t *testing.T) {
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultOutcome.Bytes(), res)
 
 	bobHash, _ := common.Blake2b128(bob.AsID[:])
 	keyStorageAccountBob := append(keySystemHash, keyAccountHash...)
@@ -172,19 +166,7 @@ func Test_Balances_TransferAll_Success_KeepAlive(t *testing.T) {
 	assert.NoError(t, err)
 
 	// TODO: remove once tx payments are implemented
-	expectedResult :=
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewDispatchOutcome(
-				primitives.NewDispatchErrorModule(
-					primitives.CustomModuleError{
-						Index: BalancesIndex,
-						Error: sc.U32(balances.ErrorKeepAlive),
-					})))
-
-	assert.Equal(t,
-		expectedResult.Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultKeepAliveErr.Bytes(), res)
 
 	// TODO: Uncomment once tx payments are implemented, this will be successfully executed,
 	// for now it fails due to nothing reserved in account executor

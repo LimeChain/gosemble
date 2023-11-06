@@ -38,7 +38,10 @@ func (m Module) Name() string {
 }
 
 func (m Module) Item() primitives.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	hash, err := hashing.MustBlake2b8([]byte(ApiModuleName))
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	return primitives.NewApiItem(hash, apiVersion)
 }
 

@@ -14,6 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	invalidTransactionAncientBirthBlock, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+)
+
 func Test_CheckMortality_Encode(t *testing.T) {
 	era := primitives.NewImmortalEra()
 	buffer := &bytes.Buffer{}
@@ -92,7 +96,7 @@ func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
 
 	result, err := target.AdditionalSigned()
 
-	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock()), err)
+	assert.Equal(t, invalidTransactionAncientBirthBlock, err)
 	assert.Nil(t, result)
 
 	mockModule.AssertCalled(t, "StorageBlockNumber")

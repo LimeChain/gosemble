@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -138,7 +139,10 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	transactor := origin.AsSigned()
+	transactor, originErr := origin.AsSigned()
+	if err != nil {
+		log.Critical(originErr.Error())
+	}
 
 	return t.trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -61,22 +60,18 @@ func DecodeDispatchClass(buffer *bytes.Buffer) (DispatchClass, error) {
 	case DispatchClassMandatory:
 		return NewDispatchClassMandatory(), nil
 	default:
-		log.Critical("invalid DispatchClass type")
+		return DispatchClass{}, NewTypeError("DispatchClass")
 	}
-
-	panic("unreachable")
 }
 
-func (dc DispatchClass) Is(value sc.U8) sc.Bool {
+func (dc DispatchClass) Is(value sc.U8) (sc.Bool, error) {
 	// TODO: type safety
 	switch value {
 	case DispatchClassNormal, DispatchClassOperational, DispatchClassMandatory:
-		return dc.VaryingData[0] == value
+		return (dc.VaryingData[0] == value), nil
 	default:
-		log.Critical("invalid DispatchClass value")
+		return false, NewTypeError("DispatchClass")
 	}
-
-	panic("unreachable")
 }
 
 // Returns an array containing all dispatch classes.

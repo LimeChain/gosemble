@@ -64,7 +64,7 @@ func Test_ApplyExtrinsic_Timestamp(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
+		applyExtrinsicResultOutcome.Bytes(),
 		applyResult,
 	)
 
@@ -139,11 +139,7 @@ func Test_ApplyExtrinsic_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedExtrinsicDataStorage, storageUxt)
-
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultOutcome.Bytes(), res)
 }
 
 func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
@@ -163,14 +159,7 @@ func Test_ApplyExtrinsic_Unsigned_DispatchOutcome(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 
-	assert.Equal(
-		t,
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewDispatchOutcome(
-				primitives.NewDispatchErrorBadOrigin())).
-			Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultBadOriginErr.Bytes(), res)
 }
 
 func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
@@ -222,12 +211,7 @@ func Test_ApplyExtrinsic_DispatchError_BadProofError(t *testing.T) {
 	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
 
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof()),
-		).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultBadProofErr.Bytes(), res)
 }
 
 func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
@@ -279,13 +263,7 @@ func Test_ApplyExtrinsic_ExhaustsResourcesError(t *testing.T) {
 	extrinsicIndexValue := (*storage).Get(append(keySystemHash, sc.NewOption[sc.U32](extrinsicIndex).Bytes()...))
 	assert.Equal(t, []byte(nil), extrinsicIndexValue)
 
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewInvalidTransactionExhaustsResources()),
-		).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultExhaustsResourcesErr.Bytes(), res)
 }
 
 func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
@@ -337,14 +315,8 @@ func Test_ApplyExtrinsic_FutureError_InvalidNonce(t *testing.T) {
 	buffer.Write(encTransactionValidityResult)
 	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
 	assert.Nil(t, err)
-	assert.Equal(t,
-		primitives.NewTransactionValidityResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewInvalidTransactionFuture(),
-			),
-		),
-		transactionValidityResult,
-	)
+
+	assert.Equal(t, transactionValidityResultFutureErr, transactionValidityResult)
 }
 
 func Test_ApplyExtrinsic_InvalidLengthPrefix(t *testing.T) {

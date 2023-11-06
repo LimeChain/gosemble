@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // AccountId It's an account ID (pubkey).
@@ -45,11 +45,11 @@ type Address32 struct {
 	sc.FixedSequence[sc.U8] // size 32
 }
 
-func NewAddress32(values ...sc.U8) Address32 {
+func NewAddress32(values ...sc.U8) (Address32, error) {
 	if len(values) != 32 {
-		log.Critical("Address32 should be of size 32")
+		return Address32{}, errors.New("Address32 should be of size 32")
 	}
-	return Address32{sc.NewFixedSequence(32, values...)}
+	return Address32{sc.NewFixedSequence(32, values...)}, nil
 }
 
 func DecodeAddress32(buffer *bytes.Buffer) (Address32, error) {
@@ -65,11 +65,11 @@ type Address20 struct {
 	sc.FixedSequence[sc.U8] // size 20
 }
 
-func NewAddress20(values ...sc.U8) Address20 {
+func NewAddress20(values ...sc.U8) (Address20, error) {
 	if len(values) != 20 {
-		log.Critical("Address20 should be of size 20")
+		return Address20{}, errors.New("Address20 should be of size 20")
 	}
-	return Address20{sc.NewFixedSequence(20, values...)}
+	return Address20{sc.NewFixedSequence(20, values...)}, nil
 }
 
 func DecodeAddress20(buffer *bytes.Buffer) (Address20, error) {
@@ -151,10 +151,8 @@ func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 		}
 		return NewMultiAddress20(addr20), nil
 	default:
-		log.Critical("invalid MultiAddress type in Decode")
+		return MultiAddress{}, NewTypeError("MultiAddress")
 	}
-
-	panic("unreachable")
 }
 
 func (a MultiAddress) IsAccountId() bool {
@@ -166,14 +164,12 @@ func (a MultiAddress) IsAccountId() bool {
 	}
 }
 
-func (a MultiAddress) AsAccountId() AccountId {
+func (a MultiAddress) AsAccountId() (AccountId, error) {
 	if a.IsAccountId() {
-		return a.VaryingData[1].(AccountId)
+		return a.VaryingData[1].(AccountId), nil
 	} else {
-		log.Critical("not an AccountId type")
+		return AccountId{}, NewTypeError("AccountId")
 	}
-
-	panic("unreachable")
 }
 
 func (a MultiAddress) IsAccountIndex() bool {
@@ -185,16 +181,13 @@ func (a MultiAddress) IsAccountIndex() bool {
 	}
 }
 
-func (a MultiAddress) AsAccountIndex() AccountIndex {
+func (a MultiAddress) AsAccountIndex() (AccountIndex, error) {
 	if a.IsAccountIndex() {
 		compact := a.VaryingData[1].(sc.Compact)
-
-		return sc.U32(compact.ToBigInt().Uint64())
+		return sc.U32(compact.ToBigInt().Uint64()), nil
 	} else {
-		log.Critical("not an AccountIndex type")
+		return 0, NewTypeError("AccountIndex")
 	}
-
-	panic("unreachable")
 }
 
 func (a MultiAddress) IsRaw() bool {
@@ -206,14 +199,12 @@ func (a MultiAddress) IsRaw() bool {
 	}
 }
 
-func (a MultiAddress) AsRaw() AccountRaw {
+func (a MultiAddress) AsRaw() (AccountRaw, error) {
 	if a.IsRaw() {
-		return a.VaryingData[1].(AccountRaw)
+		return a.VaryingData[1].(AccountRaw), nil
 	} else {
-		log.Critical("not an AccountRaw type")
+		return AccountRaw{}, NewTypeError("AccountRaw")
 	}
-
-	panic("unreachable")
 }
 
 func (a MultiAddress) IsAddress32() bool {
@@ -225,14 +216,12 @@ func (a MultiAddress) IsAddress32() bool {
 	}
 }
 
-func (a MultiAddress) AsAddress32() Address32 {
+func (a MultiAddress) AsAddress32() (Address32, error) {
 	if a.IsAddress32() {
-		return a.VaryingData[1].(Address32)
+		return a.VaryingData[1].(Address32), nil
 	} else {
-		log.Critical("not an Address32 type")
+		return Address32{}, NewTypeError("Address32")
 	}
-
-	panic("unreachable")
 }
 
 func (a MultiAddress) IsAddress20() bool {
@@ -244,12 +233,10 @@ func (a MultiAddress) IsAddress20() bool {
 	}
 }
 
-func (a MultiAddress) AsAddress20() Address20 {
+func (a MultiAddress) AsAddress20() (Address20, error) {
 	if a.IsAddress20() {
-		return a.VaryingData[1].(Address20)
+		return a.VaryingData[1].(Address20), nil
 	} else {
-		log.Critical("not an Address20 type")
+		return Address20{}, NewTypeError("Address20")
 	}
-
-	panic("unreachable")
 }

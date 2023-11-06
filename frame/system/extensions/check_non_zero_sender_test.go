@@ -12,6 +12,10 @@ import (
 )
 
 var (
+	invalidTransactionBadSigner, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
+)
+
+var (
 	targetAddress = constants.ZeroAddress
 )
 
@@ -64,11 +68,10 @@ func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 
 func Test_CheckNonZeroAddress_Validate_Fails(t *testing.T) {
 	target := setupCheckNonZeroSender()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 
 	result, err := target.Validate(constants.ZeroAddress, nil, nil, sc.Compact{})
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionBadSigner, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 }
 

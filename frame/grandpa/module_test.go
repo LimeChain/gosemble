@@ -15,6 +15,10 @@ import (
 const moduleId = sc.U8(3)
 
 var (
+	unknownTransactionNoUnsignedValidator, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+)
+
+var (
 	mockStorageAuthorities *mocks.StorageValue[primitives.VersionedAuthorityList]
 	target                 Module
 )
@@ -67,7 +71,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 
 	result, err := target.ValidateUnsigned(primitives.NewTransactionSourceLocal(), new(mocks.Call))
 
-	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, unknownTransactionNoUnsignedValidator, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 }
 

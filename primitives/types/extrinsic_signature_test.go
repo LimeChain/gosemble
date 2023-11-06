@@ -19,11 +19,8 @@ var (
 	signerAddressBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	}
-	signer = NewMultiAddressId(
-		AccountId{
-			Address32: NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...),
-		},
-	)
+	addr32, _ = NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
+	signer    = NewMultiAddressId(AccountId{Address32: addr32})
 
 	signatureBytes = []byte{
 		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -72,7 +69,7 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 	)
 
 	result, err := DecodeExtrinsicSignature(signedExtraTemplate, buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetExtrinsicSignature, result)
 }

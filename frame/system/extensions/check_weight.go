@@ -57,9 +57,14 @@ func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primiti
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight, err := cw.systemModule.StorageBlockWeight()
 		if err != nil {
-			return primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			return transactionValidityError
 		}
-		currentWeight.Reduce(unspent, info.Class)
+		err = currentWeight.Reduce(unspent, info.Class)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 		cw.systemModule.StorageBlockWeightSet(currentWeight)
 	}
 	return nil
@@ -115,25 +120,18 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 	lengthLimit := cw.systemModule.BlockLength()
 	currentLen, err := cw.systemModule.StorageAllExtrinsicsLen()
 	if err != nil {
-		return 0, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return 0, transactionValidityError
 	}
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
 	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
 
-	var maxLimit sc.U32
-	if info.Class.Is(primitives.DispatchClassNormal) {
-		maxLimit = lengthLimit.Max.Normal
-	} else if info.Class.Is(primitives.DispatchClassOperational) {
-		maxLimit = lengthLimit.Max.Operational
-	} else if info.Class.Is(primitives.DispatchClassMandatory) {
-		maxLimit = lengthLimit.Max.Mandatory
-	} else {
-		log.Critical(errInvalidDispatchClass)
-	}
-
-	if nextLen > maxLimit {
-		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	if nextLen > maxLimit(lengthLimit, info) {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+		return sc.U32(0), invalidTransactionExhaustsResources
 	}
 
 	return nextLen, nil
@@ -146,7 +144,9 @@ func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitive
 	maximumWeight := cw.systemModule.BlockWeights()
 	allWeight, err := cw.systemModule.StorageBlockWeight()
 	if err != nil {
-		return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return primitives.ConsumedWeight{}, transactionValidityError
 	}
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
 }
@@ -154,11 +154,18 @@ func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitive
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
 func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primitives.TransactionValidityError {
-	max := cw.systemModule.BlockWeights().Get(info.Class).MaxExtrinsic
+	dispatchClass, err := cw.systemModule.BlockWeights().Get(info.Class)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+
+	max := dispatchClass.MaxExtrinsic
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
-			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			return invalidTransactionExhaustsResources
 		}
 	}
 
@@ -166,36 +173,54 @@ func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primit
 }
 
 func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
-	limitPerClass := maximumWeight.Get(info.Class)
+	limitPerClass, err := maximumWeight.Get(info.Class)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+
 	extrinsicWeight := info.Weight.SaturatingAdd(limitPerClass.BaseExtrinsic)
 
 	// add the weight. If class is unlimited, use saturating add instead of checked one.
 	if !limitPerClass.MaxTotal.HasValue && !limitPerClass.Reserved.HasValue {
 		allConsumedWeight.Accrue(extrinsicWeight, info.Class)
 	} else {
-		_, e := allConsumedWeight.CheckedAccrue(extrinsicWeight, info.Class)
-		if e != nil {
-			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+		err := allConsumedWeight.CheckedAccrue(extrinsicWeight, info.Class)
+		if err != nil {
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
 		}
 	}
 
-	consumedPerClass := allConsumedWeight.Get(info.Class)
+	consumedPerClass, perClassErr := allConsumedWeight.Get(info.Class)
+	if perClassErr != nil {
+		log.Critical(perClassErr.Error())
+	}
 
 	// Check if we don't exceed per-class allowance
 	if limitPerClass.MaxTotal.HasValue {
 		max := limitPerClass.MaxTotal.Value
 		if consumedPerClass.AnyGt(max) {
-			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
 		}
 	}
 
 	// In cases total block weight is exceeded, we need to fall back
 	// to `reserved` pool if there is any.
-	if allConsumedWeight.Total().AnyGt(maximumWeight.MaxBlock) {
+	total, totalWeightErr := allConsumedWeight.Total()
+	if totalWeightErr != nil {
+		log.Critical(totalWeightErr.Error())
+	}
+
+	if total.AnyGt(maximumWeight.MaxBlock) {
 		if limitPerClass.Reserved.HasValue {
 			reserved := limitPerClass.Reserved.Value
 			if consumedPerClass.AnyGt(reserved) {
-				return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+				// TODO https://github.com/LimeChain/gosemble/issues/271
+				invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+				return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
 			}
 		}
 	}
@@ -211,4 +236,34 @@ func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSi
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
 		),
 		primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
+}
+
+func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
+	isNormal, err := info.Class.Is(primitives.DispatchClassNormal)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	if isNormal {
+		return lengthLimit.Max.Normal
+	}
+
+	isOperational, err := info.Class.Is(primitives.DispatchClassOperational)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	if isOperational {
+		return lengthLimit.Max.Operational
+	}
+
+	isMandatory, err := info.Class.Is(primitives.DispatchClassMandatory)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	if isMandatory {
+		return lengthLimit.Max.Mandatory
+	}
+
+	log.Critical(errInvalidDispatchClass)
+
+	panic("unreachable")
 }

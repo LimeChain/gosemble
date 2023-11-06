@@ -28,7 +28,9 @@ func (ct chargeTransaction) WithdrawFee(who primitives.Address32, call primitive
 
 	imbalance, err := ct.currencyAdapter.Withdraw(who, fee, sc.U8(withdrawReasons), primitives.ExistenceRequirementKeepAlive)
 	if err != nil {
-		return sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+		return sc.NewOption[primitives.Balance](nil), transactionValidityError
 	}
 
 	return sc.NewOption[primitives.Balance](imbalance), nil
@@ -41,11 +43,15 @@ func (ct chargeTransaction) CorrectAndDepositFee(who primitives.Address32, corre
 
 		refundPositiveImbalance, err := ct.currencyAdapter.DepositIntoExisting(who, refundAmount)
 		if err != nil {
-			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			return invalidTransactionPayment
 		}
 
 		if alreadyPaidNegativeImbalance.Lt(refundPositiveImbalance) {
-			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			return invalidTransactionPayment
 		}
 	}
 	return nil

@@ -3,29 +3,43 @@ package types
 import sc "github.com/LimeChain/goscale"
 
 func Lookup(a MultiAddress) (Address32, TransactionValidityError) {
-	address := lookupAddress(a)
+	// TODO https://github.com/LimeChain/gosemble/issues/271
+	address, _ := lookupAddress(a)
 	if address.HasValue {
 		return address.Value, nil
 	}
 
-	return Address32{}, NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	unknownTransactionCannotLookup, _ := NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	return Address32{}, unknownTransactionCannotLookup
 }
 
 // LookupAddress Lookup an address to get an Id, if there's one there.
-func lookupAddress(a MultiAddress) sc.Option[Address32] {
+func lookupAddress(a MultiAddress) (sc.Option[Address32], error) {
 	if a.IsAccountId() {
-		return sc.NewOption[Address32](a.AsAccountId().Address32)
+		accountId, err := a.AsAccountId()
+		if err != nil {
+			return sc.NewOption[Address32](nil), nil
+		}
+		return sc.NewOption[Address32](accountId.Address32), nil
 	}
 
 	if a.IsAddress32() {
-		return sc.NewOption[Address32](a.AsAddress32())
+		address32, err := a.AsAddress32()
+		if err != nil {
+			return sc.NewOption[Address32](nil), nil
+		}
+		return sc.NewOption[Address32](address32), nil
 	}
 
 	if a.IsAccountIndex() {
-		return lookupIndex(a.AsAccountIndex())
+		index, err := a.AsAccountIndex()
+		if err != nil {
+			return sc.NewOption[Address32](nil), nil
+		}
+		return lookupIndex(index), err
 	}
 
-	return sc.NewOption[Address32](nil)
+	return sc.NewOption[Address32](nil), nil
 }
 
 // LookupIndex Lookup an T::AccountIndex to get an Id, if there's one there.

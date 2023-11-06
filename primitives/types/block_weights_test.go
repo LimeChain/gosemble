@@ -79,17 +79,20 @@ func Test_BlockWeights_Get(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			result := targetBlockWeights.Get(testExample.input)
+			result, err := targetBlockWeights.Get(testExample.input)
 
+			assert.NoError(t, err)
 			assert.Equal(t, testExample.expectation, result.BaseExtrinsic)
 		})
 	}
 }
 
-func Test_BlockWeights_Get_Panics(t *testing.T) {
+func Test_BlockWeights_Get_TypeError(t *testing.T) {
 	unknownDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
 
-	assert.PanicsWithValue(t, "Invalid dispatch class", func() {
-		targetBlockWeights.Get(unknownDispatchClass)
-	})
+	res, err := targetBlockWeights.Get(unknownDispatchClass)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Nil(t, res)
 }

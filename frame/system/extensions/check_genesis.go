@@ -30,7 +30,9 @@ func (cg CheckGenesis) Bytes() []byte {
 func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	hash, err := cg.module.StorageBlockHash(0)
 	if err != nil {
-		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return nil, transactionValidityError
 	}
 
 	return sc.NewVaryingData(primitives.H256(hash)), nil

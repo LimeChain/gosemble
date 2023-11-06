@@ -15,15 +15,18 @@ var (
 )
 
 func Test_NewHash512(t *testing.T) {
-	result := NewH512(hash512Sequence...)
+	result, err := NewH512(hash512Sequence...)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedH512Hash, result)
 }
 
 func Test_NewHash512_InvalidLength(t *testing.T) {
-	assert.PanicsWithValue(t, "H512 should be of size 64", func() {
-		NewH512(hash512Sequence[1:63]...)
-	})
+	result, err := NewH512(hash512Sequence[1:63]...)
+
+	assert.Error(t, err)
+	assert.Equal(t, "H512 should be of size 64", err.Error())
+	assert.Equal(t, H512{}, result)
 }
 
 func Test_Hash512_Encode(t *testing.T) {
@@ -36,7 +39,7 @@ func Test_Hash512_Encode(t *testing.T) {
 func Test_Hash512_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(hash512Sequence))
 	result, err := DecodeH512(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, expectedH512Hash, result)
 }

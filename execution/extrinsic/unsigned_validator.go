@@ -2,6 +2,7 @@ package extrinsic
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -31,7 +32,11 @@ func (v UnsignedValidatorForChecked) PreDispatch(call primitives.Call) (sc.Empty
 func (v UnsignedValidatorForChecked) ValidateUnsigned(txSource primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	module, ok := v.runtimeExtrinsic.Module(call.ModuleIndex())
 	if !ok {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+		unknownTransactionNoUnsignedValidator, err := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+		if err != nil {
+			log.Critical(err.Error())
+		}
+		return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
 	}
 
 	return module.ValidateUnsigned(txSource, call)

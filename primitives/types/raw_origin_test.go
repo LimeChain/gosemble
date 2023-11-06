@@ -10,7 +10,7 @@ import (
 
 var (
 	bytesAddress, _ = hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
-	address         = NewAddress32(sc.BytesToSequenceU8(bytesAddress)...)
+	address, _      = NewAddress32(sc.BytesToSequenceU8(bytesAddress)...)
 
 	signedOrigin = NewRawOriginSigned(address)
 )
@@ -68,19 +68,24 @@ func Test_RawOrigin_IsNoneOrigin(t *testing.T) {
 }
 
 func Test_RawOrigin_AsSigned(t *testing.T) {
-	result := signedOrigin.AsSigned()
+	result, err := signedOrigin.AsSigned()
 
+	assert.NoError(t, err)
 	assert.Equal(t, address, result)
 }
 
-func Test_RawOrigin_AsSigned_Panics(t *testing.T) {
-	expectErr := "not a signed origin"
+func Test_RawOriginRoot_AsSigned_TypeError(t *testing.T) {
+	address, err := NewRawOriginRoot().AsSigned()
 
-	assert.PanicsWithValue(t, expectErr, func() {
-		NewRawOriginRoot().AsSigned()
-	})
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
+	assert.Equal(t, Address32{}, address)
+}
 
-	assert.PanicsWithValue(t, expectErr, func() {
-		NewRawOriginNone().AsSigned()
-	})
+func Test_RawOriginNone_AsSigned_TypeError(t *testing.T) {
+	address, err := NewRawOriginNone().AsSigned()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
+	assert.Equal(t, Address32{}, address)
 }

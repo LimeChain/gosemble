@@ -106,11 +106,13 @@ func Test_DecodeTokenError_Unsupported(t *testing.T) {
 	assert.Equal(t, NewTokenErrorUnsupported(), result)
 }
 
-func Test_DecodeTokenError_Panics(t *testing.T) {
+func Test_DecodeTokenError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(7)
 
-	assert.PanicsWithValue(t, "invalid TokenError type", func() {
-		DecodeTokenError(buffer)
-	})
+	res, err := DecodeTokenError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TokenError' type", err.Error())
+	assert.Nil(t, res)
 }

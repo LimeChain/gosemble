@@ -77,7 +77,9 @@ func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 }
 
 func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// TODO https://github.com/LimeChain/gosemble/issues/271
+	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
 }
 
 func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {

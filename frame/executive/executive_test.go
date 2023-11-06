@@ -72,7 +72,7 @@ var (
 	blockNumber = sc.U64(1)
 
 	blake256Hash = []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}
-	blockHash    = primitives.NewBlake2bHash(sc.BytesToSequenceU8(blake256Hash)...)
+	blockHash, _ = primitives.NewBlake2bHash(sc.BytesToSequenceU8(blake256Hash)...)
 
 	header = primitives.Header{
 		Number:     blockNumber,
@@ -91,19 +91,19 @@ var (
 var (
 	transactionValidityError primitives.TransactionValidityError
 
-	unknownTransactionCannotLookupError = primitives.NewTransactionValidityError(
+	unknownTransactionCannotLookupError, _ = primitives.NewTransactionValidityError(
 		primitives.NewUnknownTransactionCannotLookup(),
 	)
 
-	invalidTransactionExhaustsResourcesError = primitives.NewTransactionValidityError(
+	invalidTransactionExhaustsResourcesError, _ = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionExhaustsResources(),
 	)
 
-	invalidTransactionBadMandatory = primitives.NewTransactionValidityError(
+	invalidTransactionBadMandatory, _ = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionBadMandatory(),
 	)
 
-	invalidTransactionMandatoryValidation = primitives.NewTransactionValidityError(
+	invalidTransactionMandatoryValidation, _ = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionMandatoryValidation(),
 	)
 
@@ -228,7 +228,7 @@ func Test_Executive_ExecuteBlock_InvalidParentHash(t *testing.T) {
 	mockSystemModule.On("RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory)
 	mockSystemModule.On("NoteFinishedInitialize")
 
-	invalidParentHash := primitives.NewBlake2bHash(sc.BytesToSequenceU8([]byte("abcdefghijklmnopqrstuvwxyz123450"))...)
+	invalidParentHash, _ := primitives.NewBlake2bHash(sc.BytesToSequenceU8([]byte("abcdefghijklmnopqrstuvwxyz123450"))...)
 	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(invalidParentHash, nil)
 
 	assert.PanicsWithValue(t, "parent hash should be valid", func() {
@@ -395,7 +395,8 @@ func Test_Executive_ApplyExtrinsic_Success(t *testing.T) {
 
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
-	assert.Equal(t, primitives.NewDispatchOutcome(dispatchResultWithPostInfo.Err.Error), outcome)
+	dispatchOutcomeWithPostInfo, _ := primitives.NewDispatchOutcome(dispatchResultWithPostInfo.Err.Error)
+	assert.Equal(t, dispatchOutcomeWithPostInfo, outcome)
 	assert.Equal(t, transactionValidityError, err)
 }
 

@@ -2,20 +2,20 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type Blake2bHash struct {
 	sc.FixedSequence[sc.U8] // size 32
 }
 
-func NewBlake2bHash(values ...sc.U8) Blake2bHash {
+func NewBlake2bHash(values ...sc.U8) (Blake2bHash, error) {
 	if len(values) != 32 {
-		log.Critical("Blake2bHash should be of size 32")
+		return Blake2bHash{}, errors.New("Blake2bHash should be of size 32")
 	}
-	return Blake2bHash{sc.NewFixedSequence(32, values...)}
+	return Blake2bHash{sc.NewFixedSequence(32, values...)}, nil
 }
 
 func (h Blake2bHash) Encode(buffer *bytes.Buffer) {

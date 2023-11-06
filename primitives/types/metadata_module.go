@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -280,10 +279,8 @@ func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataMod
 	case MetadataModuleStorageEntryModifierDefault:
 		return MetadataModuleStorageEntryModifierDefault, nil
 	default:
-		log.Critical("invalid DecodeMetadataModuleStorageEntryModifier type")
+		return MetadataModuleStorageEntryModifier(0), NewTypeError("MetadataModuleStorageEntryModifier")
 	}
-
-	panic("unreachable")
 }
 
 const (
@@ -329,10 +326,8 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 		}
 		return NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs, key, value), nil
 	default:
-		log.Critical("invalid MetadataModuleStorageEntryDefinition type")
+		return MetadataModuleStorageEntryDefinition{}, NewTypeError("MetadataModuleStorageEntryDefinition")
 	}
-
-	panic("unreachable")
 }
 
 type MetadataModuleConstant struct {
@@ -420,10 +415,7 @@ func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleSt
 		return MetadataModuleStorageHashFuncMultiXX64, nil
 	case MetadataModuleStorageHashFuncIdentity:
 		return MetadataModuleStorageHashFuncIdentity, nil
-
 	default:
-		log.Critical("invalid MetadataModuleStorageHashFunc type")
+		return MetadataModuleStorageHashFunc(0), NewTypeError("MetadataModuleStorageHashFunc")
 	}
-
-	panic("unreachable")
 }

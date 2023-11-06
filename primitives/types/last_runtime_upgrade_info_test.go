@@ -32,7 +32,7 @@ func Test_DecodeLastRuntimeUpgradeInfo(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesLastRuntimeUpgradeInfo)
 
 	result, err := DecodeLastRuntimeUpgradeInfo(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, lrui, result)
 }

@@ -56,7 +56,7 @@ var (
 		},
 	}
 
-	invalidTransactionPaymentError = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
+	invalidTransactionPaymentError, _ = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
 )
 
 var (

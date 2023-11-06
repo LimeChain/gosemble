@@ -32,7 +32,10 @@ func (m Module) Name() string {
 }
 
 func (m Module) Item() types.ApiItem {
-	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
+	hash, err := hashing.MustBlake2b8([]byte(ApiModuleName))
+	if err != nil {
+		log.Critical(err.Error())
+	}
 	return types.NewApiItem(hash, apiVersion)
 }
 

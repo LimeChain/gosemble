@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // A struct holding value for each `DispatchClass`.
@@ -48,17 +47,15 @@ func (pdc PerDispatchClass[T]) Bytes() []byte {
 }
 
 // Get current value for given class.
-func (pdc *PerDispatchClass[T]) Get(class DispatchClass) *T {
+func (pdc *PerDispatchClass[T]) Get(class DispatchClass) (*T, error) {
 	switch class.VaryingData[0] {
 	case DispatchClassNormal:
-		return &pdc.Normal
+		return &pdc.Normal, nil
 	case DispatchClassOperational:
-		return &pdc.Operational
+		return &pdc.Operational, nil
 	case DispatchClassMandatory:
-		return &pdc.Mandatory
+		return &pdc.Mandatory, nil
 	default:
-		log.Critical("invalid DispatchClass type")
+		return nil, NewTypeError("DispatchClass")
 	}
-
-	panic("unreachable")
 }

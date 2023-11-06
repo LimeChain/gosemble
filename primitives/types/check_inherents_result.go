@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -12,10 +11,6 @@ const (
 	InherentErrorDecodingFailed
 	InherentErrorFatalErrorReported
 	InherentErrorApplication
-)
-
-const (
-	errDecodeInherentData = "failed to decode InherentData"
 )
 
 type CheckInherentsResult struct {
@@ -73,7 +68,6 @@ func DecodeCheckInherentsResult(buffer *bytes.Buffer) (CheckInherentsResult, err
 	}
 	errors, err := DecodeInherentData(buffer)
 	if err != nil {
-		log.Critical(errDecodeInherentData)
 		return CheckInherentsResult{}, err
 	}
 

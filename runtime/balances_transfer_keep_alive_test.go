@@ -9,7 +9,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	"github.com/LimeChain/gosemble/constants"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -71,10 +70,7 @@ func Test_Balances_TransferKeepAlive_Success(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 
-	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
-		res,
-	)
+	assert.Equal(t, applyExtrinsicResultOutcome.Bytes(), res)
 
 	bobHash, _ := common.Blake2b128(bob.AsID[:])
 	keyStorageAccountBob := append(keySystemHash, keyAccountHash...)

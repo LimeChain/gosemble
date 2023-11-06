@@ -93,7 +93,7 @@ func Test_CheckInherentsResult_PutError_AlreadyWithError(t *testing.T) {
 func Test_CheckInherentsResult_PutError(t *testing.T) {
 	err := targetCheckInherentsResultOk.PutError(inherentIdentifier, fatalError)
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, sc.Bool(false), targetCheckInherentsResultOk.Okay)
 	assert.Equal(t, sc.Bool(true), targetCheckInherentsResultOk.FatalError)
 	assert.Equal(t, inherentDataErr, targetCheckInherentsResultOk.Errors)
@@ -114,11 +114,12 @@ func Test_DecodeCheckInherentsResult(t *testing.T) {
 	assert.Equal(t, targetCheckInherentsResultErr, result)
 }
 
-func Test_DecodeCheckInherentsResult_Panics(t *testing.T) {
+func Test_DecodeCheckInherentsResult_DecodeError(t *testing.T) {
 	buffer := bytes.NewBuffer(invalidCheckInherentsResultBytes)
 
-	assert.PanicsWithValue(t, "failed to decode InherentData", func() {
-		DecodeCheckInherentsResult(buffer)
-	})
+	result, err := DecodeCheckInherentsResult(buffer)
 
+	assert.Error(t, err)
+	assert.Equal(t, "EOF", err.Error())
+	assert.Equal(t, CheckInherentsResult{}, result)
 }

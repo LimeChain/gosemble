@@ -1,10 +1,10 @@
 package types
 
 import (
+	"errors"
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type Module interface {
@@ -27,14 +27,12 @@ func GetModule(moduleIndex sc.U8, modules []Module) (Module, bool) {
 	return nil, false
 }
 
-func MustGetModule(moduleIndex sc.U8, modules []Module) Module {
+func MustGetModule(moduleIndex sc.U8, modules []Module) (Module, error) {
 	for _, module := range modules {
 		if module.GetIndex() == moduleIndex {
-			return module
+			return module, nil
 		}
 	}
 
-	log.Critical("module [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
-
-	panic("unreachable")
+	return nil, errors.New("module [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
 }

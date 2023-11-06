@@ -191,14 +191,7 @@ func Test_ValidateTransaction_StaleError_InvalidNonce(t *testing.T) {
 	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
 	assert.Nil(t, err)
 
-	assert.Equal(t,
-		primitives.NewTransactionValidityResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewInvalidTransactionStale(),
-			),
-		),
-		transactionValidityResult,
-	)
+	assert.Equal(t, transactionValidityResultStaleErr, transactionValidityResult)
 }
 
 func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
@@ -260,14 +253,7 @@ func Test_ValidateTransaction_ExhaustsResourcesError(t *testing.T) {
 	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
 	assert.Nil(t, err)
 
-	assert.Equal(t,
-		primitives.NewTransactionValidityResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewInvalidTransactionExhaustsResources(),
-			),
-		),
-		transactionValidityResult,
-	)
+	assert.Equal(t, transactionValidityResultExhaustsResourcesErr, transactionValidityResult)
 }
 
 func Test_ValidateTransaction_Era(t *testing.T) {
@@ -345,7 +331,10 @@ func Test_ValidateTransaction_Era(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
-	assert.Equal(t, sc.U64(15), transactionValidityResult.AsValidTransaction().Longevity)
+
+	validTransaction, err := transactionValidityResult.AsValidTransaction()
+	assert.NoError(t, err)
+	assert.Equal(t, sc.U64(15), validTransaction.Longevity)
 }
 
 func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
@@ -412,14 +401,7 @@ func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
 			res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
 
 			assert.NoError(t, err)
-			assert.Equal(t,
-				primitives.NewTransactionValidityResult(
-					primitives.NewTransactionValidityError(
-						primitives.NewUnknownTransactionNoUnsignedValidator(),
-					),
-				).Bytes(),
-				res,
-			)
+			assert.Equal(t, transactionValidityResultNoUnsignedValidatorErr.Bytes(), res)
 		})
 	}
 }
@@ -453,13 +435,5 @@ func Test_ValidateTransaction_MandatoryValidation_Timestamp(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		primitives.NewTransactionValidityResult(
-			primitives.NewTransactionValidityError(
-				primitives.NewInvalidTransactionMandatoryValidation(),
-			),
-		).Bytes(),
-		res,
-	)
+	assert.Equal(t, transactionValidityResultMandatoryValidationErr.Bytes(), res)
 }

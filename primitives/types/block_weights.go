@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type BlockWeights struct {
@@ -27,16 +26,30 @@ func (bw BlockWeights) Bytes() []byte {
 }
 
 // Get per-class weight settings.
-func (bw BlockWeights) Get(class DispatchClass) *WeightsPerClass {
-	if class.Is(DispatchClassNormal) {
-		return &bw.PerClass.Normal
-	} else if class.Is(DispatchClassOperational) {
-		return &bw.PerClass.Operational
-	} else if class.Is(DispatchClassMandatory) {
-		return &bw.PerClass.Mandatory
-	} else {
-		log.Critical("Invalid dispatch class")
+func (bw BlockWeights) Get(class DispatchClass) (*WeightsPerClass, error) {
+	isNormalDispatch, err := class.Is(DispatchClassNormal)
+	if err != nil {
+		return nil, err
+	}
+	if isNormalDispatch {
+		return &bw.PerClass.Normal, nil
 	}
 
-	panic("unreachable")
+	isOperationalDispatch, err := class.Is(DispatchClassOperational)
+	if err != nil {
+		return nil, err
+	}
+	if isOperationalDispatch {
+		return &bw.PerClass.Operational, nil
+	}
+
+	isMandatoryDispatch, err := class.Is(DispatchClassMandatory)
+	if err != nil {
+		return nil, err
+	}
+	if isMandatoryDispatch {
+		return &bw.PerClass.Mandatory, nil
+	}
+
+	return nil, NewTypeError("DispatchClass")
 }

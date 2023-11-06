@@ -80,7 +80,7 @@ func Test_DecodeInvalidTransaction_Call(t *testing.T) {
 	buffer.WriteByte(0)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionCall(), result)
 }
@@ -90,7 +90,7 @@ func Test_DecodeInvalidTransaction_Payment(t *testing.T) {
 	buffer.WriteByte(1)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionPayment(), result)
 }
@@ -100,7 +100,7 @@ func Test_DecodeInvalidTransaction_Future(t *testing.T) {
 	buffer.WriteByte(2)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionFuture(), result)
 }
@@ -110,7 +110,7 @@ func Test_DecodeInvalidTransaction_Stale(t *testing.T) {
 	buffer.WriteByte(3)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionStale(), result)
 }
@@ -120,7 +120,7 @@ func Test_DecodeInvalidTransaction_BadProof(t *testing.T) {
 	buffer.WriteByte(4)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadProof(), result)
 }
@@ -130,7 +130,7 @@ func Test_DecodeInvalidTransaction_AncientBirthBlock(t *testing.T) {
 	buffer.WriteByte(5)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionAncientBirthBlock(), result)
 }
@@ -140,7 +140,7 @@ func Test_DecodeInvalidTransaction_ExhaustsResources(t *testing.T) {
 	buffer.WriteByte(6)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionExhaustsResources(), result)
 }
@@ -152,7 +152,7 @@ func Test_DecodeInvalidTransaction_Custom(t *testing.T) {
 	buffer.WriteByte(byte(customError))
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionCustom(customError), result)
 }
@@ -162,7 +162,7 @@ func Test_DecodeInvalidTransaction_BadMandatory(t *testing.T) {
 	buffer.WriteByte(8)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadMandatory(), result)
 }
@@ -172,7 +172,7 @@ func Test_DecodeInvalidTransaction_MandatoryValidation(t *testing.T) {
 	buffer.WriteByte(9)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionMandatoryValidation(), result)
 }
@@ -182,16 +182,18 @@ func Test_DecodeInvalidTransaction_BadSigner(t *testing.T) {
 	buffer.WriteByte(10)
 
 	result, err := DecodeInvalidTransaction(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewInvalidTransactionBadSigner(), result)
 }
 
-func Test_DecodeInvalidTransaction_Panics(t *testing.T) {
+func Test_DecodeInvalidTransaction_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(50)
 
-	assert.PanicsWithValue(t, "invalid InvalidTransaction type", func() {
-		DecodeInvalidTransaction(buffer)
-	})
+	res, err := DecodeInvalidTransaction(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'InvalidTransaction' type", err.Error())
+	assert.Equal(t, InvalidTransaction{}, res)
 }

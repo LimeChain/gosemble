@@ -2,7 +2,6 @@ package types
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type InherentError struct {
@@ -51,8 +50,6 @@ func (ie InherentError) Error() string {
 	case InherentErrorApplication:
 		return "Inherent error application"
 	default:
-		log.Critical("invalid inherent error")
+		return NewTypeError("InherentError").Error()
 	}
-
-	panic("unreachable")
 }

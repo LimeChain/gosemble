@@ -18,11 +18,12 @@ var (
 	addr32Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	addr33Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
-	accountId    = AccountId{NewAddress32(sc.BytesToFixedSequenceU8(addr32Bytes)...)}
-	accountIndex = sc.U32(2)
-	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
-	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
-	address20    = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
+	accountIdAddress, _ = NewAddress32(sc.BytesToFixedSequenceU8(addr32Bytes)...)
+	accountId           = AccountId{accountIdAddress}
+	accountIndex        = sc.U32(2)
+	accountRaw          = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
+	address32           = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
+	address20           = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
 )
 
 func Test_AccountRaw_Encode(t *testing.T) {
@@ -37,7 +38,7 @@ func Test_DecodeAccountRaw(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAccountRawBytes)
 
 	result, err := DecodeAccountRaw(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, accountRaw, result)
 }
@@ -45,20 +46,25 @@ func Test_DecodeAccountRaw(t *testing.T) {
 func Test_NewAddress32(t *testing.T) {
 	expect := Address32{sc.NewFixedSequence(32, sc.BytesToSequenceU8(addr32Bytes)...)}
 
-	assert.Equal(t, expect, NewAddress32(sc.BytesToSequenceU8(addr32Bytes)...))
+	result, err := NewAddress32(sc.BytesToSequenceU8(addr32Bytes)...)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expect, result)
 }
 
-func Test_NewAddress32_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "Address32 should be of size 32", func() {
-		NewAddress32(sc.BytesToSequenceU8(addr20Bytes)...)
-	})
+func Test_NewAddress32_Error(t *testing.T) {
+	result, err := NewAddress32(sc.BytesToSequenceU8(addr20Bytes)...)
+
+	assert.Error(t, err)
+	assert.Equal(t, "Address32 should be of size 32", err.Error())
+	assert.Equal(t, Address32{}, result)
 }
 
 func Test_DecodeAddress32(t *testing.T) {
 	buffer := bytes.NewBuffer(addr32Bytes)
 
 	result, err := DecodeAddress32(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, address32, result)
 }
@@ -66,14 +72,17 @@ func Test_DecodeAddress32(t *testing.T) {
 func Test_NewAddress20(t *testing.T) {
 	expect := Address20{sc.NewFixedSequence(20, sc.BytesToSequenceU8(addr20Bytes)...)}
 
-	assert.Equal(t, expect, NewAddress20(sc.BytesToSequenceU8(addr20Bytes)...))
+	result, err := NewAddress20(sc.BytesToSequenceU8(addr20Bytes)...)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expect, result)
 }
 
 func Test_DecodeAddress20(t *testing.T) {
 	buffer := bytes.NewBuffer(addr20Bytes)
 
 	result, err := DecodeAddress20(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, address20, result)
 }
@@ -146,19 +155,21 @@ func Test_DecodeMultiAddress(t *testing.T) {
 			buffer := bytes.NewBuffer(testExample.input)
 
 			result, err := DecodeMultiAddress(buffer)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }
 
-func Test_DecodeMultiAddress_Panic(t *testing.T) {
+func Test_DecodeMultiAddress_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0})
 
-	assert.PanicsWithValue(t, "invalid MultiAddress type in Decode", func() {
-		DecodeMultiAddress(buffer)
-	})
+	result, err := DecodeMultiAddress(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'MultiAddress' type", err.Error())
+	assert.Equal(t, MultiAddress{}, result)
 }
 
 func Test_IsAccountId(t *testing.T) {
@@ -187,13 +198,18 @@ func Test_IsAccountId(t *testing.T) {
 }
 
 func Test_AsAccountId(t *testing.T) {
-	assert.Equal(t, accountId, NewMultiAddressId(accountId).AsAccountId())
+	result, err := NewMultiAddressId(accountId).AsAccountId()
+
+	assert.NoError(t, err)
+	assert.Equal(t, accountId, result)
 }
 
-func Test_AsAccountId_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "not an AccountId type", func() {
-		NewMultiAddressIndex(accountIndex).AsAccountId()
-	})
+func Test_AsAccountId_TypeError(t *testing.T) {
+	result, err := NewMultiAddressIndex(accountIndex).AsAccountId()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'AccountId' type", err.Error())
+	assert.Equal(t, AccountId{}, result)
 }
 
 func Test_IsAccountIndex(t *testing.T) {
@@ -222,13 +238,18 @@ func Test_IsAccountIndex(t *testing.T) {
 }
 
 func Test_AsAccountIndex(t *testing.T) {
-	assert.Equal(t, accountIndex, NewMultiAddressIndex(accountIndex).AsAccountIndex())
+	result, err := NewMultiAddressIndex(accountIndex).AsAccountIndex()
+
+	assert.NoError(t, err)
+	assert.Equal(t, accountIndex, result)
 }
 
-func Test_AsAccountIndex_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "not an AccountIndex type", func() {
-		NewMultiAddressId(accountId).AsAccountIndex()
-	})
+func Test_AsAccountIndex_TypeError(t *testing.T) {
+	result, err := NewMultiAddressId(accountId).AsAccountIndex()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'AccountIndex' type", err.Error())
+	assert.Equal(t, sc.U32(0), result)
 }
 
 func Test_IsRaw(t *testing.T) {
@@ -257,13 +278,18 @@ func Test_IsRaw(t *testing.T) {
 }
 
 func Test_AsRaw(t *testing.T) {
-	assert.Equal(t, accountRaw, NewMultiAddressRaw(accountRaw).AsRaw())
+	result, err := NewMultiAddressRaw(accountRaw).AsRaw()
+
+	assert.NoError(t, err)
+	assert.Equal(t, accountRaw, result)
 }
 
-func Test_AsRaw_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "not an AccountRaw type", func() {
-		NewMultiAddressId(accountId).AsRaw()
-	})
+func Test_AsRaw_TypeError(t *testing.T) {
+	result, err := NewMultiAddressId(accountId).AsRaw()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'AccountRaw' type", err.Error())
+	assert.Equal(t, AccountRaw{}, result)
 }
 
 func Test_IsAddress32(t *testing.T) {
@@ -292,13 +318,18 @@ func Test_IsAddress32(t *testing.T) {
 }
 
 func Test_AsAddress32(t *testing.T) {
-	assert.Equal(t, address32, NewMultiAddress32(address32).AsAddress32())
+	result, err := NewMultiAddress32(address32).AsAddress32()
+
+	assert.NoError(t, err)
+	assert.Equal(t, address32, result)
 }
 
-func Test_AsAddress32_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "not an Address32 type", func() {
-		NewMultiAddressId(accountId).AsAddress32()
-	})
+func Test_AsAddress32_TypeError(t *testing.T) {
+	result, err := NewMultiAddressId(accountId).AsAddress32()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'Address32' type", err.Error())
+	assert.Equal(t, Address32{}, result)
 }
 
 func Test_IsAddress20(t *testing.T) {
@@ -327,11 +358,16 @@ func Test_IsAddress20(t *testing.T) {
 }
 
 func Test_AsAddress20(t *testing.T) {
-	assert.Equal(t, address20, NewMultiAddress20(address20).AsAddress20())
+	result, err := NewMultiAddress20(address20).AsAddress20()
+
+	assert.NoError(t, err)
+	assert.Equal(t, address20, result)
 }
 
-func Test_AsAddress20_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "not an Address20 type", func() {
-		NewMultiAddressId(accountId).AsAddress20()
-	})
+func Test_AsAddress20_TypeError(t *testing.T) {
+	result, err := NewMultiAddressId(accountId).AsAddress20()
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'Address20' type", err.Error())
+	assert.Equal(t, Address20{}, result)
 }
