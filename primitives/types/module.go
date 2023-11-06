@@ -25,3 +25,13 @@ func GetModule(moduleIndex sc.U8, modules []Module) (Module, error) {
 	}
 	return nil, errors.New("module with index [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
 }
+
+func MustGetModule(moduleIndex sc.U8, modules []Module) Module {
+	for _, module := range modules {
+		if module.GetIndex() == moduleIndex {
+			return module
+		}
+	}
+
+	panic("module [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
+}

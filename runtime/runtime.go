@@ -30,7 +30,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -136,50 +135,10 @@ func initializeModules() []primitives.Module {
 	}
 }
 
-func getSystemModule() system.Module {
-	mod, err := primitives.GetModule(SystemIndex, modules)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return mod.(system.Module)
-}
-
-func getBalancesModule() balances.Module {
-	mod, err := primitives.GetModule(BalancesIndex, modules)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return mod.(balances.Module)
-}
-
-func getTxPaymentModule() transaction_payment.Module {
-	mod, err := primitives.GetModule(TxPaymentsIndex, modules)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return mod.(transaction_payment.Module)
-}
-
-func getAuraModule() aura.Module {
-	mod, err := primitives.GetModule(AuraIndex, modules)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return mod.(aura.Module)
-}
-
-func getGrandpaModule() grandpa.Module {
-	mod, err := primitives.GetModule(GrandpaIndex, modules)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return mod.(grandpa.Module)
-}
-
 func newSignedExtra() primitives.SignedExtra {
-	systemModule := getSystemModule()
-	balancesModule := getBalancesModule()
-	txPaymentModule := getTxPaymentModule()
+	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
+	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
+	txPaymentModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	checkMortality := sysExtensions.NewCheckMortality(systemModule)
 	checkNonce := sysExtensions.NewCheckNonce(systemModule)
@@ -202,10 +161,10 @@ func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
 	decoder := types.NewRuntimeDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
-	systemModule := getSystemModule()
-	auraModule := getAuraModule()
-	grandpaModule := getGrandpaModule()
-	txPaymentsModule := getTxPaymentModule()
+	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
+	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
+	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
+	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	executiveModule := executive.New(
 		systemModule,
