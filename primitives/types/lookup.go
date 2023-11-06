@@ -18,7 +18,7 @@ func lookupAddress(a MultiAddress) (sc.Option[Address32], error) {
 	if a.IsAccountId() {
 		accountId, err := a.AsAccountId()
 		if err != nil {
-			return sc.NewOption[Address32](nil), nil
+			return sc.NewOption[Address32](nil), err
 		}
 		return sc.NewOption[Address32](accountId.Address32), nil
 	}
@@ -26,7 +26,7 @@ func lookupAddress(a MultiAddress) (sc.Option[Address32], error) {
 	if a.IsAddress32() {
 		address32, err := a.AsAddress32()
 		if err != nil {
-			return sc.NewOption[Address32](nil), nil
+			return sc.NewOption[Address32](nil), err
 		}
 		return sc.NewOption[Address32](address32), nil
 	}
@@ -34,9 +34,9 @@ func lookupAddress(a MultiAddress) (sc.Option[Address32], error) {
 	if a.IsAccountIndex() {
 		index, err := a.AsAccountIndex()
 		if err != nil {
-			return sc.NewOption[Address32](nil), nil
+			return sc.NewOption[Address32](nil), err
 		}
-		return lookupIndex(index), err
+		return lookupIndex(index), nil
 	}
 
 	return sc.NewOption[Address32](nil), nil
