@@ -60,7 +60,7 @@ func DecodeDispatchClass(buffer *bytes.Buffer) (DispatchClass, error) {
 	case DispatchClassMandatory:
 		return NewDispatchClassMandatory(), nil
 	default:
-		return DispatchClass{}, NewTypeError("DispatchClass")
+		return DispatchClass{}, newTypeError("DispatchClass")
 	}
 }
 
@@ -70,7 +70,7 @@ func (dc DispatchClass) Is(value sc.U8) (sc.Bool, error) {
 	case DispatchClassNormal, DispatchClassOperational, DispatchClassMandatory:
 		return (dc.VaryingData[0] == value), nil
 	default:
-		return false, NewTypeError("DispatchClass")
+		return false, newTypeError("DispatchClass")
 	}
 }
 

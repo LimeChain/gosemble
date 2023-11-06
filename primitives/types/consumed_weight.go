@@ -47,7 +47,7 @@ func (cw *ConsumedWeight) Get(class DispatchClass) (*Weight, error) {
 	case DispatchClassMandatory:
 		return &cw.Mandatory, nil
 	default:
-		return nil, NewTypeError("DispatchClass")
+		return nil, newTypeError("DispatchClass")
 	}
 }
 

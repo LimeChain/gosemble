@@ -51,5 +51,5 @@ func (bw BlockWeights) Get(class DispatchClass) (*WeightsPerClass, error) {
 		return &bw.PerClass.Mandatory, nil
 	}
 
-	return nil, NewTypeError("DispatchClass")
+	return nil, newTypeError("DispatchClass")
 }

@@ -56,6 +56,6 @@ func (pdc *PerDispatchClass[T]) Get(class DispatchClass) (*T, error) {
 	case DispatchClassMandatory:
 		return &pdc.Mandatory, nil
 	default:
-		return nil, NewTypeError("DispatchClass")
+		return nil, newTypeError("DispatchClass")
 	}
 }

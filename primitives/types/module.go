@@ -17,22 +17,11 @@ type Module interface {
 	Metadata() (sc.Sequence[MetadataType], MetadataModule)
 }
 
-func GetModule(moduleIndex sc.U8, modules []Module) (Module, bool) {
-	for _, module := range modules {
-		if module.GetIndex() == moduleIndex {
-			return module, true
-		}
-	}
-
-	return nil, false
-}
-
-func MustGetModule(moduleIndex sc.U8, modules []Module) (Module, error) {
+func GetModule(moduleIndex sc.U8, modules []Module) (Module, error) {
 	for _, module := range modules {
 		if module.GetIndex() == moduleIndex {
 			return module, nil
 		}
 	}
-
-	return nil, errors.New("module [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
+	return nil, errors.New("module with index [" + strconv.Itoa(int(moduleIndex)) + "] not found.")
 }

@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -120,6 +121,6 @@ func Test_DecodeCheckInherentsResult_DecodeError(t *testing.T) {
 	result, err := DecodeCheckInherentsResult(buffer)
 
 	assert.Error(t, err)
-	assert.Equal(t, "EOF", err.Error())
+	assert.Equal(t, io.EOF, err)
 	assert.Equal(t, CheckInherentsResult{}, result)
 }

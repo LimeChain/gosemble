@@ -133,7 +133,7 @@ func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
 	case DispatchErrorUnavailable:
 		return NewDispatchErrorUnavailable(), nil
 	default:
-		return DispatchError{}, NewTypeError("DispatchError")
+		return DispatchError{}, newTypeError("DispatchError")
 	}
 }
 

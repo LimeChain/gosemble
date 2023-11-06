@@ -30,7 +30,7 @@ func NewDispatchOutcome(value sc.Encodable) (DispatchOutcome, error) {
 	case sc.Empty, nil:
 		return DispatchOutcome(sc.NewVaryingData(sc.Empty{})), nil
 	default:
-		return DispatchOutcome{}, NewTypeError("DispatchOutcome")
+		return DispatchOutcome{}, newTypeError("DispatchOutcome")
 	}
 }
 
@@ -64,7 +64,7 @@ func DecodeDispatchOutcome(buffer *bytes.Buffer) (DispatchOutcome, error) {
 		}
 		return NewDispatchOutcome(value)
 	default:
-		return DispatchOutcome{}, NewTypeError("DispatchOutcome")
+		return DispatchOutcome{}, newTypeError("DispatchOutcome")
 	}
 }
 

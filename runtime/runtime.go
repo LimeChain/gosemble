@@ -137,7 +137,7 @@ func initializeModules() []primitives.Module {
 }
 
 func getSystemModule() system.Module {
-	mod, err := primitives.MustGetModule(SystemIndex, modules)
+	mod, err := primitives.GetModule(SystemIndex, modules)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -145,7 +145,7 @@ func getSystemModule() system.Module {
 }
 
 func getBalancesModule() balances.Module {
-	mod, err := primitives.MustGetModule(BalancesIndex, modules)
+	mod, err := primitives.GetModule(BalancesIndex, modules)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -153,7 +153,7 @@ func getBalancesModule() balances.Module {
 }
 
 func getTxPaymentModule() transaction_payment.Module {
-	mod, err := primitives.MustGetModule(TxPaymentsIndex, modules)
+	mod, err := primitives.GetModule(TxPaymentsIndex, modules)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -161,7 +161,7 @@ func getTxPaymentModule() transaction_payment.Module {
 }
 
 func getAuraModule() aura.Module {
-	mod, err := primitives.MustGetModule(AuraIndex, modules)
+	mod, err := primitives.GetModule(AuraIndex, modules)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -169,7 +169,7 @@ func getAuraModule() aura.Module {
 }
 
 func getGrandpaModule() grandpa.Module {
-	mod, err := primitives.MustGetModule(GrandpaIndex, modules)
+	mod, err := primitives.GetModule(GrandpaIndex, modules)
 	if err != nil {
 		log.Critical(err.Error())
 	}

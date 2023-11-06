@@ -51,6 +51,6 @@ func DecodeUnknownTransaction(buffer *bytes.Buffer) (UnknownTransaction, error) 
 		}
 		return NewUnknownTransactionCustomUnknownTransaction(v), nil
 	default:
-		return UnknownTransaction{}, NewTypeError("UnknownTransaction")
+		return UnknownTransaction{}, newTypeError("UnknownTransaction")
 	}
 }

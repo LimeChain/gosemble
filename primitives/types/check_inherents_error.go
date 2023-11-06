@@ -50,6 +50,6 @@ func (ie InherentError) Error() string {
 	case InherentErrorApplication:
 		return "Inherent error application"
 	default:
-		return NewTypeError("InherentError").Error()
+		return newTypeError("InherentError").Error()
 	}
 }

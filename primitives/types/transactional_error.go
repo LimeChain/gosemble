@@ -35,6 +35,6 @@ func DecodeTransactionalError(buffer *bytes.Buffer) (TransactionalError, error) 
 	case TransactionalErrorNoLayer:
 		return NewTransactionalErrorNoLayer(), nil
 	default:
-		return nil, NewTypeError("TransactionalError")
+		return nil, newTypeError("TransactionalError")
 	}
 }

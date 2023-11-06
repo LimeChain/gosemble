@@ -40,6 +40,6 @@ func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
 	case ArithmeticErrorDivisionByZero:
 		return NewArithmeticErrorDivisionByZero(), nil
 	default:
-		return nil, NewTypeError("ArithmeticError")
+		return nil, newTypeError("ArithmeticError")
 	}
 }

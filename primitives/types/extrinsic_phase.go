@@ -49,6 +49,6 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {
 	case PhaseInitialization:
 		return NewExtrinsicPhaseInitialization(), nil
 	default:
-		return ExtrinsicPhase{}, NewTypeError("ExtrinsicPhase")
+		return ExtrinsicPhase{}, newTypeError("ExtrinsicPhase")
 	}
 }

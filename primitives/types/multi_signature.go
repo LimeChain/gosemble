@@ -43,7 +43,7 @@ func (s MultiSignature) AsEd25519() (SignatureEd25519, error) {
 	if s.IsEd25519() {
 		return s.VaryingData[1].(SignatureEd25519), nil
 	} else {
-		return SignatureEd25519{}, NewTypeError("SignatureEd25519")
+		return SignatureEd25519{}, newTypeError("SignatureEd25519")
 	}
 }
 
@@ -60,7 +60,7 @@ func (s MultiSignature) AsSr25519() (SignatureSr25519, error) {
 	if s.IsSr25519() {
 		return s.VaryingData[1].(SignatureSr25519), nil
 	} else {
-		return SignatureSr25519{}, NewTypeError("SignatureSr25519")
+		return SignatureSr25519{}, newTypeError("SignatureSr25519")
 	}
 }
 
@@ -77,7 +77,7 @@ func (s MultiSignature) AsEcdsa() (SignatureEcdsa, error) {
 	if s.IsEcdsa() {
 		return s.VaryingData[1].(SignatureEcdsa), nil
 	} else {
-		return SignatureEcdsa{}, NewTypeError("SignatureEcdsa")
+		return SignatureEcdsa{}, newTypeError("SignatureEcdsa")
 	}
 }
 

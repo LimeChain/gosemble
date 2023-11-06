@@ -146,6 +146,6 @@ func DecodeInvalidTransaction(buffer *bytes.Buffer) (InvalidTransaction, error) 
 	case InvalidTransactionBadSigner:
 		return NewInvalidTransactionBadSigner(), nil
 	default:
-		return InvalidTransaction{}, NewTypeError("InvalidTransaction")
+		return InvalidTransaction{}, newTypeError("InvalidTransaction")
 	}
 }

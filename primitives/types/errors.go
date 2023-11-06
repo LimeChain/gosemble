@@ -6,7 +6,7 @@ type typeError struct {
 	message string
 }
 
-func NewTypeError(msg string) error {
+func newTypeError(msg string) error {
 	return typeError{message: msg}
 }
 

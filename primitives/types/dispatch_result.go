@@ -13,6 +13,6 @@ func NewDispatchResult(value sc.Encodable) (DispatchResult, error) {
 	case sc.Empty, nil:
 		return DispatchResult(sc.NewVaryingData(sc.Empty{})), nil
 	default:
-		return DispatchResult{}, NewTypeError("DispatchResult")
+		return DispatchResult{}, newTypeError("DispatchResult")
 	}
 }

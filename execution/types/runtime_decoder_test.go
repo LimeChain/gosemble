@@ -277,12 +277,13 @@ func Test_RuntimeDecoder_DecodeCall_Module_Not_Exists(t *testing.T) {
 	}
 
 	buf := bytes.NewBuffer(callBytes)
-
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 
-	assert.PanicsWithValue(t, "module with index ["+strconv.Itoa(int(idxModuleNotExists))+"] not found", func() {
-		target.DecodeCall(buf)
-	})
+	mod, err := target.DecodeCall(buf)
+
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "module with index ["+strconv.Itoa(int(idxModuleNotExists))+"] not found.")
+	assert.Nil(t, mod)
 }
 
 func Test_RuntimeDecoder_DecodeCall_Function_Not_Exists(t *testing.T) {

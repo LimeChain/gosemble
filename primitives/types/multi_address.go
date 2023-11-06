@@ -151,7 +151,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 		}
 		return NewMultiAddress20(addr20), nil
 	default:
-		return MultiAddress{}, NewTypeError("MultiAddress")
+		return MultiAddress{}, newTypeError("MultiAddress")
 	}
 }
 
@@ -168,7 +168,7 @@ func (a MultiAddress) AsAccountId() (AccountId, error) {
 	if a.IsAccountId() {
 		return a.VaryingData[1].(AccountId), nil
 	} else {
-		return AccountId{}, NewTypeError("AccountId")
+		return AccountId{}, newTypeError("AccountId")
 	}
 }
 
@@ -186,7 +186,7 @@ func (a MultiAddress) AsAccountIndex() (AccountIndex, error) {
 		compact := a.VaryingData[1].(sc.Compact)
 		return sc.U32(compact.ToBigInt().Uint64()), nil
 	} else {
-		return 0, NewTypeError("AccountIndex")
+		return 0, newTypeError("AccountIndex")
 	}
 }
 
@@ -203,7 +203,7 @@ func (a MultiAddress) AsRaw() (AccountRaw, error) {
 	if a.IsRaw() {
 		return a.VaryingData[1].(AccountRaw), nil
 	} else {
-		return AccountRaw{}, NewTypeError("AccountRaw")
+		return AccountRaw{}, newTypeError("AccountRaw")
 	}
 }
 
@@ -220,7 +220,7 @@ func (a MultiAddress) AsAddress32() (Address32, error) {
 	if a.IsAddress32() {
 		return a.VaryingData[1].(Address32), nil
 	} else {
-		return Address32{}, NewTypeError("Address32")
+		return Address32{}, newTypeError("Address32")
 	}
 }
 
@@ -237,6 +237,6 @@ func (a MultiAddress) AsAddress20() (Address20, error) {
 	if a.IsAddress20() {
 		return a.VaryingData[1].(Address20), nil
 	} else {
-		return Address20{}, NewTypeError("Address20")
+		return Address20{}, newTypeError("Address20")
 	}
 }

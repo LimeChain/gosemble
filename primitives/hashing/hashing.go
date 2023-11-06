@@ -23,10 +23,10 @@ func Blake2b8(data []byte) (digest [8]byte, err error) {
 }
 
 // MustBlake2b8 returns the first 8 bytes of the Blake2b hash of the input data
-func MustBlake2b8(data []byte) ([8]byte, error) {
+func MustBlake2b8(data []byte) [8]byte {
 	digest, err := Blake2b8(data)
 	if err != nil {
-		return *new([8]byte), err
+		panic(err)
 	}
-	return digest, nil
+	return digest
 }

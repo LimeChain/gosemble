@@ -116,7 +116,7 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionBitSequence(storeOrder, orderType), nil
 	default:
-		return MetadataTypeDefinition{}, NewTypeError("MetadataTypeDefinition")
+		return MetadataTypeDefinition{}, newTypeError("MetadataTypeDefinition")
 	}
 }
 
@@ -305,6 +305,6 @@ func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinition
 	case MetadataDefinitionPrimitiveI256:
 		return MetadataDefinitionPrimitiveI256, nil
 	default:
-		return MetadataDefinitionPrimitive(0), NewTypeError("MetadataDefinitionPrimitive")
+		return MetadataDefinitionPrimitive(0), newTypeError("MetadataDefinitionPrimitive")
 	}
 }

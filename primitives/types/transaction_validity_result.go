@@ -24,7 +24,7 @@ func NewTransactionValidityResult(value sc.Encodable) (TransactionValidityResult
 	case ValidTransaction, TransactionValidityError:
 		return TransactionValidityResult(sc.NewVaryingData(value)), nil
 	default:
-		return TransactionValidityResult{}, NewTypeError("TransactionValidityResult")
+		return TransactionValidityResult{}, newTypeError("TransactionValidityResult")
 	}
 }
 
@@ -61,7 +61,7 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) (TransactionValidityR
 		}
 		return NewTransactionValidityResult(val)
 	default:
-		return TransactionValidityResult{}, NewTypeError("TransactionValidityResult")
+		return TransactionValidityResult{}, newTypeError("TransactionValidityResult")
 	}
 }
 
@@ -82,6 +82,6 @@ func (r TransactionValidityResult) AsValidTransaction() (ValidTransaction, error
 	if r.IsValidTransaction() {
 		return r[0].(ValidTransaction), nil
 	} else {
-		return ValidTransaction{}, NewTypeError("ValidTransaction")
+		return ValidTransaction{}, newTypeError("ValidTransaction")
 	}
 }

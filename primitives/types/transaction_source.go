@@ -62,6 +62,6 @@ func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
 	case TransactionSourceExternal:
 		return NewTransactionSourceExternal(), nil
 	default:
-		return TransactionSource{}, NewTypeError("TransactionSource")
+		return TransactionSource{}, newTypeError("TransactionSource")
 	}
 }

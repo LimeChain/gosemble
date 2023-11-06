@@ -68,6 +68,6 @@ func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	case TokenErrorUnsupported:
 		return NewTokenErrorUnsupported(), nil
 	default:
-		return nil, NewTypeError("TokenError")
+		return nil, newTypeError("TokenError")
 	}
 }

@@ -44,6 +44,6 @@ func (te TimestampError) Error() string {
 	case TimestampErrorInvalid:
 		return "invalid inherent check for timestamp module"
 	default:
-		return NewTypeError("TimestampError").Error()
+		return newTypeError("TimestampError").Error()
 	}
 }

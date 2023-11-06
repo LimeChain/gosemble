@@ -279,7 +279,7 @@ func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataMod
 	case MetadataModuleStorageEntryModifierDefault:
 		return MetadataModuleStorageEntryModifierDefault, nil
 	default:
-		return MetadataModuleStorageEntryModifier(0), NewTypeError("MetadataModuleStorageEntryModifier")
+		return MetadataModuleStorageEntryModifier(0), newTypeError("MetadataModuleStorageEntryModifier")
 	}
 }
 
@@ -326,7 +326,7 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 		}
 		return NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs, key, value), nil
 	default:
-		return MetadataModuleStorageEntryDefinition{}, NewTypeError("MetadataModuleStorageEntryDefinition")
+		return MetadataModuleStorageEntryDefinition{}, newTypeError("MetadataModuleStorageEntryDefinition")
 	}
 }
 
@@ -416,6 +416,6 @@ func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleSt
 	case MetadataModuleStorageHashFuncIdentity:
 		return MetadataModuleStorageHashFuncIdentity, nil
 	default:
-		return MetadataModuleStorageHashFunc(0), NewTypeError("MetadataModuleStorageHashFunc")
+		return MetadataModuleStorageHashFunc(0), newTypeError("MetadataModuleStorageHashFunc")
 	}
 }

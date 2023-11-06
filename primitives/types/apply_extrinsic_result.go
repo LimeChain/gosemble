@@ -34,7 +34,7 @@ func NewApplyExtrinsicResult(value sc.Encodable) (ApplyExtrinsicResult, error) {
 	case DispatchOutcome, TransactionValidityError:
 		return ApplyExtrinsicResult(sc.NewVaryingData(value)), nil
 	default:
-		return nil, NewTypeError("ApplyExtrinsicResult")
+		return nil, newTypeError("ApplyExtrinsicResult")
 	}
 }
 
@@ -71,7 +71,7 @@ func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) (ApplyExtrinsicResult, err
 		}
 		return NewApplyExtrinsicResult(value)
 	default:
-		return nil, NewTypeError("ApplyExtrinsicResult")
+		return nil, newTypeError("ApplyExtrinsicResult")
 	}
 }
 

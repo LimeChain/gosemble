@@ -48,7 +48,7 @@ func (o RawOrigin) IsNoneOrigin() bool {
 
 func (o RawOrigin) AsSigned() (Address32, error) {
 	if !o.IsSignedOrigin() {
-		return Address32{}, NewTypeError("RawOrigin")
+		return Address32{}, newTypeError("RawOrigin")
 	}
 	return o.VaryingData[1].(Address32), nil
 }

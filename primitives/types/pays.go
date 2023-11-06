@@ -36,6 +36,6 @@ func DecodePays(buffer *bytes.Buffer) (Pays, error) {
 	case PaysNo:
 		return NewPaysNo(), nil
 	default:
-		return nil, NewTypeError("Pays")
+		return nil, newTypeError("Pays")
 	}
 }

@@ -92,7 +92,7 @@ func DecodeEra(buffer *bytes.Buffer) (Era, error) {
 		if period >= 4 && phase < period {
 			return NewMortalEra(period, phase), nil
 		} else {
-			return Era{}, NewTypeError("Era")
+			return Era{}, newTypeError("Era")
 		}
 	}
 }

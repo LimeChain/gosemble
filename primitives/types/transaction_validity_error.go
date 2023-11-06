@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	errInvalidTransactionValidityErrorType = NewTypeError("TransactionValidityError")
+	errInvalidTransactionValidityErrorType = newTypeError("TransactionValidityError")
 )
 
 const (
