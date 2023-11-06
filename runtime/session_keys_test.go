@@ -34,9 +34,9 @@ func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(seq))
 
-	auraKey, err := types.DecodePublicKey(buffer)
+	auraKey, err := types.DecodeAccountId(buffer)
 	assert.Nil(t, err)
-	grandpaKey, err := types.DecodePublicKey(buffer)
+	grandpaKey, err := types.DecodeAccountId(buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t, rt.Keystore().Aura.PublicKeys()[0].Encode(), auraKey.Bytes())

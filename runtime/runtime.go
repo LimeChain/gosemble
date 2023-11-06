@@ -46,6 +46,10 @@ const (
 	TimestampMinimumPeriod = 1 * 1_000 // 1 second
 )
 
+const (
+	PublicKeyType sc.U8 = 0 // 0 for Ed25519, 1 for Sr25519 and 2 for Ecdsa
+)
+
 // RuntimeVersion contains the version identifiers of the Runtime.
 var RuntimeVersion = &primitives.RuntimeVersion{
 	SpecName:           sc.Str(constants.SpecName),

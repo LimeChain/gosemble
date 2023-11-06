@@ -36,7 +36,7 @@ func (m *SignedExtra) AdditionalSigned() (types.AdditionalSigned, types.Transact
 	return args.Get(0).(types.AdditionalSigned), nil
 }
 
-func (m *SignedExtra) Validate(who types.Address32, call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, types.TransactionValidityError) {
+func (m *SignedExtra) Validate(who types.AccountId, call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, types.TransactionValidityError) {
 	args := m.Called(who, call, info, length)
 
 	if args.Get(1) != nil {
@@ -56,7 +56,7 @@ func (m *SignedExtra) ValidateUnsigned(call types.Call, info *types.DispatchInfo
 	return args.Get(0).(types.ValidTransaction), nil
 }
 
-func (m *SignedExtra) PreDispatch(who types.Address32, call types.Call, info *types.DispatchInfo, length sc.Compact) (sc.Sequence[types.Pre], types.TransactionValidityError) {
+func (m *SignedExtra) PreDispatch(who types.AccountId, call types.Call, info *types.DispatchInfo, length sc.Compact) (sc.Sequence[types.Pre], types.TransactionValidityError) {
 	args := m.Called(who, call, info, length)
 
 	if args.Get(1) != nil {

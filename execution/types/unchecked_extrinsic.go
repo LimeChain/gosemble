@@ -127,15 +127,15 @@ func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.T
 			return nil, invalidTransactionBadProof
 		}
 
-		return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signerAddress), uxt.function, extra), nil
+		return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](signerAddress), uxt.function, extra), nil
 	}
 
-	return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](nil), uxt.function, uxt.extra), nil
+	return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](nil), uxt.function, uxt.extra), nil
 }
 
-func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.Address32) bool {
+func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.AccountId) bool {
 	msgBytes := sc.SequenceU8ToBytes(msg)
-	signerBytes := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
+	signerBytes := signer.Bytes()
 
 	if signature.IsEd25519() {
 		sigEd25519, err := signature.AsEd25519()

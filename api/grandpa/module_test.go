@@ -49,7 +49,7 @@ func Test_Authorities_None(t *testing.T) {
 
 	authorities := sc.Sequence[types.Authority]{
 		{
-			Id:     constants.ZeroAddress.FixedSequence,
+			Id:     constants.ZeroAddressAccountId,
 			Weight: sc.U64(64),
 		},
 	}

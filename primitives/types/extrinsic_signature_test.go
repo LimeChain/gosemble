@@ -19,8 +19,11 @@ var (
 	signerAddressBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	}
-	addr32, _ = NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
-	signer    = NewMultiAddressId(AccountId{Address32: addr32})
+	signer = NewMultiAddressId(
+		AccountId{
+			Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
+		},
+	)
 
 	signatureBytes = []byte{
 		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,

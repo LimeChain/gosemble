@@ -29,16 +29,15 @@ func Test_Grandpa_Authorities(t *testing.T) {
 		Version: grandpa.AuthorityVersion,
 		AuthorityList: sc.Sequence[types.Authority]{
 			{
-				Id:     sc.BytesToFixedSequenceU8(pubKey1),
+				Id:     types.AccountId{Ed25519Signer: types.NewEd25519Signer(sc.BytesToSequenceU8(pubKey1)...)},
 				Weight: weight,
 			},
 			{
-				Id:     sc.BytesToFixedSequenceU8(pubKey2),
+				Id:     types.AccountId{Ed25519Signer: types.NewEd25519Signer(sc.BytesToSequenceU8(pubKey2)...)},
 				Weight: weight,
 			},
 		},
 	}
-
 	err := (*storage).Put([]byte(":grandpa_authorities"), storageAuthorityList.Bytes())
 	assert.NoError(t, err)
 

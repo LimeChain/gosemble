@@ -130,12 +130,12 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error) {
+func (c callForceFree) force(who primitives.AccountId, value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
 		return constants.Zero, nil
 	}
 
-	account, err := c.storedMap.Get(who.FixedSequence)
+	account, err := c.storedMap.Get(who)
 	if err != nil {
 		return sc.U128{}, err
 	}
@@ -157,7 +157,7 @@ func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error
 	}
 
 	actual := result.Value.(sc.U128)
-	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
+	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who, actual))
 
 	return value.Sub(actual), nil
 }

@@ -10,7 +10,7 @@ type CurrencyAdapter struct {
 	mock.Mock
 }
 
-func (m *CurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.U128) (types.Balance, types.DispatchError) {
+func (m *CurrencyAdapter) DepositIntoExisting(who types.AccountId, value sc.U128) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value)
 
 	if args.Get(1) != nil {
@@ -20,7 +20,7 @@ func (m *CurrencyAdapter) DepositIntoExisting(who types.Address32, value sc.U128
 	return args.Get(0).(types.Balance), nil
 }
 
-func (m *CurrencyAdapter) Withdraw(who types.Address32, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
+func (m *CurrencyAdapter) Withdraw(who types.AccountId, value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
 	args := m.Called(who, value, reasons, liveness)
 
 	if args.Get(1) != nil {

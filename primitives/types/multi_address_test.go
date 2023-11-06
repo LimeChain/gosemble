@@ -18,12 +18,11 @@ var (
 	addr32Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	addr33Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
-	accountIdAddress, _ = NewAddress32(sc.BytesToFixedSequenceU8(addr32Bytes)...)
-	accountId           = AccountId{accountIdAddress}
-	accountIndex        = sc.U32(2)
-	accountRaw          = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
-	address32           = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
-	address20           = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
+	accountId    = AccountId{Ed25519Signer: NewEd25519Signer(sc.BytesToFixedSequenceU8(addr32Bytes)...)}
+	accountIndex = sc.U32(2)
+	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
+	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
+	address20    = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
 )
 
 func Test_AccountRaw_Encode(t *testing.T) {

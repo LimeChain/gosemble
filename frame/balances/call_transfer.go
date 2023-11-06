@@ -149,7 +149,7 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
+func (t transfer) trans(from types.AccountId, to types.AccountId, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
 		return nil
 	}
@@ -163,7 +163,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 		return result.Value.(types.DispatchError)
 	}
 
-	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from.FixedSequence, to.FixedSequence, value))
+	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from, to, value))
 	return nil
 }
 
@@ -174,7 +174,7 @@ func (t transfer) trans(from types.Address32, to types.Address32, value sc.U128,
 // `fromAccount` can withdraw `value`
 // the existence requirements for `fromAccount`
 // Updates the balances of `fromAccount` and `toAccount`.
-func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (t transfer) sanityChecks(from types.AccountId, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
 	fromFree, err := sc.CheckedSubU128(fromAccount.Free, value)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
@@ -240,8 +240,8 @@ func (t transfer) sanityChecks(from types.Address32, fromAccount *types.AccountD
 	return sc.Result[sc.Encodable]{}
 }
 
-func (t transfer) reducibleBalance(who types.Address32, keepAlive bool) (types.Balance, error) {
-	account, err := t.storedMap.Get(who.FixedSequence)
+func (t transfer) reducibleBalance(who types.AccountId, keepAlive bool) (types.Balance, error) {
+	account, err := t.storedMap.Get(who)
 	if err != nil {
 		return types.Balance{}, err
 	}

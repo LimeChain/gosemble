@@ -36,7 +36,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_AccountNonce(t *testing.T) {
 	target := setup()
 
-	publicKey := constants.OneAddress.FixedSequence
+	publicKey := constants.OneAddressAccountId
 	nonce := sc.U32(5)
 	accountInfo := types.AccountInfo{
 		Nonce: nonce,

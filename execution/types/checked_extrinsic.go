@@ -16,13 +16,13 @@ import (
 type checkedExtrinsic struct {
 	// Who this purports to be from and the number of extrinsics have come before
 	// from the same signer, if anyone (note this is not a signature).
-	signer        sc.Option[primitives.Address32]
+	signer        sc.Option[primitives.AccountId]
 	function      primitives.Call
 	extra         primitives.SignedExtra
 	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
 }
 
-func NewCheckedExtrinsic(signer sc.Option[primitives.Address32], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
+func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
 	return checkedExtrinsic{
 		signer:        signer,
 		function:      function,
@@ -37,7 +37,7 @@ func (c checkedExtrinsic) Function() primitives.Call {
 
 func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
 	var (
-		maybeWho sc.Option[primitives.Address32]
+		maybeWho sc.Option[primitives.AccountId]
 		maybePre sc.Option[sc.Sequence[primitives.Pre]]
 	)
 
@@ -47,7 +47,7 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		if err != nil {
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
-		maybeWho, maybePre = sc.NewOption[primitives.Address32](id), sc.NewOption[sc.Sequence[primitives.Pre]](pre)
+		maybeWho, maybePre = sc.NewOption[primitives.AccountId](id), sc.NewOption[sc.Sequence[primitives.Pre]](pre)
 	} else {
 		// Do any pre-flight stuff for an unsigned transaction.
 		//
@@ -67,7 +67,7 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
 		}
 
-		maybeWho, maybePre = sc.NewOption[primitives.Address32](nil), sc.NewOption[sc.Sequence[primitives.Pre]](nil)
+		maybeWho, maybePre = sc.NewOption[primitives.AccountId](nil), sc.NewOption[sc.Sequence[primitives.Pre]](nil)
 	}
 
 	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
@@ -122,7 +122,7 @@ func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, sourc
 	return valid.CombineWith(unsignedValidation), nil
 }
 
-func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.Address32]) (primitives.PostDispatchInfo, primitives.DispatchError) {
+func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId]) (primitives.PostDispatchInfo, primitives.DispatchError) {
 	resWithInfo := c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
 
 	if resWithInfo.HasError {

@@ -18,7 +18,7 @@ var (
 	txTip       = sc.NewU128(10)
 	txFee       = sc.NewU128(10)
 	txImbalance = sc.NewOption[types.Balance](sc.NewU128(0))
-	whoAddr     = constants.ZeroAddress
+	whoAddr     = constants.ZeroAddressAccountId
 	postResult  = types.DispatchResult{}
 
 	info = types.DispatchInfo{

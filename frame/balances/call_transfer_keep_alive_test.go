@@ -103,33 +103,33 @@ func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
 
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			targetValue,
 		),
 	).Return()
 
-	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddress32), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
+	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddress.AsAccountId()), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			targetValue,
 		),
 	)
@@ -165,7 +165,7 @@ func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 
 	result := target.
 		Dispatch(
-			primitives.NewRawOriginSigned(fromAddress32),
+			primitives.NewRawOriginSigned(fromAddress.AsAccountId()),
 			sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
 		)
 

@@ -29,7 +29,7 @@ var (
 )
 
 type storage struct {
-	Account            support.StorageMap[types.PublicKey, types.AccountInfo]
+	Account            support.StorageMap[types.AccountId, types.AccountInfo]
 	BlockWeight        support.StorageValue[types.ConsumedWeight]
 	BlockHash          support.StorageMap[sc.U64, types.Blake2bHash]
 	BlockNumber        support.StorageValue[sc.U64]
@@ -50,7 +50,7 @@ func newStorage() *storage {
 	hashing := io.NewHashing()
 
 	return &storage{
-		Account:            support.NewHashStorageMap[types.PublicKey, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
+		Account:            support.NewHashStorageMap[types.AccountId, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
 		BlockWeight:        support.NewHashStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),
 		BlockHash:          support.NewHashStorageMap[sc.U64, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
 		BlockNumber:        support.NewHashStorageValue(keySystem, keyNumber, sc.DecodeU64),

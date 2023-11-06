@@ -11,7 +11,7 @@ type OnChargeTransaction struct {
 	mock.Mock
 }
 
-func (ct *OnChargeTransaction) CorrectAndDepositFee(who primitives.Address32, correctedFee types.Balance, tip types.Balance, alreadyWithdrawn sc.Option[types.Balance]) types.TransactionValidityError {
+func (ct *OnChargeTransaction) CorrectAndDepositFee(who primitives.AccountId, correctedFee types.Balance, tip types.Balance, alreadyWithdrawn sc.Option[types.Balance]) types.TransactionValidityError {
 	args := ct.Called(who, correctedFee, tip, alreadyWithdrawn)
 
 	if args.Get(0) == nil {
@@ -21,7 +21,7 @@ func (ct *OnChargeTransaction) CorrectAndDepositFee(who primitives.Address32, co
 	return args.Get(0).(types.TransactionValidityError)
 }
 
-func (ct *OnChargeTransaction) WithdrawFee(who primitives.Address32, call primitives.Call, info *types.DispatchInfo, fee types.Balance, tip types.Balance) (
+func (ct *OnChargeTransaction) WithdrawFee(who primitives.AccountId, call primitives.Call, info *types.DispatchInfo, fee types.Balance, tip types.Balance) (
 	sc.Option[types.Balance], types.TransactionValidityError) {
 
 	args := ct.Called(who, call, info, fee, tip)

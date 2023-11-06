@@ -10,7 +10,7 @@ import (
 
 var (
 	bytesAddress, _ = hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
-	address, _      = NewAddress32(sc.BytesToSequenceU8(bytesAddress)...)
+	address         = AccountId{Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(bytesAddress)...)}
 
 	signedOrigin = NewRawOriginSigned(address)
 )
@@ -34,7 +34,7 @@ func Test_NewRawOriginNone(t *testing.T) {
 }
 
 func Test_RawOriginFrom(t *testing.T) {
-	option := sc.NewOption[Address32](address)
+	option := sc.NewOption[AccountId](address)
 
 	result := RawOriginFrom(option)
 
@@ -42,7 +42,7 @@ func Test_RawOriginFrom(t *testing.T) {
 }
 
 func Test_RawOriginFrom_Empty(t *testing.T) {
-	option := sc.NewOption[Address32](nil)
+	option := sc.NewOption[AccountId](nil)
 
 	result := RawOriginFrom(option)
 

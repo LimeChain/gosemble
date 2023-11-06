@@ -79,7 +79,7 @@ func Test_Module_Authorities_Success(t *testing.T) {
 	setup()
 	expectAuthorites := sc.Sequence[primitives.Authority]{
 		{
-			Id:     constants.ZeroAddress.FixedSequence,
+			Id:     constants.ZeroAddressAccountId,
 			Weight: 5,
 		},
 	}
@@ -103,7 +103,7 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 		Version: sc.U8(255),
 		AuthorityList: sc.Sequence[primitives.Authority]{
 			{
-				Id:     constants.ZeroAddress.FixedSequence,
+				Id:     constants.ZeroAddressAccountId,
 				Weight: sc.U64(64),
 			},
 		},

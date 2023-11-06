@@ -101,43 +101,42 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
-	mockStoredMap.On("Get", fromAddress32.FixedSequence).Return(accountInfo, nil)
-	mockStoredMap.On("CanDecProviders", fromAddress32).Return(true, nil)
+	mockStoredMap.On("Get", fromAddress.AsAccountId()).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAccountId()).Return(true, nil)
 	mockMutator.On("tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.
-				FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			accountInfo.Data.Free.Sub(sc.NewU128(1)),
 		),
 	).
 		Return()
 
 	result := target.Dispatch(
-		primitives.NewRawOriginSigned(fromAddress32),
+		primitives.NewRawOriginSigned(fromAddress.AsAccountId()),
 		sc.NewVaryingData(toAddress, sc.Bool(true)),
 	)
 
 	assert.Equal(t, expect, result)
-	mockStoredMap.AssertCalled(t, "Get", fromAddress32.FixedSequence)
-	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress32)
+	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAccountId())
+	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAccountId())
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			accountInfo.Data.Free.Sub(sc.NewU128(1)),
 		),
 	)
@@ -172,17 +171,17 @@ func Test_Call_TransferAll_Dispatch_CannotLookup(t *testing.T) {
 			Error: primitives.NewDispatchErrorCannotLookup(),
 		},
 	}
-	mockStoredMap.On("Get", fromAddress32.FixedSequence).Return(accountInfo, nil)
-	mockStoredMap.On("CanDecProviders", fromAddress32).Return(true, nil)
+	mockStoredMap.On("Get", fromAddress.AsAccountId()).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAccountId()).Return(true, nil)
 
 	result := target.Dispatch(
-		primitives.NewRawOriginSigned(fromAddress32),
+		primitives.NewRawOriginSigned(fromAddress.AsAccountId()),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.Bool(true)),
 	)
 
 	assert.Equal(t, expect, result)
-	mockStoredMap.AssertCalled(t, "Get", fromAddress32.FixedSequence)
-	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress32)
+	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAccountId())
+	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAccountId())
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
@@ -194,41 +193,41 @@ func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
-	mockStoredMap.On("Get", fromAddress32.FixedSequence).Return(accountInfo, nil)
-	mockStoredMap.On("CanDecProviders", fromAddress32).Return(true, nil)
+	mockStoredMap.On("Get", fromAddress.AsAccountId()).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", fromAddress.AsAccountId()).Return(true, nil)
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			accountInfo.Data.Free,
 		),
 	).Return()
 
 	result := target.Dispatch(
-		primitives.NewRawOriginSigned(fromAddress32),
+		primitives.NewRawOriginSigned(fromAddress.AsAccountId()),
 		sc.NewVaryingData(toAddress, sc.Bool(false)))
 
 	assert.Equal(t, expect, result)
-	mockStoredMap.AssertCalled(t, "Get", fromAddress32.FixedSequence)
-	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress32)
+	mockStoredMap.AssertCalled(t, "Get", fromAddress.AsAccountId())
+	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddress.AsAccountId())
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddress.AsAccountId(),
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddress.AsAccountId(),
+			toAddress.AsAccountId(),
 			accountInfo.Data.Free,
 		),
 	)

@@ -40,8 +40,8 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
+func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
 		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
@@ -80,8 +80,8 @@ func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.Di
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
-	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
+func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
 		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
@@ -100,7 +100,7 @@ func (cn CheckNonce) PreDispatch(who primitives.Address32, call primitives.Call,
 	}
 
 	account.Nonce = account.Nonce + 1
-	cn.systemModule.StorageAccountSet(who.FixedSequence, account)
+	cn.systemModule.StorageAccountSet(who, account)
 
 	return primitives.Pre{}, nil
 }

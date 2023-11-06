@@ -11,7 +11,7 @@ import (
 
 func Test_DecodeEvent(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := NewEventTransactionFeePaid(moduleId, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := NewEventTransactionFeePaid(moduleId, who, sc.NewU128(7), sc.NewU128(1))
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
@@ -23,7 +23,7 @@ func Test_DecodeEvent(t *testing.T) {
 
 func Test_DecodeEvent_ModuleIndexError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := NewEventTransactionFeePaid(moduleId, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := NewEventTransactionFeePaid(moduleId, who, sc.NewU128(7), sc.NewU128(1))
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
@@ -34,7 +34,7 @@ func Test_DecodeEvent_ModuleIndexError(t *testing.T) {
 
 func Test_DecodeEvent_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := types.NewEvent(moduleId, 99, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := types.NewEvent(moduleId, 99, who, sc.NewU128(7), sc.NewU128(1))
 
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)

@@ -175,15 +175,10 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 			Drop()
 	}
 
-	address32, addressErr := who.AsAddress32()
-	if addressErr != nil {
-		log.Critical(addressErr.Error())
-	}
-
 	c.storedMap.DepositEvent(
 		newEventBalanceSet(
 			c.ModuleId,
-			address32.FixedSequence,
+			who.AsAccountId(),
 			newFree,
 			newReserved,
 		),

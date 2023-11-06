@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	signerOption = sc.NewOption[types.Address32](constants.OneAddress)
-	emptySigner  = sc.NewOption[types.Address32](nil)
+	signerOption = sc.NewOption[types.AccountId](constants.ZeroAddressAccountId)
+	emptySigner  = sc.NewOption[types.AccountId](nil)
 
 	txSource     = types.NewTransactionSourceExternal()
 	dispatchInfo = &types.DispatchInfo{
@@ -467,7 +467,7 @@ func Test_CheckedExtrinsic_dispatch_Fails(t *testing.T) {
 	mockCall.AssertCalled(t, "Dispatch", types.RawOriginFrom(signerOption), args)
 }
 
-func setupCheckedExtrinsic(signer sc.Option[types.Address32]) checkedExtrinsic {
+func setupCheckedExtrinsic(signer sc.Option[types.AccountId]) checkedExtrinsic {
 	mockCall = new(mocks.Call)
 	mockSignedExtra = new(mocks.SignedExtra)
 	mockTransactional = new(mocks.IoTransactional[types.PostDispatchInfo, types.DispatchError])

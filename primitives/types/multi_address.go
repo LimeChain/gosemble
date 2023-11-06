@@ -7,19 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// AccountId It's an account ID (pubkey).
-type AccountId struct {
-	Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
-}
-
-func DecodeAccountId(buffer *bytes.Buffer) (AccountId, error) {
-	addr32, err := DecodeAddress32(buffer)
-	if err != nil {
-		return AccountId{}, err
-	}
-	return AccountId{addr32}, nil // TODO: length 32 or 33 depending on algorithm
-}
-
 // AccountIndex It's an account index.
 type AccountIndex = sc.U32
 

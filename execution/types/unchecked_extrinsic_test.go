@@ -30,8 +30,8 @@ var (
 	signerAddressBytes = []byte{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
-	signerAddress, _ = types.NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
-	signer           = types.NewMultiAddressId(types.AccountId{Address32: signerAddress})
+	signerAddress = types.AccountId{Ed25519Signer: types.NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)}
+	signer        = types.NewMultiAddressId(signerAddress)
 
 	signatureBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -219,7 +219,7 @@ func Test_IsSigned(t *testing.T) {
 
 func Test_Check_UnsignedUncheckedExtrinsic(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.Address32](nil), mockCall, types.SignedExtra(nil)).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](nil), mockCall, types.SignedExtra(nil)).(checkedExtrinsic)
 
 	result, err := targetUnsigned.Check()
 
@@ -295,7 +295,7 @@ func Test_Check_SignedUncheckedExtrinsic_LongEncoding_BadProofError(t *testing.T
 
 func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.Address32](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -315,7 +315,7 @@ func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 
 func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	setup(signatureSr25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.Address32](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)

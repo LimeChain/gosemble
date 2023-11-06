@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	dustCleanerAccount  = constants.ZeroAddress
+	dustCleanerAccount  = constants.ZeroAddressAccountId
 	expectedDustCleaner = dustCleaner{
 		accountId: dustCleanerAccount,
 		negativeImbalance: sc.NewOption[negativeImbalance](negativeImbalance{
@@ -63,7 +63,7 @@ func Test_DustCleanerValue_New(t *testing.T) {
 	target := setupDustCleanerValue()
 	expected := dustCleaner{
 		moduleIndex: moduleId,
-		accountId:   constants.ZeroAddress,
+		accountId:   constants.ZeroAddressAccountId,
 		negativeImbalance: sc.NewOption[negativeImbalance](negativeImbalance{
 			Balance:       issuanceBalance,
 			totalIssuance: mockStorageTotalIssuance,
@@ -91,7 +91,7 @@ func Test_DustCleanerValue_Bytes(t *testing.T) {
 }
 
 func Test_DustCleanerValue_Drop(t *testing.T) {
-	expectedEvent := newEventDustLost(moduleId, dustCleanerAccount.FixedSequence, issuanceBalance)
+	expectedEvent := newEventDustLost(moduleId, dustCleanerAccount, issuanceBalance)
 	target := setupDustCleanerValue()
 	mockEventDepositor.On("DepositEvent", expectedEvent).Return()
 	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5))

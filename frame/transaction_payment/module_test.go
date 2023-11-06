@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	who = constants.ZeroAddress
+	who = constants.ZeroAddressAccountId
 
 	weightToFee types.WeightToFee = types.IdentityFee{}
 	lengthToFee types.WeightToFee = types.IdentityFee{}

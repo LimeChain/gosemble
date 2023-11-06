@@ -169,24 +169,24 @@ func Test_EnsureSignedOrRoot_Root(t *testing.T) {
 	r, err := EnsureSignedOrRoot(primitives.NewRawOriginRoot())
 
 	assert.Nil(t, err)
-	assert.Equal(t, sc.NewOption[primitives.Address32](nil), r)
+	assert.Equal(t, sc.NewOption[primitives.AccountId](nil), r)
 }
 
 func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
 	slice := make([]sc.U8, 32)
 	seq := sc.NewFixedSequence[sc.U8](32, slice...)
-	address, e := primitives.NewAddress32(seq...)
-	assert.Nil(t, e)
+	address := primitives.NewEd25519Signer(seq...)
+	signer := primitives.AccountId{Ed25519Signer: address}
 
-	r, err := EnsureSignedOrRoot(primitives.NewRawOriginSigned(address))
+	r, err := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
 
 	assert.Nil(t, err)
-	assert.Equal(t, sc.NewOption[primitives.Address32](address), r)
+	assert.Equal(t, sc.NewOption[primitives.AccountId](signer), r)
 }
 
 func Test_EnsureSignedOrRoot_BadOrigin(t *testing.T) {
 	r, err := EnsureSignedOrRoot(primitives.NewRawOriginNone())
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), err)
-	assert.Equal(t, sc.NewOption[primitives.Address32](nil), r)
+	assert.Equal(t, sc.NewOption[primitives.AccountId](nil), r)
 }

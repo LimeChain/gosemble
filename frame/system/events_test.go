@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	targetAccount = constants.OneAddress
+	targetAccount = constants.OneAddressAccountId
 )
 
 func Test_System_DecodeEvent_ExtrinsicSuccess(t *testing.T) {
@@ -80,7 +80,7 @@ func Test_System_DecodeEvent_NewAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventNewAccount, targetAccount.FixedSequence),
+		sc.NewVaryingData(sc.U8(moduleId), EventNewAccount, targetAccount),
 		result,
 	)
 }
@@ -95,7 +95,7 @@ func Test_System_DecodeEvent_KilledAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventKilledAccount, targetAccount.FixedSequence),
+		sc.NewVaryingData(sc.U8(moduleId), EventKilledAccount, targetAccount),
 		result,
 	)
 }
@@ -115,7 +115,7 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventRemarked, targetAccount.FixedSequence, hash),
+		sc.NewVaryingData(sc.U8(moduleId), EventRemarked, targetAccount, hash),
 		result,
 	)
 }
