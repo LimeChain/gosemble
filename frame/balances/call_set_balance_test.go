@@ -120,13 +120,16 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
 	}
 
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).
 		Return(mockResult)
-	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved))
+	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
 	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, sc.ToCompact(newFree), sc.ToCompact(newReserved)))
 
@@ -135,12 +138,12 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved),
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved),
 	)
 }
 
@@ -190,9 +193,12 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 		Value: sc.NewVaryingData(oldFree, oldReserved),
 	}
 
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1)) // positive imbalance
@@ -202,14 +208,14 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 		Return().Once() // newReserved positive imbalance
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved))
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Get", 2)
@@ -218,7 +224,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 	mockStorageTotalIssuance.AssertCalled(t, "Put", newReserved.Sub(oldReserved).Add(sc.NewU128(1)))
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved),
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved),
 	)
 }
 
@@ -230,14 +236,17 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
 	}
 
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved))
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
@@ -246,12 +255,12 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved),
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved),
 	)
 }
 
@@ -263,22 +272,25 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 		Value: sc.NewVaryingData(oldFree, oldReserved),
 	}
 
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On("tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 	mockStorageTotalIssuance.On("Get").Return(oldReserved.Add(oldFree)).Once() // newFree negative imbalance
 	mockStorageTotalIssuance.On("Put", oldFree).Return().Once()                // newFree negative imbalance
 	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(4)).Once()            // newReserved negative imbalance
 	mockStorageTotalIssuance.On("Put", sc.NewU128(2)).Return().Once()          // newReserved negative imbalance
-	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved))
+	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNumberOfCalls(t, "Get", 2)
@@ -287,7 +299,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	mockStorageTotalIssuance.AssertCalled(t, "Put", sc.NewU128(2))
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventBalanceSet(moduleId, targetAddress.AsAccountId(), newFree, newReserved),
+		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved),
 	)
 }
 
@@ -323,9 +335,13 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 		HasError: true,
 		Value:    err,
 	}
+
+	targetAddressAccId, errAccId := targetAddress.AsAccountId()
+	assert.Nil(t, errAccId)
+
 	mockMutator.On(
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
 
@@ -334,7 +350,7 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	assert.Equal(t, err, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
-		targetAddress.AsAccountId(),
+		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")

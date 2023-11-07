@@ -79,7 +79,7 @@ func Test_RawOriginRoot_AsSigned_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
-	assert.Equal(t, Address32{}, address)
+	assert.Equal(t, AccountId{}, address)
 }
 
 func Test_RawOriginNone_AsSigned_TypeError(t *testing.T) {
@@ -87,5 +87,5 @@ func Test_RawOriginNone_AsSigned_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
-	assert.Equal(t, Address32{}, address)
+	assert.Equal(t, AccountId{}, address)
 }

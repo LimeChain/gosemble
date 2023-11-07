@@ -118,8 +118,11 @@ func Test_Call_Transfer_Dispatch_Success(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	result := target.
-		Dispatch(primitives.NewRawOriginSigned(fromAddress.AsAccountId()), sc.NewVaryingData(fromAddress, sc.ToCompact(targetValue)))
+		Dispatch(primitives.NewRawOriginSigned(fromAddressId), sc.NewVaryingData(fromAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, expected, result)
 }
@@ -147,8 +150,11 @@ func Test_Call_Transfer_Dispatch_CannotLookup(t *testing.T) {
 		},
 	}
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	result := target.Dispatch(
-		primitives.NewRawOriginSigned(fromAddress.AsAccountId()),
+		primitives.NewRawOriginSigned(fromAddressId),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
 	)
 
@@ -170,7 +176,10 @@ func Test_transfer_New(t *testing.T) {
 func Test_transfer_Success(t *testing.T) {
 	target := setupTransfer()
 
-	result := target.transfer(primitives.NewRawOriginSigned(fromAddress.AsAccountId()), fromAddress, targetValue)
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.transfer(primitives.NewRawOriginSigned(fromAddressId), fromAddress, targetValue)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 }
@@ -186,8 +195,11 @@ func Test_transfer_InvalidOrigin(t *testing.T) {
 func Test_transfer_InvalidLookup(t *testing.T) {
 	target := setupTransfer()
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	result := target.
-		transfer(primitives.NewRawOriginSigned(fromAddress.AsAccountId()), primitives.NewMultiAddress20(primitives.Address20{}), targetValue)
+		transfer(primitives.NewRawOriginSigned(fromAddressId), primitives.NewMultiAddress20(primitives.Address20{}), targetValue)
 
 	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
 }
@@ -195,34 +207,46 @@ func Test_transfer_InvalidLookup(t *testing.T) {
 func Test_transfer_trans_Success(t *testing.T) {
 	target := setupTransfer()
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress.AsAccountId(),
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAccountId(), toAddress.AsAccountId(), targetValue),
+		newEventTransfer(moduleId, fromAddressId, toAddressId, targetValue),
 	).Return()
 
-	result := target.trans(fromAddress.AsAccountId(), toAddress.AsAccountId(), targetValue, primitives.ExistenceRequirementKeepAlive)
+	result := target.trans(fromAddressId, toAddressId, targetValue, primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress.AsAccountId(),
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAccountId(), toAddress.AsAccountId(), targetValue),
+		newEventTransfer(moduleId, fromAddressId, toAddressId, targetValue),
 	)
 }
 
 func Test_transfer_trans_ZeroValue(t *testing.T) {
 	target := setupTransfer()
 
-	result := target.trans(fromAddress.AsAccountId(), toAddress.AsAccountId(), sc.NewU128(0), primitives.ExistenceRequirementAllowDeath)
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.trans(fromAddressId, toAddressId, sc.NewU128(0), primitives.ExistenceRequirementAllowDeath)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
@@ -232,7 +256,10 @@ func Test_transfer_trans_ZeroValue(t *testing.T) {
 func Test_transfer_trans_EqualFromTo(t *testing.T) {
 	target := setupTransfer()
 
-	result := target.trans(fromAddress.AsAccountId(), fromAddress.AsAccountId(), targetValue, primitives.ExistenceRequirementAllowDeath)
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.trans(fromAddressId, fromAddressId, targetValue, primitives.ExistenceRequirementAllowDeath)
 
 	assert.Equal(t, sc.VaryingData(nil), result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
@@ -247,18 +274,24 @@ func Test_transfer_trans_MutateAccountWithDust_Fails(t *testing.T) {
 		Value:    expectdError,
 	}
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress.AsAccountId(),
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	).Return(error)
 
-	result := target.trans(fromAddress.AsAccountId(), toAddress.AsAccountId(), targetValue, primitives.ExistenceRequirementKeepAlive)
+	result := target.trans(fromAddressId, toAddressId, targetValue, primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, expectdError, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress.AsAccountId(),
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -268,16 +301,19 @@ func Test_transfer_sanityChecks_Success(t *testing.T) {
 	target := setupTransfer()
 	expected := sc.Result[sc.Encodable]{}
 
-	mockMutator.On("ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAccountId()).Return(true, nil)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
+	mockMutator.On("ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
+	mockStoredMap.On("CanDecProviders", targetAddressId).Return(true, nil)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(0), fromAccountData.Free)
 	assert.Equal(t, sc.NewU128(6), toAccountData.Free)
-	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0))
-	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddress.AsAccountId())
+	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0))
+	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }
 
 func Test_transfer_sanityChecks_InsufficientBalance(t *testing.T) {
@@ -291,7 +327,10 @@ func Test_transfer_sanityChecks_InsufficientBalance(t *testing.T) {
 		}),
 	}
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, sc.NewU128(6), primitives.ExistenceRequirementKeepAlive)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, sc.NewU128(6), primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(5), fromAccountData.Free)
@@ -308,7 +347,10 @@ func Test_transfer_sanityChecks_ArithmeticOverflow(t *testing.T) {
 	}
 	toAccountData.Free = sc.MaxU128()
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, sc.NewU128(1), primitives.ExistenceRequirementKeepAlive)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, sc.NewU128(1), primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(4), fromAccountData.Free)
@@ -329,7 +371,10 @@ func Test_transfer_sanityChecks_ExistentialDeposit(t *testing.T) {
 	}
 	toAccountData.Free = sc.NewU128(0)
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, sc.NewU128(0), primitives.ExistenceRequirementKeepAlive)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, sc.NewU128(0), primitives.ExistenceRequirementKeepAlive)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(5), fromAccountData.Free)
@@ -345,14 +390,18 @@ func Test_transfer_sanityChecks_CannotWithdraw(t *testing.T) {
 		HasError: true,
 		Value:    expectedError,
 	}
-	mockMutator.On("ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(expectedError)
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	mockMutator.On("ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(expectedError)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(0), fromAccountData.Free)
 	assert.Equal(t, sc.NewU128(6), toAccountData.Free)
-	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0))
+	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0))
 }
 
 func Test_transfer_sanityChecks_KeepAlive(t *testing.T) {
@@ -365,42 +414,54 @@ func Test_transfer_sanityChecks_KeepAlive(t *testing.T) {
 			Message: sc.NewOption[sc.Str](nil),
 		}),
 	}
-	mockMutator.On("ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAccountId()).Return(false, nil)
 
-	result := target.sanityChecks(targetAddress.AsAccountId(), fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	mockMutator.On("ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(sc.VaryingData(nil))
+	mockStoredMap.On("CanDecProviders", targetAddressId).Return(false, nil)
+
+	result := target.sanityChecks(targetAddressId, fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
 
 	assert.Equal(t, expected, result)
 	assert.Equal(t, sc.NewU128(0), fromAccountData.Free)
 	assert.Equal(t, sc.NewU128(6), toAccountData.Free)
-	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddress.AsAccountId(), targetValue, primitives.ReasonsAll, sc.NewU128(0))
-	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddress.AsAccountId())
+	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0))
+	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }
 
 func Test_transfer_reducibleBalance_NotKeepAlive(t *testing.T) {
 	target := setupTransfer()
-	mockStoredMap.On("Get", targetAddress.AsAccountId()).Return(accountInfo, nil)
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAccountId()).Return(true, nil)
 
-	result, err := target.reducibleBalance(targetAddress.AsAccountId(), false)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	mockStoredMap.On("Get", targetAddressId).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", targetAddressId).Return(true, nil)
+
+	result, err := target.reducibleBalance(targetAddressId, false)
 	assert.Nil(t, err)
 
 	assert.Equal(t, accountInfo.Data.Free, result)
-	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAccountId())
-	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddress.AsAccountId())
+	mockStoredMap.AssertCalled(t, "Get", targetAddressId)
+	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }
 
 func Test_transfer_reducibleBalance_KeepAlive(t *testing.T) {
 	target := setupTransfer()
-	mockStoredMap.On("Get", targetAddress.AsAccountId()).Return(accountInfo, nil)
-	mockStoredMap.On("CanDecProviders", targetAddress.AsAccountId()).Return(false, nil)
 
-	result, err := target.reducibleBalance(targetAddress.AsAccountId(), true)
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	mockStoredMap.On("Get", targetAddressId).Return(accountInfo, nil)
+	mockStoredMap.On("CanDecProviders", targetAddressId).Return(false, nil)
+
+	result, err := target.reducibleBalance(targetAddressId, true)
 	assert.Nil(t, err)
 
 	assert.Equal(t, accountInfo.Data.Free.Sub(existentialDeposit), result)
-	mockStoredMap.AssertCalled(t, "Get", targetAddress.AsAccountId())
-	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddress.AsAccountId())
+	mockStoredMap.AssertCalled(t, "Get", targetAddressId)
+	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }
 
 func setupCallTransfer() callTransfer {

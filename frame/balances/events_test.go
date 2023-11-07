@@ -11,58 +11,72 @@ import (
 )
 
 func Test_Balances_DecodeEvent_Endowed(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventEndowed.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventEndowed, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventEndowed, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_DustLost(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventDustLost.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventDustLost, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventDustLost, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Transfer(t *testing.T) {
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressAccountId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventTransfer.Bytes())
-	buffer.Write(fromAddress.AsAccountId().Bytes())
-	buffer.Write(toAddress.AsAccountId().Bytes())
+	buffer.Write(fromAddressId.Bytes())
+	buffer.Write(toAddressAccountId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, _ := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventTransfer, fromAddress.AsAccountId(), toAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventTransfer, fromAddressId, toAddressAccountId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_BalanceSet(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventBalanceSet.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(newFree.Bytes())
 	buffer.Write(newReserved.Bytes())
 
@@ -70,49 +84,59 @@ func Test_Balances_DecodeEvent_BalanceSet(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventBalanceSet, targetAddress.AsAccountId(), newFree, newReserved),
+		sc.NewVaryingData(sc.U8(moduleId), EventBalanceSet, targetAddressId, newFree, newReserved),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Reserved(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventReserved.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventReserved, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventReserved, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Unreserved(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventUnreserved.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventUnreserved, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventUnreserved, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+	toAddressAccountId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventReserveRepatriated.Bytes())
-	buffer.Write(fromAddress.AsAccountId().Bytes())
-	buffer.Write(toAddress.AsAccountId().Bytes())
+	buffer.Write(fromAddressId.Bytes())
+	buffer.Write(toAddressAccountId.Bytes())
 	buffer.Write(targetValue.Bytes())
 	buffer.Write(types.BalanceStatusFree.Bytes())
 
@@ -123,57 +147,66 @@ func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
 		sc.NewVaryingData(
 			sc.U8(moduleId),
 			EventReserveRepatriated,
-			fromAddress.AsAccountId(),
-			toAddress.AsAccountId(),
+			fromAddressId,
+			toAddressAccountId,
 			targetValue, types.BalanceStatusFree),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Deposit(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventDeposit.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventDeposit, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventDeposit, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Withdraw(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventWithdraw.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventWithdraw, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventWithdraw, targetAddressId, targetValue),
 		result,
 	)
 }
 
 func Test_Balances_DecodeEvent_Slashed(t *testing.T) {
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventSlashed.Bytes())
-	buffer.Write(targetAddress.AsAccountId().Bytes())
+	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
 	result, err := DecodeEvent[primitives.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventSlashed, targetAddress.AsAccountId(), targetValue),
+		sc.NewVaryingData(sc.U8(moduleId), EventSlashed, targetAddressId, targetValue),
 		result,
 	)
 }

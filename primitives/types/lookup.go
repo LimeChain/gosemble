@@ -26,7 +26,7 @@ func lookupAddress(a MultiAddress) (sc.Option[AccountId], error) {
 	if a.IsAccountIndex() {
 		index, err := a.AsAccountIndex()
 		if err != nil {
-			return sc.NewOption[Address32](nil), err
+			return sc.NewOption[AccountId](nil), err
 		}
 		return lookupIndex(index), nil
 	}
