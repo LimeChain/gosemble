@@ -8,8 +8,8 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 )
 
-const (
-	errInvalidTransactionValidityErrorType = "invalid TransactionValidityError type"
+var (
+	errInvalidTransactionValidityErrorType = newTypeError("TransactionValidityError")
 )
 
 const (
@@ -20,16 +20,15 @@ const (
 // TransactionValidityError Errors that can occur while checking the validity of a transaction.
 type TransactionValidityError sc.VaryingData
 
-func NewTransactionValidityError(value sc.Encodable) TransactionValidityError {
+func NewTransactionValidityError(value sc.Encodable) (TransactionValidityError, error) {
 	// InvalidTransaction = 0 - Transaction is invalid.
 	// UnknownTransaction = 1 - Transaction validity can’t be determined.
 	switch value.(type) {
 	case InvalidTransaction, UnknownTransaction:
 	default:
-		log.Critical(errInvalidTransactionValidityErrorType)
+		return TransactionValidityError{}, errInvalidTransactionValidityErrorType
 	}
-
-	return TransactionValidityError(sc.NewVaryingData(value))
+	return TransactionValidityError(sc.NewVaryingData(value)), nil
 }
 
 func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
@@ -41,7 +40,7 @@ func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
 	case reflect.TypeOf(*new(UnknownTransaction)):
 		TransactionValidityErrorUnknownTransaction.Encode(buffer)
 	default:
-		log.Critical(errInvalidTransactionValidityErrorType)
+		log.Critical(errInvalidTransactionValidityErrorType.Error())
 	}
 
 	value.Encode(buffer)
@@ -59,18 +58,16 @@ func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityEr
 		if err != nil {
 			return TransactionValidityError{}, err
 		}
-		return NewTransactionValidityError(value), nil
+		return NewTransactionValidityError(value)
 	case TransactionValidityErrorUnknownTransaction:
 		value, err := DecodeUnknownTransaction(buffer)
 		if err != nil {
 			return TransactionValidityError{}, err
 		}
-		return NewTransactionValidityError(value), nil
+		return NewTransactionValidityError(value)
 	default:
-		log.Critical(errInvalidTransactionValidityErrorType)
+		return TransactionValidityError{}, errInvalidTransactionValidityErrorType
 	}
-
-	panic("unreachable")
 }
 
 func (e TransactionValidityError) Bytes() []byte {

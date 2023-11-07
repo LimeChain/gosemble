@@ -37,7 +37,7 @@ func Test_DecodePostDispatchInfo(t *testing.T) {
 	buffer := bytes.NewBuffer(expectBytesPostDispatchInfo)
 
 	result, err := DecodePostDispatchInfo(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, postDispatchInfo, result)
 }

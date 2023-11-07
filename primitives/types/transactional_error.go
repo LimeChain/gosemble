@@ -3,8 +3,6 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/log"
-
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -37,8 +35,6 @@ func DecodeTransactionalError(buffer *bytes.Buffer) (TransactionalError, error) 
 	case TransactionalErrorNoLayer:
 		return NewTransactionalErrorNoLayer(), nil
 	default:
-		log.Critical("invalid TransactionalError type")
+		return nil, newTypeError("TransactionalError")
 	}
-
-	panic("unreachable")
 }

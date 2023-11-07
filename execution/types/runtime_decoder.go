@@ -104,11 +104,9 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, erro
 		return nil, err
 	}
 
-	module, ok := primitives.GetModule(moduleIndex, rd.modules)
-	if !ok {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		// log.Critical(fmt.Sprintf("module with index [%d] not found", moduleIndex))
-		log.Critical("module with index [" + strconv.Itoa(int(moduleIndex)) + "] not found")
+	module, err := primitives.GetModule(moduleIndex, rd.modules)
+	if err != nil {
+		return nil, err
 	}
 
 	function, ok := module.Functions()[functionIndex]

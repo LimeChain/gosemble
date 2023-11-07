@@ -71,9 +71,15 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 
 	var res primitives.TransactionValidityResult
 	if errTx != nil {
-		res = primitives.NewTransactionValidityResult(errTx)
+		res, err = primitives.NewTransactionValidityResult(errTx)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	} else {
-		res = primitives.NewTransactionValidityResult(ok)
+		res, err = primitives.NewTransactionValidityResult(ok)
+		if err != nil {
+			log.Critical(err.Error())
+		}
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(res.Bytes())

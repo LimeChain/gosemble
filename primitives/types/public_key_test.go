@@ -15,7 +15,7 @@ func Test_DecodePublicKey(t *testing.T) {
 
 	buffer := bytes.NewBuffer(bytesPublicKey)
 	result, err := DecodePublicKey(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, expect, result)
 }

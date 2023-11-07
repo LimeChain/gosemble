@@ -2,7 +2,6 @@ package types
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -47,10 +46,9 @@ func (o RawOrigin) IsNoneOrigin() bool {
 	return o.VaryingData[0] == RawOriginNone
 }
 
-func (o RawOrigin) AsSigned() Address32 {
+func (o RawOrigin) AsSigned() (Address32, error) {
 	if !o.IsSignedOrigin() {
-		log.Critical("not a signed origin")
+		return Address32{}, newTypeError("RawOrigin")
 	}
-
-	return o.VaryingData[1].(Address32)
+	return o.VaryingData[1].(Address32), nil
 }

@@ -41,15 +41,25 @@ func Test_PerDispatchClass_Bytes(t *testing.T) {
 }
 
 func Test_PerDispatchClass_Get(t *testing.T) {
-	assert.Equal(t, sc.U8(1), *targetPerDispatchClass.Get(NewDispatchClassNormal()))
-	assert.Equal(t, sc.U8(2), *targetPerDispatchClass.Get(NewDispatchClassOperational()))
-	assert.Equal(t, sc.U8(3), *targetPerDispatchClass.Get(NewDispatchClassMandatory()))
+	normal, err := targetPerDispatchClass.Get(NewDispatchClassNormal())
+	assert.NoError(t, err)
+	assert.Equal(t, sc.U8(1), *normal)
+
+	operational, err := targetPerDispatchClass.Get(NewDispatchClassOperational())
+	assert.NoError(t, err)
+	assert.Equal(t, sc.U8(2), *operational)
+
+	mandatory, err := targetPerDispatchClass.Get(NewDispatchClassMandatory())
+	assert.NoError(t, err)
+	assert.Equal(t, sc.U8(3), *mandatory)
 }
 
-func Test_PerDispatchClass_Get_Panic(t *testing.T) {
+func Test_PerDispatchClass_Get_TypeError(t *testing.T) {
 	unknownDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
 
-	assert.PanicsWithValue(t, "invalid DispatchClass type", func() {
-		targetPerDispatchClass.Get(unknownDispatchClass)
-	})
+	result, err := targetPerDispatchClass.Get(unknownDispatchClass)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Nil(t, result)
 }

@@ -136,7 +136,6 @@ func initializeModules() []primitives.Module {
 }
 
 func newSignedExtra() primitives.SignedExtra {
-	modules := modules
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
 	txPaymentModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
@@ -159,7 +158,6 @@ func newSignedExtra() primitives.SignedExtra {
 }
 
 func runtimeApi() types.RuntimeApi {
-	modules := modules
 	extra := newSignedExtra()
 	decoder := types.NewRuntimeDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)

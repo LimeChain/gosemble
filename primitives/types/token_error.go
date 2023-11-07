@@ -3,8 +3,6 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/log"
-
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -51,7 +49,7 @@ func NewTokenErrorUnsupported() TokenError {
 func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return TokenError{}, err
+		return nil, err
 	}
 
 	switch b {
@@ -70,8 +68,6 @@ func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	case TokenErrorUnsupported:
 		return NewTokenErrorUnsupported(), nil
 	default:
-		log.Critical("invalid TokenError type")
+		return nil, newTypeError("TokenError")
 	}
-
-	panic("unreachable")
 }

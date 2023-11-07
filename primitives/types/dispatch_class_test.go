@@ -62,30 +62,33 @@ func Test_DecodeDispatchClass_Mandatory(t *testing.T) {
 	assert.Equal(t, targetDispatchClass, dispatchClass)
 }
 
-func Test_DecodeDispatchClass_Panic(t *testing.T) {
-	targetDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
-
+func Test_DecodeDispatchClass_TypeError(t *testing.T) {
 	buf := &bytes.Buffer{}
+	targetDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
 	targetDispatchClass.Encode(buf)
 
-	assert.PanicsWithValue(t, "invalid DispatchClass type", func() {
-		DecodeDispatchClass(buf)
-	})
+	result, err := DecodeDispatchClass(buf)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Equal(t, DispatchClass{}, result)
 }
 
-func Test_Is(t *testing.T) {
-	assert.Equal(t,
-		sc.Bool(true),
-		NewDispatchClassNormal().Is(DispatchClassNormal),
-	)
+func Test_DispatchClass_Is(t *testing.T) {
+	result, err := NewDispatchClassNormal().Is(DispatchClassNormal)
+
+	assert.NoError(t, err)
+	assert.Equal(t, sc.Bool(true), result)
 }
 
-func Test_Is_Panic(t *testing.T) {
+func Test_DispatchClass_Is_TypeError(t *testing.T) {
 	unknownDispatchClass := sc.U8(3)
 
-	assert.PanicsWithValue(t, "invalid DispatchClass value", func() {
-		NewDispatchClassNormal().Is(unknownDispatchClass)
-	})
+	result, err := NewDispatchClassNormal().Is(unknownDispatchClass)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Equal(t, sc.Bool(false), result)
 }
 
 func Test_DispatchClassAll(t *testing.T) {

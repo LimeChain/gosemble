@@ -79,7 +79,6 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 		return Metadata{}, err
 	}
 	if metaReserved != MetadataReserved {
-		log.Critical("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 		return Metadata{}, errors.New("metadata reserved mismatch: expect [" + strconv.Itoa(int(MetadataReserved)) + "], actual [" + strconv.Itoa(int(metaReserved)) + "]")
 	}
 
@@ -102,7 +101,6 @@ func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
 		}
 		return Metadata{Version: MetadataVersion15, DataV15: data}, nil
 	default:
-		log.Critical("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 		return Metadata{}, errors.New("metadata version mismatch: expect [" + strconv.Itoa(int(MetadataVersion14)) + "or" + strconv.Itoa(int(MetadataVersion15)) + "] , actual [" + strconv.Itoa(int(version)) + "]")
 	}
 }

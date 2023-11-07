@@ -3,6 +3,7 @@ package types
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -94,7 +95,10 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		postInfo = resWithInfo.Ok
 	}
 
-	dispatchResult := primitives.NewDispatchResult(resWithInfo.Err)
+	dispatchResult, dispatchResultErr := primitives.NewDispatchResult(resWithInfo.Err)
+	if dispatchResultErr != nil {
+		log.Critical(dispatchResultErr.Error())
+	}
 
 	return resWithInfo, c.extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 }

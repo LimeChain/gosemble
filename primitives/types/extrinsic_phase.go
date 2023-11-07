@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -50,8 +49,6 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {
 	case PhaseInitialization:
 		return NewExtrinsicPhaseInitialization(), nil
 	default:
-		log.Critical("invalid ExtrinsicPhase type")
+		return ExtrinsicPhase{}, newTypeError("ExtrinsicPhase")
 	}
-
-	panic("unreachable")
 }

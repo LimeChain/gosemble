@@ -18,15 +18,18 @@ var (
 )
 
 func Test_NewHash256(t *testing.T) {
-	result := NewH256(hash256Sequence...)
+	result, err := NewH256(hash256Sequence...)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedH256Hash, result)
 }
 
 func Test_NewHash256_InvalidLength(t *testing.T) {
-	assert.PanicsWithValue(t, "H256 should be of size 32", func() {
-		NewH256(hash256Sequence[1:32]...)
-	})
+	result, err := NewH256(hash256Sequence[1:32]...)
+
+	assert.Error(t, err)
+	assert.Equal(t, "H256 should be of size 32", err.Error())
+	assert.Equal(t, H256{}, result)
 }
 
 func Test_Hash256_Encode(t *testing.T) {
@@ -39,7 +42,7 @@ func Test_Hash256_Encode(t *testing.T) {
 func Test_Hash256_Decode(t *testing.T) {
 	buffer := bytes.NewBuffer(sc.FixedSequenceU8ToBytes(hash256Sequence))
 	result, err := DecodeH256(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, expectedH256Hash, result)
 }

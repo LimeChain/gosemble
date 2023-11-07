@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -52,8 +51,6 @@ func DecodeUnknownTransaction(buffer *bytes.Buffer) (UnknownTransaction, error) 
 		}
 		return NewUnknownTransactionCustomUnknownTransaction(v), nil
 	default:
-		log.Critical("invalid UnknownTransaction type")
+		return UnknownTransaction{}, newTypeError("UnknownTransaction")
 	}
-
-	panic("unreachable")
 }

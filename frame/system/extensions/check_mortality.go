@@ -6,6 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -40,25 +41,34 @@ func (cm CheckMortality) Bytes() []byte {
 func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
 	current, err := cm.systemModule.StorageBlockNumber() // TODO: impl saturated_into::<u64>()
 	if err != nil {
-		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return nil, transactionValidityError
 	}
 	n := cm.era.Birth(current) // TODO: impl saturated_into::<T::BlockNumber>()
 
 	if !cm.systemModule.StorageBlockHashExists(n) {
-		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+		invalidTransactionAncientBirthBlock, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+		return nil, invalidTransactionAncientBirthBlock
 	}
 
 	blockHash, err := cm.systemModule.StorageBlockHash(n)
 	if err != nil {
-		return nil, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return nil, transactionValidityError
 	}
-	return sc.NewVaryingData(primitives.NewH256(blockHash.FixedSequence...)), nil
+	hash, err := primitives.NewH256(blockHash.FixedSequence...)
+	if err != nil {
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return nil, transactionValidityError
+	}
+	return sc.NewVaryingData(hash), nil
 }
 
 func (cm CheckMortality) Validate(_who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	currentBlockNum, err := cm.systemModule.StorageBlockNumber() // TODO: per module implementation
 	if err != nil {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		log.Critical(err.Error())
 	}
 
 	validTill := cm.era.Death(currentBlockNum)

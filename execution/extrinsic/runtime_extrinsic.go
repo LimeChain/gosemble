@@ -34,8 +34,12 @@ func New(modules []primitives.Module, extra primitives.SignedExtra) RuntimeExtri
 	}
 }
 
-func (re runtimeExtrinsic) Module(index sc.U8) (module primitives.Module, isFound bool) {
-	return primitives.GetModule(index, re.modules)
+func (re runtimeExtrinsic) Module(index sc.U8) (primitives.Module, bool) {
+	mod, err := primitives.GetModule(index, re.modules)
+	if err != nil {
+		return nil, false
+	}
+	return mod, true
 }
 
 func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData) ([]byte, error) {

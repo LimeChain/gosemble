@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/hooks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -83,7 +84,9 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 
 		actualFee, err := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
 		if err != nil {
-			return primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			return transactionValidityError
 		}
 
 		errFee := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
@@ -126,7 +129,12 @@ func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primiti
 func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
 	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max
-	maxBlockLength := sc.U64(*maxDefaultBlockLength.Get(info.Class))
+
+	value, err := maxDefaultBlockLength.Get(info.Class)
+	if err != nil {
+		log.Critical(err.Error())
+	}
+	maxBlockLength := sc.U64(*value)
 
 	infoWeight := info.Weight.RefTime
 
@@ -158,11 +166,27 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 	scaledTip := bnTip.Mul(sc.NewU128(maxTxPerBlock))
 
-	if info.Class.Is(primitives.DispatchClassNormal) {
+	isNormal, infoClassErr := info.Class.Is(primitives.DispatchClassNormal)
+	if infoClassErr != nil {
+		log.Critical(infoClassErr.Error())
+	}
+	if isNormal {
 		return sc.U64(scaledTip.ToBigInt().Uint64())
-	} else if info.Class.Is(primitives.DispatchClassMandatory) {
+	}
+
+	isMandatory, infoClassErr := info.Class.Is(primitives.DispatchClassMandatory)
+	if infoClassErr != nil {
+		log.Critical(infoClassErr.Error())
+	}
+	if isMandatory {
 		return sc.U64(scaledTip.ToBigInt().Uint64())
-	} else if info.Class.Is(primitives.DispatchClassOperational) {
+	}
+
+	isOperational, infoClassErr := info.Class.Is(primitives.DispatchClassOperational)
+	if infoClassErr != nil {
+		log.Critical(infoClassErr.Error())
+	}
+	if isOperational {
 		feeMultiplier := ctp.txPaymentModule.OperationalFeeMultiplier()
 		virtualTip := finalFee.Mul(sc.NewU128(feeMultiplier))
 		scaledVirtualTip := virtualTip.Mul(sc.NewU128(maxTxPerBlock))
@@ -179,7 +203,9 @@ func (ctp ChargeTransactionPayment) withdrawFee(who primitives.Address32, call p
 	tip := ctp.fee
 	fee, err := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 	if err != nil {
-		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), transactionValidityError
 	}
 
 	imbalance, errWithdraw := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)

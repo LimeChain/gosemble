@@ -51,7 +51,7 @@ func Test_InherentData_Decode(t *testing.T) {
 	buffer.Write(expectEncoded)
 
 	result, err := DecodeInherentData(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(result.data[key0]))

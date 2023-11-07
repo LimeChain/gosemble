@@ -50,10 +50,10 @@ func Test_TimestampError_Error_Invalid(t *testing.T) {
 	assert.Equal(t, "invalid inherent check for timestamp module", target.Error())
 }
 
-func Test_TimestampError_Error_Panics(t *testing.T) {
+func Test_TimestampError_Error_TypeError(t *testing.T) {
 	target := TimestampError{sc.NewVaryingData(sc.U8(3))}
 
-	assert.PanicsWithValue(t, "invalid TimestampError", func() {
-		target.Error()
-	})
+	err := target.Error()
+
+	assert.Equal(t, "not a valid 'TimestampError' type", err)
 }

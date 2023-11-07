@@ -3,8 +3,6 @@ package types
 import (
 	"bytes"
 
-	"github.com/LimeChain/gosemble/primitives/log"
-
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -64,8 +62,6 @@ func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
 	case TransactionSourceExternal:
 		return NewTransactionSourceExternal(), nil
 	default:
-		log.Critical("invalid TransactionSource type")
+		return TransactionSource{}, newTypeError("TransactionSource")
 	}
-
-	panic("unreachable")
 }

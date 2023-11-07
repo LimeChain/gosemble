@@ -38,8 +38,8 @@ func setup() {
 func Test_GetModule(t *testing.T) {
 	setup()
 	for i := 0; i < numModules; i++ {
-		m, ok := GetModule(sc.U8(i), modules)
-		assert.True(t, ok)
+		m, err := GetModule(sc.U8(i), modules)
+		assert.NoError(t, err)
 		assert.Equal(t, m.GetIndex(), sc.U8(i))
 		assert.Equal(t, m, modules[i])
 	}
@@ -47,23 +47,28 @@ func Test_GetModule(t *testing.T) {
 
 func Test_GetModule_FailWhenNonExistent(t *testing.T) {
 	setup()
-	m, ok := GetModule(sc.U8(numModules), modules)
-	assert.False(t, ok)
+	m, err := GetModule(sc.U8(numModules), modules)
+	assert.Error(t, err)
 	assert.Nil(t, m)
 }
 
 func Test_MustGetModule(t *testing.T) {
 	setup()
 	for i := 0; i < numModules; i++ {
-		m := MustGetModule(sc.U8(i), modules)
+		m, err := GetModule(sc.U8(i), modules)
+
+		assert.NoError(t, err)
 		assert.Equal(t, m.GetIndex(), sc.U8(i))
 		assert.Equal(t, m, modules[i])
 	}
 }
 
-func Test_MustGetModule_PanicWhenNonExistent(t *testing.T) {
+func Test_MustGetModule_ErrorNonExistent(t *testing.T) {
 	setup()
-	assert.PanicsWithValue(t, "module ["+strconv.Itoa(int(numModules))+"] not found.", func() {
-		MustGetModule(sc.U8(numModules), modules)
-	})
+
+	mod, err := GetModule(sc.U8(numModules), modules)
+
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "module with index ["+strconv.Itoa(int(numModules))+"] not found.")
+	assert.Nil(t, mod)
 }

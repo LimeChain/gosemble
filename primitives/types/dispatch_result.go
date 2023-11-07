@@ -2,20 +2,17 @@ package types
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type DispatchResult sc.VaryingData
 
-func NewDispatchResult(value sc.Encodable) DispatchResult {
+func NewDispatchResult(value sc.Encodable) (DispatchResult, error) {
 	switch value.(type) {
 	case DispatchError, DispatchErrorWithPostInfo[PostDispatchInfo]:
-		return DispatchResult(sc.NewVaryingData(value))
+		return DispatchResult(sc.NewVaryingData(value)), nil
 	case sc.Empty, nil:
-		return DispatchResult(sc.NewVaryingData(sc.Empty{}))
+		return DispatchResult(sc.NewVaryingData(sc.Empty{})), nil
 	default:
-		log.Critical("invalid DispatchResult type")
+		return DispatchResult{}, newTypeError("DispatchResult")
 	}
-
-	panic("unreachable")
 }

@@ -6,6 +6,10 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+var (
+	unknownTransactionCustomUnknownTransaction, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+)
+
 type testExtraCheck struct {
 	hasError sc.Bool
 	value    sc.U32
@@ -43,7 +47,7 @@ func (e *testExtraCheck) Decode(buffer *bytes.Buffer) error {
 
 func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
 	if e.hasError {
-		return nil, NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+		return nil, unknownTransactionCustomUnknownTransaction
 	}
 
 	return sc.NewVaryingData(e.value), nil
@@ -54,7 +58,7 @@ func (e testExtraCheck) Validate(who Address32, call Call, info *DispatchInfo, l
 	validTransaction.Priority = 1
 
 	if e.hasError {
-		return ValidTransaction{}, NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+		return ValidTransaction{}, unknownTransactionCustomUnknownTransaction
 	}
 
 	return validTransaction, nil
@@ -76,7 +80,7 @@ func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, lengt
 
 func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
 	if e.hasError {
-		return NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+		return unknownTransactionCustomUnknownTransaction
 	}
 
 	return nil

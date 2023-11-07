@@ -21,7 +21,7 @@ func Test_DecodePays_Yes(t *testing.T) {
 	buffer.WriteByte(0)
 
 	result, err := DecodePays(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewPaysYes(), result)
 }
@@ -31,16 +31,18 @@ func Test_DecodePays_No(t *testing.T) {
 	buffer.WriteByte(1)
 
 	result, err := DecodePays(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewPaysNo(), result)
 }
 
-func Test_DecodePays_Panics(t *testing.T) {
+func Test_DecodePays_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
 
-	assert.PanicsWithValue(t, "invalid Pays type", func() {
-		DecodePays(buffer)
-	})
+	res, err := DecodePays(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'Pays' type", err.Error())
+	assert.Nil(t, res)
 }

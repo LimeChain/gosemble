@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // An object to track the currently used extrinsic weight in a block.
@@ -39,67 +38,83 @@ func (cw ConsumedWeight) Bytes() []byte {
 }
 
 // Get current value for given class.
-func (cw *ConsumedWeight) Get(class DispatchClass) *Weight {
+func (cw *ConsumedWeight) Get(class DispatchClass) (*Weight, error) {
 	switch class.VaryingData[0] {
 	case DispatchClassNormal:
-		return &cw.Normal
+		return &cw.Normal, nil
 	case DispatchClassOperational:
-		return &cw.Operational
+		return &cw.Operational, nil
 	case DispatchClassMandatory:
-		return &cw.Mandatory
+		return &cw.Mandatory, nil
 	default:
-		log.Critical("invalid DispatchClass type")
+		return nil, newTypeError("DispatchClass")
 	}
-
-	panic("unreachable")
 }
 
 // Returns the total weight consumed by all extrinsics in the block.
 //
 // Saturates on overflow.
-func (cw ConsumedWeight) Total() Weight {
+func (cw ConsumedWeight) Total() (Weight, error) {
 	sum := WeightZero()
 	for _, class := range DispatchClassAll() {
-		sum = sum.SaturatingAdd(*cw.Get(class))
+		weightForClass, err := cw.Get(class)
+		if err != nil {
+			return Weight{}, err
+		}
+		sum = sum.SaturatingAdd(*weightForClass)
 	}
-	return sum
+	return sum, nil
 }
 
 // SaturatingAdd Increase the weight of the given class. Saturates at the numeric bounds.
-func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) {
-	weightForClass := cw.Get(class)
+func (cw *ConsumedWeight) SaturatingAdd(weight Weight, class DispatchClass) error {
+	weightForClass, err := cw.Get(class)
+	if err != nil {
+		return err
+	}
 	weightForClass.RefTime = sc.SaturatingAddU64(weightForClass.RefTime, weight.RefTime)
 	weightForClass.ProofSize = sc.SaturatingAddU64(weightForClass.ProofSize, weight.ProofSize)
+	return nil
 }
 
 // Accrue Increase the weight of the given class. Saturates at the numeric bounds.
-func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) {
-	weightForClass := cw.Get(class)
+func (cw *ConsumedWeight) Accrue(weight Weight, class DispatchClass) error {
+	weightForClass, err := cw.Get(class)
+	if err != nil {
+		return err
+	}
 	weightForClass.SaturatingAccrue(weight)
+	return nil
 }
 
 // CheckedAccrue Try to increase the weight of the given class. Saturates at the numeric bounds.
-func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) (sc.Empty, error) {
-	weightForClass := cw.Get(class)
-
+func (cw *ConsumedWeight) CheckedAccrue(weight Weight, class DispatchClass) error {
+	weightForClass, err := cw.Get(class)
+	if err != nil {
+		return err
+	}
 	refTime, err := sc.CheckedAddU64(weightForClass.RefTime, weight.RefTime)
 	if err != nil {
-		return sc.Empty{}, err
+		return err
 	}
 
 	proofSize, err := sc.CheckedAddU64(weightForClass.ProofSize, weight.ProofSize)
 	if err != nil {
-		return sc.Empty{}, err
+		return err
 	}
 
 	weightForClass.RefTime = refTime
 	weightForClass.ProofSize = proofSize
 
-	return sc.Empty{}, nil
+	return nil
 }
 
 // Reduce the weight of the given class. Saturates at the numeric bounds.
-func (cw *ConsumedWeight) Reduce(weight Weight, class DispatchClass) {
-	weightForClass := cw.Get(class)
+func (cw *ConsumedWeight) Reduce(weight Weight, class DispatchClass) error {
+	weightForClass, err := cw.Get(class)
+	if err != nil {
+		return err
+	}
 	weightForClass.SaturatingReduce(weight)
+	return nil
 }

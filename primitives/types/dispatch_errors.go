@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -134,10 +133,8 @@ func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
 	case DispatchErrorUnavailable:
 		return NewDispatchErrorUnavailable(), nil
 	default:
-		log.Critical("invalid DispatchError type")
+		return DispatchError{}, newTypeError("DispatchError")
 	}
-
-	panic("unreachable")
 }
 
 // CustomModuleError A custom error in a module.

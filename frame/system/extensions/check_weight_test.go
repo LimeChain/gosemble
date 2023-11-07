@@ -50,6 +50,10 @@ var (
 	}
 )
 
+var (
+	invalidTransactionExhaustsResources, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+)
+
 func Test_CheckWeight_AdditionalSigned(t *testing.T) {
 	target := setupCheckWeight()
 
@@ -239,7 +243,6 @@ func Test_CheckWeight_doValidate_InvalidExtrinsicLength(t *testing.T) {
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
@@ -247,7 +250,7 @@ func Test_CheckWeight_doValidate_InvalidExtrinsicLength(t *testing.T) {
 
 	result, err := target.doValidate(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 
 	mockModule.AssertCalled(t, "BlockLength")
@@ -258,14 +261,13 @@ func Test_CheckWeight_doValidate_InvalidExtrinsicLength(t *testing.T) {
 func Test_CheckWeight_doValidate_InvalidBlockLength(t *testing.T) {
 	storageLen := sc.U32(10)
 	target := setupCheckWeight()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 
 	result, err := target.doValidate(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 
 	mockModule.AssertCalled(t, "BlockLength")
@@ -310,7 +312,6 @@ func Test_CheckWeight_doPreDispatch_InvalidExtrinsicWeight(t *testing.T) {
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
@@ -319,7 +320,7 @@ func Test_CheckWeight_doPreDispatch_InvalidExtrinsicWeight(t *testing.T) {
 
 	result := target.doPreDispatch(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, invalidTransactionExhaustsResources, result)
 
 	mockModule.AssertCalled(t, "BlockLength")
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
@@ -347,7 +348,6 @@ func Test_CheckWeight_doPreDispatch_InvalidBlockWeight(t *testing.T) {
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
@@ -356,7 +356,7 @@ func Test_CheckWeight_doPreDispatch_InvalidBlockWeight(t *testing.T) {
 
 	result := target.doPreDispatch(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, invalidTransactionExhaustsResources, result)
 
 	mockModule.AssertCalled(t, "BlockLength")
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
@@ -369,14 +369,13 @@ func Test_CheckWeight_doPreDispatch_InvalidBlockWeight(t *testing.T) {
 func Test_CheckWeight_doPreDispatch_InvalidBlockLength(t *testing.T) {
 	storageLen := sc.U32(10)
 	target := setupCheckWeight()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 
 	result := target.doPreDispatch(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, invalidTransactionExhaustsResources, result)
 
 	mockModule.AssertCalled(t, "BlockLength")
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
@@ -462,14 +461,13 @@ func Test_CheckWeight_checkBlockLength_InvalidDispatch(t *testing.T) {
 func Test_CheckWeight_checkBlockLength_ExhaustsResources(t *testing.T) {
 	storageLen := sc.U32(10)
 	target := setupCheckWeight()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 
 	result, err := target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, sc.U32(0), result)
 
 	mockModule.AssertCalled(t, "BlockLength")
@@ -507,13 +505,12 @@ func Test_CheckWeight_checkExtrinsicWeight_ExhaustsResources(t *testing.T) {
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	mockModule.On("BlockWeights").Return(blockWeight)
 
 	result := target.checkExtrinsicWeight(dispatchInfo)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, invalidTransactionExhaustsResources, result)
 
 	mockModule.AssertCalled(t, "BlockWeights")
 }
@@ -562,11 +559,10 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_ExhaustsResources(t *test
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	result, err := target.calculateConsumedWeight(blockWeight, consumedWeight, dispatchInfo)
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, primitives.ConsumedWeight{}, result)
 }
 
@@ -589,11 +585,10 @@ func Test_CheckWeight_calculateConsumsedWeight_TotalMoreThanMaxReserved_Exhausts
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	result, err := target.calculateConsumedWeight(blockWeight, consumedWeight, dispatchInfo)
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, primitives.ConsumedWeight{}, result)
 }
 
@@ -615,11 +610,10 @@ func Test_CheckWeight_calculateConsumedWeight_LessThanMaxTotal_ExhaustsResources
 			},
 		},
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 
 	result, err := target.calculateConsumedWeight(blockWeight, consumedWeight, dispatchInfo)
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionExhaustsResources, err)
 	assert.Equal(t, primitives.ConsumedWeight{}, result)
 }
 

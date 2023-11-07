@@ -27,17 +27,15 @@ import (
 //   - The extrinsic supplied a bad signature. This transaction won't become valid ever.
 type ApplyExtrinsicResult sc.VaryingData // = sc.Result[DispatchOutcome, TransactionValidityError]
 
-func NewApplyExtrinsicResult(value sc.Encodable) ApplyExtrinsicResult {
+func NewApplyExtrinsicResult(value sc.Encodable) (ApplyExtrinsicResult, error) {
 	// DispatchOutcome 					= 0 Outcome of dispatching the extrinsic.
 	// TransactionValidityError = 1 Possible errors while checking the validity of a transaction.
 	switch value.(type) {
 	case DispatchOutcome, TransactionValidityError:
-		return ApplyExtrinsicResult(sc.NewVaryingData(value))
+		return ApplyExtrinsicResult(sc.NewVaryingData(value)), nil
 	default:
-		log.Critical("invalid ApplyExtrinsicResult type")
+		return nil, newTypeError("ApplyExtrinsicResult")
 	}
-
-	panic("unreachable")
 }
 
 func (r ApplyExtrinsicResult) Encode(buffer *bytes.Buffer) {
@@ -65,18 +63,16 @@ func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) (ApplyExtrinsicResult, err
 		if err != nil {
 			return nil, err
 		}
-		return NewApplyExtrinsicResult(value), nil
+		return NewApplyExtrinsicResult(value)
 	case 1:
 		value, err := DecodeTransactionValidityError(buffer)
 		if err != nil {
 			return nil, err
 		}
-		return NewApplyExtrinsicResult(value), nil
+		return NewApplyExtrinsicResult(value)
 	default:
-		log.Critical("invalid ApplyExtrinsicResult type")
+		return nil, newTypeError("ApplyExtrinsicResult")
 	}
-
-	panic("unreachable")
 }
 
 func (r ApplyExtrinsicResult) Bytes() []byte {

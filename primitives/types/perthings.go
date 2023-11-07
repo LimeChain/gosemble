@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type Perbill struct {
@@ -29,18 +29,16 @@ func (p Perbill) Bytes() []byte {
 	return sc.EncodedBytes(p)
 }
 
-func (p Perbill) Mul(v sc.Encodable) sc.Encodable {
+func (p Perbill) Mul(v sc.Encodable) (sc.Encodable, error) {
 	switch v := v.(type) {
 	case sc.U32:
-		return (v / 100) * p.Percentage
+		return (v / 100) * p.Percentage, nil
 	case Weight:
-		return Weight{
-			RefTime:   (v.RefTime / 100) * sc.U64(p.Percentage),
-			ProofSize: (v.ProofSize / 100) * sc.U64(p.Percentage),
-		}
+		return WeightFromParts(
+			(v.RefTime/100)*sc.U64(p.Percentage),
+			(v.ProofSize/100)*sc.U64(p.Percentage),
+		), nil
 	default:
-		log.Critical("unsupported type")
+		return nil, errors.New("unsupported type")
 	}
-
-	panic("unreachable")
 }

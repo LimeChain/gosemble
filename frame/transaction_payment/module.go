@@ -52,7 +52,9 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 }
 
 func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// TODO https://github.com/LimeChain/gosemble/issues/271
+	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -216,9 +218,13 @@ func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitiv
 		bnAdjustedWeightFee := multiplier.Mul(unadjustedWeightFee)
 		adjustedWeightFee := bnAdjustedWeightFee.Div(fixedU128Div) // TODO: Create FixedU128 type
 
-		lenFee := m.lengthToFee(len)
-		baseFee := m.weightToFee(m.config.BlockWeights.Get(class).BaseExtrinsic)
+		dispatchClass, err := m.config.BlockWeights.Get(class)
+		if err != nil {
+			return types.FeeDetails{}, err
+		}
 
+		baseFee := m.weightToFee(dispatchClass.BaseExtrinsic)
+		lenFee := m.lengthToFee(len)
 		inclusionFee := sc.NewOption[types.InclusionFee](types.NewInclusionFee(baseFee, lenFee, adjustedWeightFee))
 
 		return types.FeeDetails{

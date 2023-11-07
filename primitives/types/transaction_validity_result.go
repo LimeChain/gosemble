@@ -19,15 +19,13 @@ const (
 // TransactionValidityResult Information on a transaction's validity and, if valid, on how it relates to other transactions.
 type TransactionValidityResult sc.VaryingData
 
-func NewTransactionValidityResult(value sc.Encodable) TransactionValidityResult {
+func NewTransactionValidityResult(value sc.Encodable) (TransactionValidityResult, error) {
 	switch value.(type) {
 	case ValidTransaction, TransactionValidityError:
-		return TransactionValidityResult(sc.NewVaryingData(value))
+		return TransactionValidityResult(sc.NewVaryingData(value)), nil
 	default:
-		log.Critical(errInvalidTransactionValidityResultType)
+		return TransactionValidityResult{}, newTypeError("TransactionValidityResult")
 	}
-
-	panic("unreachable")
 }
 
 func (r TransactionValidityResult) Encode(buffer *bytes.Buffer) {
@@ -55,18 +53,16 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) (TransactionValidityR
 		if err != nil {
 			return TransactionValidityResult{}, err
 		}
-		return NewTransactionValidityResult(val), nil
+		return NewTransactionValidityResult(val)
 	case TransactionValidityResultError:
 		val, err := DecodeTransactionValidityError(buffer)
 		if err != nil {
 			return TransactionValidityResult{}, err
 		}
-		return NewTransactionValidityResult(val), nil
+		return NewTransactionValidityResult(val)
 	default:
-		log.Critical(errInvalidTransactionValidityResultType)
+		return TransactionValidityResult{}, newTypeError("TransactionValidityResult")
 	}
-
-	panic("unreachable")
 }
 
 func (r TransactionValidityResult) Bytes() []byte {
@@ -82,12 +78,10 @@ func (r TransactionValidityResult) IsValidTransaction() bool {
 	}
 }
 
-func (r TransactionValidityResult) AsValidTransaction() ValidTransaction {
+func (r TransactionValidityResult) AsValidTransaction() (ValidTransaction, error) {
 	if r.IsValidTransaction() {
-		return r[0].(ValidTransaction)
+		return r[0].(ValidTransaction), nil
 	} else {
-		log.Critical("not a ValidTransaction type")
+		return ValidTransaction{}, newTypeError("ValidTransaction")
 	}
-
-	panic("unreachable")
 }

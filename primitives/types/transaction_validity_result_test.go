@@ -9,10 +9,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewTransactionValidityResult_Panics(t *testing.T) {
-	assert.PanicsWithValue(t, errInvalidTransactionValidityResultType, func() {
-		NewTransactionValidityResult(sc.U8(6))
-	})
+var (
+	invalidTransactionPayment, _ = NewTransactionValidityError(NewInvalidTransactionPayment())
+
+	transactionValidityResultTransactionPayment, _ = NewTransactionValidityResult(invalidTransactionPayment)
+	transactionValidityResultDefaultValid, _       = NewTransactionValidityResult(DefaultValidTransaction())
+)
+
+func Test_NewTransactionValidityResult_TypeError(t *testing.T) {
+	result, err := NewTransactionValidityResult(sc.U8(6))
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionValidityResult' type", err.Error())
+	assert.Equal(t, TransactionValidityResult{}, result)
 }
 
 func Test_TransactionValidityResult_Encode(t *testing.T) {
@@ -23,13 +32,13 @@ func Test_TransactionValidityResult_Encode(t *testing.T) {
 	}{
 		{
 			label:  "Encode(TransactionValidityResult(ValidTransaction))",
-			input:  NewTransactionValidityResult(DefaultValidTransaction()),
+			input:  transactionValidityResultDefaultValid,
 			expect: append(TransactionValidityResultValid.Bytes(), DefaultValidTransaction().Bytes()...),
 		},
 		{
 			label:  "Encode(TransactionValidityResult(TransactionValidityError))",
-			input:  NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment())),
-			expect: append(TransactionValidityResultError.Bytes(), NewTransactionValidityError(NewInvalidTransactionPayment()).Bytes()...),
+			input:  transactionValidityResultTransactionPayment,
+			expect: append(TransactionValidityResultError.Bytes(), invalidTransactionPayment.Bytes()...),
 		},
 	}
 
@@ -65,12 +74,12 @@ func Test_DecodeTransactionValidityResult(t *testing.T) {
 		{
 			label:  "Encode(TransactionValidityResult(ValidTransaction))",
 			input:  append(TransactionValidityResultValid.Bytes(), DefaultValidTransaction().Bytes()...),
-			expect: NewTransactionValidityResult(DefaultValidTransaction()),
+			expect: transactionValidityResultDefaultValid,
 		},
 		{
 			label:  "Encode(TransactionValidityResult(TransactionValidityError))",
 			input:  []byte{0x01, 0x00, 0x01},
-			expect: NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment())),
+			expect: transactionValidityResultTransactionPayment,
 		},
 	}
 
@@ -87,32 +96,29 @@ func Test_DecodeTransactionValidityResult(t *testing.T) {
 	}
 }
 
-func Test_DecodeTransactionValidityResult_Panics(t *testing.T) {
+func Test_DecodeTransactionValidityResult_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
 
-	assert.PanicsWithValue(t, errInvalidTransactionValidityResultType, func() {
-		DecodeTransactionValidityResult(buffer)
-	})
+	result, err := DecodeTransactionValidityResult(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionValidityResult' type", err.Error())
+	assert.Equal(t, TransactionValidityResult{}, result)
 }
 
 func Test_TransactionValidityResult_Bytes(t *testing.T) {
 	expect, _ := hex.DecodeString("010001")
-	tve := NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment()))
 
-	assert.Equal(t, expect, tve.Bytes())
+	assert.Equal(t, expect, transactionValidityResultTransactionPayment.Bytes())
 }
 
 func Test_TransactionValidityResult_IsValidTransaction_True(t *testing.T) {
-	target := NewTransactionValidityResult(DefaultValidTransaction())
-
-	assert.Equal(t, true, target.IsValidTransaction())
+	assert.Equal(t, true, transactionValidityResultDefaultValid.IsValidTransaction())
 }
 
 func Test_TransactionValidityResult_IsValidTransaction_False(t *testing.T) {
-	target := NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment()))
-
-	assert.Equal(t, false, target.IsValidTransaction())
+	assert.Equal(t, false, transactionValidityResultTransactionPayment.IsValidTransaction())
 }
 
 func Test_TransactionValidityResult_AsValidTransaction(t *testing.T) {
@@ -123,15 +129,17 @@ func Test_TransactionValidityResult_AsValidTransaction(t *testing.T) {
 		Longevity: 4,
 		Propagate: true,
 	}
-	target := NewTransactionValidityResult(validTx)
+	target, _ := NewTransactionValidityResult(validTx)
 
-	assert.Equal(t, validTx, target.AsValidTransaction())
+	validTransaction, err := target.AsValidTransaction()
+	assert.NoError(t, err)
+	assert.Equal(t, validTx, validTransaction)
 }
 
-func Test_TransactionValidityResult_AsValidTransaction_Panics(t *testing.T) {
-	target := NewTransactionValidityResult(NewTransactionValidityError(NewInvalidTransactionPayment()))
+func Test_TransactionValidityResult_AsValidTransaction_TypeError(t *testing.T) {
+	result, err := transactionValidityResultTransactionPayment.AsValidTransaction()
 
-	assert.PanicsWithValue(t, "not a ValidTransaction type", func() {
-		target.AsValidTransaction()
-	})
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'ValidTransaction' type", err.Error())
+	assert.Equal(t, ValidTransaction{}, result)
 }

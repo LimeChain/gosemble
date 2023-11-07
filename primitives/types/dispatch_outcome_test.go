@@ -8,10 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_DispatchOutcome_New_Panics(t *testing.T) {
-	assert.PanicsWithValue(t, errDispatchOutcomeInvalid, func() {
-		NewDispatchOutcome(sc.U8(5))
-	})
+func Test_DispatchOutcome_New_TypeError(t *testing.T) {
+	result, err := NewDispatchOutcome(sc.U8(5))
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchOutcome' type", err.Error())
+	assert.Equal(t, DispatchOutcome{}, result)
 }
 
 func Test_DispatchOutcome_Encode(t *testing.T) {
@@ -20,8 +22,8 @@ func Test_DispatchOutcome_Encode(t *testing.T) {
 		input       DispatchOutcome
 		expectation []byte
 	}{
-		{label: "Encode DispatchOutcome(None)", input: NewDispatchOutcome(nil), expectation: []byte{0x00}},
-		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: NewDispatchOutcome(NewDispatchErrorBadOrigin()), expectation: []byte{0x01, 0x02}},
+		{label: "Encode DispatchOutcome(None)", input: dispatchOutcome, expectation: []byte{0x00}},
+		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: dispatchOutcomeBadOriginErr, expectation: []byte{0x01, 0x02}},
 	}
 
 	for _, testExample := range testExamples {
@@ -52,8 +54,8 @@ func Test_DispatchOutcome_Bytes(t *testing.T) {
 		input  DispatchOutcome
 		expect []byte
 	}{
-		{label: "Encode DispatchOutcome(None)", input: NewDispatchOutcome(nil), expect: []byte{0x00}},
-		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: NewDispatchOutcome(NewDispatchErrorBadOrigin()), expect: []byte{0x01, 0x02}},
+		{label: "Encode DispatchOutcome(None)", input: dispatchOutcome, expect: []byte{0x00}},
+		{label: "Encode  DispatchOutcome(DispatchErrorBadOrigin)", input: dispatchOutcomeBadOriginErr, expect: []byte{0x01, 0x02}},
 	}
 
 	for _, testExample := range testExamples {
@@ -71,8 +73,8 @@ func Test_DispatchOutcome_Decode(t *testing.T) {
 		input       []byte
 		expectation DispatchOutcome
 	}{
-		{label: "0x00", input: []byte{0x00}, expectation: NewDispatchOutcome(nil)},
-		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: NewDispatchOutcome(NewDispatchErrorBadOrigin())},
+		{label: "0x00", input: []byte{0x00}, expectation: dispatchOutcome},
+		{label: "0x01, 0x02", input: []byte{0x01, 0x02}, expectation: dispatchOutcomeBadOriginErr},
 	}
 
 	for _, testExample := range testExamples {
@@ -88,10 +90,12 @@ func Test_DispatchOutcome_Decode(t *testing.T) {
 	}
 }
 
-func Test_DispatchOutcome_Decode_Panics(t *testing.T) {
+func Test_DispatchOutcome_Decode_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{0x3})
 
-	assert.PanicsWithValue(t, errDispatchOutcomeInvalid, func() {
-		DecodeDispatchOutcome(buffer)
-	})
+	result, err := DecodeDispatchOutcome(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchOutcome' type", err.Error())
+	assert.Equal(t, DispatchOutcome{}, result)
 }

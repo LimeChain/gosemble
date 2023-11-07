@@ -35,7 +35,7 @@ func Test_DecodeExtrinsicPhase_ApplyExtrinsic(t *testing.T) {
 	buffer.Write(index.Bytes())
 
 	result, err := DecodeExtrinsicPhase(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseApply(index), result)
 }
@@ -45,7 +45,7 @@ func Test_DecodeExtrinsicPhase_Finalization(t *testing.T) {
 	buffer.WriteByte(1)
 
 	result, err := DecodeExtrinsicPhase(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseFinalization(), result)
 }
@@ -55,16 +55,18 @@ func Test_DecodeExtrinsicPhase_Initialization(t *testing.T) {
 	buffer.WriteByte(2)
 
 	result, err := DecodeExtrinsicPhase(buffer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, NewExtrinsicPhaseInitialization(), result)
 }
 
-func Test_DecodeExtrinsicPhase_Panics(t *testing.T) {
+func Test_DecodeExtrinsicPhase_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(3)
 
-	assert.PanicsWithValue(t, "invalid ExtrinsicPhase type", func() {
-		DecodeExtrinsicPhase(buffer)
-	})
+	res, err := DecodeExtrinsicPhase(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'ExtrinsicPhase' type", err.Error())
+	assert.Equal(t, ExtrinsicPhase{}, res)
 }

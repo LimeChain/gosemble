@@ -87,6 +87,10 @@ var (
 )
 
 var (
+	unknownTransactionNoUnsignedValidator, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+)
+
+var (
 	mockStorageAccount            *mocks.StorageMap[primitives.PublicKey, primitives.AccountInfo]
 	mockStorageBlockWeight        *mocks.StorageValue[primitives.ConsumedWeight]
 	mockStorageBlockHash          *mocks.StorageMap[sc.U64, primitives.Blake2bHash]
@@ -137,7 +141,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 
 	result, err := target.ValidateUnsigned(primitives.TransactionSource{}, mockCall)
 
-	assert.Equal(t, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, unknownTransactionNoUnsignedValidator, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 }
 

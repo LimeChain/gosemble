@@ -2,10 +2,10 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -39,14 +39,12 @@ func (s MultiSignature) IsEd25519() bool {
 	}
 }
 
-func (s MultiSignature) AsEd25519() SignatureEd25519 {
+func (s MultiSignature) AsEd25519() (SignatureEd25519, error) {
 	if s.IsEd25519() {
-		return s.VaryingData[1].(SignatureEd25519)
+		return s.VaryingData[1].(SignatureEd25519), nil
 	} else {
-		log.Critical("not Ed25519 signature type")
+		return SignatureEd25519{}, newTypeError("SignatureEd25519")
 	}
-
-	panic("unreachable")
 }
 
 func (s MultiSignature) IsSr25519() bool {
@@ -58,14 +56,12 @@ func (s MultiSignature) IsSr25519() bool {
 	}
 }
 
-func (s MultiSignature) AsSr25519() SignatureSr25519 {
+func (s MultiSignature) AsSr25519() (SignatureSr25519, error) {
 	if s.IsSr25519() {
-		return s.VaryingData[1].(SignatureSr25519)
+		return s.VaryingData[1].(SignatureSr25519), nil
 	} else {
-		log.Critical("not Sr25519 signature type")
+		return SignatureSr25519{}, newTypeError("SignatureSr25519")
 	}
-
-	panic("unreachable")
 }
 
 func (s MultiSignature) IsEcdsa() bool {
@@ -77,14 +73,12 @@ func (s MultiSignature) IsEcdsa() bool {
 	}
 }
 
-func (s MultiSignature) AsEcdsa() SignatureEcdsa {
+func (s MultiSignature) AsEcdsa() (SignatureEcdsa, error) {
 	if s.IsEcdsa() {
-		return s.VaryingData[1].(SignatureEcdsa)
+		return s.VaryingData[1].(SignatureEcdsa), nil
 	} else {
-		log.Critical("not Ecdsa signature type")
+		return SignatureEcdsa{}, newTypeError("SignatureEcdsa")
 	}
-
-	panic("unreachable")
 }
 
 func DecodeMultiSignature(buffer *bytes.Buffer) (MultiSignature, error) {
@@ -113,8 +107,6 @@ func DecodeMultiSignature(buffer *bytes.Buffer) (MultiSignature, error) {
 		}
 		return NewMultiSignatureEcdsa(ecdsa), nil
 	default:
-		log.Critical("invalid MultiSignature type in Decode: " + strconv.Itoa(int(b)))
+		return MultiSignature{}, errors.New("invalid MultiSignature type in Decode: " + strconv.Itoa(int(b)))
 	}
-
-	panic("unreachable")
 }

@@ -116,7 +116,11 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 		return types.NewDispatchErrorBadOrigin()
 	}
 
-	transactor := origin.AsSigned()
+	transactor, err := origin.AsSigned()
+	if err != nil {
+		log.Critical(err.Error())
+	}
+
 	reducibleBalance, err := c.reducibleBalance(transactor, keepAlive)
 	if err != nil {
 		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))

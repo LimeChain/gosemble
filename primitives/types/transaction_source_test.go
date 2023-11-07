@@ -47,11 +47,13 @@ func Test_DecodeTransactionSource_External(t *testing.T) {
 	assert.Equal(t, NewTransactionSourceExternal(), txSource)
 }
 
-func Test_DecodeTransactionSource_Panics(t *testing.T) {
+func Test_DecodeTransactionSource_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(3)
 
-	assert.PanicsWithValue(t, "invalid TransactionSource type", func() {
-		DecodeTransactionSource(buffer)
-	})
+	result, err := DecodeTransactionSource(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionSource' type", err.Error())
+	assert.Equal(t, TransactionSource{}, result)
 }

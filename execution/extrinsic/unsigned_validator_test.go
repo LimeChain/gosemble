@@ -16,6 +16,12 @@ var (
 )
 
 var (
+	expectedInvalidTransactionStaleErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	expectedUnknownTransactionNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	expectInvalidTransactionPaymentErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+)
+
+var (
 	mockCall             *mocks.Call
 	mockRuntimeExtrinsic *mocks.RuntimeExtrinsic
 	mockModule           *mocks.Module
@@ -54,16 +60,15 @@ func Test_UnsignedValidatorForChecked_PreDispatch_NotFound(t *testing.T) {
 
 func Test_UnsignedValidatorForChecked_PreDispatch_Err(t *testing.T) {
 	target := setupUnsignedValidator()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 
 	mockCall.On("ModuleIndex").Return(moduleId)
 	mockRuntimeExtrinsic.On("Module", moduleId).Return(mockModule, true)
-	mockModule.On("PreDispatch", mockCall).Return(sc.Empty{}, expect)
+	mockModule.On("PreDispatch", mockCall).Return(sc.Empty{}, expectedInvalidTransactionStaleErr)
 
 	result, err := target.PreDispatch(mockCall)
 
 	assert.Equal(t, sc.Empty{}, result)
-	assert.Equal(t, expect, err)
+	assert.Equal(t, expectedInvalidTransactionStaleErr, err)
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockRuntimeExtrinsic.AssertCalled(t, "Module", moduleId)
 	mockModule.AssertCalled(t, "PreDispatch", mockCall)
@@ -88,7 +93,6 @@ func Test_UnsignedValidatorForChecked_ValidateUnsigned(t *testing.T) {
 
 func Test_UnsignedValidatorForChecked_ValidateUnsigned_NotFound(t *testing.T) {
 	target := setupUnsignedValidator()
-	expect := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 
 	mockCall.On("ModuleIndex").Return(moduleId)
 	mockRuntimeExtrinsic.On("Module", moduleId).Return(mockModule, false)
@@ -96,7 +100,7 @@ func Test_UnsignedValidatorForChecked_ValidateUnsigned_NotFound(t *testing.T) {
 	result, err := target.ValidateUnsigned(txSource, mockCall)
 
 	assert.Equal(t, primitives.ValidTransaction{}, result)
-	assert.Equal(t, expect, err)
+	assert.Equal(t, expectedUnknownTransactionNoUnsignedValidatorErr, err)
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockRuntimeExtrinsic.AssertCalled(t, "Module", moduleId)
 	mockModule.AssertNotCalled(t, "ValidateUnsigned", mock.Anything, mock.Anything)
@@ -104,16 +108,15 @@ func Test_UnsignedValidatorForChecked_ValidateUnsigned_NotFound(t *testing.T) {
 
 func Test_UnsignedValidatorForChecked_ValidateUnsigned_Err(t *testing.T) {
 	target := setupUnsignedValidator()
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 
 	mockCall.On("ModuleIndex").Return(moduleId)
 	mockRuntimeExtrinsic.On("Module", moduleId).Return(mockModule, true)
-	mockModule.On("ValidateUnsigned", txSource, mockCall).Return(primitives.ValidTransaction{}, expect)
+	mockModule.On("ValidateUnsigned", txSource, mockCall).Return(primitives.ValidTransaction{}, expectInvalidTransactionPaymentErr)
 
 	result, err := target.ValidateUnsigned(txSource, mockCall)
 
 	assert.Equal(t, primitives.ValidTransaction{}, result)
-	assert.Equal(t, expect, err)
+	assert.Equal(t, expectInvalidTransactionPaymentErr, err)
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockRuntimeExtrinsic.AssertCalled(t, "Module", moduleId)
 	mockModule.AssertCalled(t, "ValidateUnsigned", txSource, mockCall)

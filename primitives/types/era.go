@@ -8,7 +8,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // Era An era to describe the longevity of a transaction.
@@ -93,11 +92,9 @@ func DecodeEra(buffer *bytes.Buffer) (Era, error) {
 		if period >= 4 && phase < period {
 			return NewMortalEra(period, phase), nil
 		} else {
-			log.Critical("invalid period and phase")
+			return Era{}, newTypeError("Era")
 		}
 	}
-
-	panic("unreachable")
 }
 
 func (e Era) Bytes() []byte {

@@ -47,10 +47,12 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 	}
 }
 
-func Test_Decode_Panic(t *testing.T) {
+func Test_Decode_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{0x03})
 
-	assert.PanicsWithValue(t, "invalid ArithmeticError type", func() {
-		DecodeArithmeticError(buffer)
-	})
+	res, err := DecodeArithmeticError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'ArithmeticError' type", err.Error())
+	assert.Nil(t, res)
 }

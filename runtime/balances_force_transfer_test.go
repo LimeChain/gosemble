@@ -7,7 +7,6 @@ import (
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/pkg/scale"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -67,10 +66,5 @@ func Test_Balances_ForceTransfer_BadOrigin(t *testing.T) {
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
 
-	expectedResult :=
-		primitives.NewApplyExtrinsicResult(
-			primitives.NewDispatchOutcome(
-				primitives.NewDispatchErrorBadOrigin()))
-
-	assert.Equal(t, expectedResult.Bytes(), res)
+	assert.Equal(t, applyExtrinsicResultBadOriginErr.Bytes(), res)
 }

@@ -22,10 +22,10 @@ var (
 			common.MustHexToHash("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff").ToBytes(),
 		)}
 
-	validTx               = primitives.DefaultValidTransaction()
-	txValidityError       = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	validitySuccessResult = primitives.NewTransactionValidityResult(validTx)
-	validityFailResult    = primitives.NewTransactionValidityResult(txValidityError)
+	validTx                  = primitives.DefaultValidTransaction()
+	txValidityError, _       = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	validitySuccessResult, _ = primitives.NewTransactionValidityResult(validTx)
+	validityFailResult, _    = primitives.NewTransactionValidityResult(txValidityError)
 )
 
 var (

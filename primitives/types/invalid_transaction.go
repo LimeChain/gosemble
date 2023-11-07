@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -147,8 +146,6 @@ func DecodeInvalidTransaction(buffer *bytes.Buffer) (InvalidTransaction, error) 
 	case InvalidTransactionBadSigner:
 		return NewInvalidTransactionBadSigner(), nil
 	default:
-		log.Critical("invalid InvalidTransaction type")
+		return InvalidTransaction{}, newTypeError("InvalidTransaction")
 	}
-
-	panic("unreachable")
 }

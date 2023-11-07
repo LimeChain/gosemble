@@ -1,7 +1,6 @@
 package hashing
 
 import (
-	"github.com/LimeChain/gosemble/primitives/log"
 	"golang.org/x/crypto/blake2b"
 )
 
@@ -27,7 +26,7 @@ func Blake2b8(data []byte) (digest [8]byte, err error) {
 func MustBlake2b8(data []byte) [8]byte {
 	digest, err := Blake2b8(data)
 	if err != nil {
-		log.Critical(err.Error())
+		panic(err)
 	}
 	return digest
 }

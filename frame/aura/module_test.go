@@ -22,6 +22,10 @@ const (
 )
 
 var (
+	unknownTransactionNoUnsignedValidator, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+)
+
+var (
 	dbWeight = types.RuntimeDbWeight{
 		Read:  3 * weightRefTimePerNanos,
 		Write: 7 * weightRefTimePerNanos,
@@ -183,7 +187,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 
 	result, err := module.ValidateUnsigned(types.NewTransactionSourceLocal(), new(mocks.Call))
 
-	assert.Equal(t, types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator()), err)
+	assert.Equal(t, unknownTransactionNoUnsignedValidator, err)
 	assert.Equal(t, types.ValidTransaction{}, result)
 }
 

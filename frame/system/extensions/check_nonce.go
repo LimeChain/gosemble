@@ -43,11 +43,15 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives
 func (cn CheckNonce) Validate(who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
 	if err != nil {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return primitives.ValidTransaction{}, transactionValidityError
 	}
 
 	if cn.nonce < account.Nonce {
-		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		invalidTransactionStale, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+		return primitives.ValidTransaction{}, invalidTransactionStale
 	}
 
 	encoded := who.Bytes()
@@ -79,17 +83,20 @@ func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.Di
 func (cn CheckNonce) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	account, err := cn.systemModule.StorageAccount(who.FixedSequence)
 	if err != nil {
-		return primitives.Pre{}, primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// TODO https://github.com/LimeChain/gosemble/issues/271
+		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		return primitives.Pre{}, transactionValidityError
 	}
 
 	if cn.nonce != account.Nonce {
-		var err primitives.TransactionValidityError
+		var transactionValidityError primitives.TransactionValidityError
 		if cn.nonce < account.Nonce {
-			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+			// TODO https://github.com/LimeChain/gosemble/issues/271
+			transactionValidityError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 		} else {
-			err = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+			transactionValidityError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
 		}
-		return primitives.Pre{}, err
+		return primitives.Pre{}, transactionValidityError
 	}
 
 	account.Nonce = account.Nonce + 1

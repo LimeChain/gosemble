@@ -105,13 +105,13 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
+		toAddress32,
 		mockTypeMutateAccountDataBool,
 	).
 		Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
+		newEventTransfer(moduleId, fromAddress32.FixedSequence, toAddress32.FixedSequence, targetValue),
 	).
 		Return()
 
@@ -120,12 +120,12 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 	assert.Equal(t, expect, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress.AsAddress32(),
+		toAddress32,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress.AsAddress32().FixedSequence, toAddress.AsAddress32().FixedSequence, targetValue),
+		newEventTransfer(moduleId, fromAddress32.FixedSequence, toAddress32.FixedSequence, targetValue),
 	)
 }
 

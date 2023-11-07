@@ -102,7 +102,9 @@ func Test_System_DecodeEvent_KilledAccount(t *testing.T) {
 
 func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	emptyHash := [32]sc.U8{}
-	hash := types.NewH256(emptyHash[:]...)
+	hash, err := types.NewH256(emptyHash[:]...)
+	assert.Nil(t, err)
+
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventRemarked.Bytes())

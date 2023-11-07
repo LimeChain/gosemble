@@ -15,6 +15,11 @@ import (
 )
 
 var (
+	invalidTransactionStale, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFuture, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+)
+
+var (
 	oneAddress = constants.OneAddress
 )
 
@@ -129,7 +134,6 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	accountInfo := primitives.AccountInfo{
 		Nonce: 1,
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 
 	target := setupCheckNonce()
 	target.nonce = nonce
@@ -138,7 +142,7 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 
 	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionStale, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
 	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
 }
@@ -181,7 +185,6 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 	accountInfo := primitives.AccountInfo{
 		Nonce: 1,
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 
 	target := setupCheckNonce()
 	target.nonce = nonce
@@ -190,7 +193,7 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionStale, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
 	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)
@@ -202,7 +205,6 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 	accountInfo := primitives.AccountInfo{
 		Nonce: 1,
 	}
-	expect := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
 
 	target := setupCheckNonce()
 	target.nonce = nonce
@@ -211,7 +213,7 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 
 	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
 
-	assert.Equal(t, expect, err)
+	assert.Equal(t, invalidTransactionFuture, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
 	mockModule.AssertCalled(t, "StorageAccount", oneAddress.FixedSequence)

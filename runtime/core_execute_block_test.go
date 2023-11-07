@@ -118,7 +118,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		primitives.NewApplyExtrinsicResult(primitives.NewDispatchOutcome(nil)).Bytes(),
+		applyExtrinsicResultOutcome.Bytes(),
 		applyResult,
 	)
 

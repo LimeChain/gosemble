@@ -109,7 +109,9 @@ func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.T
 		}
 
 		if !uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress) {
-			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+			// https://github.com/LimeChain/gosemble/issues/271
+			invalidTransactionBadProof, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+			return nil, invalidTransactionBadProof
 		}
 
 		return NewCheckedExtrinsic(sc.NewOption[primitives.Address32](signerAddress), uxt.function, extra), nil
@@ -123,10 +125,19 @@ func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc
 	signerBytes := sc.FixedSequenceU8ToBytes(signer.FixedSequence)
 
 	if signature.IsEd25519() {
-		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsEd25519().FixedSequence)
+		sigEd25519, err := signature.AsEd25519()
+		if err != nil {
+			log.Critical(err.Error())
+		}
+		sigBytes := sc.FixedSequenceU8ToBytes(sigEd25519.FixedSequence)
 		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsSr25519() {
-		sigBytes := sc.FixedSequenceU8ToBytes(signature.AsSr25519().FixedSequence)
+
+		sigSr25519, err := signature.AsSr25519()
+		if err != nil {
+			log.Critical(err.Error())
+		}
+		sigBytes := sc.FixedSequenceU8ToBytes(sigSr25519.FixedSequence)
 		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsEcdsa() {
 		return true

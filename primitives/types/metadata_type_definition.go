@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -117,10 +116,8 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionBitSequence(storeOrder, orderType), nil
 	default:
-		log.Critical("invalid MetadataTypeDefinition type")
+		return MetadataTypeDefinition{}, newTypeError("MetadataTypeDefinition")
 	}
-
-	panic("unreachable")
 }
 
 type MetadataTypeDefinitionField struct {
@@ -307,10 +304,7 @@ func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinition
 		return MetadataDefinitionPrimitiveI128, nil
 	case MetadataDefinitionPrimitiveI256:
 		return MetadataDefinitionPrimitiveI256, nil
-
 	default:
-		log.Critical("invalid MetadataDefinitionPrimitive type")
+		return MetadataDefinitionPrimitive(0), newTypeError("MetadataDefinitionPrimitive")
 	}
-
-	panic("unreachable")
 }

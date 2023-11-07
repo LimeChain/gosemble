@@ -33,7 +33,7 @@ func Test_DecodeConsumedWeight(t *testing.T) {
 	buf := bytes.NewBuffer(expectedConsumedWeightBytes)
 
 	result, err := DecodeConsumedWeight(buf)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, targetConsumedWeight, result)
 }
 
@@ -42,39 +42,41 @@ func Test_ConsumedWeight_Bytes(t *testing.T) {
 }
 
 func Test_ConsumedWeight_Get_Normal(t *testing.T) {
-	assert.Equal(t,
-		WeightFromParts(1, 2),
-		*targetConsumedWeight.Get(NewDispatchClassNormal()),
-	)
+	result, err := targetConsumedWeight.Get(NewDispatchClassNormal())
+
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(1, 2), *result)
 }
 
 func Test_ConsumedWeight_Get_Operational(t *testing.T) {
-	assert.Equal(t,
-		WeightFromParts(3, 4),
-		*targetConsumedWeight.Get(NewDispatchClassOperational()),
-	)
+	result, err := targetConsumedWeight.Get(NewDispatchClassOperational())
+
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(3, 4), *result)
 }
 
 func Test_ConsumedWeight_Get_Mandatory(t *testing.T) {
-	assert.Equal(t,
-		WeightFromParts(5, 6),
-		*targetConsumedWeight.Get(NewDispatchClassMandatory()),
-	)
+	result, err := targetConsumedWeight.Get(NewDispatchClassMandatory())
+
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(5, 6), *result)
 }
 
 func Test_ConsumedWeight_Get_UnknownPanics(t *testing.T) {
 	unknownDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
 
-	assert.PanicsWithValue(t, "invalid DispatchClass type", func() {
-		targetConsumedWeight.Get(unknownDispatchClass)
-	})
+	result, err := targetConsumedWeight.Get(unknownDispatchClass)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Nil(t, result)
 }
 
 func Test_ConsumedWeight_Total(t *testing.T) {
-	assert.Equal(t,
-		WeightFromParts(9, 12),
-		targetConsumedWeight.Total(),
-	)
+	result, err := targetConsumedWeight.Total()
+
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(9, 12), result)
 }
 
 func Test_ConsumedWeight_SaturatingAdd(t *testing.T) {
@@ -83,20 +85,17 @@ func Test_ConsumedWeight_SaturatingAdd(t *testing.T) {
 		NewDispatchClassNormal(),
 	)
 
-	assert.Equal(t,
-		WeightFromParts(math.MaxUint64, math.MaxUint64),
-		*targetConsumedWeight.Get(NewDispatchClassNormal()),
-	)
+	consumedWeightNormal, err := targetConsumedWeight.Get(NewDispatchClassNormal())
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(math.MaxUint64, math.MaxUint64), *consumedWeightNormal)
 
-	assert.Equal(t,
-		WeightFromParts(3, 4),
-		*targetConsumedWeight.Get(NewDispatchClassOperational()),
-	)
+	consumedWeightOperational, err := targetConsumedWeight.Get(NewDispatchClassOperational())
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(3, 4), *consumedWeightOperational)
 
-	assert.Equal(t,
-		WeightFromParts(5, 6),
-		*targetConsumedWeight.Get(NewDispatchClassMandatory()),
-	)
+	consumedWeightMandatory, err := targetConsumedWeight.Get(NewDispatchClassMandatory())
+	assert.NoError(t, err)
+	assert.Equal(t, WeightFromParts(5, 6), *consumedWeightMandatory)
 }
 
 func Test_ConsumedWeight_Accrue(t *testing.T) {
@@ -134,11 +133,11 @@ func Test_ConsumedWeight_CheckedAccrue_Ok(t *testing.T) {
 		Mandatory:   WeightFromParts(5, 6),
 	}
 
-	_, err := targetConsumedWeight.CheckedAccrue(
+	err := targetConsumedWeight.CheckedAccrue(
 		WeightFromParts(1, 1),
 		NewDispatchClassNormal(),
 	)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t,
 		WeightFromParts(2, 3),
@@ -163,7 +162,7 @@ func Test_ConsumedWeight_CheckedAccrue_RefTimeOverflow(t *testing.T) {
 		Mandatory:   WeightFromParts(5, 6),
 	}
 
-	_, err := targetConsumedWeight.CheckedAccrue(
+	err := targetConsumedWeight.CheckedAccrue(
 		WeightFromParts(math.MaxUint64, 1),
 		NewDispatchClassNormal(),
 	)
@@ -192,13 +191,13 @@ func Test_ConsumedWeight_CheckedAccrue_ProofSizeOverflow(t *testing.T) {
 		Mandatory:   WeightFromParts(5, 6),
 	}
 
-	_, err := targetConsumedWeight.CheckedAccrue(
+	err := targetConsumedWeight.CheckedAccrue(
 		WeightFromParts(1, math.MaxUint64),
 		NewDispatchClassNormal(),
 	)
 	assert.Equal(t, errors.New("overflow"), err)
 
-	_, err = targetConsumedWeight.CheckedAccrue(
+	err = targetConsumedWeight.CheckedAccrue(
 		WeightFromParts(math.MaxUint64, 1),
 		NewDispatchClassNormal(),
 	)

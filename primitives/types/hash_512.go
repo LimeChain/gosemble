@@ -2,20 +2,20 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type H512 struct {
 	sc.FixedSequence[sc.U8] // size 64
 }
 
-func NewH512(values ...sc.U8) H512 {
+func NewH512(values ...sc.U8) (H512, error) {
 	if len(values) != 64 {
-		log.Critical("H512 should be of size 64")
+		return H512{}, errors.New("H512 should be of size 64")
 	}
-	return H512{sc.NewFixedSequence(64, values...)}
+	return H512{sc.NewFixedSequence(64, values...)}, nil
 }
 
 func (h H512) Encode(buffer *bytes.Buffer) {

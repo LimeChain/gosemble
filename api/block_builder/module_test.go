@@ -53,8 +53,11 @@ func Test_Module_ApplyExtrinsic_Success(t *testing.T) {
 	target := setup()
 
 	bufferUxt := bytes.NewBuffer(bUxt)
-	outcome := primitives.NewDispatchOutcome(sc.Empty{})
-	bExtrinsicResult := primitives.NewApplyExtrinsicResult(outcome).Bytes()
+	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
+	assert.Nil(t, err)
+	applyExtrinsicResultOutcome, err := primitives.NewApplyExtrinsicResult(outcome)
+	assert.Nil(t, err)
+	bExtrinsicResult := applyExtrinsicResultOutcome.Bytes()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
 	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
@@ -74,9 +77,13 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	target := setup()
 
 	bufferUxt := bytes.NewBuffer(bUxt)
-	outcome := primitives.NewDispatchOutcome(sc.Empty{})
-	validityError := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	bExtrinsicResult := primitives.NewApplyExtrinsicResult(validityError).Bytes()
+	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
+	assert.Nil(t, err)
+	validityError, err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	assert.Nil(t, err)
+	applyExtrinsicResultValidityErr, err := primitives.NewApplyExtrinsicResult(validityError)
+	assert.Nil(t, err)
+	bExtrinsicResult := applyExtrinsicResultValidityErr.Bytes()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
 	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)

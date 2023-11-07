@@ -51,13 +51,18 @@ func Test_NewDispatchResult_DispatchError(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			assert.Equal(t, testExample.expectation, NewDispatchResult(testExample.input))
+			result, err := NewDispatchResult(testExample.input)
+
+			assert.NoError(t, err)
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }
 
-func Test_NewDispatchResult_DispatchError_Panic(t *testing.T) {
-	assert.PanicsWithValue(t, "invalid DispatchResult type", func() {
-		NewDispatchResult(sc.U8(0))
-	})
+func Test_NewDispatchResult_DispatchError_TypeError(t *testing.T) {
+	result, err := NewDispatchResult(sc.U8(0))
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchResult' type", err.Error())
+	assert.Equal(t, DispatchResult{}, result)
 }

@@ -25,11 +25,15 @@ var (
 		},
 	}
 
+	stateRootHash, _      = NewH256(sc.BytesToFixedSequenceU8(stateRoot.ToBytes())...)
+	extrinsicsRootHash, _ = NewH256(sc.BytesToFixedSequenceU8(extrinsicsRoot.ToBytes())...)
+	parentHeaderHash, _   = NewBlake2bHash(sc.BytesToFixedSequenceU8(parentHash.ToBytes())...)
+
 	targetHeader = Header{
-		ParentHash:     NewBlake2bHash(sc.BytesToFixedSequenceU8(parentHash.ToBytes())...),
+		ParentHash:     parentHeaderHash,
 		Number:         1,
-		StateRoot:      NewH256(sc.BytesToFixedSequenceU8(stateRoot.ToBytes())...),
-		ExtrinsicsRoot: NewH256(sc.BytesToFixedSequenceU8(extrinsicsRoot.ToBytes())...),
+		StateRoot:      stateRootHash,
+		ExtrinsicsRoot: extrinsicsRootHash,
 		Digest:         digest,
 	}
 )
@@ -46,7 +50,7 @@ func Test_Header_Decode(t *testing.T) {
 	buf := bytes.NewBuffer(expectBytesHeader)
 
 	result, err := DecodeHeader(buf)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, targetHeader.ParentHash, result.ParentHash)
 	assert.Equal(t, targetHeader.Number, result.Number)
