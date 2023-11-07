@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	// targetSr25519Signer = NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
 	targetSr25519Signer = Sr25519Signer{
 		FixedSequence: sc.BytesToFixedSequenceU8(pubKeySr25519Signer),
 	}

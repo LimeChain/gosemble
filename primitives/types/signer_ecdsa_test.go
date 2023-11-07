@@ -10,7 +10,6 @@ import (
 )
 
 var (
-	//targetEcdsaSigner = NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
 	targetEcdsaSigner = EcdsaSigner{
 		FixedSequence: sc.BytesToFixedSequenceU8(pubKeyEcdsaSigner),
 	}
