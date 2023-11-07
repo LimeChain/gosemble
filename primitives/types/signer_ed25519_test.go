@@ -10,8 +10,11 @@ import (
 )
 
 var (
-	targetEd25519Signer = NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...)
-	invalidAddress      = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
+	//targetEd25519Signer = NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...)
+	targetEd25519Signer = Ed25519Signer{
+		FixedSequence: sc.BytesToFixedSequenceU8(pubKeyEd25519Signer),
+	}
+	invalidAddress = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0}
 )
 
 func Test_Signer_Ed25519_Encode(t *testing.T) {
@@ -44,14 +47,15 @@ func Test_DecodeEd25519_Signer_InvalidNumberOfBytes(t *testing.T) {
 }
 
 func Test_Signer_Ed25519_New(t *testing.T) {
-	newEd25519Signer := NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...)
+	newEd25519Signer, err := NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...)
+	assert.Nil(t, err)
 	assert.Equal(t, newEd25519Signer, targetEd25519Signer)
 }
 
 func Test_Signer_Ed25519_New_InvalidAddress(t *testing.T) {
-	assert.PanicsWithValue(t,
-		"Ed25519Signer should be of size 32",
-		func() {
-			NewEd25519Signer(sc.BytesToSequenceU8(invalidAddress)...)
-		})
+	expectedErr := newTypeError("Ed25519Signer")
+	newEd25519Signer, err := NewEd25519Signer(sc.BytesToSequenceU8(invalidAddress)...)
+	assert.Error(t, err)
+	assert.Equal(t, Ed25519Signer{}, newEd25519Signer)
+	assert.Equal(t, expectedErr, err)
 }

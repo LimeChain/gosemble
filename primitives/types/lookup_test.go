@@ -10,12 +10,12 @@ import (
 var (
 	multiAddressId = NewMultiAddressId(
 		AccountId{
-			Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
+			Ed25519Signer: ed25519SignerOnesAddress,
 		},
 	)
 	multiAddressIndex = NewMultiAddressIndex(accountIndex)
 	expectedAccountId = AccountId{
-		Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
+		Ed25519Signer: ed25519SignerOnesAddress,
 	}
 	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 

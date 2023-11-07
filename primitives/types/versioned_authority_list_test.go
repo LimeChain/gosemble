@@ -11,12 +11,14 @@ import (
 )
 
 var (
-	idOne = AccountId{Ed25519Signer: NewEd25519Signer(sc.BytesToFixedSequenceU8(
+	ed25519SignerOne, _ = NewEd25519Signer(sc.BytesToFixedSequenceU8(
 		common.MustHexToHash("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff").ToBytes(),
-	)...)}
-	idTwo = AccountId{Ed25519Signer: NewEd25519Signer(sc.BytesToFixedSequenceU8(
+	)...)
+	ed25519SignerTwo, _ = NewEd25519Signer(sc.BytesToFixedSequenceU8(
 		common.MustHexToHash("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff").ToBytes(),
-	)...)}
+	)...)
+	idOne                                = AccountId{Ed25519Signer: ed25519SignerOne}
+	idTwo                                = AccountId{Ed25519Signer: ed25519SignerTwo}
 	expectBytesVersionedAuthorityList, _ = hex.DecodeString("010888dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff020000000000000088dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff0300000000000000")
 )
 

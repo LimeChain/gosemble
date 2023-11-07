@@ -19,9 +19,10 @@ var (
 	signerAddressBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	}
-	signer = NewMultiAddressId(
+	ed25519SignerOnesAddress, _ = NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)
+	signer                      = NewMultiAddressId(
 		AccountId{
-			Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
+			Ed25519Signer: ed25519SignerOnesAddress,
 		},
 	)
 

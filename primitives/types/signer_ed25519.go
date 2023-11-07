@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 type Ed25519Signer struct {
@@ -27,9 +26,9 @@ func DecodeEd25519Signer(buffer *bytes.Buffer) (Ed25519Signer, error) {
 	return Ed25519Signer{seq}, nil
 }
 
-func NewEd25519Signer(values ...sc.U8) Ed25519Signer {
+func NewEd25519Signer(values ...sc.U8) (Ed25519Signer, error) {
 	if len(values) != 32 {
-		log.Critical("Ed25519Signer should be of size 32")
+		return Ed25519Signer{}, newTypeError("Ed25519Signer")
 	}
-	return Ed25519Signer{sc.NewFixedSequence(32, values...)}
+	return Ed25519Signer{sc.NewFixedSequence(32, values...)}, nil
 }

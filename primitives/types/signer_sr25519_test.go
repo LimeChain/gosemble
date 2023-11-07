@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	targetSr25519Signer = NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
+	// targetSr25519Signer = NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
+	targetSr25519Signer = Sr25519Signer{
+		FixedSequence: sc.BytesToFixedSequenceU8(pubKeySr25519Signer),
+	}
 )
 
 func Test_Signer_Sr25519_Encode(t *testing.T) {
@@ -43,14 +46,15 @@ func Test_DecodeSr25519_Signer_InvalidNumberOfBytes(t *testing.T) {
 }
 
 func Test_Signer_Sr25519_New(t *testing.T) {
-	newSr25519Signer := NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
+	newSr25519Signer, err := NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
+	assert.Nil(t, err)
 	assert.Equal(t, newSr25519Signer, targetSr25519Signer)
 }
 
 func Test_Signer_Sr25519__New_InvalidAddress(t *testing.T) {
-	assert.PanicsWithValue(t,
-		"Sr25519Signer should be of size 32",
-		func() {
-			NewSr25519Signer(sc.BytesToSequenceU8(invalidAddress)...)
-		})
+	expectedErr := newTypeError("Sr25519Signer")
+	newSr25519Signer, err := NewSr25519Signer(sc.BytesToSequenceU8(invalidAddress)...)
+	assert.Error(t, err)
+	assert.Equal(t, Sr25519Signer{}, newSr25519Signer)
+	assert.Equal(t, expectedErr, err)
 }

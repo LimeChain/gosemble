@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -31,9 +30,9 @@ func DecodeEcdsaSigner(buffer *bytes.Buffer) (EcdsaSigner, error) {
 	return EcdsaSigner{seq}, nil
 }
 
-func NewEcdsaSigner(values ...sc.U8) EcdsaSigner {
+func NewEcdsaSigner(values ...sc.U8) (EcdsaSigner, error) {
 	if len(values) != publicKeySerializedSize {
-		log.Critical("Ecdsa signer size should be of size 33")
+		return EcdsaSigner{}, newTypeError("EcdsaSigner")
 	}
-	return EcdsaSigner{sc.NewFixedSequence(publicKeySerializedSize, values...)}
+	return EcdsaSigner{sc.NewFixedSequence(publicKeySerializedSize, values...)}, nil
 }

@@ -30,8 +30,9 @@ var (
 	signerAddressBytes = []byte{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
-	signerAddress = types.AccountId{Ed25519Signer: types.NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)}
-	signer        = types.NewMultiAddressId(signerAddress)
+	signer25519Address, _ = types.NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)
+	signerAccountId       = types.AccountId{Ed25519Signer: signer25519Address}
+	signer                = types.NewMultiAddressId(signerAccountId)
 
 	signatureBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -295,7 +296,7 @@ func Test_Check_SignedUncheckedExtrinsic_LongEncoding_BadProofError(t *testing.T
 
 func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -315,7 +316,7 @@ func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 
 func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	setup(signatureSr25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAddress), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)

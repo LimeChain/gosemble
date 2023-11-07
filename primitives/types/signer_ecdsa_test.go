@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	targetEcdsaSigner = NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
+	//targetEcdsaSigner = NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
+	targetEcdsaSigner = EcdsaSigner{
+		FixedSequence: sc.BytesToFixedSequenceU8(pubKeyEcdsaSigner),
+	}
 )
 
 func Test_Signer_Ecdsa_Encode(t *testing.T) {
@@ -43,14 +46,15 @@ func Test_DecodeEcdsa_Signer_InvalidNumberOfBytes(t *testing.T) {
 }
 
 func Test_Signer_Ecdsa_New(t *testing.T) {
-	newEcdsaSigner := NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
+	newEcdsaSigner, err := NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
+	assert.Nil(t, err)
 	assert.Equal(t, newEcdsaSigner, targetEcdsaSigner)
 }
 
 func Test_Signer_Ecdsa__New_InvalidAddress(t *testing.T) {
-	assert.PanicsWithValue(t,
-		"Ecdsa signer size should be of size 33",
-		func() {
-			NewEcdsaSigner(sc.BytesToSequenceU8(invalidAddress)...)
-		})
+	expectedErr := newTypeError("EcdsaSigner")
+	newEcdsaSigner, err := NewEcdsaSigner(sc.BytesToSequenceU8(invalidAddress)...)
+	assert.Error(t, err)
+	assert.Equal(t, EcdsaSigner{}, newEcdsaSigner)
+	assert.Equal(t, expectedErr, err)
 }

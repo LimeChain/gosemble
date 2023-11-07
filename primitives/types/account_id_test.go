@@ -13,13 +13,17 @@ var (
 	pubKeySr25519Signer = []byte{1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	pubKeyEcdsaSigner   = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
+	ed25519Signer, _ = NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...)
+	sr25519Signer, _ = NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
+	ecdsaSigner, _   = NewEcdsaSigner(sc.BytesToFixedSequenceU8(addr33Bytes)...)
+
 	targetAccountIdEd25519 = AccountId{
-		Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(pubKeyEd25519Signer)...),
+		Ed25519Signer: ed25519Signer,
 	}
 	targetAccountIdSr25519 = AccountId{
-		Sr25519Signer: NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...),
+		Sr25519Signer: sr25519Signer,
 	}
-	targetAccountIdEcdsa = AccountId{EcdsaSigner: NewEcdsaSigner(sc.BytesToFixedSequenceU8(addr33Bytes)...)}
+	targetAccountIdEcdsa = AccountId{EcdsaSigner: ecdsaSigner}
 )
 
 func Test_AccountId_Encode_Ed25519_Signer(t *testing.T) {

@@ -175,12 +175,13 @@ func Test_EnsureSignedOrRoot_Root(t *testing.T) {
 func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
 	slice := make([]sc.U8, 32)
 	seq := sc.NewFixedSequence[sc.U8](32, slice...)
-	address := primitives.NewEd25519Signer(seq...)
+	address, err := primitives.NewEd25519Signer(seq...)
+	assert.Nil(t, err)
 	signer := primitives.AccountId{Ed25519Signer: address}
 
-	r, err := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
+	r, e := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
 
-	assert.Nil(t, err)
+	assert.Nil(t, e)
 	assert.Equal(t, sc.NewOption[primitives.AccountId](signer), r)
 }
 

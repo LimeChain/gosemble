@@ -14,7 +14,7 @@ var (
 		"01010101010101010101010101010101010101010101010101010101010101010300000000000000",
 	)
 
-	publicKey = NewEd25519Signer(sc.NewFixedSequence[sc.U8](32,
+	publicKey, _ = NewEd25519Signer(sc.NewFixedSequence[sc.U8](32,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

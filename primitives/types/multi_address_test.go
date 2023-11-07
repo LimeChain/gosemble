@@ -18,7 +18,9 @@ var (
 	addr32Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	addr33Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
-	accountId    = AccountId{Ed25519Signer: NewEd25519Signer(sc.BytesToFixedSequenceU8(addr32Bytes)...)}
+	ed25519SignerFromAddr32, _ = NewEd25519Signer(sc.BytesToFixedSequenceU8(addr32Bytes)...)
+
+	accountId    = AccountId{Ed25519Signer: ed25519SignerFromAddr32}
 	accountIndex = sc.U32(2)
 	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
 	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
