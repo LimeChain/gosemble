@@ -11,8 +11,9 @@ type SignedPayload struct {
 	mock.Mock
 }
 
-func (sp *SignedPayload) Encode(buffer *bytes.Buffer) {
+func (sp *SignedPayload) Encode(buffer *bytes.Buffer) error {
 	sp.Called(buffer)
+	return nil
 }
 
 func (sp *SignedPayload) Bytes() []byte {

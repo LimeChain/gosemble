@@ -48,12 +48,24 @@ type ValidTransaction struct {
 	Propagate sc.Bool
 }
 
-func (tx ValidTransaction) Encode(buffer *bytes.Buffer) {
-	tx.Priority.Encode(buffer)
-	tx.Requires.Encode(buffer)
-	tx.Provides.Encode(buffer)
-	tx.Longevity.Encode(buffer)
-	tx.Propagate.Encode(buffer)
+func (tx ValidTransaction) Encode(buffer *bytes.Buffer) error {
+	err := tx.Priority.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = tx.Requires.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = tx.Provides.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = tx.Longevity.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return tx.Propagate.Encode(buffer)
 }
 
 func DecodeValidTransaction(buffer *bytes.Buffer) (ValidTransaction, error) {

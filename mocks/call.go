@@ -12,8 +12,9 @@ type Call struct {
 	mock.Mock
 }
 
-func (m *Call) Encode(buffer *bytes.Buffer) {
+func (m *Call) Encode(buffer *bytes.Buffer) error {
 	m.Called(buffer)
+	return nil
 }
 
 func (m *Call) Bytes() []byte {

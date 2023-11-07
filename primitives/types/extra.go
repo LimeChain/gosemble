@@ -33,10 +33,14 @@ func NewSignedExtra(checks []SignedExtension) SignedExtra {
 	}
 }
 
-func (e signedExtra) Encode(buffer *bytes.Buffer) {
+func (e signedExtra) Encode(buffer *bytes.Buffer) error {
 	for _, extra := range e.extras {
-		extra.Encode(buffer)
+		err := extra.Encode(buffer)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 func (e signedExtra) Bytes() []byte {

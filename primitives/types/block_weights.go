@@ -15,10 +15,16 @@ type BlockWeights struct {
 	PerClass PerDispatchClass[WeightsPerClass]
 }
 
-func (bw BlockWeights) Encode(buffer *bytes.Buffer) {
-	bw.BaseBlock.Encode(buffer)
-	bw.MaxBlock.Encode(buffer)
-	bw.PerClass.Encode(buffer)
+func (bw BlockWeights) Encode(buffer *bytes.Buffer) error {
+	err := bw.BaseBlock.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = bw.MaxBlock.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return bw.PerClass.Encode(buffer)
 }
 
 func (bw BlockWeights) Bytes() []byte {

@@ -19,7 +19,9 @@ func NewCheckSpecVersion(systemModule system.Module) CheckSpecVersion {
 	}
 }
 
-func (csv CheckSpecVersion) Encode(*bytes.Buffer) {}
+func (csv CheckSpecVersion) Encode(*bytes.Buffer) error {
+	return nil
+}
 
 func (csv CheckSpecVersion) Decode(*bytes.Buffer) error { return nil }
 

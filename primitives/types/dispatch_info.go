@@ -18,10 +18,16 @@ type DispatchInfo struct {
 	PaysFee Pays
 }
 
-func (di DispatchInfo) Encode(buffer *bytes.Buffer) {
-	di.Weight.Encode(buffer)
-	di.Class.Encode(buffer)
-	di.PaysFee.Encode(buffer)
+func (di DispatchInfo) Encode(buffer *bytes.Buffer) error {
+	err := di.Weight.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = di.Class.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return di.PaysFee.Encode(buffer)
 }
 
 func DecodeDispatchInfo(buffer *bytes.Buffer) (DispatchInfo, error) {

@@ -23,10 +23,16 @@ func (m Metadata15) Bytes() []byte {
 	return sc.EncodedBytes(m)
 }
 
-func (m Metadata15) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
-	MetadataVersion15.Encode(buffer)
-	m.Data.Encode(buffer)
+func (m Metadata15) Encode(buffer *bytes.Buffer) error {
+	err := MetadataReserved.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = MetadataVersion15.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return m.Data.Encode(buffer)
 }
 
 type Metadata14 struct {
@@ -37,10 +43,16 @@ func (m Metadata14) Bytes() []byte {
 	return sc.EncodedBytes(m)
 }
 
-func (m Metadata14) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
-	MetadataVersion14.Encode(buffer)
-	m.Data.Encode(buffer)
+func (m Metadata14) Encode(buffer *bytes.Buffer) error {
+	err := MetadataReserved.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = MetadataVersion14.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return m.Data.Encode(buffer)
 }
 
 type Metadata struct {
@@ -57,19 +69,29 @@ func NewMetadataV15(data RuntimeMetadataV15) Metadata15 {
 	return Metadata15{Data: data}
 }
 
-func (m Metadata) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
+func (m Metadata) Encode(buffer *bytes.Buffer) error {
+	err := MetadataReserved.Encode(buffer)
+	if err != nil {
+		return err
+	}
 
 	switch m.Version {
 	case MetadataVersion14:
-		MetadataVersion14.Encode(buffer)
-		m.DataV14.Encode(buffer)
+		err = MetadataVersion14.Encode(buffer)
+		if err != nil {
+			return err
+		}
+		return m.DataV14.Encode(buffer)
 	case MetadataVersion15:
-		MetadataVersion15.Encode(buffer)
-		m.DataV15.Encode(buffer)
+		err = MetadataVersion15.Encode(buffer)
+		if err != nil {
+			return err
+		}
+		return m.DataV15.Encode(buffer)
 	default:
 		log.Critical("Unsupported metadata version")
 	}
+	return nil
 }
 
 func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
@@ -159,12 +181,24 @@ func NewMetadataTypeWithParams(id int, docs string, path sc.Sequence[sc.Str], de
 	}
 }
 
-func (mt MetadataType) Encode(buffer *bytes.Buffer) {
-	mt.Id.Encode(buffer)
-	mt.Path.Encode(buffer)
-	mt.Params.Encode(buffer)
-	mt.Definition.Encode(buffer)
-	mt.Docs.Encode(buffer)
+func (mt MetadataType) Encode(buffer *bytes.Buffer) error {
+	err := mt.Id.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mt.Path.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mt.Params.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mt.Definition.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return mt.Docs.Encode(buffer)
 }
 
 func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
@@ -227,9 +261,12 @@ func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
 	}
 }
 
-func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) {
-	mtp.Text.Encode(buffer)
-	mtp.Type.Encode(buffer)
+func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) error {
+	err := mtp.Text.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return mtp.Type.Encode(buffer)
 }
 
 func DecodeMetadataTypeParameter(buffer *bytes.Buffer) (MetadataTypeParameter, error) {

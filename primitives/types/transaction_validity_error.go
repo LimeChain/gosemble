@@ -31,19 +31,25 @@ func NewTransactionValidityError(value sc.Encodable) (TransactionValidityError, 
 	return TransactionValidityError(sc.NewVaryingData(value)), nil
 }
 
-func (e TransactionValidityError) Encode(buffer *bytes.Buffer) {
+func (e TransactionValidityError) Encode(buffer *bytes.Buffer) error {
 	value := e[0]
 
 	switch reflect.TypeOf(value) {
 	case reflect.TypeOf(*new(InvalidTransaction)):
-		TransactionValidityErrorInvalidTransaction.Encode(buffer)
+		err := TransactionValidityErrorInvalidTransaction.Encode(buffer)
+		if err != nil {
+			return err
+		}
 	case reflect.TypeOf(*new(UnknownTransaction)):
-		TransactionValidityErrorUnknownTransaction.Encode(buffer)
+		err := TransactionValidityErrorUnknownTransaction.Encode(buffer)
+		if err != nil {
+			return err
+		}
 	default:
 		log.Critical(errInvalidTransactionValidityErrorType.Error())
 	}
 
-	value.Encode(buffer)
+	return value.Encode(buffer)
 }
 
 func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityError, error) {

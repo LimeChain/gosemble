@@ -45,10 +45,16 @@ func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, TransactionV
 	}, nil
 }
 
-func (sp signedPayload) Encode(buffer *bytes.Buffer) {
-	sp.call.Encode(buffer)
-	sp.extra.Encode(buffer)
-	sp.additionalSigned.Encode(buffer)
+func (sp signedPayload) Encode(buffer *bytes.Buffer) error {
+	err := sp.call.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = sp.extra.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return sp.additionalSigned.Encode(buffer)
 }
 
 func (sp signedPayload) Bytes() []byte {

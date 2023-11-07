@@ -18,8 +18,8 @@ func NewH512(values ...sc.U8) (H512, error) {
 	return H512{sc.NewFixedSequence(64, values...)}, nil
 }
 
-func (h H512) Encode(buffer *bytes.Buffer) {
-	h.FixedSequence.Encode(buffer)
+func (h H512) Encode(buffer *bytes.Buffer) error {
+	return h.FixedSequence.Encode(buffer)
 }
 
 func DecodeH512(buffer *bytes.Buffer) (H512, error) {

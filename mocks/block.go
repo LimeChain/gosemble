@@ -12,8 +12,9 @@ type Block struct {
 	mock.Mock
 }
 
-func (m *Block) Encode(buffer *bytes.Buffer) {
+func (m *Block) Encode(buffer *bytes.Buffer) error {
 	m.Called(buffer)
+	return nil
 }
 
 func (m *Block) Bytes() []byte {

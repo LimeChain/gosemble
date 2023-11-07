@@ -16,9 +16,12 @@ type PostDispatchInfo struct {
 	PaysFee sc.U8
 }
 
-func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) {
-	pdi.ActualWeight.Encode(buffer)
-	pdi.PaysFee.Encode(buffer)
+func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) error {
+	err := pdi.ActualWeight.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return pdi.PaysFee.Encode(buffer)
 }
 
 func DecodePostDispatchInfo(buffer *bytes.Buffer) (PostDispatchInfo, error) {

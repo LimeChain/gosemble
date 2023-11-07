@@ -35,11 +35,20 @@ type WeightsPerClass struct {
 	Reserved sc.Option[Weight]
 }
 
-func (cl WeightsPerClass) Encode(buffer *bytes.Buffer) {
-	cl.BaseExtrinsic.Encode(buffer)
-	cl.MaxExtrinsic.Encode(buffer)
-	cl.MaxTotal.Encode(buffer)
-	cl.Reserved.Encode(buffer)
+func (cl WeightsPerClass) Encode(buffer *bytes.Buffer) error {
+	err := cl.BaseExtrinsic.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = cl.MaxExtrinsic.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = cl.MaxTotal.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return cl.Reserved.Encode(buffer)
 }
 
 func DecodeWeightsPerClass(buffer *bytes.Buffer) (WeightsPerClass, error) {

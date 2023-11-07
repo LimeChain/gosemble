@@ -21,8 +21,8 @@ func NewCheckMortality(systemModule system.Module) CheckMortality {
 	}
 }
 
-func (cm CheckMortality) Encode(buffer *bytes.Buffer) {
-	cm.era.Encode(buffer)
+func (cm CheckMortality) Encode(buffer *bytes.Buffer) error {
+	return cm.era.Encode(buffer)
 }
 
 func (cm *CheckMortality) Decode(buffer *bytes.Buffer) error {

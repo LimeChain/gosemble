@@ -13,9 +13,12 @@ type Weight struct {
 	ProofSize sc.U64
 }
 
-func (w Weight) Encode(buffer *bytes.Buffer) {
-	sc.ToCompact(w.RefTime).Encode(buffer)
-	sc.ToCompact(w.ProofSize).Encode(buffer)
+func (w Weight) Encode(buffer *bytes.Buffer) error {
+	err := sc.ToCompact(w.RefTime).Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return sc.ToCompact(w.ProofSize).Encode(buffer)
 }
 
 func DecodeWeight(buffer *bytes.Buffer) (Weight, error) {

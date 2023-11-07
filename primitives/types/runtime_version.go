@@ -17,15 +17,36 @@ type RuntimeVersion struct {
 	StateVersion       sc.U8
 }
 
-func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) {
-	rv.SpecName.Encode(buffer)
-	rv.ImplName.Encode(buffer)
-	rv.AuthoringVersion.Encode(buffer)
-	rv.SpecVersion.Encode(buffer)
-	rv.ImplVersion.Encode(buffer)
-	rv.Apis.Encode(buffer)
-	rv.TransactionVersion.Encode(buffer)
-	rv.StateVersion.Encode(buffer)
+func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) error {
+	err := rv.SpecName.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.ImplName.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.AuthoringVersion.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.SpecVersion.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.ImplVersion.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.Apis.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = rv.TransactionVersion.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return rv.StateVersion.Encode(buffer)
 }
 
 func (rv *RuntimeVersion) SetApis(apis sc.Sequence[ApiItem]) {

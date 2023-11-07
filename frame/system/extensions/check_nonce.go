@@ -19,8 +19,8 @@ func NewCheckNonce(systemModule system.Module) CheckNonce {
 	return CheckNonce{systemModule: systemModule}
 }
 
-func (cn CheckNonce) Encode(buffer *bytes.Buffer) {
-	sc.ToCompact(cn.nonce).Encode(buffer)
+func (cn CheckNonce) Encode(buffer *bytes.Buffer) error {
+	return sc.ToCompact(cn.nonce).Encode(buffer)
 }
 
 func (cn *CheckNonce) Decode(buffer *bytes.Buffer) error {

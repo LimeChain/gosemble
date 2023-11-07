@@ -11,9 +11,12 @@ type LastRuntimeUpgradeInfo struct {
 	SpecName    sc.Str
 }
 
-func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) {
-	sc.ToCompact(lrui.SpecVersion).Encode(buffer)
-	lrui.SpecName.Encode(buffer)
+func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) error {
+	err := sc.ToCompact(lrui.SpecVersion).Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return lrui.SpecName.Encode(buffer)
 }
 
 func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo, error) {

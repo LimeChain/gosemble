@@ -16,10 +16,16 @@ type ExtrinsicSignature struct {
 	Extra     SignedExtra
 }
 
-func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) {
-	s.Signer.Encode(buffer)
-	s.Signature.Encode(buffer)
-	s.Extra.Encode(buffer)
+func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) error {
+	err := s.Signer.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = s.Signature.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return s.Extra.Encode(buffer)
 }
 
 func DecodeExtrinsicSignature(extra SignedExtra, buffer *bytes.Buffer) (ExtrinsicSignature, error) {

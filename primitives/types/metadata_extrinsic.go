@@ -12,10 +12,16 @@ type MetadataExtrinsicV14 struct {
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
-func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) {
-	me.Type.Encode(buffer)
-	me.Version.Encode(buffer)
-	me.SignedExtensions.Encode(buffer)
+func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) error {
+	err := me.Type.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = me.Version.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return me.SignedExtensions.Encode(buffer)
 }
 
 func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, error) {
@@ -52,13 +58,28 @@ type MetadataExtrinsicV15 struct {
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
-func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) {
-	me.Version.Encode(buffer)
-	me.Address.Encode(buffer)
-	me.Call.Encode(buffer)
-	me.Signature.Encode(buffer)
-	me.Extra.Encode(buffer)
-	me.SignedExtensions.Encode(buffer)
+func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) error {
+	err := me.Version.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = me.Address.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = me.Call.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = me.Signature.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = me.Extra.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return me.SignedExtensions.Encode(buffer)
 }
 
 func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) (MetadataExtrinsicV15, error) {
@@ -115,10 +136,16 @@ func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned i
 	}
 }
 
-func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) {
-	mse.Identifier.Encode(buffer)
-	mse.Type.Encode(buffer)
-	mse.AdditionalSigned.Encode(buffer)
+func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) error {
+	err := mse.Identifier.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mse.Type.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return mse.AdditionalSigned.Encode(buffer)
 }
 
 func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtension, error) {

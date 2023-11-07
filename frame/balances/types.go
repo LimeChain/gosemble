@@ -70,9 +70,12 @@ func newDustCleaner(moduleId sc.U8, accountId types.Address32, negativeImbalance
 	}
 }
 
-func (dcv dustCleaner) Encode(buffer *bytes.Buffer) {
-	dcv.accountId.Encode(buffer)
-	dcv.negativeImbalance.Encode(buffer)
+func (dcv dustCleaner) Encode(buffer *bytes.Buffer) error {
+	err := dcv.accountId.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return dcv.negativeImbalance.Encode(buffer)
 }
 
 func (dcv dustCleaner) Bytes() []byte {

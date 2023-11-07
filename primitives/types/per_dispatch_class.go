@@ -16,10 +16,16 @@ type PerDispatchClass[T sc.Encodable] struct {
 	Mandatory T
 }
 
-func (pdc PerDispatchClass[T]) Encode(buffer *bytes.Buffer) {
-	pdc.Normal.Encode(buffer)
-	pdc.Operational.Encode(buffer)
-	pdc.Mandatory.Encode(buffer)
+func (pdc PerDispatchClass[T]) Encode(buffer *bytes.Buffer) error {
+	err := pdc.Normal.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = pdc.Operational.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return pdc.Mandatory.Encode(buffer)
 }
 
 func DecodePerDispatchClass[T sc.Encodable](buffer *bytes.Buffer, decodeFunc func(buffer *bytes.Buffer) (T, error)) (PerDispatchClass[T], error) {

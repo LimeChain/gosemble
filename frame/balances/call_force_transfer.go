@@ -46,8 +46,8 @@ func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, er
 	return c, nil
 }
 
-func (c callForceTransfer) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
+func (c callForceTransfer) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
 }
 
 func (c callForceTransfer) Bytes() []byte {

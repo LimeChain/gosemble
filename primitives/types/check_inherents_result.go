@@ -27,11 +27,16 @@ func NewCheckInherentsResult() CheckInherentsResult {
 	}
 }
 
-func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) {
-	cir.Okay.Encode(buffer)
-	cir.FatalError.Encode(buffer)
-	cir.Errors.Encode(buffer)
-
+func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) error {
+	err := cir.Okay.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = cir.FatalError.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return cir.Errors.Encode(buffer)
 }
 func (cir CheckInherentsResult) Bytes() []byte {
 	return sc.EncodedBytes(cir)

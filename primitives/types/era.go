@@ -60,15 +60,15 @@ func NewImmortalEra() Era {
 	return Era{IsImmortal: true}
 }
 
-func (e Era) Encode(buffer *bytes.Buffer) {
+func (e Era) Encode(buffer *bytes.Buffer) error {
 	if e.IsImmortal {
-		sc.U8(0).Encode(buffer)
-		return
+		return sc.U8(0).Encode(buffer)
 	}
 
 	quantizeFactor := sc.Max64(e.EraPeriod>>12, 1)
 	encoded := sc.U16(sc.Clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/quantizeFactor)<<4)
 	buffer.Write(encoded.Bytes())
+	return nil
 }
 
 func DecodeEra(buffer *bytes.Buffer) (Era, error) {

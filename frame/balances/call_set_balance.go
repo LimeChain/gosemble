@@ -54,8 +54,8 @@ func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	return c, nil
 }
 
-func (c callSetBalance) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
+func (c callSetBalance) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
 }
 
 func (c callSetBalance) Bytes() []byte {

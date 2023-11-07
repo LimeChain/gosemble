@@ -18,8 +18,11 @@ func NewInherentData() *InherentData {
 	}
 }
 
-func (id *InherentData) Encode(buffer *bytes.Buffer) {
-	sc.ToCompact(uint64(len(id.data))).Encode(buffer)
+func (id *InherentData) Encode(buffer *bytes.Buffer) error {
+	err := sc.ToCompact(uint64(len(id.data))).Encode(buffer)
+	if err != nil {
+		return err
+	}
 
 	keys := make([][8]byte, 0)
 	for k := range id.data {
@@ -34,6 +37,8 @@ func (id *InherentData) Encode(buffer *bytes.Buffer) {
 		buffer.Write(k[:])
 		buffer.Write(value.Bytes())
 	}
+
+	return nil
 }
 
 func (id *InherentData) Bytes() []byte {

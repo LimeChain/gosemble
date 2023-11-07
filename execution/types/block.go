@@ -20,9 +20,13 @@ type block struct {
 	extrinsics sc.Sequence[types.UncheckedExtrinsic]
 }
 
-func (b block) Encode(buffer *bytes.Buffer) {
-	buffer.Write(b.header.Bytes())
-	buffer.Write(b.extrinsics.Bytes())
+func (b block) Encode(buffer *bytes.Buffer) error {
+	_, err := buffer.Write(b.header.Bytes())
+	if err != nil {
+		return err
+	}
+	_, err = buffer.Write(b.extrinsics.Bytes())
+	return err
 }
 
 func (b block) Bytes() []byte {

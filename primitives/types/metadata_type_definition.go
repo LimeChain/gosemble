@@ -154,11 +154,20 @@ func NewMetadataTypeDefinitionFieldWithName(id int, idName sc.Str) MetadataTypeD
 	}
 }
 
-func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) {
-	mtdf.Name.Encode(buffer)
-	mtdf.Type.Encode(buffer)
-	mtdf.TypeName.Encode(buffer)
-	mtdf.Docs.Encode(buffer)
+func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) error {
+	err := mtdf.Name.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mtdf.Type.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mtdf.TypeName.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return mtdf.Docs.Encode(buffer)
 }
 
 func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefinitionField, error) {
@@ -211,11 +220,20 @@ func NewMetadataDefinitionVariantStr(name sc.Str, fields sc.Sequence[MetadataTyp
 	}
 }
 
-func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) {
-	mdv.Name.Encode(buffer)
-	mdv.Fields.Encode(buffer)
-	mdv.Index.Encode(buffer)
-	mdv.Docs.Encode(buffer)
+func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) error {
+	err := mdv.Name.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mdv.Fields.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	err = mdv.Index.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return mdv.Docs.Encode(buffer)
 }
 
 func DecodeMetadataTypeDefinitionVariant(buffer *bytes.Buffer) (MetadataDefinitionVariant, error) {

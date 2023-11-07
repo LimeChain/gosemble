@@ -16,8 +16,6 @@ func (m *StorageMap[K, V]) Get(k K) (V, error) {
 	}
 
 	return args.Get(0).(V), args.Get(1).(error)
-
-	return args.Get(0).(V), nil
 }
 
 func (m *StorageMap[K, V]) Exists(k K) bool {

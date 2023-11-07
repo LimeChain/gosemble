@@ -9,8 +9,8 @@ import (
 // An object to track the currently used extrinsic weight in a block.
 type ConsumedWeight PerDispatchClass[Weight]
 
-func (cw ConsumedWeight) Encode(buffer *bytes.Buffer) {
-	PerDispatchClass[Weight](cw).Encode(buffer)
+func (cw ConsumedWeight) Encode(buffer *bytes.Buffer) error {
+	return PerDispatchClass[Weight](cw).Encode(buffer)
 }
 
 func DecodeConsumedWeight(buffer *bytes.Buffer) (ConsumedWeight, error) {

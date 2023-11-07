@@ -60,18 +60,31 @@ func NewUnsignedUncheckedExtrinsic(function primitives.Call) primitives.Unchecke
 	}
 }
 
-func (uxt uncheckedExtrinsic) Encode(buffer *bytes.Buffer) {
+func (uxt uncheckedExtrinsic) Encode(buffer *bytes.Buffer) error {
 	tempBuffer := &bytes.Buffer{}
 
-	uxt.version.Encode(tempBuffer)
-	if uxt.signature.HasValue {
-		uxt.signature.Value.Encode(tempBuffer)
+	err := uxt.version.Encode(tempBuffer)
+	if err != nil {
+		return err
 	}
-	uxt.function.Encode(tempBuffer)
+	if uxt.signature.HasValue {
+		err := uxt.signature.Value.Encode(tempBuffer)
+		if err != nil {
+			return err
+		}
+	}
+	err = uxt.function.Encode(tempBuffer)
+	if err != nil {
+		return err
+	}
 
 	encodedLen := sc.ToCompact(uint64(tempBuffer.Len()))
-	encodedLen.Encode(buffer)
-	buffer.Write(tempBuffer.Bytes())
+	err = encodedLen.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	_, err = buffer.Write(tempBuffer.Bytes())
+	return err
 }
 
 func (uxt uncheckedExtrinsic) Bytes() []byte {

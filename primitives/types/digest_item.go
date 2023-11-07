@@ -11,9 +11,12 @@ type DigestItem struct {
 	Payload sc.Sequence[sc.U8]
 }
 
-func (di DigestItem) Encode(buffer *bytes.Buffer) {
-	di.Engine.Encode(buffer)
-	di.Payload.Encode(buffer)
+func (di DigestItem) Encode(buffer *bytes.Buffer) error {
+	err := di.Engine.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return di.Payload.Encode(buffer)
 }
 
 func (di DigestItem) Bytes() []byte {

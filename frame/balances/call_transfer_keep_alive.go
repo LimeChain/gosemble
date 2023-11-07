@@ -42,8 +42,8 @@ func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) (primitives.Call
 	return c, nil
 }
 
-func (c callTransferKeepAlive) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
+func (c callTransferKeepAlive) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
 }
 
 func (c callTransferKeepAlive) Bytes() []byte {

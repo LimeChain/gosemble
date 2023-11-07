@@ -144,9 +144,12 @@ type CustomModuleError struct {
 	Message sc.Option[sc.Str] // Varying data type Option (Definition 190). The optional value is a SCALE encoded byte array containing a valid UTF-8 sequence.
 }
 
-func (e CustomModuleError) Encode(buffer *bytes.Buffer) {
-	e.Index.Encode(buffer)
-	e.Error.Encode(buffer)
+func (e CustomModuleError) Encode(buffer *bytes.Buffer) error {
+	err := e.Index.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return e.Error.Encode(buffer)
 	//e.Message.Encode(buffer) // Skipped in codec
 }
 
@@ -180,9 +183,12 @@ type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 	Error DispatchError
 }
 
-func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) {
-	e.PostInfo.Encode(buffer)
-	e.Error.Encode(buffer)
+func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) error {
+	err := e.PostInfo.Encode(buffer)
+	if err != nil {
+		return err
+	}
+	return e.Error.Encode(buffer)
 }
 
 func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {

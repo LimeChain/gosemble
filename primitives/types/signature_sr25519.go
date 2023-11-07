@@ -18,8 +18,8 @@ func NewSignatureSr25519(values ...sc.U8) SignatureSr25519 {
 	return SignatureSr25519{sc.NewFixedSequence(signatureSr25519Length, values...)}
 }
 
-func (s SignatureSr25519) Encode(buffer *bytes.Buffer) {
-	s.FixedSequence.Encode(buffer)
+func (s SignatureSr25519) Encode(buffer *bytes.Buffer) error {
+	return s.FixedSequence.Encode(buffer)
 }
 
 func DecodeSignatureSr25519(buffer *bytes.Buffer) (SignatureSr25519, error) {
