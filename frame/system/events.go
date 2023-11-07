@@ -48,7 +48,7 @@ func newEventRemarked(moduleIndex sc.U8, sender types.AccountId, hash types.H256
 	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+func DecodeEvent[S types.ISigner](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return types.Event{}, err
@@ -82,19 +82,19 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 	case EventCodeUpdated:
 		return newEventCodeUpdated(moduleIndex), nil
 	case EventNewAccount:
-		account, err := types.DecodeAccountId(buffer)
+		account, err := types.DecodeAccountId[S](buffer)
 		if err != nil {
 			return types.Event{}, err
 		}
 		return newEventNewAccount(moduleIndex, account), nil
 	case EventKilledAccount:
-		account, err := types.DecodeAccountId(buffer)
+		account, err := types.DecodeAccountId[S](buffer)
 		if err != nil {
 			return types.Event{}, err
 		}
 		return newEventKilledAccount(moduleIndex, account), nil
 	case EventRemarked:
-		account, err := types.DecodeAccountId(buffer)
+		account, err := types.DecodeAccountId[S](buffer)
 		if err != nil {
 			return types.Event{}, err
 		}

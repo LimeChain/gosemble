@@ -68,7 +68,7 @@ func newEventSlashed(moduleIndex sc.U8, account primitives.AccountId, amount pri
 	return primitives.NewEvent(moduleIndex, EventSlashed, account, amount)
 }
 
-func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
+func DecodeEvent[S primitives.ISigner](moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return primitives.Event{}, err
@@ -84,7 +84,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 
 	switch b {
 	case EventEndowed:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -94,7 +94,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventEndowed(moduleIndex, account, freeBalance), nil
 	case EventDustLost:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -104,11 +104,11 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventDustLost(moduleIndex, account, amount), nil
 	case EventTransfer:
-		from, err := primitives.DecodeAccountId(buffer)
+		from, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
-		to, err := primitives.DecodeAccountId(buffer)
+		to, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -118,7 +118,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventTransfer(moduleIndex, from, to, amount), nil
 	case EventBalanceSet:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -132,7 +132,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventBalanceSet(moduleIndex, account, free, reserved), nil
 	case EventReserved:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -142,7 +142,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventReserved(moduleIndex, account, amount), nil
 	case EventUnreserved:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -152,11 +152,11 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventUnreserved(moduleIndex, account, amount), nil
 	case EventReserveRepatriated:
-		from, err := primitives.DecodeAccountId(buffer)
+		from, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
-		to, err := primitives.DecodeAccountId(buffer)
+		to, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -170,7 +170,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventReserveRepatriated(moduleIndex, from, to, amount, destinationStatus), nil
 	case EventDeposit:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -180,7 +180,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventDeposit(moduleIndex, account, amount), nil
 	case EventWithdraw:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}
@@ -190,7 +190,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventWithdraw(moduleIndex, account, amount), nil
 	case EventSlashed:
-		account, err := primitives.DecodeAccountId(buffer)
+		account, err := primitives.DecodeAccountId[S](buffer)
 		if err != nil {
 			return primitives.Event{}, err
 		}

@@ -107,7 +107,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 
 	switch b {
 	case MultiAddressId:
-		accId, err := DecodeAccountId(buffer)
+		accId, err := DecodeAccountId[Ed25519Signer](buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}

@@ -46,10 +46,6 @@ const (
 	TimestampMinimumPeriod = 1 * 1_000 // 1 second
 )
 
-const (
-	PublicKeyType sc.U8 = 0 // 0 for Ed25519, 1 for Sr25519 and 2 for Ecdsa
-)
-
 // RuntimeVersion contains the version identifiers of the Runtime.
 var RuntimeVersion = &primitives.RuntimeVersion{
 	SpecName:           sc.Str(constants.SpecName),
@@ -114,7 +110,7 @@ func initializeModules() []primitives.Module {
 		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
 	)
 
-	grandpaModule := grandpa.New(GrandpaIndex)
+	grandpaModule := grandpa.New[primitives.Ed25519Signer](GrandpaIndex)
 
 	balancesModule := balances.New(
 		BalancesIndex,
@@ -167,7 +163,7 @@ func runtimeApi() types.RuntimeApi {
 	runtimeExtrinsic := extrinsic.New(modules, extra)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
-	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
+	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[primitives.Ed25519Signer])
 	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	executiveModule := executive.New(
@@ -278,7 +274,7 @@ func AuraApiAuthorities(_, _ int32) int64 {
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(account_nonce.ApiModuleName).(account_nonce.Module).
+		Module(account_nonce.ApiModuleName).(account_nonce.Module[primitives.Ed25519Signer]).
 		AccountNonce(dataPtr, dataLen)
 }
 
@@ -334,14 +330,14 @@ func MetadataVersions(_, _ int32) int64 {
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module).
+		Module(session_keys.ApiModuleName).(session_keys.Module[primitives.Ed25519Signer]).
 		GenerateSessionKeys(dataPtr, dataLen)
 }
 
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module).
+		Module(session_keys.ApiModuleName).(session_keys.Module[primitives.Ed25519Signer]).
 		DecodeSessionKeys(dataPtr, dataLen)
 }
 

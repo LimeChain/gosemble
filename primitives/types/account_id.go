@@ -2,16 +2,22 @@ package types
 
 import (
 	"bytes"
+	"errors"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 )
 
+type ISigner interface {
+	sc.Encodable
+}
+
 // AccountId It's an account ID (pubkey).
 type AccountId struct {
+	ISigner
 	Ed25519Signer
 	Sr25519Signer
 	EcdsaSigner
-	//Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
 }
 
 func (a AccountId) Encode(buffer *bytes.Buffer) {
@@ -24,10 +30,26 @@ func (a AccountId) Bytes() []byte {
 	return sc.EncodedBytes(a)
 }
 
-func DecodeAccountId(buffer *bytes.Buffer) (AccountId, error) {
-	addr32, err := DecodeEd25519(buffer)
-	if err != nil {
-		return AccountId{}, err
+func DecodeAccountId[T ISigner](buffer *bytes.Buffer) (AccountId, error) {
+	switch reflect.Zero(reflect.TypeOf(*new(T))).Interface().(type) {
+	case Ed25519Signer:
+		pkEd25519, err := DecodeEd25519Signer(buffer)
+		if err != nil {
+			return AccountId{}, err
+		}
+		return AccountId{Ed25519Signer: pkEd25519}, nil
+	case Sr25519Signer:
+		pkSr25519, err := DecodeSr25519Signer(buffer)
+		if err != nil {
+			return AccountId{}, err
+		}
+		return AccountId{Sr25519Signer: pkSr25519}, nil
+	case EcdsaSigner:
+		pkEcdsa, err := DecodeEcdsaSigner(buffer)
+		if err != nil {
+			return AccountId{}, err
+		}
+		return AccountId{EcdsaSigner: pkEcdsa}, nil
 	}
-	return AccountId{Ed25519Signer: addr32}, nil // TODO: length 32 or 33 depending on algorithm
+	return AccountId{}, errors.New("public key type not supported")
 }

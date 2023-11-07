@@ -25,7 +25,7 @@ func Test_System_DecodeEvent_ExtrinsicSuccess(t *testing.T) {
 	buffer.Write(EventExtrinsicSuccess.Bytes())
 	buffer.Write(dispatchInfo.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -47,7 +47,7 @@ func Test_System_DecodeEvent_ExtrinsicFailed(t *testing.T) {
 	buffer.Write(dispatchError.Bytes())
 	buffer.Write(dispatchInfo.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -61,7 +61,7 @@ func Test_System_DecodeEvent_CodeUpdated(t *testing.T) {
 	buffer.WriteByte(moduleId)
 	buffer.Write(EventCodeUpdated.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -76,7 +76,7 @@ func Test_System_DecodeEvent_NewAccount(t *testing.T) {
 	buffer.Write(EventNewAccount.Bytes())
 	buffer.Write(targetAccount.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -91,7 +91,7 @@ func Test_System_DecodeEvent_KilledAccount(t *testing.T) {
 	buffer.Write(EventKilledAccount.Bytes())
 	buffer.Write(targetAccount.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -111,7 +111,7 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	buffer.Write(targetAccount.Bytes())
 	buffer.Write(hash.Bytes())
 
-	result, err := DecodeEvent(moduleId, buffer)
+	result, err := DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -125,7 +125,7 @@ func Test_System_DecodeEvent_InvalidModule_Panics(t *testing.T) {
 	buffer.WriteByte(5)
 
 	assert.PanicsWithValue(t, errInvalidEventModule, func() {
-		DecodeEvent(moduleId, buffer)
+		DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	})
 }
 
@@ -135,6 +135,6 @@ func Test_System_DecodeEvent_InvalidType_Panics(t *testing.T) {
 	buffer.WriteByte(255)
 
 	assert.PanicsWithValue(t, errInvalidEventType, func() {
-		DecodeEvent(moduleId, buffer)
+		DecodeEvent[types.Ed25519Signer](moduleId, buffer)
 	})
 }

@@ -38,51 +38,51 @@ type GrandpaModule interface {
 	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
-type Module struct {
+type Module[S primitives.ISigner] struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
 }
 
-func New(index sc.U8) Module {
-	return Module{
+func New[S primitives.ISigner](index sc.U8) Module[primitives.ISigner] {
+	return Module[primitives.ISigner]{
 		Index:   index,
-		storage: newStorage(),
+		storage: newStorage[S](),
 	}
 }
 
-func (m Module) KeyType() primitives.PublicKeyType {
+func (m Module[S]) KeyType() primitives.PublicKeyType {
 	return primitives.PublicKeyEd25519
 }
 
-func (m Module) KeyTypeId() [4]byte {
+func (m Module[S]) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module) GetIndex() sc.U8 {
+func (m Module[S]) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module) name() sc.Str {
+func (m Module[S]) name() sc.Str {
 	return name
 }
 
-func (m Module) Functions() map[sc.U8]primitives.Call {
+func (m Module[S]) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module[S]) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module[S]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// TODO https://github.com/LimeChain/gosemble/issues/271
 	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
 }
 
-func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
+func (m Module[S]) Authorities() (sc.Sequence[primitives.Authority], error) {
 	versionedAuthorityList, err := m.storage.Authorities.Get()
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 	return authorities, nil
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module[S]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -127,7 +127,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 	}
 }
 
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module[S]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			// TODO: types

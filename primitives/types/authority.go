@@ -18,8 +18,8 @@ func (a Authority) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeAuthority(buffer *bytes.Buffer) (Authority, error) {
-	pk, err := DecodeAccountId(buffer)
+func DecodeAuthority[S ISigner](buffer *bytes.Buffer) (Authority, error) {
+	pk, err := DecodeAccountId[S](buffer)
 	if err != nil {
 		return Authority{}, err
 	}

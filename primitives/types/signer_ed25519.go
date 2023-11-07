@@ -19,7 +19,7 @@ func (s Ed25519Signer) Bytes() []byte {
 	return sc.EncodedBytes(s)
 }
 
-func DecodeEd25519(buffer *bytes.Buffer) (Ed25519Signer, error) {
+func DecodeEd25519Signer(buffer *bytes.Buffer) (Ed25519Signer, error) {
 	seq, err := sc.DecodeFixedSequence[sc.U8](32, buffer)
 	if err != nil {
 		return Ed25519Signer{}, err
