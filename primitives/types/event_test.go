@@ -36,8 +36,9 @@ func Test_NewEvent(t *testing.T) {
 func Test_EventRecord_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	eventRecord1.Encode(buf)
+	err := eventRecord1.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedEventRecordBytes, buf.Bytes())
 }
 

@@ -34,8 +34,10 @@ func Test_NewBlake2bHash_InvalidLength(t *testing.T) {
 
 func Test_Blake2bHash_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
-	expectedBlake2bHash.Encode(buf)
 
+	err := expectedBlake2bHash.Encode(buf)
+
+	assert.NoError(t, err)
 	assert.Equal(t, sc.FixedSequenceU8ToBytes(blake2bHashSequence), buf.Bytes())
 }
 

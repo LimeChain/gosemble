@@ -28,8 +28,9 @@ var (
 func Test_PostDispatchInfo_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	postDispatchInfo.Encode(buffer)
+	err := postDispatchInfo.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesPostDispatchInfo, buffer.Bytes())
 }
 

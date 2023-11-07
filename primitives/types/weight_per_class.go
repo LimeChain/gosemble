@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 // WeightsPerClass `DispatchClass`-specific weight configuration.
@@ -36,19 +37,12 @@ type WeightsPerClass struct {
 }
 
 func (cl WeightsPerClass) Encode(buffer *bytes.Buffer) error {
-	err := cl.BaseExtrinsic.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = cl.MaxExtrinsic.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = cl.MaxTotal.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return cl.Reserved.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		cl.BaseExtrinsic,
+		cl.MaxExtrinsic,
+		cl.MaxTotal,
+		cl.Reserved,
+	)
 }
 
 func DecodeWeightsPerClass(buffer *bytes.Buffer) (WeightsPerClass, error) {

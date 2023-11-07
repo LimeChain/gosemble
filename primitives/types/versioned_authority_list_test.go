@@ -39,8 +39,9 @@ var (
 func Test_VersionedAuthorityList_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetVersionedAuthorityList.Encode(buffer)
+	err := targetVersionedAuthorityList.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesVersionedAuthorityList, buffer.Bytes())
 }
 

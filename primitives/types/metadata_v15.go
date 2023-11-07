@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeMetadataV15 struct {
@@ -17,31 +18,15 @@ type RuntimeMetadataV15 struct {
 }
 
 func (rm RuntimeMetadataV15) Encode(buffer *bytes.Buffer) error {
-	err := rm.Types.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Modules.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Extrinsic.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Apis.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.OuterEnums.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return rm.Custom.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		rm.Types,
+		rm.Modules,
+		rm.Extrinsic,
+		rm.Type,
+		rm.Apis,
+		rm.OuterEnums,
+		rm.Custom,
+	)
 }
 
 func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) {
@@ -95,11 +80,10 @@ type CustomValueMetadata struct {
 }
 
 func (cvm CustomValueMetadata) Encode(buffer *bytes.Buffer) error {
-	err := cvm.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return cvm.Value.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		cvm.Type,
+		cvm.Value,
+	)
 }
 
 func (cvm CustomValueMetadata) Bytes() []byte {
@@ -135,15 +119,11 @@ type OuterEnums struct {
 }
 
 func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
-	err := oe.CallEnumType.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = oe.EventEnumType.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return oe.ErrorEnumType.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		oe.CallEnumType,
+		oe.EventEnumType,
+		oe.ErrorEnumType,
+	)
 }
 
 func DecodeOuterEnums(buffer *bytes.Buffer) (OuterEnums, error) {
@@ -176,11 +156,10 @@ type RuntimeApiMethodParamMetadata struct {
 }
 
 func (rampm RuntimeApiMethodParamMetadata) Encode(buffer *bytes.Buffer) error {
-	err := rampm.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return rampm.Type.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		rampm.Name,
+		rampm.Type,
+	)
 }
 
 func DecodeRuntimeApiMethodParamMetadata(buffer *bytes.Buffer) (RuntimeApiMethodParamMetadata, error) {
@@ -210,19 +189,12 @@ type RuntimeApiMethodMetadata struct {
 }
 
 func (ramm RuntimeApiMethodMetadata) Encode(buffer *bytes.Buffer) error {
-	err := ramm.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = ramm.Inputs.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = ramm.Output.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return ramm.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		ramm.Name,
+		ramm.Inputs,
+		ramm.Output,
+		ramm.Docs,
+	)
 }
 
 func DecodeRuntimeApiMethodMetadata(buffer *bytes.Buffer) (RuntimeApiMethodMetadata, error) {

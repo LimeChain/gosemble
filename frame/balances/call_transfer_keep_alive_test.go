@@ -45,8 +45,9 @@ func Test_Call_TransferKeepAlive_Encode(t *testing.T) {
 	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferKeepAliveIndex})
 	buf := &bytes.Buffer{}
 
-	target.Encode(buf)
+	err := target.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuffer, buf)
 }
 

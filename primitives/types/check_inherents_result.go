@@ -38,6 +38,7 @@ func (cir CheckInherentsResult) Encode(buffer *bytes.Buffer) error {
 	}
 	return cir.Errors.Encode(buffer)
 }
+
 func (cir CheckInherentsResult) Bytes() []byte {
 	return sc.EncodedBytes(cir)
 }

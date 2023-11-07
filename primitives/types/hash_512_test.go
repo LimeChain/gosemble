@@ -31,8 +31,10 @@ func Test_NewHash512_InvalidLength(t *testing.T) {
 
 func Test_Hash512_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
-	expectedH512Hash.Encode(buf)
 
+	err := expectedH512Hash.Encode(buf)
+
+	assert.NoError(t, err)
 	assert.Equal(t, sc.FixedSequenceU8ToBytes(hash512Sequence), buf.Bytes())
 }
 

@@ -23,8 +23,9 @@ var (
 func Test_LastRuntimeUpgradeInfo_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	lrui.Encode(buffer)
+	err := lrui.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesLastRuntimeUpgradeInfo, buffer.Bytes())
 }
 

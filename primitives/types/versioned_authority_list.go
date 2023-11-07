@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type VersionedAuthorityList struct {
@@ -12,11 +13,10 @@ type VersionedAuthorityList struct {
 }
 
 func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) error {
-	err := val.Version.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return val.AuthorityList.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		val.Version,
+		val.AuthorityList,
+	)
 }
 
 func DecodeVersionedAuthorityList(buffer *bytes.Buffer) (VersionedAuthorityList, error) {

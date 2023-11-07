@@ -6,6 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type accountMutator interface {
@@ -71,11 +72,10 @@ func newDustCleaner(moduleId sc.U8, accountId types.Address32, negativeImbalance
 }
 
 func (dcv dustCleaner) Encode(buffer *bytes.Buffer) error {
-	err := dcv.accountId.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return dcv.negativeImbalance.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		dcv.accountId,
+		dcv.negativeImbalance,
+	)
 }
 
 func (dcv dustCleaner) Bytes() []byte {

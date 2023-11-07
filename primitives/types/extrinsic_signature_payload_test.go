@@ -69,8 +69,9 @@ func Test_NewSignedPayload_Err(t *testing.T) {
 func Test_SignedPayload_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	targetSignedPayload.Encode(buf)
+	err := targetSignedPayload.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedSignedPayloadBytes, buf.Bytes())
 }
 

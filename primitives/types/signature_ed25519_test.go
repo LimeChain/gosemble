@@ -26,8 +26,9 @@ func Test_NewSignatureEd25519(t *testing.T) {
 func Test_SignatureEd25519_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	signatureEd25519.Encode(buffer)
+	err := signatureEd25519.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, bytesSignatureEd25519, buffer.Bytes())
 }
 

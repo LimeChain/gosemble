@@ -30,22 +30,21 @@ func Test_DispatchOutcome_Encode(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
 
-			testExample.input.Encode(buffer)
+			err := testExample.input.Encode(buffer)
 
+			assert.NoError(t, err)
 			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
 }
 
-func Test_DispatchOutcome_Encode_Panics(t *testing.T) {
-	assert.PanicsWithValue(t, errDispatchOutcomeInvalid, func() {
-		buffer := &bytes.Buffer{}
-		dispatchOutcome := DispatchOutcome{
-			sc.U32(5),
-		}
+func Test_DispatchOutcome_Encode_TypeError(t *testing.T) {
+	buffer := &bytes.Buffer{}
 
-		dispatchOutcome.Encode(buffer)
-	})
+	err := DispatchOutcome{sc.U32(5)}.Encode(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchOutcome' type", err.Error())
 }
 
 func Test_DispatchOutcome_Bytes(t *testing.T) {

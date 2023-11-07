@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	mdconstants "github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -47,15 +48,11 @@ type RuntimeApiMetadata struct {
 }
 
 func (ram RuntimeApiMetadata) Encode(buffer *bytes.Buffer) error {
-	err := ram.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = ram.Methods.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return ram.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		ram.Name,
+		ram.Methods,
+		ram.Docs,
+	)
 }
 
 func DecodeRuntimeApiMetadata(buffer *bytes.Buffer) (RuntimeApiMetadata, error) {

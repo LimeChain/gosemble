@@ -27,8 +27,9 @@ var (
 func Test_AccountData_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetAccountData.Encode(buffer)
+	err := targetAccountData.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedAccountDataBytes, buffer.Bytes())
 }
 

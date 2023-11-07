@@ -66,9 +66,8 @@ func (e Era) Encode(buffer *bytes.Buffer) error {
 	}
 
 	quantizeFactor := sc.Max64(e.EraPeriod>>12, 1)
-	encoded := sc.U16(sc.Clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/quantizeFactor)<<4)
-	buffer.Write(encoded.Bytes())
-	return nil
+	num := sc.U16(sc.Clamp(bits.TrailingZeros64(uint64(e.EraPeriod))-1, 1, 15)) | sc.U16((e.EraPhase/quantizeFactor)<<4)
+	return num.Encode(buffer)
 }
 
 func DecodeEra(buffer *bytes.Buffer) (Era, error) {

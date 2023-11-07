@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 var (
@@ -46,7 +45,7 @@ func (e TransactionValidityError) Encode(buffer *bytes.Buffer) error {
 			return err
 		}
 	default:
-		log.Critical(errInvalidTransactionValidityErrorType.Error())
+		return errInvalidTransactionValidityErrorType
 	}
 
 	return value.Encode(buffer)

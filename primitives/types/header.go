@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type Header struct {
@@ -14,18 +15,18 @@ type Header struct {
 	Digest         Digest
 }
 
-func (h Header) Encode(buffer *bytes.Buffer) {
-	h.ParentHash.Encode(buffer)
-	sc.ToCompact(h.Number).Encode(buffer)
-	h.StateRoot.Encode(buffer)
-	h.ExtrinsicsRoot.Encode(buffer)
-	h.Digest.Encode(buffer)
+func (h Header) Encode(buffer *bytes.Buffer) error {
+	return utils.EncodeEach(buffer,
+		h.ParentHash,
+		sc.ToCompact(h.Number),
+		h.StateRoot,
+		h.ExtrinsicsRoot,
+		h.Digest,
+	)
 }
 
 func (h Header) Bytes() []byte {
-	buffer := &bytes.Buffer{}
-	h.Encode(buffer)
-	return buffer.Bytes()
+	return sc.EncodedBytes(h)
 }
 
 func DecodeHeader(buffer *bytes.Buffer) (Header, error) {

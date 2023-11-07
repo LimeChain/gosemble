@@ -4,11 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
-)
-
-const (
-	errInvalidTransactionValidityResultType = "invalid TransactionValidityResult type"
 )
 
 const (
@@ -41,7 +36,7 @@ func (r TransactionValidityResult) Encode(buffer *bytes.Buffer) error {
 			return err
 		}
 	default:
-		log.Critical(errInvalidTransactionValidityResultType)
+		return newTypeError("TransactionValidityResult")
 	}
 
 	return r[0].Encode(buffer)

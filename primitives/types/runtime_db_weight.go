@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 // RuntimeDbWeight is the weight of database operations that the runtime can invoke.
@@ -16,11 +17,10 @@ type RuntimeDbWeight struct {
 }
 
 func (dbw RuntimeDbWeight) Encode(buffer *bytes.Buffer) error {
-	err := dbw.Read.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return dbw.Write.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		dbw.Read,
+		dbw.Write,
+	)
 }
 
 func (dbw RuntimeDbWeight) Bytes() []byte {

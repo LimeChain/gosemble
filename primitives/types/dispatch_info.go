@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 // DispatchInfo A bundle of static information collected from the `#[pallet::weight]` attributes.
@@ -19,15 +20,11 @@ type DispatchInfo struct {
 }
 
 func (di DispatchInfo) Encode(buffer *bytes.Buffer) error {
-	err := di.Weight.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = di.Class.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return di.PaysFee.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		di.Weight,
+		di.Class,
+		di.PaysFee,
+	)
 }
 
 func DecodeDispatchInfo(buffer *bytes.Buffer) (DispatchInfo, error) {

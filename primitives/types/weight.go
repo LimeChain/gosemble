@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type Weight struct {
@@ -14,11 +15,10 @@ type Weight struct {
 }
 
 func (w Weight) Encode(buffer *bytes.Buffer) error {
-	err := sc.ToCompact(w.RefTime).Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return sc.ToCompact(w.ProofSize).Encode(buffer)
+	return utils.EncodeEach(buffer,
+		sc.ToCompact(w.RefTime),
+		sc.ToCompact(w.ProofSize),
+	)
 }
 
 func DecodeWeight(buffer *bytes.Buffer) (Weight, error) {

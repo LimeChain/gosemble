@@ -28,8 +28,9 @@ var (
 func Test_BlockLength_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetBlockLength.Encode(buffer)
+	err := targetBlockLength.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBlockLengthBytes, buffer.Bytes())
 }
 

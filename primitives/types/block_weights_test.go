@@ -45,8 +45,9 @@ var (
 func Test_BlockWeights_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetBlockWeights.Encode(buffer)
+	err := targetBlockWeights.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBlockWeightsBytes, buffer.Bytes())
 }
 

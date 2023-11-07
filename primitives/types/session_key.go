@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type SessionKey struct {
@@ -19,11 +20,7 @@ func NewSessionKey(key []byte, typeId [4]byte) SessionKey {
 }
 
 func (sk SessionKey) Encode(buffer *bytes.Buffer) error {
-	err := sk.Key.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return sk.TypeId.Encode(buffer)
+	return utils.EncodeEach(buffer, sk.Key, sk.TypeId)
 }
 
 func DecodeSessionKey(buffer *bytes.Buffer) (SessionKey, error) {

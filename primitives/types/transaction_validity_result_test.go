@@ -46,22 +46,22 @@ func Test_TransactionValidityResult_Encode(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
 
-			testExample.input.Encode(buffer)
+			err := testExample.input.Encode(buffer)
 
+			assert.NoError(t, err)
 			assert.Equal(t, testExample.expect, buffer.Bytes())
 		})
 	}
 }
 
-func Test_TransactionValidityResult_Encode_Panics(t *testing.T) {
+func Test_TransactionValidityResult_Encode_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
+	tve := TransactionValidityResult(sc.NewVaryingData(sc.U8(6)))
 
-	assert.PanicsWithValue(t, errInvalidTransactionValidityResultType, func() {
-		tve := TransactionValidityResult(sc.NewVaryingData(sc.U8(6)))
+	err := tve.Encode(buffer)
 
-		tve.Encode(buffer)
-	})
-
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionValidityResult' type", err.Error())
 	assert.Equal(t, &bytes.Buffer{}, buffer)
 }
 

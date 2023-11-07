@@ -31,8 +31,9 @@ func Test_CheckTxVersion_Encode(t *testing.T) {
 	target := setupCheckTxVersion()
 	buffer := &bytes.Buffer{}
 
-	target.Encode(buffer)
+	err := target.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, 0, buffer.Len())
 	assert.Equal(t, &bytes.Buffer{}, buffer)
 }

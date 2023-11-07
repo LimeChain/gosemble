@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type MetadataExtrinsicV14 struct {
@@ -13,15 +14,11 @@ type MetadataExtrinsicV14 struct {
 }
 
 func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) error {
-	err := me.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = me.Version.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return me.SignedExtensions.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		me.Type,
+		me.Version,
+		me.SignedExtensions,
+	)
 }
 
 func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, error) {
@@ -59,27 +56,14 @@ type MetadataExtrinsicV15 struct {
 }
 
 func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) error {
-	err := me.Version.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = me.Address.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = me.Call.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = me.Signature.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = me.Extra.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return me.SignedExtensions.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		me.Version,
+		me.Address,
+		me.Call,
+		me.Signature,
+		me.Extra,
+		me.SignedExtensions,
+	)
 }
 
 func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) (MetadataExtrinsicV15, error) {
@@ -137,15 +121,11 @@ func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned i
 }
 
 func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) error {
-	err := mse.Identifier.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mse.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mse.AdditionalSigned.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mse.Identifier,
+		mse.Type,
+		mse.AdditionalSigned,
+	)
 }
 
 func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtension, error) {

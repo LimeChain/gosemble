@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -145,12 +146,10 @@ type CustomModuleError struct {
 }
 
 func (e CustomModuleError) Encode(buffer *bytes.Buffer) error {
-	err := e.Index.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return e.Error.Encode(buffer)
-	//e.Message.Encode(buffer) // Skipped in codec
+	return utils.EncodeEach(buffer,
+		e.Index,
+		e.Error,
+	) // e.Message is skipped in codec
 }
 
 func DecodeCustomModuleError(buffer *bytes.Buffer) (CustomModuleError, error) {
@@ -184,11 +183,10 @@ type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 }
 
 func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) error {
-	err := e.PostInfo.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return e.Error.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		e.PostInfo,
+		e.Error,
+	)
 }
 
 func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {

@@ -32,8 +32,9 @@ func Test_NewInclusionFee(t *testing.T) {
 func Test_InclusionFee_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetInclusionFee.Encode(buffer)
+	err := targetInclusionFee.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedInclusionFeeBytes, buffer.Bytes())
 }
 

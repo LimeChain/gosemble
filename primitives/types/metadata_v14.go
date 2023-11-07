@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeMetadataV14 struct {
@@ -14,19 +15,12 @@ type RuntimeMetadataV14 struct {
 }
 
 func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) error {
-	err := rm.Types.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Modules.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rm.Extrinsic.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return rm.Type.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		rm.Types,
+		rm.Modules,
+		rm.Extrinsic,
+		rm.Type,
+	)
 }
 
 func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) {

@@ -41,8 +41,9 @@ var (
 func Test_Header_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetHeader.Encode(buffer)
+	err := targetHeader.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesHeader, buffer.Bytes())
 }
 

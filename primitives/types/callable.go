@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type Callable struct {
@@ -13,15 +14,11 @@ type Callable struct {
 }
 
 func (c Callable) Encode(buffer *bytes.Buffer) error {
-	err := c.ModuleId.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = c.FunctionId.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return c.Arguments.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		c.ModuleId,
+		c.FunctionId,
+		c.Arguments,
+	)
 }
 
 func (c Callable) Bytes() []byte {

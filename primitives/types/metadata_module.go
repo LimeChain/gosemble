@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -47,35 +48,16 @@ type MetadataModuleV15 struct {
 }
 
 func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) error {
-	err := mm.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Storage.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Call.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Event.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Constants.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Error.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Index.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mm.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mm.Name,
+		mm.Storage,
+		mm.Call,
+		mm.Event,
+		mm.Constants,
+		mm.Error,
+		mm.Index,
+		mm.Docs,
+	)
 }
 
 func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
@@ -141,31 +123,15 @@ type MetadataModuleV14 struct {
 }
 
 func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) error {
-	err := mm.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Storage.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Call.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Event.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Constants.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mm.Error.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mm.Index.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mm.Name,
+		mm.Storage,
+		mm.Call,
+		mm.Event,
+		mm.Constants,
+		mm.Error,
+		mm.Index,
+	)
 }
 
 func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
@@ -218,11 +184,10 @@ type MetadataModuleStorage struct {
 }
 
 func (mms MetadataModuleStorage) Encode(buffer *bytes.Buffer) error {
-	err := mms.Prefix.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mms.Items.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mms.Prefix,
+		mms.Items,
+	)
 }
 
 func DecodeMetadataModuleStorage(buffer *bytes.Buffer) (MetadataModuleStorage, error) {
@@ -263,23 +228,13 @@ func NewMetadataModuleStorageEntry(name string, modifier MetadataModuleStorageEn
 }
 
 func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) error {
-	err := mmse.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mmse.Modifier.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mmse.Definition.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mmse.Fallback.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mmse.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mmse.Name,
+		mmse.Modifier,
+		mmse.Definition,
+		mmse.Fallback,
+		mmse.Docs,
+	)
 }
 
 func DecodeMetadataModuleStorageEntry(buffer *bytes.Buffer) (MetadataModuleStorageEntry, error) {
@@ -403,19 +358,12 @@ func NewMetadataModuleConstant(name string, id sc.Compact, value sc.Sequence[sc.
 }
 
 func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) error {
-	err := mmc.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mmc.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mmc.Value.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mmc.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mmc.Name,
+		mmc.Type,
+		mmc.Value,
+		mmc.Docs,
+	)
 }
 
 func DecodeMetadataModuleConstant(buffer *bytes.Buffer) (MetadataModuleConstant, error) {

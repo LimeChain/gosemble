@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 // ApplyExtrinsicResult The result of applying of an extrinsic.
@@ -51,7 +50,7 @@ func (r ApplyExtrinsicResult) Encode(buffer *bytes.Buffer) error {
 			return err
 		}
 	default:
-		log.Critical("invalid ApplyExtrinsicResult type")
+		return newTypeError("ApplyExtrinsicResult")
 	}
 
 	return r[0].Encode(buffer)

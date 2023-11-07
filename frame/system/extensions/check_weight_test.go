@@ -67,8 +67,9 @@ func Test_CheckWeight_Encode(t *testing.T) {
 	target := setupCheckWeight()
 	buffer := &bytes.Buffer{}
 
-	target.Encode(buffer)
+	err := target.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, 0, buffer.Len())
 	assert.Equal(t, &bytes.Buffer{}, buffer)
 }

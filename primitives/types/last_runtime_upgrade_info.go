@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type LastRuntimeUpgradeInfo struct {
@@ -12,11 +13,10 @@ type LastRuntimeUpgradeInfo struct {
 }
 
 func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) error {
-	err := sc.ToCompact(lrui.SpecVersion).Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return lrui.SpecName.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		sc.ToCompact(lrui.SpecVersion),
+		lrui.SpecName,
+	)
 }
 
 func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo, error) {

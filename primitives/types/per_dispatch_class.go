@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 // A struct holding value for each `DispatchClass`.
@@ -17,15 +18,11 @@ type PerDispatchClass[T sc.Encodable] struct {
 }
 
 func (pdc PerDispatchClass[T]) Encode(buffer *bytes.Buffer) error {
-	err := pdc.Normal.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = pdc.Operational.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return pdc.Mandatory.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		pdc.Normal,
+		pdc.Operational,
+		pdc.Mandatory,
+	)
 }
 
 func DecodePerDispatchClass[T sc.Encodable](buffer *bytes.Buffer, decodeFunc func(buffer *bytes.Buffer) (T, error)) (PerDispatchClass[T], error) {

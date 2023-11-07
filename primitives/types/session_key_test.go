@@ -34,8 +34,9 @@ func Test_NewSessionKey(t *testing.T) {
 func Test_SessionKey_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	sessionKey.Encode(buffer)
+	err := sessionKey.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectSessionKeyBytes, buffer.Bytes())
 }
 

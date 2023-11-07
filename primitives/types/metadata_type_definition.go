@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -155,19 +156,12 @@ func NewMetadataTypeDefinitionFieldWithName(id int, idName sc.Str) MetadataTypeD
 }
 
 func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) error {
-	err := mtdf.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mtdf.Type.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mtdf.TypeName.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mtdf.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mtdf.Name,
+		mtdf.Type,
+		mtdf.TypeName,
+		mtdf.Docs,
+	)
 }
 
 func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefinitionField, error) {
@@ -221,19 +215,12 @@ func NewMetadataDefinitionVariantStr(name sc.Str, fields sc.Sequence[MetadataTyp
 }
 
 func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) error {
-	err := mdv.Name.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mdv.Fields.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = mdv.Index.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return mdv.Docs.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		mdv.Name,
+		mdv.Fields,
+		mdv.Index,
+		mdv.Docs,
+	)
 }
 
 func DecodeMetadataTypeDefinitionVariant(buffer *bytes.Buffer) (MetadataDefinitionVariant, error) {

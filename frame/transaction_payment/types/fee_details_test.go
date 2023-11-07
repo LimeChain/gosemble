@@ -29,8 +29,9 @@ var (
 func Test_FeeDetails_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetFeeDetails.Encode(buffer)
+	err := targetFeeDetails.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedFeeDetailsBytes, buffer.Bytes())
 
 }

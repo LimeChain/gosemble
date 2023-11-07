@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 // DispatchOutcome This type specifies the outcome of dispatching a call to a module.
@@ -41,15 +41,10 @@ func (o DispatchOutcome) Encode(buffer *bytes.Buffer) error {
 	case reflect.TypeOf(*new(sc.Empty)):
 		return sc.U8(0).Encode(buffer)
 	case reflect.TypeOf(*new(DispatchError)):
-		err := sc.U8(1).Encode(buffer)
-		if err != nil {
-			return err
-		}
-		return value.Encode(buffer)
+		return utils.EncodeEach(buffer, sc.U8(1), value)
 	default:
-		log.Critical(errDispatchOutcomeInvalid)
+		return newTypeError("DispatchOutcome")
 	}
-	return nil
 }
 
 func DecodeDispatchOutcome(buffer *bytes.Buffer) (DispatchOutcome, error) {

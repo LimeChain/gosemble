@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeVersion struct {
@@ -18,35 +19,16 @@ type RuntimeVersion struct {
 }
 
 func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) error {
-	err := rv.SpecName.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.ImplName.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.AuthoringVersion.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.SpecVersion.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.ImplVersion.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.Apis.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	err = rv.TransactionVersion.Encode(buffer)
-	if err != nil {
-		return err
-	}
-	return rv.StateVersion.Encode(buffer)
+	return utils.EncodeEach(buffer,
+		rv.SpecName,
+		rv.ImplName,
+		rv.AuthoringVersion,
+		rv.SpecVersion,
+		rv.ImplVersion,
+		rv.Apis,
+		rv.TransactionVersion,
+		rv.StateVersion,
+	)
 }
 
 func (rv *RuntimeVersion) SetApis(apis sc.Sequence[ApiItem]) {

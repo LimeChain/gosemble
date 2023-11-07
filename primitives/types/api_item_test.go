@@ -34,8 +34,9 @@ func Test_NewApiItem(t *testing.T) {
 func Test_ApiItem_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	apiItem.Encode(buffer)
+	err := apiItem.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesApiItem, buffer.Bytes())
 }
 
