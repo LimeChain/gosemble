@@ -8,13 +8,16 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+var (
+	errorPubKeyNotSupported = errors.New("public key type not supported")
+)
+
 type ISigner interface {
 	sc.Encodable
 }
 
 // AccountId It's an account ID (pubkey).
 type AccountId struct {
-	ISigner
 	Ed25519Signer
 	Sr25519Signer
 	EcdsaSigner
@@ -51,5 +54,5 @@ func DecodeAccountId[T ISigner](buffer *bytes.Buffer) (AccountId, error) {
 		}
 		return AccountId{EcdsaSigner: pkEcdsa}, nil
 	}
-	return AccountId{}, errors.New("public key type not supported")
+	return AccountId{}, errorPubKeyNotSupported
 }

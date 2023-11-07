@@ -13,11 +13,6 @@ var (
 			Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
 		},
 	)
-	//multiAddress32 = NewMultiAddress32(
-	//	Address32{
-	//		sc.BytesToFixedSequenceU8(signerAddressBytes),
-	//	},
-	//)
 	multiAddressIndex = NewMultiAddressIndex(accountIndex)
 	expectedAccountId = AccountId{
 		Ed25519Signer: NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...),
@@ -32,12 +27,6 @@ func Test_Lookup_AccountId(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, expectedAccountId, result)
 }
-
-//func Test_Lookup_Address32(t *testing.T) {
-//	result, err := Lookup(multiAddress32)
-//	assert.Nil(t, err)
-//	assert.Equal(t, result, expectedAccountId)
-//}
 
 func Test_Lookup_AccountIndex(t *testing.T) {
 	result, err := Lookup(multiAddressIndex)
