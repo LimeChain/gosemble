@@ -38,15 +38,15 @@ type GrandpaModule interface {
 	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
-type Module[S primitives.ISigner] struct {
+type Module[S primitives.Signer] struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
 }
 
-func New[S primitives.ISigner](index sc.U8) Module[primitives.ISigner] {
-	return Module[primitives.ISigner]{
+func New[S primitives.Signer](index sc.U8) Module[S] {
+	return Module[S]{
 		Index:   index,
 		storage: newStorage[S](),
 	}

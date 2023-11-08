@@ -15,13 +15,13 @@ const (
 	apiVersion    = 1
 )
 
-type Module[S types.ISigner] struct {
+type Module[S types.Signer] struct {
 	systemModule system.Module
 	memUtils     utils.WasmMemoryTranslator
 }
 
-func New(systemModule system.Module) Module[types.ISigner] {
-	return Module[types.ISigner]{
+func New[S types.Signer](systemModule system.Module) Module[S] {
+	return Module[S]{
 		systemModule: systemModule,
 		memUtils:     utils.NewMemoryTranslator(),
 	}

@@ -12,8 +12,8 @@ var (
 	errorPubKeyNotSupported = errors.New("public key type not supported")
 )
 
-type ISigner interface {
-	sc.Encodable
+type Signer interface {
+	Ed25519Signer | Sr25519Signer | EcdsaSigner
 }
 
 // AccountId It's an account ID (pubkey).
@@ -33,8 +33,8 @@ func (a AccountId) Bytes() []byte {
 	return sc.EncodedBytes(a)
 }
 
-func DecodeAccountId[T ISigner](buffer *bytes.Buffer) (AccountId, error) {
-	switch reflect.Zero(reflect.TypeOf(*new(T))).Interface().(type) {
+func DecodeAccountId[S Signer](buffer *bytes.Buffer) (AccountId, error) {
+	switch reflect.Zero(reflect.TypeOf(*new(S))).Interface().(type) {
 	case Ed25519Signer:
 		pkEd25519, err := DecodeEd25519Signer(buffer)
 		if err != nil {

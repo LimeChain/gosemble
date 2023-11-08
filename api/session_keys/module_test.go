@@ -155,9 +155,9 @@ func setup() Module[primitives.Ed25519Signer] {
 		mockSessionKey,
 	}
 
-	target := New(sessions)
+	target := New[primitives.Ed25519Signer](sessions)
 	target.crypto = mockCrypto
 	target.memUtils = mockMemoryUtils
 
-	return Module[primitives.Ed25519Signer](target)
+	return target
 }

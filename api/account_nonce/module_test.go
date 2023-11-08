@@ -59,8 +59,8 @@ func setup() Module[types.Ed25519Signer] {
 	mockSystem = new(mocks.SystemModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockSystem)
+	target := New[types.Ed25519Signer](mockSystem)
 	target.memUtils = mockMemoryUtils
 
-	return Module[types.Ed25519Signer](target)
+	return target
 }

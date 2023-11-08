@@ -20,13 +20,13 @@ var (
 
 var (
 	mockStorageAuthorities *mocks.StorageValue[primitives.VersionedAuthorityList]
-	target                 Module[primitives.ISigner]
+	target                 Module[primitives.Ed25519Signer]
 )
 
 func Test_Module_New(t *testing.T) {
 	setup()
 
-	assert.Equal(t, Module[primitives.ISigner]{
+	assert.Equal(t, Module[primitives.Ed25519Signer]{
 		DefaultInherentProvider: primitives.DefaultInherentProvider{},
 		DefaultDispatchModule:   hooks.DefaultDispatchModule{},
 		Index:                   moduleId,

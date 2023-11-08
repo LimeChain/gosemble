@@ -184,10 +184,10 @@ func runtimeApi() types.RuntimeApi {
 		metadata.New(runtimeExtrinsic),
 		apiAura.New(auraModule),
 		apiGrandpa.New(grandpaModule),
-		account_nonce.New(systemModule),
+		account_nonce.New[primitives.Ed25519Signer](systemModule),
 		apiTxPayments.New(decoder, txPaymentsModule),
 		apiTxPaymentsCall.New(decoder, txPaymentsModule),
-		session_keys.New(sessions),
+		session_keys.New[primitives.Ed25519Signer](sessions),
 		offchain_worker.New(executiveModule),
 	}
 

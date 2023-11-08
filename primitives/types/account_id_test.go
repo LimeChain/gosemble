@@ -82,12 +82,3 @@ func Test_DecodeAccountId_Ecdsa_Signer(t *testing.T) {
 
 	assert.Equal(t, targetAccountIdEcdsa, result)
 }
-
-func Test_DecodeAccountId_PubKeyTypeNotSupported(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeyEcdsaSigner)
-
-	_, err := DecodeAccountId[sc.U8](buffer)
-	assert.Error(t, err)
-
-	assert.Equal(t, errorPubKeyNotSupported, err)
-}

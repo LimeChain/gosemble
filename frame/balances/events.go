@@ -68,7 +68,7 @@ func newEventSlashed(moduleIndex sc.U8, account primitives.AccountId, amount pri
 	return primitives.NewEvent(moduleIndex, EventSlashed, account, amount)
 }
 
-func DecodeEvent[S primitives.ISigner](moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
+func DecodeEvent[S primitives.Signer](moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return primitives.Event{}, err
