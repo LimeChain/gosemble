@@ -30,7 +30,7 @@ func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 }
 
 func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[testKeyType](buffer)
+	dest, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}

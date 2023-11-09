@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testPublicKeyType = types.Ed25519PublicKey
+
 func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 	// TODO: not working with seed, Gossamer fails
@@ -34,9 +36,9 @@ func Test_SessionKeys_Generate_Session_Keys(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(sc.SequenceU8ToBytes(seq))
 
-	auraKey, err := types.DecodeAccountId[types.Ed25519PublicKey](buffer)
+	auraKey, err := types.DecodeAccountId[testPublicKeyType](buffer)
 	assert.Nil(t, err)
-	grandpaKey, err := types.DecodeAccountId[types.Ed25519PublicKey](buffer)
+	grandpaKey, err := types.DecodeAccountId[testPublicKeyType](buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t, rt.Keystore().Aura.PublicKeys()[0].Encode(), auraKey.Bytes())

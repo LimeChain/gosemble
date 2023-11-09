@@ -8,7 +8,7 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type testKeyType = primitives.Ed25519PublicKey
+type testPublicKeyType = primitives.Ed25519PublicKey
 
 type callForceTransfer struct {
 	primitives.Callable
@@ -28,11 +28,11 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 }
 
 func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	source, err := types.DecodeMultiAddress[testKeyType](buffer)
+	source, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}
-	dest, err := types.DecodeMultiAddress[testKeyType](buffer)
+	dest, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testKeyType = Ed25519PublicKey
+type testPublicKeyType = Ed25519PublicKey
 
 var (
 	expectedExtrinsicSignatureBytes, _ = hex.DecodeString(
@@ -73,7 +73,7 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 		},
 	)
 
-	result, err := DecodeExtrinsicSignature[testKeyType](signedExtraTemplate, buffer)
+	result, err := DecodeExtrinsicSignature[testPublicKeyType](signedExtraTemplate, buffer)
 	assert.NoError(t, err)
 
 	assert.Equal(t, targetExtrinsicSignature, result)

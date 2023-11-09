@@ -19,7 +19,7 @@ const (
 	signedExtrinsicVersion = 132
 )
 
-type testKeyType = primitives.Ed25519PublicKey
+type testPublicKeyType = primitives.Ed25519PublicKey
 
 var (
 	signedExtrinsicBytes = []byte{
@@ -55,7 +55,7 @@ var (
 
 func Test_RuntimeDecoder_New(t *testing.T) {
 	target := setupRuntimeDecoder()
-	expect := runtimeDecoder[testKeyType]{
+	expect := runtimeDecoder[testPublicKeyType]{
 		modules: []primitives.Module{mockModuleOne},
 		extra:   mockSignedExtra,
 	}
@@ -357,5 +357,5 @@ func setupRuntimeDecoder() RuntimeDecoder {
 
 	apis := []primitives.Module{mockModuleOne}
 
-	return NewRuntimeDecoder[testKeyType](apis, mockSignedExtra)
+	return NewRuntimeDecoder[testPublicKeyType](apis, mockSignedExtra)
 }

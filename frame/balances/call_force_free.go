@@ -28,7 +28,7 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 }
 
 func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	who, err := types.DecodeMultiAddress[testKeyType](buffer)
+	who, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}

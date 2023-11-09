@@ -38,7 +38,7 @@ type GrandpaModule interface {
 	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
-type Module[S primitives.PublicKey] struct {
+type Module[P primitives.PublicKey] struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index   sc.U8

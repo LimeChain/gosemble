@@ -156,7 +156,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := bytes.NewBuffer(testExample.input)
 
-			result, err := DecodeMultiAddress[testKeyType](buffer)
+			result, err := DecodeMultiAddress[testPublicKeyType](buffer)
 			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
@@ -167,7 +167,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 func Test_DecodeMultiAddress_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0})
 
-	result, err := DecodeMultiAddress[testKeyType](buffer)
+	result, err := DecodeMultiAddress[testPublicKeyType](buffer)
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'MultiAddress' type", err.Error())

@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/balances/types"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +19,7 @@ func Test_Balances_DecodeEvent_Endowed(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -38,7 +37,7 @@ func Test_Balances_DecodeEvent_DustLost(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -61,7 +60,7 @@ func Test_Balances_DecodeEvent_Transfer(t *testing.T) {
 	buffer.Write(toAddressAccountId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, _ := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, _ := DecodeEvent[testPublicKeyType](moduleId, buffer)
 
 	assert.Equal(t,
 		sc.NewVaryingData(sc.U8(moduleId), EventTransfer, fromAddressId, toAddressAccountId, targetValue),
@@ -80,7 +79,7 @@ func Test_Balances_DecodeEvent_BalanceSet(t *testing.T) {
 	buffer.Write(newFree.Bytes())
 	buffer.Write(newReserved.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -99,7 +98,7 @@ func Test_Balances_DecodeEvent_Reserved(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -118,7 +117,7 @@ func Test_Balances_DecodeEvent_Unreserved(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -140,7 +139,7 @@ func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
 	buffer.Write(targetValue.Bytes())
 	buffer.Write(types.BalanceStatusFree.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -164,7 +163,7 @@ func Test_Balances_DecodeEvent_Deposit(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -183,7 +182,7 @@ func Test_Balances_DecodeEvent_Withdraw(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -202,7 +201,7 @@ func Test_Balances_DecodeEvent_Slashed(t *testing.T) {
 	buffer.Write(targetAddressId.Bytes())
 	buffer.Write(targetValue.Bytes())
 
-	result, err := DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.Nil(t, err)
 
 	assert.Equal(t,
@@ -216,7 +215,7 @@ func Test_Balances_DecodeEvent_InvalidModule_Panics(t *testing.T) {
 	buffer.WriteByte(0)
 
 	assert.PanicsWithValue(t, errInvalidEventModule, func() {
-		DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+		DecodeEvent[testPublicKeyType](moduleId, buffer)
 	})
 }
 
@@ -226,6 +225,6 @@ func Test_Balances_DecodeEvent_InvalidType_Panics(t *testing.T) {
 	buffer.WriteByte(255)
 
 	assert.PanicsWithValue(t, errInvalidEventType, func() {
-		DecodeEvent[primitives.Ed25519PublicKey](moduleId, buffer)
+		DecodeEvent[testPublicKeyType](moduleId, buffer)
 	})
 }
