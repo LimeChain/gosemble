@@ -23,7 +23,7 @@ var (
 )
 var (
 	targetAuthority = Authority{
-		Id:     AccountId{Ed25519Signer: publicKey},
+		Id:     New[SignerAddress](publicKey),
 		Weight: 3,
 	}
 )
@@ -44,7 +44,7 @@ func Test_Authority_Bytes(t *testing.T) {
 func Test_DecodeAuthority(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAuthorityBytes)
 
-	result, err := DecodeAuthority[Ed25519Signer](buffer)
+	result, err := DecodeAuthority[testKeyType](buffer)
 	assert.NoError(t, err)
 	assert.Equal(t, targetAuthority, result)
 }

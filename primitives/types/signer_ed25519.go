@@ -10,6 +10,10 @@ type Ed25519Signer struct {
 	sc.FixedSequence[sc.U8] // size 32
 }
 
+func (s Ed25519Signer) SignatureType() sc.U8 {
+	return PublicKeyEd25519
+}
+
 func (s Ed25519Signer) Encode(buffer *bytes.Buffer) {
 	s.FixedSequence.Encode(buffer)
 }

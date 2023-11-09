@@ -9,6 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testKeyType = Ed25519Signer
+
 var (
 	expectedExtrinsicSignatureBytes, _ = hex.DecodeString(
 		"000101010101010101010101010101010101010101010101010101010101010101000202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020200030000000005000000",
@@ -21,9 +23,7 @@ var (
 	}
 	ed25519SignerOnesAddress, _ = NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)
 	signer                      = NewMultiAddressId(
-		AccountId{
-			Ed25519Signer: ed25519SignerOnesAddress,
-		},
+		New[SignerAddress](ed25519SignerOnesAddress),
 	)
 
 	signatureBytes = []byte{
@@ -73,7 +73,7 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 		},
 	)
 
-	result, err := DecodeExtrinsicSignature(signedExtraTemplate, buffer)
+	result, err := DecodeExtrinsicSignature[testKeyType](signedExtraTemplate, buffer)
 	assert.NoError(t, err)
 
 	assert.Equal(t, targetExtrinsicSignature, result)

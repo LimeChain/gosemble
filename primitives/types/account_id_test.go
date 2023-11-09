@@ -17,13 +17,9 @@ var (
 	sr25519Signer, _ = NewSr25519Signer(sc.BytesToSequenceU8(pubKeySr25519Signer)...)
 	ecdsaSigner, _   = NewEcdsaSigner(sc.BytesToFixedSequenceU8(addr33Bytes)...)
 
-	targetAccountIdEd25519 = AccountId{
-		Ed25519Signer: ed25519Signer,
-	}
-	targetAccountIdSr25519 = AccountId{
-		Sr25519Signer: sr25519Signer,
-	}
-	targetAccountIdEcdsa = AccountId{EcdsaSigner: ecdsaSigner}
+	targetAccountIdEd25519 = New[SignerAddress](ed25519Signer)
+	targetAccountIdSr25519 = New[SignerAddress](sr25519Signer)
+	targetAccountIdEcdsa   = New[SignerAddress](ecdsaSigner)
 )
 
 func Test_AccountId_Encode_Ed25519_Signer(t *testing.T) {
@@ -59,7 +55,7 @@ func Test_AccountId_Bytes(t *testing.T) {
 func Test_DecodeAccountId_Ed25519_Signer(t *testing.T) {
 	buffer := bytes.NewBuffer(pubKeyEd25519Signer)
 
-	result, err := DecodeAccountId[Ed25519Signer](buffer)
+	result, err := DecodeAccountId[testKeyType](buffer)
 	assert.NoError(t, err)
 
 	assert.Equal(t, targetAccountIdEd25519, result)

@@ -28,7 +28,7 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 }
 
 func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	who, err := types.DecodeMultiAddress(buffer)
+	who, err := types.DecodeMultiAddress[testKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree) force(who primitives.AccountId, value sc.U128) (sc.U128, error) {
+func (c callForceFree) force(who primitives.AccountId[types.SignerAddress], value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
 		return constants.Zero, nil
 	}

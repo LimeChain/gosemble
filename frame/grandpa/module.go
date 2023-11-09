@@ -38,14 +38,14 @@ type GrandpaModule interface {
 	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
-type Module[S primitives.Signer] struct {
+type Module[S primitives.SignerAddress] struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
 }
 
-func New[S primitives.Signer](index sc.U8) Module[S] {
+func New[S primitives.SignerAddress](index sc.U8) Module[S] {
 	return Module[S]{
 		Index:   index,
 		storage: newStorage[S](),

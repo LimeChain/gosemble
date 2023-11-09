@@ -16,13 +16,13 @@ const (
 	apiVersion    = 1
 )
 
-type Module[S types.Signer] struct {
+type Module[S types.SignerAddress] struct {
 	sessions []types.Session
 	crypto   io.Crypto
 	memUtils utils.WasmMemoryTranslator
 }
 
-func New[S types.Signer](sessions []types.Session) Module[S] {
+func New[S types.SignerAddress](sessions []types.Session) Module[S] {
 	return Module[S]{
 		sessions: sessions,
 		crypto:   io.NewCrypto(),
@@ -100,7 +100,7 @@ func (m Module[S]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }
 
-func getKeyFunction[S types.Signer](m Module[S], keyType types.PublicKeyType) func([]byte, []byte) []byte {
+func getKeyFunction[S types.SignerAddress](m Module[S], keyType types.PublicKeyType) func([]byte, []byte) []byte {
 	switch keyType {
 	case types.PublicKeyEd25519:
 		return m.crypto.Ed25519Generate

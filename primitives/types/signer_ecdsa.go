@@ -14,6 +14,10 @@ type EcdsaSigner struct {
 	sc.FixedSequence[sc.U8] // size 33
 }
 
+func (s EcdsaSigner) SignatureType() sc.U8 {
+	return PublicKeyEcdsa
+}
+
 func (s EcdsaSigner) Encode(buffer *bytes.Buffer) {
 	s.FixedSequence.Encode(buffer)
 }

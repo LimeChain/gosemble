@@ -36,19 +36,19 @@ func newEventCodeUpdated(moduleIndex sc.U8) types.Event {
 	return types.NewEvent(moduleIndex, EventCodeUpdated)
 }
 
-func newEventNewAccount(moduleIndex sc.U8, account types.AccountId) types.Event {
+func newEventNewAccount(moduleIndex sc.U8, account types.AccountId[types.SignerAddress]) types.Event {
 	return types.NewEvent(moduleIndex, EventNewAccount, account)
 }
 
-func newEventKilledAccount(moduleIndex sc.U8, account types.AccountId) types.Event {
+func newEventKilledAccount(moduleIndex sc.U8, account types.AccountId[types.SignerAddress]) types.Event {
 	return types.NewEvent(moduleIndex, EventKilledAccount, account)
 }
 
-func newEventRemarked(moduleIndex sc.U8, sender types.AccountId, hash types.H256) types.Event {
+func newEventRemarked(moduleIndex sc.U8, sender types.AccountId[types.SignerAddress], hash types.H256) types.Event {
 	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
 }
 
-func DecodeEvent[S types.Signer](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+func DecodeEvent[S types.SignerAddress](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return types.Event{}, err

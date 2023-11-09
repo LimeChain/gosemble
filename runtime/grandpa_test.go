@@ -33,11 +33,11 @@ func Test_Grandpa_Authorities(t *testing.T) {
 		Version: grandpa.AuthorityVersion,
 		AuthorityList: sc.Sequence[types.Authority]{
 			{
-				Id:     types.AccountId{Ed25519Signer: signerOne},
+				Id:     types.New[types.SignerAddress](signerOne),
 				Weight: weight,
 			},
 			{
-				Id:     types.AccountId{Ed25519Signer: signerTwo},
+				Id:     types.New[types.SignerAddress](signerTwo),
 				Weight: weight,
 			},
 		},

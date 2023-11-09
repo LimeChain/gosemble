@@ -6,7 +6,7 @@ import (
 
 type StoredMap interface {
 	EventDepositor
-	Get(key AccountId) (AccountInfo, error)
-	CanDecProviders(who AccountId) (bool, error)
-	TryMutateExists(who AccountId, f func(who *AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	Get(key AccountId[SignerAddress]) (AccountInfo, error)
+	CanDecProviders(who AccountId[SignerAddress]) (bool, error)
+	TryMutateExists(who AccountId[SignerAddress], f func(who *AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
 }

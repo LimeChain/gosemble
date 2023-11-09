@@ -9,14 +9,10 @@ import (
 
 var (
 	multiAddressId = NewMultiAddressId(
-		AccountId{
-			Ed25519Signer: ed25519SignerOnesAddress,
-		},
+		New[SignerAddress](ed25519SignerOnesAddress),
 	)
-	multiAddressIndex = NewMultiAddressIndex(accountIndex)
-	expectedAccountId = AccountId{
-		Ed25519Signer: ed25519SignerOnesAddress,
-	}
+	multiAddressIndex   = NewMultiAddressIndex(accountIndex)
+	expectedAccountId   = New[SignerAddress](ed25519SignerOnesAddress)
 	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 
 	expectedTransactionCannotLookupErr, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
@@ -31,11 +27,11 @@ func Test_Lookup_AccountId(t *testing.T) {
 func Test_Lookup_AccountIndex(t *testing.T) {
 	result, err := Lookup(multiAddressIndex)
 	assert.Equal(t, expectedTransactionCannotLookupErr, err)
-	assert.Equal(t, AccountId{}, result)
+	assert.Equal(t, AccountId[SignerAddress]{}, result)
 }
 
 func Test_Lookup_MultiAddress_NotValid(t *testing.T) {
 	result, err := Lookup(invalidMultiAddress)
 	assert.Equal(t, expectedTransactionCannotLookupErr, err)
-	assert.Equal(t, AccountId{}, result)
+	assert.Equal(t, AccountId[SignerAddress]{}, result)
 }

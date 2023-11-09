@@ -32,7 +32,7 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 }
 
 func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
-	targetAddress, err := types.DecodeMultiAddress(buffer)
+	targetAddress, err := types.DecodeMultiAddress[testKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,7 @@ func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, primitive
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (cw CheckWeight) Validate(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) Validate(_who primitives.AccountId[primitives.SignerAddress], _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return cw.doValidate(info, length)
 }
 
@@ -46,7 +46,7 @@ func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.D
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) PreDispatch(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cw CheckWeight) PreDispatch(_who primitives.AccountId[primitives.SignerAddress], _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	return primitives.Pre{}, cw.doPreDispatch(info, length)
 }
 
