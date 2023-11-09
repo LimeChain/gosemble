@@ -4,6 +4,8 @@ Targets WebAssembly MVP
 package main
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/api/account_nonce"
 	apiAura "github.com/LimeChain/gosemble/api/aura"
@@ -17,6 +19,7 @@ import (
 	apiTxPayments "github.com/LimeChain/gosemble/api/transaction_payment"
 	apiTxPaymentsCall "github.com/LimeChain/gosemble/api/transaction_payment_call"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/env"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/aura"
@@ -31,6 +34,7 @@ import (
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -355,4 +359,30 @@ func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 		OffchainWorker(dataPtr, dataLen)
 
 	return 0
+}
+
+//go:export Example_sign_sr25519_message
+func ExampleSignSr25519Message(dataPtr int32, dataLen int32) int64 {
+	memUtils := utils.NewMemoryTranslator()
+	b := memUtils.GetWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(b)
+
+	seq, err := sc.DecodeSequence[sc.U8](buffer)
+	if err != nil {
+		panic(err)
+	}
+
+	seqBz := sc.SequenceU8ToBytes(seq)
+	keyTypeID := seqBz[0:4]
+	pubKey := seqBz[4:37]
+	msg := seqBz[37:]
+
+	pubKeyOffsetSize := memUtils.BytesToOffsetAndSize(pubKey)
+	pubKeyOffset, _ := memUtils.Int64ToOffsetAndSize(pubKeyOffsetSize)
+
+	return env.ExtCryptoSr25519SignVersion1(
+		memUtils.Offset32(keyTypeID),
+		pubKeyOffset,
+		memUtils.BytesToOffsetAndSize(msg),
+	)
 }
