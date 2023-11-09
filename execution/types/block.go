@@ -6,7 +6,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 func NewBlock(header types.Header, extrinsics sc.Sequence[types.UncheckedExtrinsic]) primitives.Block {
@@ -22,7 +21,7 @@ type block struct {
 }
 
 func (b block) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		b.header,
 		b.extrinsics,
 	)

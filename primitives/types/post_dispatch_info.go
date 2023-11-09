@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 // PostDispatchInfo Weight information that is only available post dispatch.
@@ -18,7 +17,7 @@ type PostDispatchInfo struct {
 }
 
 func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		pdi.ActualWeight,
 		pdi.PaysFee,
 	)

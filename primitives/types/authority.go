@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type Authority struct {
@@ -13,7 +12,7 @@ type Authority struct {
 }
 
 func (a Authority) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		a.Id,
 		a.Weight,
 	)

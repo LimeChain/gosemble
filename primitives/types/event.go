@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type Event = sc.VaryingData
@@ -22,7 +21,7 @@ type EventRecord struct {
 }
 
 func (er EventRecord) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		er.Phase,
 		er.Event,
 		er.Topics,

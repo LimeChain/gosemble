@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -48,7 +47,7 @@ type MetadataModuleV15 struct {
 }
 
 func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mm.Name,
 		mm.Storage,
 		mm.Call,
@@ -123,7 +122,7 @@ type MetadataModuleV14 struct {
 }
 
 func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mm.Name,
 		mm.Storage,
 		mm.Call,
@@ -184,7 +183,7 @@ type MetadataModuleStorage struct {
 }
 
 func (mms MetadataModuleStorage) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mms.Prefix,
 		mms.Items,
 	)
@@ -228,7 +227,7 @@ func NewMetadataModuleStorageEntry(name string, modifier MetadataModuleStorageEn
 }
 
 func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mmse.Name,
 		mmse.Modifier,
 		mmse.Definition,
@@ -358,7 +357,7 @@ func NewMetadataModuleConstant(name string, id sc.Compact, value sc.Sequence[sc.
 }
 
 func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mmc.Name,
 		mmc.Type,
 		mmc.Value,

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type BlockWeights struct {
@@ -17,7 +16,7 @@ type BlockWeights struct {
 }
 
 func (bw BlockWeights) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		bw.BaseBlock,
 		bw.MaxBlock,
 		bw.PerClass,

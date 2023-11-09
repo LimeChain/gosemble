@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type SignedPayload interface {
@@ -47,7 +46,7 @@ func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, TransactionV
 }
 
 func (sp signedPayload) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		sp.call,
 		sp.extra,
 		sp.additionalSigned,

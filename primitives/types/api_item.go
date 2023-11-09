@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type ApiItem struct {
@@ -20,7 +19,7 @@ func NewApiItem(name [8]byte, version sc.U32) ApiItem {
 }
 
 func (ai ApiItem) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		ai.Name,
 		ai.Version,
 	)

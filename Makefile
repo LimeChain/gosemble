@@ -87,7 +87,7 @@ start-network:
 test: test-unit test-integration
 
 test-unit:
-	@go test --tags "nonwasmenv" -cover `go list ./... | grep -v runtime`
+	@go test --tags "nonwasmenv" -cover -v `go list ./... | grep -v runtime`
 
 test-integration:
-	@go test --tags="nonwasmenv" ./runtime/...
+	@go test --tags="nonwasmenv" -v ./runtime/...

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeMetadataV15 struct {
@@ -18,7 +17,7 @@ type RuntimeMetadataV15 struct {
 }
 
 func (rm RuntimeMetadataV15) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		rm.Types,
 		rm.Modules,
 		rm.Extrinsic,
@@ -80,7 +79,7 @@ type CustomValueMetadata struct {
 }
 
 func (cvm CustomValueMetadata) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		cvm.Type,
 		cvm.Value,
 	)
@@ -119,7 +118,7 @@ type OuterEnums struct {
 }
 
 func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		oe.CallEnumType,
 		oe.EventEnumType,
 		oe.ErrorEnumType,
@@ -156,7 +155,7 @@ type RuntimeApiMethodParamMetadata struct {
 }
 
 func (rampm RuntimeApiMethodParamMetadata) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		rampm.Name,
 		rampm.Type,
 	)
@@ -189,7 +188,7 @@ type RuntimeApiMethodMetadata struct {
 }
 
 func (ramm RuntimeApiMethodMetadata) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		ramm.Name,
 		ramm.Inputs,
 		ramm.Output,

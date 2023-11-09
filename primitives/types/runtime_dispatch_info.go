@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeDispatchInfo struct {
@@ -14,7 +13,7 @@ type RuntimeDispatchInfo struct {
 }
 
 func (rdi RuntimeDispatchInfo) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		rdi.Weight,
 		rdi.Class,
 		rdi.PartialFee,

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 // ExtrinsicSignature The signature is a varying data type indicating the used signature type,
@@ -18,7 +17,7 @@ type ExtrinsicSignature struct {
 }
 
 func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		s.Signer,
 		s.Signature,
 		s.Extra,

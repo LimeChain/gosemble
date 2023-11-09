@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type Balance = sc.U128
@@ -17,7 +16,7 @@ type AccountData struct {
 }
 
 func (ad AccountData) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		ad.Free,
 		ad.Reserved,
 		ad.MiscFrozen,

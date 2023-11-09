@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type RefCount = sc.U32
@@ -18,7 +17,7 @@ type AccountInfo struct {
 }
 
 func (ai AccountInfo) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		ai.Nonce,
 		ai.Consumers,
 		ai.Providers,

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type DigestItem struct {
@@ -13,7 +12,7 @@ type DigestItem struct {
 }
 
 func (di DigestItem) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		di.Engine,
 		di.Payload,
 	)

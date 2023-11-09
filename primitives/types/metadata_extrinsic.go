@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type MetadataExtrinsicV14 struct {
@@ -14,7 +13,7 @@ type MetadataExtrinsicV14 struct {
 }
 
 func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		me.Type,
 		me.Version,
 		me.SignedExtensions,
@@ -56,7 +55,7 @@ type MetadataExtrinsicV15 struct {
 }
 
 func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		me.Version,
 		me.Address,
 		me.Call,
@@ -121,7 +120,7 @@ func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned i
 }
 
 func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mse.Identifier,
 		mse.Type,
 		mse.AdditionalSigned,

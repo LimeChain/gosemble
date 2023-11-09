@@ -5,7 +5,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type InclusionFee struct {
@@ -23,7 +22,7 @@ func NewInclusionFee(baseFee, lenFee, adjustedWeightFee primitives.Balance) Incl
 }
 
 func (i InclusionFee) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		i.BaseFee,
 		i.LenFee,
 		i.AdjustedWeightFee,

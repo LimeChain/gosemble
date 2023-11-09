@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type Header struct {
@@ -16,7 +15,7 @@ type Header struct {
 }
 
 func (h Header) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		h.ParentHash,
 		sc.ToCompact(h.Number),
 		h.StateRoot,

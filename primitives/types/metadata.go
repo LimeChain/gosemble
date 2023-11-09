@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -24,7 +23,7 @@ func (m Metadata15) Bytes() []byte {
 }
 
 func (m Metadata15) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		MetadataReserved,
 		MetadataVersion15,
 		m.Data,
@@ -40,7 +39,7 @@ func (m Metadata14) Bytes() []byte {
 }
 
 func (m Metadata14) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		MetadataReserved,
 		MetadataVersion14,
 		m.Data,
@@ -69,9 +68,9 @@ func (m Metadata) Encode(buffer *bytes.Buffer) error {
 
 	switch m.Version {
 	case MetadataVersion14:
-		return utils.EncodeEach(buffer, MetadataVersion14, m.DataV14)
+		return sc.EncodeEach(buffer, MetadataVersion14, m.DataV14)
 	case MetadataVersion15:
-		return utils.EncodeEach(buffer, MetadataVersion15, m.DataV15)
+		return sc.EncodeEach(buffer, MetadataVersion15, m.DataV15)
 	default:
 		return errors.New("unsupported metadata version")
 	}
@@ -165,7 +164,7 @@ func NewMetadataTypeWithParams(id int, docs string, path sc.Sequence[sc.Str], de
 }
 
 func (mt MetadataType) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mt.Id,
 		mt.Path,
 		mt.Params,
@@ -235,7 +234,7 @@ func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
 }
 
 func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mtp.Text,
 		mtp.Type,
 	)

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type RuntimeVersion struct {
@@ -19,7 +18,7 @@ type RuntimeVersion struct {
 }
 
 func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		rv.SpecName,
 		rv.ImplName,
 		rv.AuthoringVersion,

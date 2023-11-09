@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 var (
@@ -24,7 +23,7 @@ func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
 }
 
 func (e testExtraCheck) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		e.hasError,
 		e.value,
 	)

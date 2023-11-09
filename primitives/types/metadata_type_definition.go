@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -156,7 +155,7 @@ func NewMetadataTypeDefinitionFieldWithName(id int, idName sc.Str) MetadataTypeD
 }
 
 func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mtdf.Name,
 		mtdf.Type,
 		mtdf.TypeName,
@@ -215,7 +214,7 @@ func NewMetadataDefinitionVariantStr(name sc.Str, fields sc.Sequence[MetadataTyp
 }
 
 func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		mdv.Name,
 		mdv.Fields,
 		mdv.Index,

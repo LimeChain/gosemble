@@ -5,7 +5,6 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 type TransactionPriority = sc.U64
@@ -50,7 +49,7 @@ type ValidTransaction struct {
 }
 
 func (tx ValidTransaction) Encode(buffer *bytes.Buffer) error {
-	return utils.EncodeEach(buffer,
+	return sc.EncodeEach(buffer,
 		tx.Priority,
 		tx.Requires,
 		tx.Provides,
