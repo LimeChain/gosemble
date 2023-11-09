@@ -79,7 +79,7 @@ type MultiAddress struct {
 	sc.VaryingData
 }
 
-func NewMultiAddressId(id AccountId[SignerAddress]) MultiAddress {
+func NewMultiAddressId(id AccountId[PublicKey]) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddressId, id)}
 }
 
@@ -99,7 +99,7 @@ func NewMultiAddress20(address Address20) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
 }
 
-func DecodeMultiAddress[S SignerAddress](buffer *bytes.Buffer) (MultiAddress, error) {
+func DecodeMultiAddress[S PublicKey](buffer *bytes.Buffer) (MultiAddress, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MultiAddress{}, err
@@ -151,11 +151,11 @@ func (a MultiAddress) IsAccountId() bool {
 	}
 }
 
-func (a MultiAddress) AsAccountId() (AccountId[SignerAddress], error) {
+func (a MultiAddress) AsAccountId() (AccountId[PublicKey], error) {
 	if a.IsAccountId() {
-		return a.VaryingData[1].(AccountId[SignerAddress]), nil
+		return a.VaryingData[1].(AccountId[PublicKey]), nil
 	} else {
-		return AccountId[SignerAddress]{}, newTypeError("AccountId")
+		return AccountId[PublicKey]{}, newTypeError("AccountId")
 	}
 }
 

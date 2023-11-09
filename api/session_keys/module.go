@@ -16,25 +16,25 @@ const (
 	apiVersion    = 1
 )
 
-type Module[S types.SignerAddress] struct {
+type Module[P types.PublicKey] struct {
 	sessions []types.Session
 	crypto   io.Crypto
 	memUtils utils.WasmMemoryTranslator
 }
 
-func New[S types.SignerAddress](sessions []types.Session) Module[S] {
-	return Module[S]{
+func New[P types.PublicKey](sessions []types.Session) Module[P] {
+	return Module[P]{
 		sessions: sessions,
 		crypto:   io.NewCrypto(),
 		memUtils: utils.NewMemoryTranslator(),
 	}
 }
 
-func (m Module[S]) Name() string {
+func (m Module[P]) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[S]) Item() types.ApiItem {
+func (m Module[P]) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
@@ -47,7 +47,7 @@ func (m Module[S]) Item() types.ApiItem {
 // which represent the SCALE-encoded optional seed.
 // Returns a pointer-size of the SCALE-encoded set of keys.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_generate_session_keys)
-func (m Module[S]) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
+func (m Module[P]) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
@@ -77,7 +77,7 @@ func (m Module[S]) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 // which represent the SCALE-encoded keys.
 // Returns a pointer-size of the SCALE-encoded set of raw keys and their respective key type.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_decode_session_keys)
-func (m Module[S]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
+func (m Module[P]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 	sequence, err := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
@@ -88,7 +88,7 @@ func (m Module[S]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(sequence))
 	sessionKeys := sc.Sequence[types.SessionKey]{}
 	for _, session := range m.sessions {
-		pk, err := types.DecodeAccountId[S](buffer)
+		pk, err := types.DecodeAccountId[P](buffer)
 		if err != nil {
 			log.Critical(err.Error())
 		}
@@ -100,7 +100,7 @@ func (m Module[S]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }
 
-func getKeyFunction[S types.SignerAddress](m Module[S], keyType types.PublicKeyType) func([]byte, []byte) []byte {
+func getKeyFunction[P types.PublicKey](m Module[P], keyType types.PublicKeyType) func([]byte, []byte) []byte {
 	switch keyType {
 	case types.PublicKeyEd25519:
 		return m.crypto.Ed25519Generate

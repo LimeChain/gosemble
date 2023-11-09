@@ -10,8 +10,8 @@ import (
 
 var (
 	bytesAddress, _            = hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
-	ed25519SignerZeroAddres, _ = NewEd25519Signer(sc.BytesToSequenceU8(bytesAddress)...)
-	address                    = New[SignerAddress](ed25519SignerZeroAddres)
+	ed25519SignerZeroAddres, _ = NewEd25519PublicKey(sc.BytesToSequenceU8(bytesAddress)...)
+	address                    = New[PublicKey](ed25519SignerZeroAddres)
 
 	signedOrigin = NewRawOriginSigned(address)
 )
@@ -35,7 +35,7 @@ func Test_NewRawOriginNone(t *testing.T) {
 }
 
 func Test_RawOriginFrom(t *testing.T) {
-	option := sc.NewOption[AccountId[SignerAddress]](address)
+	option := sc.NewOption[AccountId[PublicKey]](address)
 
 	result := RawOriginFrom(option)
 
@@ -43,7 +43,7 @@ func Test_RawOriginFrom(t *testing.T) {
 }
 
 func Test_RawOriginFrom_Empty(t *testing.T) {
-	option := sc.NewOption[AccountId[SignerAddress]](nil)
+	option := sc.NewOption[AccountId[PublicKey]](nil)
 
 	result := RawOriginFrom(option)
 
@@ -80,7 +80,7 @@ func Test_RawOriginRoot_AsSigned_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
-	assert.Equal(t, AccountId[SignerAddress]{}, address)
+	assert.Equal(t, AccountId[PublicKey]{}, address)
 }
 
 func Test_RawOriginNone_AsSigned_TypeError(t *testing.T) {
@@ -88,5 +88,5 @@ func Test_RawOriginNone_AsSigned_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'RawOrigin' type", err.Error())
-	assert.Equal(t, AccountId[SignerAddress]{}, address)
+	assert.Equal(t, AccountId[PublicKey]{}, address)
 }

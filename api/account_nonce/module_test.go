@@ -55,11 +55,11 @@ func Test_Module_AccountNonce(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
 }
 
-func setup() Module[types.Ed25519Signer] {
+func setup() Module[types.Ed25519PublicKey] {
 	mockSystem = new(mocks.SystemModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New[types.Ed25519Signer](mockSystem)
+	target := New[types.Ed25519PublicKey](mockSystem)
 	target.memUtils = mockMemoryUtils
 
 	return target

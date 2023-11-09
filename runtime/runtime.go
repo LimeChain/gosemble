@@ -33,7 +33,7 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type KeyType = primitives.Ed25519Signer
+type PublicKeyType = primitives.Ed25519PublicKey
 
 const (
 	AuraMaxAuthorites = 100
@@ -112,7 +112,7 @@ func initializeModules() []primitives.Module {
 		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
 	)
 
-	grandpaModule := grandpa.New[KeyType](GrandpaIndex)
+	grandpaModule := grandpa.New[PublicKeyType](GrandpaIndex)
 
 	balancesModule := balances.New(
 		BalancesIndex,
@@ -161,11 +161,11 @@ func newSignedExtra() primitives.SignedExtra {
 
 func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
-	decoder := types.NewRuntimeDecoder[KeyType](modules, extra)
+	decoder := types.NewRuntimeDecoder[PublicKeyType](modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
-	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[KeyType])
+	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[PublicKeyType])
 	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	executiveModule := executive.New(
@@ -186,10 +186,10 @@ func runtimeApi() types.RuntimeApi {
 		metadata.New(runtimeExtrinsic),
 		apiAura.New(auraModule),
 		apiGrandpa.New(grandpaModule),
-		account_nonce.New[KeyType](systemModule),
+		account_nonce.New[PublicKeyType](systemModule),
 		apiTxPayments.New(decoder, txPaymentsModule),
 		apiTxPaymentsCall.New(decoder, txPaymentsModule),
-		session_keys.New[KeyType](sessions),
+		session_keys.New[PublicKeyType](sessions),
 		offchain_worker.New(executiveModule),
 	}
 
@@ -276,7 +276,7 @@ func AuraApiAuthorities(_, _ int32) int64 {
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(account_nonce.ApiModuleName).(account_nonce.Module[KeyType]).
+		Module(account_nonce.ApiModuleName).(account_nonce.Module[PublicKeyType]).
 		AccountNonce(dataPtr, dataLen)
 }
 
@@ -332,14 +332,14 @@ func MetadataVersions(_, _ int32) int64 {
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module[KeyType]).
+		Module(session_keys.ApiModuleName).(session_keys.Module[PublicKeyType]).
 		GenerateSessionKeys(dataPtr, dataLen)
 }
 
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module[KeyType]).
+		Module(session_keys.ApiModuleName).(session_keys.Module[PublicKeyType]).
 		DecodeSessionKeys(dataPtr, dataLen)
 }
 

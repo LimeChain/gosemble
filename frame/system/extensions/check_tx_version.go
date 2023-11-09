@@ -33,7 +33,7 @@ func (ctv CheckTxVersion) AdditionalSigned() (primitives.AdditionalSigned, primi
 	return sc.NewVaryingData(ctv.systemModule.Version().TransactionVersion), nil
 }
 
-func (_ CheckTxVersion) Validate(_who primitives.AccountId[primitives.SignerAddress], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckTxVersion) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
@@ -41,7 +41,7 @@ func (ctv CheckTxVersion) ValidateUnsigned(_call primitives.Call, info *primitiv
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctv CheckTxVersion) PreDispatch(who primitives.AccountId[primitives.SignerAddress], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (ctv CheckTxVersion) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := ctv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

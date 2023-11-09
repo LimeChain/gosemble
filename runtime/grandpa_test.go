@@ -23,9 +23,9 @@ func Test_Grandpa_Authorities(t *testing.T) {
 	rt, storage := newTestRuntime(t)
 	pubKey1 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ee")
 	pubKey2 := common.MustHexToBytes("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ef")
-	signerOne, e := types.NewEd25519Signer(sc.BytesToSequenceU8(pubKey1)...)
+	signerOne, e := types.NewEd25519PublicKey(sc.BytesToSequenceU8(pubKey1)...)
 	assert.Nil(t, e)
-	signerTwo, e := types.NewEd25519Signer(sc.BytesToSequenceU8(pubKey2)...)
+	signerTwo, e := types.NewEd25519PublicKey(sc.BytesToSequenceU8(pubKey2)...)
 	assert.Nil(t, e)
 	weight := sc.U64(1)
 
@@ -33,11 +33,11 @@ func Test_Grandpa_Authorities(t *testing.T) {
 		Version: grandpa.AuthorityVersion,
 		AuthorityList: sc.Sequence[types.Authority]{
 			{
-				Id:     types.New[types.SignerAddress](signerOne),
+				Id:     types.New[types.PublicKey](signerOne),
 				Weight: weight,
 			},
 			{
-				Id:     types.New[types.SignerAddress](signerTwo),
+				Id:     types.New[types.PublicKey](signerTwo),
 				Weight: weight,
 			},
 		},

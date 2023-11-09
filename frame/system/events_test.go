@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testKeyType = types.Ed25519Signer
+type testKeyType = types.Ed25519PublicKey
 
 var (
 	targetAccount = constants.OneAddressAccountId

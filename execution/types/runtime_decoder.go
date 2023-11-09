@@ -16,12 +16,12 @@ type RuntimeDecoder interface {
 	DecodeCall(buffer *bytes.Buffer) (primitives.Call, error)
 }
 
-type runtimeDecoder[S primitives.SignerAddress] struct {
+type runtimeDecoder[S primitives.PublicKey] struct {
 	modules []types.Module
 	extra   primitives.SignedExtra
 }
 
-func NewRuntimeDecoder[S primitives.SignerAddress](modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
+func NewRuntimeDecoder[S primitives.PublicKey](modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
 	return runtimeDecoder[S]{
 		modules: modules,
 		extra:   extra,

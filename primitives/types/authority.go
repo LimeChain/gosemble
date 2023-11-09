@@ -7,7 +7,7 @@ import (
 )
 
 type Authority struct {
-	Id     AccountId[SignerAddress]
+	Id     AccountId[PublicKey]
 	Weight sc.U64
 }
 
@@ -18,7 +18,7 @@ func (a Authority) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeAuthority[S SignerAddress](buffer *bytes.Buffer) (Authority, error) {
+func DecodeAuthority[S PublicKey](buffer *bytes.Buffer) (Authority, error) {
 	pk, err := DecodeAccountId[S](buffer)
 	if err != nil {
 		return Authority{}, err

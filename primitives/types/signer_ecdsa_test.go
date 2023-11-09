@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	targetEcdsaSigner = EcdsaSigner{
+	targetEcdsaSigner = EcdsaPublicKey{
 		FixedSequence: sc.BytesToFixedSequenceU8(pubKeyEcdsaSigner),
 	}
 )
@@ -30,7 +30,7 @@ func Test_Signer_Ecdsa_Bytes(t *testing.T) {
 func Test_DecodeEcdsa_Signer(t *testing.T) {
 	buffer := bytes.NewBuffer(pubKeyEcdsaSigner)
 
-	result, err := DecodeEcdsaSigner(buffer)
+	result, err := DecodeEcdsaPublicKey(buffer)
 	assert.NoError(t, err)
 
 	assert.Equal(t, targetEcdsaSigner, result)
@@ -39,21 +39,21 @@ func Test_DecodeEcdsa_Signer(t *testing.T) {
 func Test_DecodeEcdsa_Signer_InvalidNumberOfBytes(t *testing.T) {
 	buffer := bytes.NewBuffer(invalidAddress)
 
-	_, err := DecodeEcdsaSigner(buffer)
+	_, err := DecodeEcdsaPublicKey(buffer)
 	assert.Error(t, err)
 	assert.Equal(t, io.EOF, err)
 }
 
 func Test_Signer_Ecdsa_New(t *testing.T) {
-	newEcdsaSigner, err := NewEcdsaSigner(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
+	newEcdsaSigner, err := NewEcdsaPublicKey(sc.BytesToSequenceU8(pubKeyEcdsaSigner)...)
 	assert.Nil(t, err)
 	assert.Equal(t, newEcdsaSigner, targetEcdsaSigner)
 }
 
 func Test_Signer_Ecdsa__New_InvalidAddress(t *testing.T) {
-	expectedErr := newTypeError("EcdsaSigner")
-	newEcdsaSigner, err := NewEcdsaSigner(sc.BytesToSequenceU8(invalidAddress)...)
+	expectedErr := newTypeError("EcdsaPublicKey")
+	newEcdsaSigner, err := NewEcdsaPublicKey(sc.BytesToSequenceU8(invalidAddress)...)
 	assert.Error(t, err)
-	assert.Equal(t, EcdsaSigner{}, newEcdsaSigner)
+	assert.Equal(t, EcdsaPublicKey{}, newEcdsaSigner)
 	assert.Equal(t, expectedErr, err)
 }

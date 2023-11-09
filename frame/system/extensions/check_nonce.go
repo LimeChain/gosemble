@@ -40,7 +40,7 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who primitives.AccountId[primitives.SignerAddress], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cn CheckNonce) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
@@ -80,7 +80,7 @@ func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.Di
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who primitives.AccountId[primitives.SignerAddress], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cn CheckNonce) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271

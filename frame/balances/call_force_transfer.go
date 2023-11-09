@@ -8,7 +8,7 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type testKeyType = primitives.Ed25519Signer
+type testKeyType = primitives.Ed25519PublicKey
 
 type callForceTransfer struct {
 	primitives.Callable

@@ -130,7 +130,7 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree) force(who primitives.AccountId[types.SignerAddress], value sc.U128) (sc.U128, error) {
+func (c callForceFree) force(who primitives.AccountId[types.PublicKey], value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
 		return constants.Zero, nil
 	}

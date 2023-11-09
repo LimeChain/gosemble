@@ -10,33 +10,33 @@ const (
 	publicKeySerializedSize = 33
 )
 
-type EcdsaSigner struct {
+type EcdsaPublicKey struct {
 	sc.FixedSequence[sc.U8] // size 33
 }
 
-func (s EcdsaSigner) SignatureType() sc.U8 {
+func (s EcdsaPublicKey) SignatureType() sc.U8 {
 	return PublicKeyEcdsa
 }
 
-func (s EcdsaSigner) Encode(buffer *bytes.Buffer) {
+func (s EcdsaPublicKey) Encode(buffer *bytes.Buffer) {
 	s.FixedSequence.Encode(buffer)
 }
 
-func (s EcdsaSigner) Bytes() []byte {
+func (s EcdsaPublicKey) Bytes() []byte {
 	return sc.EncodedBytes(s)
 }
 
-func DecodeEcdsaSigner(buffer *bytes.Buffer) (EcdsaSigner, error) {
+func DecodeEcdsaPublicKey(buffer *bytes.Buffer) (EcdsaPublicKey, error) {
 	seq, err := sc.DecodeFixedSequence[sc.U8](publicKeySerializedSize, buffer)
 	if err != nil {
-		return EcdsaSigner{}, err
+		return EcdsaPublicKey{}, err
 	}
-	return EcdsaSigner{seq}, nil
+	return EcdsaPublicKey{seq}, nil
 }
 
-func NewEcdsaSigner(values ...sc.U8) (EcdsaSigner, error) {
+func NewEcdsaPublicKey(values ...sc.U8) (EcdsaPublicKey, error) {
 	if len(values) != publicKeySerializedSize {
-		return EcdsaSigner{}, newTypeError("EcdsaSigner")
+		return EcdsaPublicKey{}, newTypeError("EcdsaPublicKey")
 	}
-	return EcdsaSigner{sc.NewFixedSequence(publicKeySerializedSize, values...)}, nil
+	return EcdsaPublicKey{sc.NewFixedSequence(publicKeySerializedSize, values...)}, nil
 }

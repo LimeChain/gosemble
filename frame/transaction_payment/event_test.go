@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testKeyType = types.Ed25519Signer
+type testKeyType = types.Ed25519PublicKey
 
 func Test_DecodeEvent(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})

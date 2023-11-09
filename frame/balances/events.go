@@ -28,47 +28,47 @@ const (
 	errInvalidEventType   = "invalid balances.Event type"
 )
 
-func newEventEndowed(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], freeBalance primitives.Balance) primitives.Event {
+func newEventEndowed(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], freeBalance primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventEndowed, account, freeBalance)
 }
 
-func newEventDustLost(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventDustLost(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventDustLost, account, amount)
 }
 
-func newEventTransfer(moduleIndex sc.U8, from primitives.AccountId[primitives.SignerAddress], to primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventTransfer(moduleIndex sc.U8, from primitives.AccountId[primitives.PublicKey], to primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventTransfer, from, to, amount)
 }
 
-func newEventBalanceSet(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], free primitives.Balance, reserved primitives.Balance) primitives.Event {
+func newEventBalanceSet(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], free primitives.Balance, reserved primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventBalanceSet, account, free, reserved)
 }
 
-func newEventReserved(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventReserved(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventReserved, account, amount)
 }
 
-func newEventUnreserved(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventUnreserved(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventUnreserved, account, amount)
 }
 
-func newEventReserveRepatriated(moduleIndex sc.U8, from primitives.AccountId[primitives.SignerAddress], to primitives.AccountId[primitives.SignerAddress], amount primitives.Balance, destinationStatus types.BalanceStatus) primitives.Event {
+func newEventReserveRepatriated(moduleIndex sc.U8, from primitives.AccountId[primitives.PublicKey], to primitives.AccountId[primitives.PublicKey], amount primitives.Balance, destinationStatus types.BalanceStatus) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventReserveRepatriated, from, to, amount, destinationStatus)
 }
 
-func newEventDeposit(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventDeposit(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventDeposit, account, amount)
 }
 
-func newEventWithdraw(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventWithdraw(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventWithdraw, account, amount)
 }
 
-func newEventSlashed(moduleIndex sc.U8, account primitives.AccountId[primitives.SignerAddress], amount primitives.Balance) primitives.Event {
+func newEventSlashed(moduleIndex sc.U8, account primitives.AccountId[primitives.PublicKey], amount primitives.Balance) primitives.Event {
 	return primitives.NewEvent(moduleIndex, EventSlashed, account, amount)
 }
 
-func DecodeEvent[S primitives.SignerAddress](moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
+func DecodeEvent[S primitives.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return primitives.Event{}, err

@@ -55,7 +55,7 @@ func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidit
 	return sc.NewVaryingData(e.value), nil
 }
 
-func (e testExtraCheck) Validate(who AccountId[SignerAddress], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
@@ -67,10 +67,10 @@ func (e testExtraCheck) Validate(who AccountId[SignerAddress], call Call, info *
 }
 
 func (e testExtraCheck) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
-	return e.Validate(AccountId[SignerAddress]{}, call, info, length)
+	return e.Validate(AccountId[PublicKey]{}, call, info, length)
 }
 
-func (e testExtraCheck) PreDispatch(who AccountId[SignerAddress], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
+func (e testExtraCheck) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
 	_, err := e.Validate(who, call, info, length)
 	return Pre{}, err
 }

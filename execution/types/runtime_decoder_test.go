@@ -19,7 +19,7 @@ const (
 	signedExtrinsicVersion = 132
 )
 
-type testKeyType = primitives.Ed25519Signer
+type testKeyType = primitives.Ed25519PublicKey
 
 var (
 	signedExtrinsicBytes = []byte{

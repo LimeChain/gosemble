@@ -92,7 +92,7 @@ var (
 )
 
 var (
-	mockStorageAccount            *mocks.StorageMap[primitives.AccountId[primitives.SignerAddress], primitives.AccountInfo]
+	mockStorageAccount            *mocks.StorageMap[primitives.AccountId[primitives.PublicKey], primitives.AccountInfo]
 	mockStorageBlockWeight        *mocks.StorageValue[primitives.ConsumedWeight]
 	mockStorageBlockHash          *mocks.StorageMap[sc.U64, primitives.Blake2bHash]
 	mockStorageBlockNumber        *mocks.StorageValue[sc.U64]
@@ -1766,7 +1766,7 @@ func setupModule() module {
 }
 
 func initMockStorage() {
-	mockStorageAccount = new(mocks.StorageMap[primitives.AccountId[primitives.SignerAddress], primitives.AccountInfo])
+	mockStorageAccount = new(mocks.StorageMap[primitives.AccountId[primitives.PublicKey], primitives.AccountInfo])
 	mockStorageBlockWeight = new(mocks.StorageValue[primitives.ConsumedWeight])
 	mockStorageBlockHash = new(mocks.StorageMap[sc.U64, primitives.Blake2bHash])
 	mockStorageBlockNumber = new(mocks.StorageValue[sc.U64])

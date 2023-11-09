@@ -30,7 +30,7 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)
 }
 
-func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.SignerAddress], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
@@ -48,7 +48,7 @@ func (c CheckNonZeroAddress) ValidateUnsigned(_call primitives.Call, info *primi
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId[primitives.SignerAddress], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := c.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

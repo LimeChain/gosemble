@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testKeyType = Ed25519Signer
+type testKeyType = Ed25519PublicKey
 
 var (
 	expectedExtrinsicSignatureBytes, _ = hex.DecodeString(
@@ -21,9 +21,9 @@ var (
 	signerAddressBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	}
-	ed25519SignerOnesAddress, _ = NewEd25519Signer(sc.BytesToSequenceU8(signerAddressBytes)...)
+	ed25519SignerOnesAddress, _ = NewEd25519PublicKey(sc.BytesToSequenceU8(signerAddressBytes)...)
 	signer                      = NewMultiAddressId(
-		New[SignerAddress](ed25519SignerOnesAddress),
+		New[PublicKey](ed25519SignerOnesAddress),
 	)
 
 	signatureBytes = []byte{

@@ -60,7 +60,7 @@ var (
 var (
 	pre            = sc.Option[sc.Sequence[Pre]]{}
 	preWithValue   = sc.NewOption[sc.Sequence[Pre]](sc.Sequence[Pre]{Pre{}, Pre{}})
-	who            = AccountId[SignerAddress]{}
+	who            = AccountId[PublicKey]{}
 	call           = testCall{}
 	info           = &DispatchInfo{}
 	length         = sc.Compact{}

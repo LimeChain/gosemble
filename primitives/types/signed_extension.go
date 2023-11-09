@@ -45,12 +45,12 @@ type SignedExtension interface {
 	// that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch` function.
-	Validate(who AccountId[SignerAddress], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
 
 	// Do any pre-flight stuff for a signed transaction.
 	//
 	// Make sure to perform the same checks as in [`Self::validate`].
-	PreDispatch(who AccountId[SignerAddress], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError)
+	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError)
 
 	// Validate an unsigned transaction for the transaction queue.
 	//

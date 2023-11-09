@@ -24,7 +24,7 @@ func (s ExtrinsicSignature) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeExtrinsicSignature[S SignerAddress](extra SignedExtra, buffer *bytes.Buffer) (ExtrinsicSignature, error) {
+func DecodeExtrinsicSignature[S PublicKey](extra SignedExtra, buffer *bytes.Buffer) (ExtrinsicSignature, error) {
 	s := ExtrinsicSignature{}
 	signer, err := DecodeMultiAddress[S](buffer)
 	if err != nil {

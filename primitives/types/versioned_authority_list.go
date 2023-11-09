@@ -18,7 +18,7 @@ func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeVersionedAuthorityList[S SignerAddress](buffer *bytes.Buffer) (VersionedAuthorityList, error) {
+func DecodeVersionedAuthorityList[S PublicKey](buffer *bytes.Buffer) (VersionedAuthorityList, error) {
 	version, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return VersionedAuthorityList{}, err

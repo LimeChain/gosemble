@@ -81,7 +81,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
 // If `value` is 0, it does nothing.
-func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.SignerAddress], value sc.U128) (primitives.Balance, primitives.DispatchError) {
+func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.PublicKey], value sc.U128) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
@@ -102,7 +102,7 @@ func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.SignerAd
 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
-func (m Module) Withdraw(who primitives.AccountId[primitives.SignerAddress], value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
+func (m Module) Withdraw(who primitives.AccountId[primitives.PublicKey], value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
@@ -119,7 +119,7 @@ func (m Module) Withdraw(who primitives.AccountId[primitives.SignerAddress], val
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.SignerAddress], amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
+func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey], amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
 	if amount.Eq(constants.Zero) {
 		return nil
 	}
@@ -142,7 +142,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.SignerAddr
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func (m Module) tryMutateAccount(who primitives.AccountId[primitives.SignerAddress], f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) tryMutateAccount(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := m.tryMutateAccountWithDust(who, f)
 	if result.HasError {
 		return result
@@ -156,7 +156,7 @@ func (m Module) tryMutateAccount(who primitives.AccountId[primitives.SignerAddre
 	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Result[sc.Encodable]).Value}
 }
 
-func (m Module) tryMutateAccountWithDust(who primitives.AccountId[primitives.SignerAddress], f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) tryMutateAccountWithDust(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result, err := m.Config.StoredMap.TryMutateExists(
 		who,
 		func(maybeAccount *primitives.AccountData) sc.Result[sc.Encodable] {
@@ -235,7 +235,7 @@ func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.A
 	return sc.NewOption[primitives.AccountData](new), sc.NewOption[negativeImbalance](nil)
 }
 
-func (m Module) withdraw(who primitives.AccountId[primitives.SignerAddress], value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
 	newFreeAccount, err := sc.CheckedSubU128(account.Free, value)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
@@ -281,7 +281,7 @@ func (m Module) withdraw(who primitives.AccountId[primitives.SignerAddress], val
 	}
 }
 
-func (m Module) deposit(who primitives.AccountId[primitives.SignerAddress], account *primitives.AccountData, isNew bool, value sc.U128) sc.Result[sc.Encodable] {
+func (m Module) deposit(who primitives.AccountId[primitives.PublicKey], account *primitives.AccountData, isNew bool, value sc.U128) sc.Result[sc.Encodable] {
 	if isNew {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
