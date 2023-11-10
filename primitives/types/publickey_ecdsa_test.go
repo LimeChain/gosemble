@@ -18,7 +18,8 @@ var (
 func Test_PublicKey_Ecdsa_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetEcdsaPublicKey.Encode(buffer)
+	err := targetEcdsaPublicKey.Encode(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, pubKeyEcdsa, buffer.Bytes())
 }

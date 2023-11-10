@@ -9,10 +9,10 @@ import (
 
 var (
 	multiAddressId = NewMultiAddressId(
-		New[PublicKey](ed25519SignerOnesAddress),
+		NewAccountId[PublicKey](ed25519SignerOnesAddress),
 	)
 	multiAddressIndex   = NewMultiAddressIndex(accountIndex)
-	expectedAccountId   = New[PublicKey](ed25519SignerOnesAddress)
+	expectedAccountId   = NewAccountId[PublicKey](ed25519SignerOnesAddress)
 	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 
 	expectedTransactionCannotLookupErr, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())

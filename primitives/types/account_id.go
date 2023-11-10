@@ -26,24 +26,24 @@ type PublicKey interface {
 }
 
 // AccountId It's an account ID (pubkey).
-type AccountId[P PublicKey] struct {
-	publicKeyType P
+type AccountId[T PublicKey] struct {
+	publicKeyType T
 }
 
-func New[P PublicKey](pkType P) AccountId[P] {
-	return AccountId[P]{publicKeyType: pkType}
+func NewAccountId[T PublicKey](pkType T) AccountId[T] {
+	return AccountId[T]{publicKeyType: pkType}
 }
 
-func (a AccountId[S]) Encode(buffer *bytes.Buffer) {
-	a.publicKeyType.Encode(buffer)
+func (a AccountId[S]) Encode(buffer *bytes.Buffer) error {
+	return a.publicKeyType.Encode(buffer)
 }
 
 func (a AccountId[S]) Bytes() []byte {
 	return sc.EncodedBytes(a)
 }
 
-func DecodeAccountId[S PublicKey](buffer *bytes.Buffer) (AccountId[PublicKey], error) {
-	switch reflect.Zero(reflect.TypeOf(*new(S))).Interface().(type) {
+func DecodeAccountId[T PublicKey](buffer *bytes.Buffer) (AccountId[PublicKey], error) {
+	switch reflect.Zero(reflect.TypeOf(*new(T))).Interface().(type) {
 	case Ed25519PublicKey:
 		pkEd25519, err := DecodeEd25519PublicKey(buffer)
 		if err != nil {

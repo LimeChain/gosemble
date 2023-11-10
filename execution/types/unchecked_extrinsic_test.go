@@ -31,7 +31,7 @@ var (
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
 	signer25519Address, _ = types.NewEd25519PublicKey(sc.BytesToSequenceU8(signerAddressBytes)...)
-	signerAccountId       = types.New[types.PublicKey](signer25519Address)
+	signerAccountId       = types.NewAccountId[types.PublicKey](signer25519Address)
 	signer                = types.NewMultiAddressId(signerAccountId)
 
 	signatureBytes = []byte{

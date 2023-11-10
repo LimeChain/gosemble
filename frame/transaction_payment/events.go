@@ -17,7 +17,7 @@ func NewEventTransactionFeePaid(moduleIndex sc.U8, account types.AccountId[types
 	return types.NewEvent(moduleIndex, EventTransactionFeePaid, account, actualFee, tip)
 }
 
-func DecodeEvent[P types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+func DecodeEvent[T types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return types.Event{}, err
@@ -33,7 +33,7 @@ func DecodeEvent[P types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (ty
 
 	switch b {
 	case EventTransactionFeePaid:
-		account, err := types.DecodeAccountId[P](buffer)
+		account, err := types.DecodeAccountId[T](buffer)
 		if err != nil {
 			return types.Event{}, err
 		}

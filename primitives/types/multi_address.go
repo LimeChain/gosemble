@@ -99,7 +99,7 @@ func NewMultiAddress20(address Address20) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
 }
 
-func DecodeMultiAddress[P PublicKey](buffer *bytes.Buffer) (MultiAddress, error) {
+func DecodeMultiAddress[T PublicKey](buffer *bytes.Buffer) (MultiAddress, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MultiAddress{}, err
@@ -107,7 +107,7 @@ func DecodeMultiAddress[P PublicKey](buffer *bytes.Buffer) (MultiAddress, error)
 
 	switch b {
 	case MultiAddressId:
-		accId, err := DecodeAccountId[P](buffer)
+		accId, err := DecodeAccountId[T](buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}

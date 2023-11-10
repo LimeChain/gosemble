@@ -18,8 +18,8 @@ func (a Authority) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeAuthority[P PublicKey](buffer *bytes.Buffer) (Authority, error) {
-	pk, err := DecodeAccountId[P](buffer)
+func DecodeAuthority[T PublicKey](buffer *bytes.Buffer) (Authority, error) {
+	pk, err := DecodeAccountId[T](buffer)
 	if err != nil {
 		return Authority{}, err
 	}

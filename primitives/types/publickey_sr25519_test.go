@@ -18,7 +18,8 @@ var (
 func Test_PublicKey_Sr25519_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetSr25519PublicKey.Encode(buffer)
+	err := targetSr25519PublicKey.Encode(buffer)
+	assert.Nil(t, err)
 
 	assert.Equal(t, pubKeySr25519, buffer.Bytes())
 }

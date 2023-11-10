@@ -23,7 +23,7 @@ var (
 )
 var (
 	targetAuthority = Authority{
-		Id:     New[PublicKey](publicKey),
+		Id:     NewAccountId[PublicKey](publicKey),
 		Weight: 3,
 	}
 )

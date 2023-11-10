@@ -20,7 +20,7 @@ var (
 
 	ed25519SignerFromAddr32, _ = NewEd25519PublicKey(sc.BytesToFixedSequenceU8(addr32Bytes)...)
 
-	accountId    = New[PublicKey](ed25519SignerFromAddr32)
+	accountId    = NewAccountId[PublicKey](ed25519SignerFromAddr32)
 	accountIndex = sc.U32(2)
 	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
 	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}

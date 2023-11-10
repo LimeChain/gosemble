@@ -23,7 +23,7 @@ var (
 	}
 	ed25519SignerOnesAddress, _ = NewEd25519PublicKey(sc.BytesToSequenceU8(signerAddressBytes)...)
 	signer                      = NewMultiAddressId(
-		New[PublicKey](ed25519SignerOnesAddress),
+		NewAccountId[PublicKey](ed25519SignerOnesAddress),
 	)
 
 	signatureBytes = []byte{

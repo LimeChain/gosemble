@@ -177,7 +177,7 @@ func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
 	seq := sc.NewFixedSequence[sc.U8](32, slice...)
 	address, err := primitives.NewEd25519PublicKey(seq...)
 	assert.Nil(t, err)
-	signer := primitives.New[primitives.PublicKey](address)
+	signer := primitives.NewAccountId[primitives.PublicKey](address)
 
 	r, e := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
 

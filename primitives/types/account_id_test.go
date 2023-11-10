@@ -17,9 +17,9 @@ var (
 	sr25519Signer, _ = NewSr25519PublicKey(sc.BytesToSequenceU8(pubKeySr25519)...)
 	ecdsaSigner, _   = NewEcdsaPublicKey(sc.BytesToFixedSequenceU8(addr33Bytes)...)
 
-	targetAccountIdEd25519 = New[PublicKey](ed25519Signer)
-	targetAccountIdSr25519 = New[PublicKey](sr25519Signer)
-	targetAccountIdEcdsa   = New[PublicKey](ecdsaSigner)
+	targetAccountIdEd25519 = NewAccountId[PublicKey](ed25519Signer)
+	targetAccountIdSr25519 = NewAccountId[PublicKey](sr25519Signer)
+	targetAccountIdEcdsa   = NewAccountId[PublicKey](ecdsaSigner)
 )
 
 func Test_AccountId_Encode_Ed25519_Signer(t *testing.T) {

@@ -14,8 +14,8 @@ func (s Ed25519PublicKey) SignatureType() sc.U8 {
 	return PublicKeyEd25519
 }
 
-func (s Ed25519PublicKey) Encode(buffer *bytes.Buffer) {
-	s.FixedSequence.Encode(buffer)
+func (s Ed25519PublicKey) Encode(buffer *bytes.Buffer) error {
+	return s.FixedSequence.Encode(buffer)
 }
 
 func (s Ed25519PublicKey) Bytes() []byte {

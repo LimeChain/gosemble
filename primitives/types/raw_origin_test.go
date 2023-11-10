@@ -11,7 +11,7 @@ import (
 var (
 	bytesAddress, _            = hex.DecodeString("0000000000000000000000000000000000000000000000000000000000000000")
 	ed25519SignerZeroAddres, _ = NewEd25519PublicKey(sc.BytesToSequenceU8(bytesAddress)...)
-	address                    = New[PublicKey](ed25519SignerZeroAddres)
+	address                    = NewAccountId[PublicKey](ed25519SignerZeroAddres)
 
 	signedOrigin = NewRawOriginSigned(address)
 )
