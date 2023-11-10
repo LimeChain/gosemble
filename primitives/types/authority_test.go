@@ -31,8 +31,9 @@ var (
 func Test_Authority_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetAuthority.Encode(buffer)
+	err := targetAuthority.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedAuthorityBytes, buffer.Bytes())
 }
 

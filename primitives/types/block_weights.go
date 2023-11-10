@@ -15,10 +15,12 @@ type BlockWeights struct {
 	PerClass PerDispatchClass[WeightsPerClass]
 }
 
-func (bw BlockWeights) Encode(buffer *bytes.Buffer) {
-	bw.BaseBlock.Encode(buffer)
-	bw.MaxBlock.Encode(buffer)
-	bw.PerClass.Encode(buffer)
+func (bw BlockWeights) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		bw.BaseBlock,
+		bw.MaxBlock,
+		bw.PerClass,
+	)
 }
 
 func (bw BlockWeights) Bytes() []byte {

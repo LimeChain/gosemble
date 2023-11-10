@@ -62,8 +62,9 @@ func Test_Call_Transfer_Encode(t *testing.T) {
 	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferIndex})
 	buf := &bytes.Buffer{}
 
-	target.Encode(buf)
+	err := target.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuffer, buf)
 }
 

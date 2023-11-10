@@ -23,8 +23,9 @@ var (
 func Test_Callable_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetCallable.Encode(buffer)
+	err := targetCallable.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedCallableBytes, buffer.Bytes())
 }
 

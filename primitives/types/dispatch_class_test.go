@@ -33,7 +33,8 @@ func Test_DecodeDispatchClass_Normal(t *testing.T) {
 	targetDispatchClass := NewDispatchClassNormal()
 
 	buf := &bytes.Buffer{}
-	targetDispatchClass.Encode(buf)
+	err := targetDispatchClass.Encode(buf)
+	assert.NoError(t, err)
 
 	dispatchClass, err := DecodeDispatchClass(buf)
 	assert.NoError(t, err)
@@ -44,7 +45,8 @@ func Test_DecodeDispatchClass_Operational(t *testing.T) {
 	targetDispatchClass := NewDispatchClassOperational()
 
 	buf := &bytes.Buffer{}
-	targetDispatchClass.Encode(buf)
+	err := targetDispatchClass.Encode(buf)
+	assert.NoError(t, err)
 
 	dispatchClass, err := DecodeDispatchClass(buf)
 	assert.NoError(t, err)
@@ -55,7 +57,8 @@ func Test_DecodeDispatchClass_Mandatory(t *testing.T) {
 	targetDispatchClass := NewDispatchClassMandatory()
 
 	buf := &bytes.Buffer{}
-	targetDispatchClass.Encode(buf)
+	err := targetDispatchClass.Encode(buf)
+	assert.NoError(t, err)
 
 	dispatchClass, err := DecodeDispatchClass(buf)
 	assert.NoError(t, err)
@@ -65,7 +68,8 @@ func Test_DecodeDispatchClass_Mandatory(t *testing.T) {
 func Test_DecodeDispatchClass_TypeError(t *testing.T) {
 	buf := &bytes.Buffer{}
 	targetDispatchClass := DispatchClass{sc.NewVaryingData(sc.U8(3))}
-	targetDispatchClass.Encode(buf)
+	err := targetDispatchClass.Encode(buf)
+	assert.NoError(t, err)
 
 	result, err := DecodeDispatchClass(buf)
 

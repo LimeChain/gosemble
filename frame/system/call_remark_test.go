@@ -47,8 +47,9 @@ func Test_Call_Remark_Encode(t *testing.T) {
 
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	call.Encode(buf)
+	err := call.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuf, buf)
 }
 
@@ -64,8 +65,9 @@ func Test_Call_Remark_EncodeWithArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	buf.Reset()
-	call.Encode(buf)
+	err = call.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuf, buf)
 }
 

@@ -46,10 +46,12 @@ type RuntimeApiMetadata struct {
 	Docs    sc.Sequence[sc.Str]
 }
 
-func (ram RuntimeApiMetadata) Encode(buffer *bytes.Buffer) {
-	ram.Name.Encode(buffer)
-	ram.Methods.Encode(buffer)
-	ram.Docs.Encode(buffer)
+func (ram RuntimeApiMetadata) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		ram.Name,
+		ram.Methods,
+		ram.Docs,
+	)
 }
 
 func DecodeRuntimeApiMetadata(buffer *bytes.Buffer) (RuntimeApiMetadata, error) {

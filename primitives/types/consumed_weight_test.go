@@ -24,8 +24,9 @@ var (
 func Test_ConsumedWeight_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetConsumedWeight.Encode(buffer)
+	err := targetConsumedWeight.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedConsumedWeightBytes, buffer.Bytes())
 }
 

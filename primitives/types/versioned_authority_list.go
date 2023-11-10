@@ -11,9 +11,11 @@ type VersionedAuthorityList struct {
 	AuthorityList sc.Sequence[Authority]
 }
 
-func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) {
-	val.Version.Encode(buffer)
-	val.AuthorityList.Encode(buffer)
+func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		val.Version,
+		val.AuthorityList,
+	)
 }
 
 func DecodeVersionedAuthorityList(buffer *bytes.Buffer) (VersionedAuthorityList, error) {

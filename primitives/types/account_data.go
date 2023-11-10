@@ -15,11 +15,13 @@ type AccountData struct {
 	FeeFrozen  Balance
 }
 
-func (ad AccountData) Encode(buffer *bytes.Buffer) {
-	ad.Free.Encode(buffer)
-	ad.Reserved.Encode(buffer)
-	ad.MiscFrozen.Encode(buffer)
-	ad.FeeFrozen.Encode(buffer)
+func (ad AccountData) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		ad.Free,
+		ad.Reserved,
+		ad.MiscFrozen,
+		ad.FeeFrozen,
+	)
 }
 
 func (ad AccountData) Bytes() []byte {

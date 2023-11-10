@@ -20,7 +20,9 @@ func (c CheckNonZeroAddress) AdditionalSigned() (primitives.AdditionalSigned, pr
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (c CheckNonZeroAddress) Encode(*bytes.Buffer) {}
+func (c CheckNonZeroAddress) Encode(*bytes.Buffer) error {
+	return nil
+}
 
 func (c CheckNonZeroAddress) Decode(*bytes.Buffer) error { return nil }
 

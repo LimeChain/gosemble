@@ -72,8 +72,9 @@ func Test_CheckInherentsResult_Encode_Ok(t *testing.T) {
 func Test_CheckInherentsResult_Encode_Err(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetCheckInherentsResultErr.Encode(buffer)
+	err := targetCheckInherentsResultErr.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedCheckInherentsResultErrBytes, buffer.Bytes())
 }
 

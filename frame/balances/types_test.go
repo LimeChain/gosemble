@@ -76,10 +76,11 @@ func Test_DustCleanerValue_New(t *testing.T) {
 
 func Test_DustCleanerValue_Encode(t *testing.T) {
 	target := setupDustCleanerValue()
-
 	buffer := &bytes.Buffer{}
-	target.Encode(buffer)
 
+	err := target.Encode(buffer)
+
+	assert.NoError(t, err)
 	assert.Equal(t, expectedDustCleaner.Bytes(), buffer.Bytes())
 }
 

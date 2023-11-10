@@ -43,22 +43,23 @@ func Test_TransactionValidityError_Encode(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
 
-			testExample.input.Encode(buffer)
+			err := testExample.input.Encode(buffer)
 
+			assert.NoError(t, err)
 			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
 }
 
-func Test_TransactionValidityError_Encode_Panics(t *testing.T) {
+func Test_TransactionValidityError_Encode_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	assert.PanicsWithValue(t, "not a valid 'TransactionValidityError' type", func() {
-		tve := TransactionValidityError(sc.NewVaryingData(sc.U8(6)))
+	tve := TransactionValidityError(sc.NewVaryingData(sc.U8(6)))
 
-		tve.Encode(buffer)
-	})
+	err := tve.Encode(buffer)
 
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
 	assert.Equal(t, &bytes.Buffer{}, buffer)
 }
 

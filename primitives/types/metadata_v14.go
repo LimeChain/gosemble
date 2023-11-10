@@ -13,11 +13,13 @@ type RuntimeMetadataV14 struct {
 	Type      sc.Compact
 }
 
-func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) {
-	rm.Types.Encode(buffer)
-	rm.Modules.Encode(buffer)
-	rm.Extrinsic.Encode(buffer)
-	rm.Type.Encode(buffer)
+func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		rm.Types,
+		rm.Modules,
+		rm.Extrinsic,
+		rm.Type,
+	)
 }
 
 func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) {

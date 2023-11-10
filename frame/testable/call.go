@@ -33,8 +33,8 @@ func (c callTest) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
 	return c, nil
 }
 
-func (c callTest) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
+func (c callTest) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
 }
 
 func (c callTest) Bytes() []byte {

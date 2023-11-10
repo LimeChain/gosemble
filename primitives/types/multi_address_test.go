@@ -29,8 +29,9 @@ var (
 func Test_AccountRaw_Encode(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 
-	accountRaw.Encode(buffer)
+	err := accountRaw.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedAccountRawBytes, buffer.Bytes())
 }
 

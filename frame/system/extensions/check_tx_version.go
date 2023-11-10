@@ -19,7 +19,9 @@ func NewCheckTxVersion(module system.Module) CheckTxVersion {
 	}
 }
 
-func (ctv CheckTxVersion) Encode(*bytes.Buffer) {}
+func (ctv CheckTxVersion) Encode(*bytes.Buffer) error {
+	return nil
+}
 
 func (ctv CheckTxVersion) Decode(*bytes.Buffer) error { return nil }
 

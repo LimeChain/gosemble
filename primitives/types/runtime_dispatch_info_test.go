@@ -24,8 +24,9 @@ var (
 func Test_RuntimeDispatchInfo_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	runtimeDispatchInfo.Encode(buffer)
+	err := runtimeDispatchInfo.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesRuntimeDispatchInfo, buffer.Bytes())
 }
 

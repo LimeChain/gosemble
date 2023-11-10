@@ -25,8 +25,9 @@ var (
 func Test_DigestItem_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetDigestItem.Encode(buffer)
+	err := targetDigestItem.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedDigestItemBytes, buffer.Bytes())
 }
 

@@ -16,12 +16,14 @@ type AccountInfo struct {
 	Data        AccountData
 }
 
-func (ai AccountInfo) Encode(buffer *bytes.Buffer) {
-	ai.Nonce.Encode(buffer)
-	ai.Consumers.Encode(buffer)
-	ai.Providers.Encode(buffer)
-	ai.Sufficients.Encode(buffer)
-	ai.Data.Encode(buffer)
+func (ai AccountInfo) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		ai.Nonce,
+		ai.Consumers,
+		ai.Providers,
+		ai.Sufficients,
+		ai.Data,
+	)
 }
 
 func (ai AccountInfo) Bytes() []byte {

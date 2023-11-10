@@ -30,16 +30,18 @@ func Test_CheckNonce_Encode(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	target.Encode(buffer)
+	err := target.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, sc.ToCompact(nonce).Bytes(), buffer.Bytes())
 }
 
 func Test_CheckNonce_Empty(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	setupCheckNonce().Encode(buffer)
+	err := setupCheckNonce().Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, sc.ToCompact(sc.U32(0)).Bytes(), buffer.Bytes())
 }
 

@@ -57,8 +57,9 @@ func Test_RuntimeVersion_SetApis(t *testing.T) {
 func Test_RuntimeVersion_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	runtimeVersion.Encode(buffer)
+	err := runtimeVersion.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesRuntimeVersion, buffer.Bytes())
 }
 

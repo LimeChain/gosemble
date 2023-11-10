@@ -18,8 +18,8 @@ func NewBlake2bHash(values ...sc.U8) (Blake2bHash, error) {
 	return Blake2bHash{sc.NewFixedSequence(32, values...)}, nil
 }
 
-func (h Blake2bHash) Encode(buffer *bytes.Buffer) {
-	h.FixedSequence.Encode(buffer)
+func (h Blake2bHash) Encode(buffer *bytes.Buffer) error {
+	return h.FixedSequence.Encode(buffer)
 }
 
 func DecodeBlake2bHash(buffer *bytes.Buffer) (Blake2bHash, error) {

@@ -72,8 +72,9 @@ func Test_Call_ForceFree_Encode(t *testing.T) {
 	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionForceFreeIndex})
 	buf := &bytes.Buffer{}
 
-	target.Encode(buf)
+	err := target.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuffer, buf)
 }
 

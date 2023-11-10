@@ -12,8 +12,9 @@ type UncheckedExtrinsic struct {
 	mock.Mock
 }
 
-func (uxt *UncheckedExtrinsic) Encode(buffer *bytes.Buffer) {
+func (uxt *UncheckedExtrinsic) Encode(buffer *bytes.Buffer) error {
 	uxt.Called(buffer)
+	return nil
 }
 
 func (uxt *UncheckedExtrinsic) Bytes() []byte {

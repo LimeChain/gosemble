@@ -12,10 +12,12 @@ type Callable struct {
 	Arguments  sc.VaryingData
 }
 
-func (c Callable) Encode(buffer *bytes.Buffer) {
-	c.ModuleId.Encode(buffer)
-	c.FunctionId.Encode(buffer)
-	c.Arguments.Encode(buffer)
+func (c Callable) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		c.ModuleId,
+		c.FunctionId,
+		c.Arguments,
+	)
 }
 
 func (c Callable) Bytes() []byte {

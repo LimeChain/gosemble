@@ -28,8 +28,8 @@ type AccountRaw struct {
 	sc.Sequence[sc.U8]
 }
 
-func (a AccountRaw) Encode(buffer *bytes.Buffer) {
-	a.Sequence.Encode(buffer)
+func (a AccountRaw) Encode(buffer *bytes.Buffer) error {
+	return a.Sequence.Encode(buffer)
 }
 
 func DecodeAccountRaw(buffer *bytes.Buffer) (AccountRaw, error) {

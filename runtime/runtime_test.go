@@ -165,7 +165,8 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 	buffer := &bytes.Buffer{}
 
 	buffer.Write(extrinsic)
-	sc.U32(buffer.Len()).Encode(buffer)
+	err := sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesRuntimeDispatchInfo, err := runtime.Exec("TransactionPaymentApi_query_info", buffer.Bytes())
 	assert.NoError(t, err)

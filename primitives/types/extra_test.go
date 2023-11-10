@@ -93,8 +93,9 @@ func Test_NewSignedExtra(t *testing.T) {
 func Test_SignedExtra_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	targetSignedExtraOk.Encode(buf)
+	err := targetSignedExtraOk.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedSignedExtraOkBytes, buf.Bytes())
 }
 

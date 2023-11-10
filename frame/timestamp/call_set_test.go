@@ -77,8 +77,9 @@ func Test_Call_Set_Encode(t *testing.T) {
 	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionSetIndex})
 	buf := &bytes.Buffer{}
 
-	target.Encode(buf)
+	err := target.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuffer, buf)
 }
 
@@ -94,8 +95,9 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	buf.Reset()
-	call.Encode(buf)
+	err = call.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedBuf, buf)
 }
 

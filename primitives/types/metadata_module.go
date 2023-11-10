@@ -17,13 +17,15 @@ type MetadataModule struct {
 	ModuleV15 MetadataModuleV15
 }
 
-func (m MetadataModule) Encode(buffer *bytes.Buffer) {
+func (m MetadataModule) Encode(buffer *bytes.Buffer) error {
 	switch m.Version {
 	case ModuleVersion14:
-		m.ModuleV14.Encode(buffer)
+		return m.ModuleV14.Encode(buffer)
 	case ModuleVersion15:
-		m.ModuleV15.Encode(buffer)
+		return m.ModuleV15.Encode(buffer)
 	}
+
+	return newTypeError("ModuleVersion")
 }
 
 func (mm MetadataModule) Bytes() []byte {
@@ -44,15 +46,17 @@ type MetadataModuleV15 struct {
 	Docs      sc.Sequence[sc.Str]
 }
 
-func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) {
-	mm.Name.Encode(buffer)
-	mm.Storage.Encode(buffer)
-	mm.Call.Encode(buffer)
-	mm.Event.Encode(buffer)
-	mm.Constants.Encode(buffer)
-	mm.Error.Encode(buffer)
-	mm.Index.Encode(buffer)
-	mm.Docs.Encode(buffer)
+func (mm MetadataModuleV15) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mm.Name,
+		mm.Storage,
+		mm.Call,
+		mm.Event,
+		mm.Constants,
+		mm.Error,
+		mm.Index,
+		mm.Docs,
+	)
 }
 
 func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
@@ -117,14 +121,16 @@ type MetadataModuleV14 struct {
 	Index     sc.U8
 }
 
-func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) {
-	mm.Name.Encode(buffer)
-	mm.Storage.Encode(buffer)
-	mm.Call.Encode(buffer)
-	mm.Event.Encode(buffer)
-	mm.Constants.Encode(buffer)
-	mm.Error.Encode(buffer)
-	mm.Index.Encode(buffer)
+func (mm MetadataModuleV14) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mm.Name,
+		mm.Storage,
+		mm.Call,
+		mm.Event,
+		mm.Constants,
+		mm.Error,
+		mm.Index,
+	)
 }
 
 func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
@@ -176,9 +182,11 @@ type MetadataModuleStorage struct {
 	Items  sc.Sequence[MetadataModuleStorageEntry]
 }
 
-func (mms MetadataModuleStorage) Encode(buffer *bytes.Buffer) {
-	mms.Prefix.Encode(buffer)
-	mms.Items.Encode(buffer)
+func (mms MetadataModuleStorage) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mms.Prefix,
+		mms.Items,
+	)
 }
 
 func DecodeMetadataModuleStorage(buffer *bytes.Buffer) (MetadataModuleStorage, error) {
@@ -218,12 +226,14 @@ func NewMetadataModuleStorageEntry(name string, modifier MetadataModuleStorageEn
 	}
 }
 
-func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) {
-	mmse.Name.Encode(buffer)
-	mmse.Modifier.Encode(buffer)
-	mmse.Definition.Encode(buffer)
-	mmse.Fallback.Encode(buffer)
-	mmse.Docs.Encode(buffer)
+func (mmse MetadataModuleStorageEntry) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mmse.Name,
+		mmse.Modifier,
+		mmse.Definition,
+		mmse.Fallback,
+		mmse.Docs,
+	)
 }
 
 func DecodeMetadataModuleStorageEntry(buffer *bytes.Buffer) (MetadataModuleStorageEntry, error) {
@@ -346,11 +356,13 @@ func NewMetadataModuleConstant(name string, id sc.Compact, value sc.Sequence[sc.
 	}
 }
 
-func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) {
-	mmc.Name.Encode(buffer)
-	mmc.Type.Encode(buffer)
-	mmc.Value.Encode(buffer)
-	mmc.Docs.Encode(buffer)
+func (mmc MetadataModuleConstant) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mmc.Name,
+		mmc.Type,
+		mmc.Value,
+		mmc.Docs,
+	)
 }
 
 func DecodeMetadataModuleConstant(buffer *bytes.Buffer) (MetadataModuleConstant, error) {

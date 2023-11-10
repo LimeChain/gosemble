@@ -18,8 +18,8 @@ func NewH256(values ...sc.U8) (H256, error) {
 	return H256{sc.NewFixedSequence(32, values...)}, nil
 }
 
-func (h H256) Encode(buffer *bytes.Buffer) {
-	h.FixedSequence.Encode(buffer)
+func (h H256) Encode(buffer *bytes.Buffer) error {
+	return h.FixedSequence.Encode(buffer)
 }
 
 func DecodeH256(buffer *bytes.Buffer) (H256, error) {

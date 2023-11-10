@@ -12,9 +12,11 @@ type SignedExtra struct {
 	mock.Mock
 }
 
-func (m *SignedExtra) Encode(buffer *bytes.Buffer) {
+func (m *SignedExtra) Encode(buffer *bytes.Buffer) error {
 	m.Called(buffer)
+	return nil
 }
+
 func (m *SignedExtra) Bytes() []byte {
 	args := m.Called()
 	return args.Get(0).([]byte)

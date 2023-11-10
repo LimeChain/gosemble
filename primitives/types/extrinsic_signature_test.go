@@ -49,8 +49,9 @@ var (
 func Test_ExtrinsicSignature_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	targetExtrinsicSignature.Encode(buffer)
+	err := targetExtrinsicSignature.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedExtrinsicSignatureBytes, buffer.Bytes())
 }
 

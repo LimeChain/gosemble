@@ -34,8 +34,10 @@ func Test_NewHash256_InvalidLength(t *testing.T) {
 
 func Test_Hash256_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
-	expectedH256Hash.Encode(buf)
 
+	err := expectedH256Hash.Encode(buf)
+
+	assert.NoError(t, err)
 	assert.Equal(t, sc.FixedSequenceU8ToBytes(hash256Sequence), buf.Bytes())
 }
 

@@ -24,7 +24,9 @@ func NewCheckWeight(systemModule system.Module) CheckWeight {
 	}
 }
 
-func (cw CheckWeight) Encode(*bytes.Buffer) {}
+func (cw CheckWeight) Encode(*bytes.Buffer) error {
+	return nil
+}
 
 func (cw CheckWeight) Decode(*bytes.Buffer) error { return nil }
 

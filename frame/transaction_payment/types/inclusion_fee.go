@@ -21,10 +21,12 @@ func NewInclusionFee(baseFee, lenFee, adjustedWeightFee primitives.Balance) Incl
 	}
 }
 
-func (i InclusionFee) Encode(buffer *bytes.Buffer) {
-	i.BaseFee.Encode(buffer)
-	i.LenFee.Encode(buffer)
-	i.AdjustedWeightFee.Encode(buffer)
+func (i InclusionFee) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		i.BaseFee,
+		i.LenFee,
+		i.AdjustedWeightFee,
+	)
 }
 
 func (i InclusionFee) Bytes() []byte {

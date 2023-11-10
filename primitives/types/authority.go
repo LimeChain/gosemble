@@ -11,9 +11,11 @@ type Authority struct {
 	Weight sc.U64
 }
 
-func (a Authority) Encode(buffer *bytes.Buffer) {
-	a.Id.Encode(buffer)
-	a.Weight.Encode(buffer)
+func (a Authority) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		a.Id,
+		a.Weight,
+	)
 }
 
 func DecodeAuthority(buffer *bytes.Buffer) (Authority, error) {

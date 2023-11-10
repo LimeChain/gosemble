@@ -20,10 +20,12 @@ type EventRecord struct {
 	Topics sc.Sequence[H256]
 }
 
-func (er EventRecord) Encode(buffer *bytes.Buffer) {
-	er.Phase.Encode(buffer)
-	er.Event.Encode(buffer)
-	er.Topics.Encode(buffer)
+func (er EventRecord) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		er.Phase,
+		er.Event,
+		er.Topics,
+	)
 }
 
 func (er EventRecord) Bytes() []byte {

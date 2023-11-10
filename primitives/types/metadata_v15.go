@@ -16,14 +16,16 @@ type RuntimeMetadataV15 struct {
 	Custom     CustomMetadata
 }
 
-func (rm RuntimeMetadataV15) Encode(buffer *bytes.Buffer) {
-	rm.Types.Encode(buffer)
-	rm.Modules.Encode(buffer)
-	rm.Extrinsic.Encode(buffer)
-	rm.Type.Encode(buffer)
-	rm.Apis.Encode(buffer)
-	rm.OuterEnums.Encode(buffer)
-	rm.Custom.Encode(buffer)
+func (rm RuntimeMetadataV15) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		rm.Types,
+		rm.Modules,
+		rm.Extrinsic,
+		rm.Type,
+		rm.Apis,
+		rm.OuterEnums,
+		rm.Custom,
+	)
 }
 
 func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) {
@@ -76,9 +78,11 @@ type CustomValueMetadata struct {
 	Value sc.Sequence[sc.U8]
 }
 
-func (cvm CustomValueMetadata) Encode(buffer *bytes.Buffer) {
-	cvm.Type.Encode(buffer)
-	cvm.Value.Encode(buffer)
+func (cvm CustomValueMetadata) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		cvm.Type,
+		cvm.Value,
+	)
 }
 
 func (cvm CustomValueMetadata) Bytes() []byte {
@@ -89,8 +93,8 @@ type CustomMetadata struct {
 	Map sc.Dictionary[sc.Str, CustomValueMetadata]
 }
 
-func (cm CustomMetadata) Encode(buffer *bytes.Buffer) {
-	cm.Map.Encode(buffer)
+func (cm CustomMetadata) Encode(buffer *bytes.Buffer) error {
+	return cm.Map.Encode(buffer)
 }
 
 func DecodeCustomMetadata(buffer *bytes.Buffer) (CustomMetadata, error) {
@@ -113,10 +117,12 @@ type OuterEnums struct {
 	ErrorEnumType sc.Compact
 }
 
-func (oe OuterEnums) Encode(buffer *bytes.Buffer) {
-	oe.CallEnumType.Encode(buffer)
-	oe.EventEnumType.Encode(buffer)
-	oe.ErrorEnumType.Encode(buffer)
+func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		oe.CallEnumType,
+		oe.EventEnumType,
+		oe.ErrorEnumType,
+	)
 }
 
 func DecodeOuterEnums(buffer *bytes.Buffer) (OuterEnums, error) {
@@ -148,9 +154,11 @@ type RuntimeApiMethodParamMetadata struct {
 	Type sc.Compact
 }
 
-func (rampm RuntimeApiMethodParamMetadata) Encode(buffer *bytes.Buffer) {
-	rampm.Name.Encode(buffer)
-	rampm.Type.Encode(buffer)
+func (rampm RuntimeApiMethodParamMetadata) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		rampm.Name,
+		rampm.Type,
+	)
 }
 
 func DecodeRuntimeApiMethodParamMetadata(buffer *bytes.Buffer) (RuntimeApiMethodParamMetadata, error) {
@@ -179,11 +187,13 @@ type RuntimeApiMethodMetadata struct {
 	Docs   sc.Sequence[sc.Str]
 }
 
-func (ramm RuntimeApiMethodMetadata) Encode(buffer *bytes.Buffer) {
-	ramm.Name.Encode(buffer)
-	ramm.Inputs.Encode(buffer)
-	ramm.Output.Encode(buffer)
-	ramm.Docs.Encode(buffer)
+func (ramm RuntimeApiMethodMetadata) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		ramm.Name,
+		ramm.Inputs,
+		ramm.Output,
+		ramm.Docs,
+	)
 }
 
 func DecodeRuntimeApiMethodMetadata(buffer *bytes.Buffer) (RuntimeApiMethodMetadata, error) {

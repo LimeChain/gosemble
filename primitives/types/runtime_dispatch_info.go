@@ -12,10 +12,12 @@ type RuntimeDispatchInfo struct {
 	PartialFee Balance
 }
 
-func (rdi RuntimeDispatchInfo) Encode(buffer *bytes.Buffer) {
-	rdi.Weight.Encode(buffer)
-	rdi.Class.Encode(buffer)
-	rdi.PartialFee.Encode(buffer)
+func (rdi RuntimeDispatchInfo) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		rdi.Weight,
+		rdi.Class,
+		rdi.PartialFee,
+	)
 }
 
 func DecodeRuntimeDispatchInfo(buffer *bytes.Buffer) (RuntimeDispatchInfo, error) {

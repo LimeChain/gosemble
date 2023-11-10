@@ -19,7 +19,9 @@ func NewCheckGenesis(module system.Module) CheckGenesis {
 	}
 }
 
-func (cg CheckGenesis) Encode(*bytes.Buffer) {}
+func (cg CheckGenesis) Encode(*bytes.Buffer) error {
+	return nil
+}
 
 func (cg CheckGenesis) Decode(*bytes.Buffer) error { return nil }
 

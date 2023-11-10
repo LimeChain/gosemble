@@ -89,8 +89,9 @@ func Test_Encode(t *testing.T) {
 
 	buffer := bytes.NewBuffer([]byte{})
 
-	targetChargeTxPayment.Encode(buffer)
+	err := targetChargeTxPayment.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, []byte{0xfd, 0xff}, buffer.Bytes())
 }
 

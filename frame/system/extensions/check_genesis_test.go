@@ -37,8 +37,9 @@ func Test_CheckGenesis_Encode(t *testing.T) {
 	target := setupCheckGenesis()
 	buffer := &bytes.Buffer{}
 
-	target.Encode(buffer)
+	err := target.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, 0, buffer.Len())
 	assert.Equal(t, &bytes.Buffer{}, buffer)
 }

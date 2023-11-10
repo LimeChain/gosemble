@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -23,10 +22,12 @@ func (m Metadata15) Bytes() []byte {
 	return sc.EncodedBytes(m)
 }
 
-func (m Metadata15) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
-	MetadataVersion15.Encode(buffer)
-	m.Data.Encode(buffer)
+func (m Metadata15) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		MetadataReserved,
+		MetadataVersion15,
+		m.Data,
+	)
 }
 
 type Metadata14 struct {
@@ -37,10 +38,12 @@ func (m Metadata14) Bytes() []byte {
 	return sc.EncodedBytes(m)
 }
 
-func (m Metadata14) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
-	MetadataVersion14.Encode(buffer)
-	m.Data.Encode(buffer)
+func (m Metadata14) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		MetadataReserved,
+		MetadataVersion14,
+		m.Data,
+	)
 }
 
 type Metadata struct {
@@ -57,18 +60,19 @@ func NewMetadataV15(data RuntimeMetadataV15) Metadata15 {
 	return Metadata15{Data: data}
 }
 
-func (m Metadata) Encode(buffer *bytes.Buffer) {
-	MetadataReserved.Encode(buffer)
+func (m Metadata) Encode(buffer *bytes.Buffer) error {
+	err := MetadataReserved.Encode(buffer)
+	if err != nil {
+		return err
+	}
 
 	switch m.Version {
 	case MetadataVersion14:
-		MetadataVersion14.Encode(buffer)
-		m.DataV14.Encode(buffer)
+		return sc.EncodeEach(buffer, MetadataVersion14, m.DataV14)
 	case MetadataVersion15:
-		MetadataVersion15.Encode(buffer)
-		m.DataV15.Encode(buffer)
+		return sc.EncodeEach(buffer, MetadataVersion15, m.DataV15)
 	default:
-		log.Critical("Unsupported metadata version")
+		return errors.New("unsupported metadata version")
 	}
 }
 
@@ -159,12 +163,14 @@ func NewMetadataTypeWithParams(id int, docs string, path sc.Sequence[sc.Str], de
 	}
 }
 
-func (mt MetadataType) Encode(buffer *bytes.Buffer) {
-	mt.Id.Encode(buffer)
-	mt.Path.Encode(buffer)
-	mt.Params.Encode(buffer)
-	mt.Definition.Encode(buffer)
-	mt.Docs.Encode(buffer)
+func (mt MetadataType) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mt.Id,
+		mt.Path,
+		mt.Params,
+		mt.Definition,
+		mt.Docs,
+	)
 }
 
 func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
@@ -227,9 +233,11 @@ func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
 	}
 }
 
-func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) {
-	mtp.Text.Encode(buffer)
-	mtp.Type.Encode(buffer)
+func (mtp MetadataTypeParameter) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mtp.Text,
+		mtp.Type,
+	)
 }
 
 func DecodeMetadataTypeParameter(buffer *bytes.Buffer) (MetadataTypeParameter, error) {

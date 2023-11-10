@@ -17,15 +17,17 @@ type RuntimeVersion struct {
 	StateVersion       sc.U8
 }
 
-func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) {
-	rv.SpecName.Encode(buffer)
-	rv.ImplName.Encode(buffer)
-	rv.AuthoringVersion.Encode(buffer)
-	rv.SpecVersion.Encode(buffer)
-	rv.ImplVersion.Encode(buffer)
-	rv.Apis.Encode(buffer)
-	rv.TransactionVersion.Encode(buffer)
-	rv.StateVersion.Encode(buffer)
+func (rv RuntimeVersion) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		rv.SpecName,
+		rv.ImplName,
+		rv.AuthoringVersion,
+		rv.SpecVersion,
+		rv.ImplVersion,
+		rv.Apis,
+		rv.TransactionVersion,
+		rv.StateVersion,
+	)
 }
 
 func (rv *RuntimeVersion) SetApis(apis sc.Sequence[ApiItem]) {

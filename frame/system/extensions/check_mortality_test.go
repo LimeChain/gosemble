@@ -25,16 +25,18 @@ func Test_CheckMortality_Encode(t *testing.T) {
 	target := setupCheckMortality()
 	target.era = era
 
-	target.Encode(buffer)
+	err := target.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, era.Bytes(), buffer.Bytes())
 }
 
 func Test_CheckMortality_Empty(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	setupCheckMortality().Encode(buffer)
+	err := setupCheckMortality().Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, primitives.Era{}.Bytes(), buffer.Bytes())
 }
 

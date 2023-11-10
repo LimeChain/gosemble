@@ -48,7 +48,8 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	err = extrinsic.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesRuntimeDispatchInfo, err := rt.Exec("TransactionPaymentApi_query_info", buffer.Bytes())
 	assert.NoError(t, err)
@@ -83,7 +84,8 @@ func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 	err = extrinsic.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesRuntimeDispatchInfo, err := rt.Exec("TransactionPaymentApi_query_info", buffer.Bytes())
 	assert.NoError(t, err)
@@ -135,7 +137,8 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Signed_Success(t *testing.T) {
 	err = extrinsic.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesFeeDetails, err := rt.Exec("TransactionPaymentApi_query_fee_details", buffer.Bytes())
 	assert.NoError(t, err)
@@ -172,7 +175,8 @@ func Test_TransactionPaymentApi_QueryFeeDetails_Unsigned_Success(t *testing.T) {
 	err = extrinsic.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesFeeDetails, err := rt.Exec("TransactionPaymentApi_query_fee_details", buffer.Bytes())
 	assert.NoError(t, err)
@@ -205,7 +209,8 @@ func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 	err = call.Args.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesRuntimeDispatchInfo, err := rt.Exec("TransactionPaymentCallApi_query_call_info", buffer.Bytes())
 	assert.NoError(t, err)
@@ -240,7 +245,8 @@ func Test_TransactionPaymentCallApi_QueryCallFeeDetails_Success(t *testing.T) {
 	err = call.Args.Encode(*encoder)
 	assert.NoError(t, err)
 
-	sc.U32(buffer.Len()).Encode(buffer)
+	err = sc.U32(buffer.Len()).Encode(buffer)
+	assert.NoError(t, err)
 
 	bytesFeeDetails, err := rt.Exec("TransactionPaymentCallApi_query_call_fee_details", buffer.Bytes())
 	assert.NoError(t, err)

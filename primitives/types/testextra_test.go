@@ -22,9 +22,11 @@ func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
 	}
 }
 
-func (e testExtraCheck) Encode(buffer *bytes.Buffer) {
-	e.hasError.Encode(buffer)
-	e.value.Encode(buffer)
+func (e testExtraCheck) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		e.hasError,
+		e.value,
+	)
 }
 
 func (e testExtraCheck) Bytes() []byte {

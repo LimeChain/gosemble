@@ -21,8 +21,9 @@ var (
 func Test_DispatchInfo_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	targetDispatchInfo.Encode(buf)
+	err := targetDispatchInfo.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedDispatchInfoBytes, buf.Bytes())
 }
 

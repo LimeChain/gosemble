@@ -18,9 +18,11 @@ func NewApiItem(name [8]byte, version sc.U32) ApiItem {
 	}
 }
 
-func (ai ApiItem) Encode(buffer *bytes.Buffer) {
-	ai.Name.Encode(buffer)
-	ai.Version.Encode(buffer)
+func (ai ApiItem) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		ai.Name,
+		ai.Version,
+	)
 }
 
 func DecodeApiItem(buffer *bytes.Buffer) (ApiItem, error) {

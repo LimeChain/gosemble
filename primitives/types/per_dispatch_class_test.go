@@ -22,8 +22,9 @@ var (
 func Test_PerDispatchClass_Encode(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	targetPerDispatchClass.Encode(buf)
+	err := targetPerDispatchClass.Encode(buf)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectedPerDispatchClassBytes, buf.Bytes())
 }
 

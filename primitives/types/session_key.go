@@ -18,9 +18,8 @@ func NewSessionKey(key []byte, typeId [4]byte) SessionKey {
 	}
 }
 
-func (sk SessionKey) Encode(buffer *bytes.Buffer) {
-	sk.Key.Encode(buffer)
-	sk.TypeId.Encode(buffer)
+func (sk SessionKey) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer, sk.Key, sk.TypeId)
 }
 
 func DecodeSessionKey(buffer *bytes.Buffer) (SessionKey, error) {

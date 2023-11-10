@@ -12,8 +12,8 @@ type FeeDetails struct {
 	Tip          primitives.Balance // not serializable
 }
 
-func (fd FeeDetails) Encode(buffer *bytes.Buffer) {
-	fd.InclusionFee.Encode(buffer)
+func (fd FeeDetails) Encode(buffer *bytes.Buffer) error {
+	return fd.InclusionFee.Encode(buffer)
 }
 
 func (fd FeeDetails) Bytes() []byte {

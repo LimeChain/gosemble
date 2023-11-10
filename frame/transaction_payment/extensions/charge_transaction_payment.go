@@ -27,8 +27,8 @@ func NewChargeTransactionPayment(module system.Module, txPaymentModule transacti
 	}
 }
 
-func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) {
-	sc.Compact(ctp.fee).Encode(buffer)
+func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) error {
+	return sc.Compact(ctp.fee).Encode(buffer)
 }
 
 func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) error {

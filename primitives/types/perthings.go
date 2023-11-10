@@ -11,8 +11,8 @@ type Perbill struct {
 	Percentage sc.U32
 }
 
-func (p Perbill) Encode(buffer *bytes.Buffer) {
-	p.Percentage.Encode(buffer)
+func (p Perbill) Encode(buffer *bytes.Buffer) error {
+	return p.Percentage.Encode(buffer)
 }
 
 func DecodePerbill(buffer *bytes.Buffer) (Perbill, error) {

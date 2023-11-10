@@ -14,8 +14,8 @@ type BlockLength struct {
 	Max PerDispatchClass[sc.U32]
 }
 
-func (bl BlockLength) Encode(buffer *bytes.Buffer) {
-	bl.Max.Encode(buffer)
+func (bl BlockLength) Encode(buffer *bytes.Buffer) error {
+	return bl.Max.Encode(buffer)
 }
 
 func (bl BlockLength) Bytes() []byte {

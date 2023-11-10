@@ -154,11 +154,13 @@ func NewMetadataTypeDefinitionFieldWithName(id int, idName sc.Str) MetadataTypeD
 	}
 }
 
-func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) {
-	mtdf.Name.Encode(buffer)
-	mtdf.Type.Encode(buffer)
-	mtdf.TypeName.Encode(buffer)
-	mtdf.Docs.Encode(buffer)
+func (mtdf MetadataTypeDefinitionField) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mtdf.Name,
+		mtdf.Type,
+		mtdf.TypeName,
+		mtdf.Docs,
+	)
 }
 
 func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefinitionField, error) {
@@ -211,11 +213,13 @@ func NewMetadataDefinitionVariantStr(name sc.Str, fields sc.Sequence[MetadataTyp
 	}
 }
 
-func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) {
-	mdv.Name.Encode(buffer)
-	mdv.Fields.Encode(buffer)
-	mdv.Index.Encode(buffer)
-	mdv.Docs.Encode(buffer)
+func (mdv MetadataDefinitionVariant) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mdv.Name,
+		mdv.Fields,
+		mdv.Index,
+		mdv.Docs,
+	)
 }
 
 func DecodeMetadataTypeDefinitionVariant(buffer *bytes.Buffer) (MetadataDefinitionVariant, error) {

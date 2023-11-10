@@ -12,10 +12,12 @@ type MetadataExtrinsicV14 struct {
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
-func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) {
-	me.Type.Encode(buffer)
-	me.Version.Encode(buffer)
-	me.SignedExtensions.Encode(buffer)
+func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		me.Type,
+		me.Version,
+		me.SignedExtensions,
+	)
 }
 
 func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, error) {
@@ -52,13 +54,15 @@ type MetadataExtrinsicV15 struct {
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
-func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) {
-	me.Version.Encode(buffer)
-	me.Address.Encode(buffer)
-	me.Call.Encode(buffer)
-	me.Signature.Encode(buffer)
-	me.Extra.Encode(buffer)
-	me.SignedExtensions.Encode(buffer)
+func (me MetadataExtrinsicV15) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		me.Version,
+		me.Address,
+		me.Call,
+		me.Signature,
+		me.Extra,
+		me.SignedExtensions,
+	)
 }
 
 func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) (MetadataExtrinsicV15, error) {
@@ -115,10 +119,12 @@ func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned i
 	}
 }
 
-func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) {
-	mse.Identifier.Encode(buffer)
-	mse.Type.Encode(buffer)
-	mse.AdditionalSigned.Encode(buffer)
+func (mse MetadataSignedExtension) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		mse.Identifier,
+		mse.Type,
+		mse.AdditionalSigned,
+	)
 }
 
 func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtension, error) {

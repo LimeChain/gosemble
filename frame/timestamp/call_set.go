@@ -56,8 +56,8 @@ func (c callSet) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
 	return c, nil
 }
 
-func (c callSet) Encode(buffer *bytes.Buffer) {
-	c.Callable.Encode(buffer)
+func (c callSet) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
 }
 
 func (c callSet) Bytes() []byte {

@@ -24,8 +24,9 @@ var (
 func Test_RuntimeDbWeight_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
-	runtimeDbWeight.Encode(buffer)
+	err := runtimeDbWeight.Encode(buffer)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expectBytesRuntimeDbWeight, buffer.Bytes())
 }
 

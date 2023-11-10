@@ -15,9 +15,11 @@ type RuntimeDbWeight struct {
 	Write sc.U64
 }
 
-func (dbw RuntimeDbWeight) Encode(buffer *bytes.Buffer) {
-	dbw.Read.Encode(buffer)
-	dbw.Write.Encode(buffer)
+func (dbw RuntimeDbWeight) Encode(buffer *bytes.Buffer) error {
+	return sc.EncodeEach(buffer,
+		dbw.Read,
+		dbw.Write,
+	)
 }
 
 func (dbw RuntimeDbWeight) Bytes() []byte {

@@ -18,8 +18,8 @@ func NewSignatureEcdsa(values ...sc.U8) SignatureEcdsa {
 	return SignatureEcdsa{sc.NewFixedSequence(signatureEcdsaLength, values...)}
 }
 
-func (s SignatureEcdsa) Encode(buffer *bytes.Buffer) {
-	s.FixedSequence.Encode(buffer)
+func (s SignatureEcdsa) Encode(buffer *bytes.Buffer) error {
+	return s.FixedSequence.Encode(buffer)
 }
 
 func DecodeSignatureEcdsa(buffer *bytes.Buffer) (SignatureEcdsa, error) {
