@@ -36,7 +36,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_AccountNonce(t *testing.T) {
 	target := setup()
 
-	publicKey := constants.OneAddress.FixedSequence
+	publicKey := constants.OneAddressAccountId
 	nonce := sc.U32(5)
 	accountInfo := types.AccountInfo{
 		Nonce: nonce,
@@ -55,11 +55,11 @@ func Test_Module_AccountNonce(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
 }
 
-func setup() Module {
+func setup() Module[types.Ed25519PublicKey] {
 	mockSystem = new(mocks.SystemModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockSystem)
+	target := New[types.Ed25519PublicKey](mockSystem)
 	target.memUtils = mockMemoryUtils
 
 	return target

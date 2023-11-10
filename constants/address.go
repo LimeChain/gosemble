@@ -3,7 +3,10 @@ package constants
 import primitives "github.com/LimeChain/gosemble/primitives/types"
 
 var (
-	ZeroAddress, _ = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-	OneAddress, _  = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
-	TwoAddress, _  = primitives.NewAddress32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+	ed25519SignerZero, _ = primitives.NewEd25519PublicKey(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	ed25519SignerOne, _  = primitives.NewEd25519PublicKey(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
+	ed25519SignerTwo, _  = primitives.NewEd25519PublicKey(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+	ZeroAddressAccountId = primitives.NewAccountId[primitives.PublicKey](ed25519SignerZero)
+	OneAddressAccountId  = primitives.NewAccountId[primitives.PublicKey](ed25519SignerOne)
+	TwoAddressAccountId  = primitives.NewAccountId[primitives.PublicKey](ed25519SignerTwo)
 )

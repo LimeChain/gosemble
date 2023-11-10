@@ -30,12 +30,12 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)
 }
 
-func (c CheckNonZeroAddress) Validate(who primitives.Address32, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// TODO:
 	// Not sure when this is possible.
 	// Checks signed transactions but will fail
 	// before this check if the address is all zeros.
-	if reflect.DeepEqual(who, constants.ZeroAddress) {
+	if reflect.DeepEqual(who, constants.ZeroAddressAccountId) {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
 		invalidTransactionBadSigner, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 		return primitives.ValidTransaction{}, invalidTransactionBadSigner
@@ -48,7 +48,7 @@ func (c CheckNonZeroAddress) ValidateUnsigned(_call primitives.Call, info *primi
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (c CheckNonZeroAddress) PreDispatch(who primitives.Address32, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
 	_, err := c.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

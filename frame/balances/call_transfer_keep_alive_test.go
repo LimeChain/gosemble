@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expected := callTransferKeepAlive{
+	expected := callTransferKeepAlive[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
@@ -101,35 +101,41 @@ func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	).Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddressId,
+			toAddressId,
 			targetValue,
 		),
 	).Return()
 
-	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddress32), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
+	result := target.Dispatch(primitives.NewRawOriginSigned(fromAddressId), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, expect, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddressId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
 		newEventTransfer(
 			moduleId,
-			fromAddress32.FixedSequence,
-			toAddress32.FixedSequence,
+			fromAddressId,
+			toAddressId,
 			targetValue,
 		),
 	)
@@ -163,9 +169,12 @@ func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 		},
 	}
 
+	fromAddressId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	result := target.
 		Dispatch(
-			primitives.NewRawOriginSigned(fromAddress32),
+			primitives.NewRawOriginSigned(fromAddressId),
 			sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
 		)
 
@@ -174,9 +183,9 @@ func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func setupCallTransferKeepAlive() callTransferKeepAlive {
+func setupCallTransferKeepAlive() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferKeepAlive(moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator).(callTransferKeepAlive)
+	return newCallTransferKeepAlive[testPublicKeyType](moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
 }

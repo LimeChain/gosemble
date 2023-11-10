@@ -146,7 +146,7 @@ func Test_Module_DecodeSessionKeys(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", expect.Bytes())
 }
 
-func setup() Module {
+func setup() Module[primitives.Ed25519PublicKey] {
 	mockCrypto = new(mocks.IoCrypto)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockSessionKey = new(mocks.AuraModule)
@@ -155,7 +155,7 @@ func setup() Module {
 		mockSessionKey,
 	}
 
-	target := New(sessions)
+	target := New[primitives.Ed25519PublicKey](sessions)
 	target.crypto = mockCrypto
 	target.memUtils = mockMemoryUtils
 

@@ -18,12 +18,12 @@ func (val VersionedAuthorityList) Encode(buffer *bytes.Buffer) error {
 	)
 }
 
-func DecodeVersionedAuthorityList(buffer *bytes.Buffer) (VersionedAuthorityList, error) {
+func DecodeVersionedAuthorityList[T PublicKey](buffer *bytes.Buffer) (VersionedAuthorityList, error) {
 	version, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return VersionedAuthorityList{}, err
 	}
-	authList, err := sc.DecodeSequenceWith(buffer, DecodeAuthority)
+	authList, err := sc.DecodeSequenceWith(buffer, DecodeAuthority[T])
 	if err != nil {
 		return VersionedAuthorityList{}, err
 	}

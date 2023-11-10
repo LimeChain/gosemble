@@ -16,12 +16,12 @@ func Test_NewMortalEra(t *testing.T) {
 		expectation Era
 	}{
 		{
-			label:       "New(64, 42)",
+			label:       "NewAccountId(64, 42)",
 			input:       []sc.U64{64, 42},
 			expectation: Era{EraPeriod: 64, EraPhase: 42},
 		},
 		{
-			label:       "New(32768, 20000)",
+			label:       "NewAccountId(32768, 20000)",
 			input:       []sc.U64{32768, 20000},
 			expectation: Era{EraPeriod: 32768, EraPhase: 20000},
 		},

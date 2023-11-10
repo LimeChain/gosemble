@@ -9,37 +9,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testPublicKeyType = types.Ed25519PublicKey
+
 func Test_DecodeEvent(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := NewEventTransactionFeePaid(moduleId, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := NewEventTransactionFeePaid(moduleId, who, sc.NewU128(7), sc.NewU128(1))
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
-	result, err := DecodeEvent(moduleId, buffer)
-
+	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEvent, result)
 }
 
 func Test_DecodeEvent_ModuleIndexError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := NewEventTransactionFeePaid(moduleId, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := NewEventTransactionFeePaid(moduleId, who, sc.NewU128(7), sc.NewU128(1))
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
 	assert.PanicsWithValue(t, "invalid transaction_payment.Event module", func() {
-		DecodeEvent(sc.U8(123), buffer)
+		DecodeEvent[testPublicKeyType](sc.U8(123), buffer)
 	})
 }
 
 func Test_DecodeEvent_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
-	expectedEvent := types.NewEvent(moduleId, 99, who.FixedSequence, sc.NewU128(7), sc.NewU128(1))
+	expectedEvent := types.NewEvent(moduleId, 99, who, sc.NewU128(7), sc.NewU128(1))
 
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
 	assert.PanicsWithValue(t, "invalid transaction_payment.Event type", func() {
-		DecodeEvent(moduleId, buffer)
+		DecodeEvent[testPublicKeyType](moduleId, buffer)
 	})
 }

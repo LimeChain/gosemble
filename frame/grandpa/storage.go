@@ -13,6 +13,6 @@ type storage struct {
 	Authorities support.StorageValue[primitives.VersionedAuthorityList]
 }
 
-func newStorage() *storage {
-	return &storage{Authorities: support.NewSimpleStorageValue(keyGrandpaAuthorities, primitives.DecodeVersionedAuthorityList)}
+func newStorage[T primitives.PublicKey]() *storage {
+	return &storage{Authorities: support.NewSimpleStorageValue(keyGrandpaAuthorities, primitives.DecodeVersionedAuthorityList[T])}
 }

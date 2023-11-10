@@ -35,10 +35,10 @@ type Module interface {
 	Finalize() (primitives.Header, error)
 	NoteFinishedExtrinsics() error
 	ResetEvents()
-	Get(key primitives.PublicKey) (primitives.AccountInfo, error)
-	CanDecProviders(who primitives.Address32) (bool, error)
+	Get(key primitives.AccountId[primitives.PublicKey]) (primitives.AccountInfo, error)
+	CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error)
 	DepositEvent(event primitives.Event)
-	TryMutateExists(who primitives.Address32, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	TryMutateExists(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
 	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
@@ -61,8 +61,8 @@ type Module interface {
 	StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error)
 	StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo)
 
-	StorageAccount(key types.PublicKey) (types.AccountInfo, error)
-	StorageAccountSet(key types.PublicKey, value types.AccountInfo)
+	StorageAccount(key types.AccountId[types.PublicKey]) (types.AccountInfo, error)
+	StorageAccountSet(key types.AccountId[types.PublicKey], value types.AccountInfo)
 
 	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
@@ -180,11 +180,11 @@ func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) 
 	m.storage.LastRuntimeUpgrade.Put(lrui)
 }
 
-func (m module) StorageAccount(key types.PublicKey) (types.AccountInfo, error) {
+func (m module) StorageAccount(key types.AccountId[types.PublicKey]) (types.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
-func (m module) StorageAccountSet(key types.PublicKey, value types.AccountInfo) {
+func (m module) StorageAccountSet(key types.AccountId[types.PublicKey], value types.AccountInfo) {
 	m.storage.Account.Put(key, value)
 }
 
@@ -372,12 +372,12 @@ func (m module) ResetEvents() {
 	m.storage.EventTopics.Clear(sc.U32(math.MaxUint32))
 }
 
-func (m module) Get(key primitives.PublicKey) (primitives.AccountInfo, error) {
+func (m module) Get(key primitives.AccountId[primitives.PublicKey]) (primitives.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
-func (m module) CanDecProviders(who primitives.Address32) (bool, error) {
-	acc, err := m.Get(who.FixedSequence)
+func (m module) CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error) {
+	acc, err := m.Get(who)
 	if err != nil {
 		return false, err
 	}
@@ -390,8 +390,8 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
-	account, err := m.Get(who.FixedSequence)
+func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+	account, err := m.Get(who)
 	if err != nil {
 		return sc.Result[sc.Encodable]{}, err
 	}
@@ -432,7 +432,7 @@ func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.Acc
 		return result, nil
 	}
 
-	_, err = m.storage.Account.Mutate(who.FixedSequence, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
+	_, err = m.storage.Account.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return mutateAccount(a, someData)
 	})
 	if err != nil {
@@ -442,15 +442,15 @@ func (m module) TryMutateExists(who primitives.Address32, f func(*primitives.Acc
 	return result, nil
 }
 
-func (m module) incProviders(who primitives.Address32) (primitives.IncRefStatus, error) {
-	result, err := m.storage.Account.Mutate(who.FixedSequence, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+func (m module) incProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error) {
+	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return m.incrementProviders(who, account)
 	})
 
 	return result.Value.(primitives.IncRefStatus), err
 }
 
-func (m module) decrementProviders(who primitives.Address32, maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+func (m module) decrementProviders(who primitives.AccountId[primitives.PublicKey], maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 	if maybeAccount.HasValue {
 		account := &maybeAccount.Value
 
@@ -490,7 +490,7 @@ func (m module) decrementProviders(who primitives.Address32, maybeAccount *sc.Op
 	}
 }
 
-func (m module) incrementProviders(who primitives.Address32, account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+func (m module) incrementProviders(who primitives.AccountId[primitives.PublicKey], account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 	if account.Providers == 0 && account.Sufficients == 0 {
 		account.Providers = 1
 		m.onCreatedAccount(who)
@@ -509,8 +509,8 @@ func (m module) incrementProviders(who primitives.Address32, account *primitives
 	}
 }
 
-func (m module) decProviders(who primitives.Address32) (primitives.DecRefStatus, primitives.DispatchError) {
-	result, err := m.storage.Account.TryMutateExists(who.FixedSequence, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, primitives.DispatchError) {
+	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 		return m.decrementProviders(who, maybeAccount)
 	})
 
@@ -571,14 +571,14 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	return nil
 }
 
-func (m module) onCreatedAccount(who primitives.Address32) {
+func (m module) onCreatedAccount(who primitives.AccountId[primitives.PublicKey]) {
 	// hook on creating new account, currently not used in Substrate
 	//T::OnNewAccount::on_new_account(&who);
-	m.DepositEvent(newEventNewAccount(m.Index, who.FixedSequence))
+	m.DepositEvent(newEventNewAccount(m.Index, who))
 }
 
-func (m module) onKilledAccount(who primitives.Address32) {
-	m.DepositEvent(newEventKilledAccount(m.Index, who.FixedSequence))
+func (m module) onKilledAccount(who primitives.AccountId[primitives.PublicKey]) {
+	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

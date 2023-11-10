@@ -16,19 +16,19 @@ type RuntimeDecoder interface {
 	DecodeCall(buffer *bytes.Buffer) (primitives.Call, error)
 }
 
-type runtimeDecoder struct {
+type runtimeDecoder[T primitives.PublicKey] struct {
 	modules []types.Module
 	extra   primitives.SignedExtra
 }
 
-func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
-	return runtimeDecoder{
+func NewRuntimeDecoder[T primitives.PublicKey](modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
+	return runtimeDecoder[T]{
 		modules: modules,
 		extra:   extra,
 	}
 }
 
-func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, error) {
+func (rd runtimeDecoder[T]) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, error) {
 	header, err := primitives.DecodeHeader(buffer)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, er
 	return NewBlock(header, extrinsics), nil
 }
 
-func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primitives.UncheckedExtrinsic, error) {
+func (rd runtimeDecoder[T]) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primitives.UncheckedExtrinsic, error) {
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
@@ -71,7 +71,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
-		sig, err := primitives.DecodeExtrinsicSignature(rd.extra, buffer)
+		sig, err := primitives.DecodeExtrinsicSignature[T](rd.extra, buffer)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra), nil
 }
 
-func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, error) {
+func (rd runtimeDecoder[T]) DecodeCall(buffer *bytes.Buffer) (primitives.Call, error) {
 	moduleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return nil, err

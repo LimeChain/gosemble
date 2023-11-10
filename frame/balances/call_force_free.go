@@ -10,13 +10,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type callForceFree struct {
+type callForceFree[T primitives.PublicKey] struct {
 	primitives.Callable
 	transfer
 }
 
-func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := callForceFree{
+func newCallForceFree[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callForceFree[T]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -27,8 +27,8 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 	return call
 }
 
-func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	who, err := types.DecodeMultiAddress(buffer)
+func (c callForceFree[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	who, err := types.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -43,27 +43,27 @@ func (c callForceFree) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error)
 	return c, nil
 }
 
-func (c callForceFree) Encode(buffer *bytes.Buffer) error {
+func (c callForceFree[T]) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callForceFree) Bytes() []byte {
+func (c callForceFree[T]) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callForceFree) ModuleIndex() sc.U8 {
+func (c callForceFree[T]) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callForceFree) FunctionIndex() sc.U8 {
+func (c callForceFree[T]) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callForceFree) Args() sc.VaryingData {
+func (c callForceFree[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callForceFree) BaseWeight() types.Weight {
+func (c callForceFree[T]) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -77,19 +77,19 @@ func (c callForceFree) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callForceFree) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callForceFree[T]) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callForceFree) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callForceFree[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callForceFree) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callForceFree[T]) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceFree[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
 	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
@@ -111,7 +111,7 @@ func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData)
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
+func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -130,12 +130,12 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error) {
+func (c callForceFree[T]) force(who primitives.AccountId[types.PublicKey], value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
 		return constants.Zero, nil
 	}
 
-	account, err := c.storedMap.Get(who.FixedSequence)
+	account, err := c.storedMap.Get(who)
 	if err != nil {
 		return sc.U128{}, err
 	}
@@ -157,7 +157,7 @@ func (c callForceFree) force(who types.Address32, value sc.U128) (sc.U128, error
 	}
 
 	actual := result.Value.(sc.U128)
-	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who.FixedSequence, actual))
+	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who, actual))
 
 	return value.Sub(actual), nil
 }

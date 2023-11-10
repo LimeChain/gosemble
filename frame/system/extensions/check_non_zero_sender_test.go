@@ -15,10 +15,6 @@ var (
 	invalidTransactionBadSigner, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 )
 
-var (
-	targetAddress = constants.ZeroAddress
-)
-
 func Test_CheckNonZeroAddress_AdditionalSigned(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
@@ -61,7 +57,7 @@ func Test_CheckNonZeroAddress_Bytes(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAddressAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -70,7 +66,7 @@ func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Fails(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.ZeroAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.ZeroAddressAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionBadSigner, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
@@ -88,7 +84,7 @@ func Test_CheckNonZeroAddress_ValidateUnsigned(t *testing.T) {
 func Test_CheckNonZeroAddress_PreDispatch(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.PreDispatch(constants.OneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAddressAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

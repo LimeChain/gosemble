@@ -7,19 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-// AccountId It's an account ID (pubkey).
-type AccountId struct {
-	Address32 // TODO: Varies depending on Signature (32 for ed25519 and sr25519, 33 for ecdsa)
-}
-
-func DecodeAccountId(buffer *bytes.Buffer) (AccountId, error) {
-	addr32, err := DecodeAddress32(buffer)
-	if err != nil {
-		return AccountId{}, err
-	}
-	return AccountId{addr32}, nil // TODO: length 32 or 33 depending on algorithm
-}
-
 // AccountIndex It's an account index.
 type AccountIndex = sc.U32
 
@@ -92,7 +79,7 @@ type MultiAddress struct {
 	sc.VaryingData
 }
 
-func NewMultiAddressId(id AccountId) MultiAddress {
+func NewMultiAddressId(id AccountId[PublicKey]) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddressId, id)}
 }
 
@@ -112,7 +99,7 @@ func NewMultiAddress20(address Address20) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
 }
 
-func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
+func DecodeMultiAddress[T PublicKey](buffer *bytes.Buffer) (MultiAddress, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MultiAddress{}, err
@@ -120,7 +107,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 
 	switch b {
 	case MultiAddressId:
-		accId, err := DecodeAccountId(buffer)
+		accId, err := DecodeAccountId[T](buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}
@@ -164,11 +151,11 @@ func (a MultiAddress) IsAccountId() bool {
 	}
 }
 
-func (a MultiAddress) AsAccountId() (AccountId, error) {
+func (a MultiAddress) AsAccountId() (AccountId[PublicKey], error) {
 	if a.IsAccountId() {
-		return a.VaryingData[1].(AccountId), nil
+		return a.VaryingData[1].(AccountId[PublicKey]), nil
 	} else {
-		return AccountId{}, newTypeError("AccountId")
+		return AccountId[PublicKey]{}, newTypeError("AccountId")
 	}
 }
 

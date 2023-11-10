@@ -13,7 +13,7 @@ import (
 
 func Test_Call_ForceTransfer_new(t *testing.T) {
 	target := setupCallForceTransfer()
-	expected := callForceTransfer{
+	expected := callForceTransfer[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceTransferIndex,
@@ -104,15 +104,21 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 	}
 
+	fromAddressAccId, err := fromAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	toAddressAccId, err := toAddress.AsAccountId()
+	assert.Nil(t, err)
+
 	mockMutator.On(
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).
 		Return(sc.Result[sc.Encodable]{})
 	mockStoredMap.On(
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress32.FixedSequence, toAddress32.FixedSequence, targetValue),
+		newEventTransfer(moduleId, fromAddressAccId, toAddressAccId, targetValue),
 	).
 		Return()
 
@@ -121,12 +127,12 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 	assert.Equal(t, expect, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
-		toAddress32,
+		toAddressAccId,
 		mockTypeMutateAccountDataBool,
 	)
 	mockStoredMap.AssertCalled(t,
 		"DepositEvent",
-		newEventTransfer(moduleId, fromAddress32.FixedSequence, toAddress32.FixedSequence, targetValue),
+		newEventTransfer(moduleId, fromAddressAccId, toAddressAccId, targetValue),
 	)
 }
 
@@ -186,9 +192,9 @@ func Test_Call_ForceTransfer_Dispatch_CannotLookup_Dest(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func setupCallForceTransfer() callForceTransfer {
+func setupCallForceTransfer() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceTransfer(moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator).(callForceTransfer)
+	return newCallForceTransfer[testPublicKeyType](moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator)
 }

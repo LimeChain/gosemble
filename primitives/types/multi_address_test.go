@@ -18,12 +18,13 @@ var (
 	addr32Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	addr33Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
-	accountIdAddress, _ = NewAddress32(sc.BytesToFixedSequenceU8(addr32Bytes)...)
-	accountId           = AccountId{accountIdAddress}
-	accountIndex        = sc.U32(2)
-	accountRaw          = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
-	address32           = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
-	address20           = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
+	ed25519SignerFromAddr32, _ = NewEd25519PublicKey(sc.BytesToFixedSequenceU8(addr32Bytes)...)
+
+	accountId    = NewAccountId[PublicKey](ed25519SignerFromAddr32)
+	accountIndex = sc.U32(2)
+	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
+	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
+	address20    = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
 )
 
 func Test_AccountRaw_Encode(t *testing.T) {
@@ -155,7 +156,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := bytes.NewBuffer(testExample.input)
 
-			result, err := DecodeMultiAddress(buffer)
+			result, err := DecodeMultiAddress[testPublicKeyType](buffer)
 			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
@@ -166,7 +167,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 func Test_DecodeMultiAddress_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0})
 
-	result, err := DecodeMultiAddress(buffer)
+	result, err := DecodeMultiAddress[testPublicKeyType](buffer)
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'MultiAddress' type", err.Error())
@@ -210,7 +211,7 @@ func Test_AsAccountId_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'AccountId' type", err.Error())
-	assert.Equal(t, AccountId{}, result)
+	assert.Equal(t, AccountId[PublicKey]{}, result)
 }
 
 func Test_IsAccountIndex(t *testing.T) {

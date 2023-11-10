@@ -9,9 +9,9 @@ import (
 )
 
 type accountMutator interface {
-	ensureCanWithdraw(who types.Address32, amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
-	tryMutateAccountWithDust(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	tryMutateAccount(who types.Address32, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
+	tryMutateAccountWithDust(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	tryMutateAccount(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 }
 
 type negativeImbalance struct {
@@ -56,12 +56,12 @@ func (pi positiveImbalance) Drop() error {
 
 type dustCleaner struct {
 	moduleIndex       sc.U8
-	accountId         types.Address32
+	accountId         types.AccountId[types.PublicKey]
 	negativeImbalance sc.Option[negativeImbalance]
 	eventDepositor    types.EventDepositor
 }
 
-func newDustCleaner(moduleId sc.U8, accountId types.Address32, negativeImbalance sc.Option[negativeImbalance], eventDepositor types.EventDepositor) dustCleaner {
+func newDustCleaner(moduleId sc.U8, accountId types.AccountId[types.PublicKey], negativeImbalance sc.Option[negativeImbalance], eventDepositor types.EventDepositor) dustCleaner {
 	return dustCleaner{
 		moduleIndex:       moduleId,
 		accountId:         accountId,
@@ -83,7 +83,7 @@ func (dcv dustCleaner) Bytes() []byte {
 
 func (dcv dustCleaner) Drop() {
 	if dcv.negativeImbalance.HasValue {
-		dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.accountId.FixedSequence, dcv.negativeImbalance.Value.Balance))
+		dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.accountId, dcv.negativeImbalance.Value.Balance))
 		dcv.negativeImbalance.Value.Drop()
 	}
 }

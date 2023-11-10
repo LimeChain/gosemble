@@ -14,7 +14,7 @@ func (m *StoredMap) DepositEvent(event types.Event) {
 	m.Called(event)
 }
 
-func (m *StoredMap) Get(key types.PublicKey) (types.AccountInfo, error) {
+func (m *StoredMap) Get(key types.AccountId[types.PublicKey]) (types.AccountInfo, error) {
 	args := m.Called(key)
 
 	if args.Get(1) == nil {
@@ -24,7 +24,7 @@ func (m *StoredMap) Get(key types.PublicKey) (types.AccountInfo, error) {
 	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
-func (m *StoredMap) CanDecProviders(who types.Address32) (bool, error) {
+func (m *StoredMap) CanDecProviders(who types.AccountId[types.PublicKey]) (bool, error) {
 	args := m.Called(who)
 
 	if args.Get(1) == nil {
@@ -34,7 +34,7 @@ func (m *StoredMap) CanDecProviders(who types.Address32) (bool, error) {
 	return args.Get(0).(bool), args.Get(1).(error)
 }
 
-func (m *StoredMap) TryMutateExists(who types.Address32, f func(who *types.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *StoredMap) TryMutateExists(who types.AccountId[types.PublicKey], f func(who *types.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	args := m.Called(who, f)
 
 	if args.Get(1) == nil {
