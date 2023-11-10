@@ -20,7 +20,7 @@ var (
 
 func Test_Call_SetBalance_new(t *testing.T) {
 	target := setupCallSetBalance()
-	expected := callSetBalance{
+	expected := callSetBalance[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetBalanceIndex,
@@ -87,7 +87,9 @@ func Test_Call_SetBalance_BaseWeight(t *testing.T) {
 }
 
 func Test_Call_SetBalance_IsInherent(t *testing.T) {
-	assert.Equal(t, false, setupCallSetBalance().IsInherent())
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
+	assert.Equal(t, false, target.IsInherent())
 }
 
 func Test_Call_SetBalance_WeighData(t *testing.T) {
@@ -188,7 +190,8 @@ func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(oldFree, oldReserved),
 	}
@@ -231,7 +234,8 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testing.T) {
 	newFree := sc.NewU128(0)
 	newReserved := sc.NewU128(0)
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
 	}
@@ -267,7 +271,8 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	newFree := sc.NewU128(1)
 	newReserved := sc.NewU128(1)
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(oldFree, oldReserved),
 	}
@@ -304,7 +309,8 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_InvalidOrigin(t *testing.T) {
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 
 	result := target.setBalance(primitives.NewRawOriginNone(), targetAddress, targetValue, targetValue)
 
@@ -316,10 +322,10 @@ func Test_Call_SetBalance_setBalance_InvalidOrigin(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_Lookup(t *testing.T) {
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 
-	result := target.
-		setBalance(primitives.NewRawOriginRoot(), primitives.NewMultiAddress20(primitives.Address20{}), targetValue, targetValue)
+	result := target.setBalance(primitives.NewRawOriginRoot(), primitives.NewMultiAddress20(primitives.Address20{}), targetValue, targetValue)
 
 	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), result)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
@@ -329,7 +335,8 @@ func Test_Call_SetBalance_setBalance_Lookup(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
-	target := setupCallSetBalance()
+	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	assert.True(t, ok)
 	err := primitives.NewDispatchErrorBadOrigin()
 	mockResult := sc.Result[sc.Encodable]{
 		HasError: true,
@@ -383,10 +390,10 @@ func Test_Call_SetBalance_updateAccount(t *testing.T) {
 	assert.Equal(t, expectAccount, account)
 }
 
-func setupCallSetBalance() callSetBalance {
+func setupCallSetBalance() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 	mockStorageTotalIssuance = new(mocks.StorageValue[sc.U128])
 
-	return newCallSetBalance(moduleId, functionSetBalanceIndex, mockStoredMap, testConstants, mockMutator, mockStorageTotalIssuance).(callSetBalance)
+	return newCallSetBalance[testPublicKeyType](moduleId, functionSetBalanceIndex, mockStoredMap, testConstants, mockMutator, mockStorageTotalIssuance).(callSetBalance[testPublicKeyType])
 }

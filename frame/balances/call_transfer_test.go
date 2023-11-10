@@ -30,7 +30,7 @@ var (
 
 func Test_Call_Transfer_New(t *testing.T) {
 	target := setupCallTransfer()
-	expected := callTransfer{
+	expected := callTransfer[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferIndex,
@@ -464,7 +464,7 @@ func Test_transfer_reducibleBalance_KeepAlive(t *testing.T) {
 	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }
 
-func setupCallTransfer() callTransfer {
+func setupCallTransfer() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
@@ -476,7 +476,7 @@ func setupCallTransfer() callTransfer {
 		Free: sc.NewU128(1),
 	}
 
-	return newCallTransfer(moduleId, functionTransferIndex, mockStoredMap, testConstants, mockMutator).(callTransfer)
+	return newCallTransfer[testPublicKeyType](moduleId, functionTransferIndex, mockStoredMap, testConstants, mockMutator)
 }
 
 func setupTransfer() transfer {

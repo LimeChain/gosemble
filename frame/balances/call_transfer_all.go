@@ -9,13 +9,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type callTransferAll struct {
+type callTransferAll[T primitives.PublicKey] struct {
 	primitives.Callable
 	transfer
 }
 
-func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := callTransferAll{
+func newCallTransferAll[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callTransferAll[T]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -26,8 +26,8 @@ func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.S
 	return call
 }
 
-func (c callTransferAll) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
+func (c callTransferAll[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	dest, err := types.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -42,27 +42,27 @@ func (c callTransferAll) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, erro
 	return c, nil
 }
 
-func (c callTransferAll) Encode(buffer *bytes.Buffer) error {
+func (c callTransferAll[T]) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callTransferAll) Bytes() []byte {
+func (c callTransferAll[T]) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callTransferAll) ModuleIndex() sc.U8 {
+func (c callTransferAll[T]) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callTransferAll) FunctionIndex() sc.U8 {
+func (c callTransferAll[T]) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callTransferAll) Args() sc.VaryingData {
+func (c callTransferAll[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransferAll) BaseWeight() types.Weight {
+func (c callTransferAll[T]) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -76,19 +76,19 @@ func (c callTransferAll) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callTransferAll) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callTransferAll[T]) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransferAll) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callTransferAll[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callTransferAll) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callTransferAll[T]) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c callTransferAll) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	err := c.transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
@@ -111,7 +111,7 @@ func (c callTransferAll) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 // the funds the account has, causing the sender account to be killed (false), or
 // transfer everything except at least the existential deposit, which will guarantee to
 // keep the sender account alive (true).
-func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
+func (c callTransferAll[T]) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

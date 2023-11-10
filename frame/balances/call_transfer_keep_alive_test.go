@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expected := callTransferKeepAlive{
+	expected := callTransferKeepAlive[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
@@ -183,9 +183,9 @@ func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func setupCallTransferKeepAlive() callTransferKeepAlive {
+func setupCallTransferKeepAlive() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferKeepAlive(moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator).(callTransferKeepAlive)
+	return newCallTransferKeepAlive[testPublicKeyType](moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
 }

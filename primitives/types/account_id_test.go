@@ -22,7 +22,7 @@ var (
 	targetAccountIdEcdsa   = NewAccountId[PublicKey](ecdsaSigner)
 )
 
-func Test_AccountId_Encode_Ed25519_Signer(t *testing.T) {
+func Test_AccountId_Encode_Ed25519_PublicKey(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
 	targetAccountIdEd25519.Encode(buffer)
@@ -30,7 +30,7 @@ func Test_AccountId_Encode_Ed25519_Signer(t *testing.T) {
 	assert.Equal(t, pubKeyEd25519, buffer.Bytes())
 }
 
-func Test_AccountId_Encode_Sr25519_Signer(t *testing.T) {
+func Test_AccountId_Encode_Sr25519_PublicKey(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
 	targetAccountIdSr25519.Encode(buffer)
@@ -38,7 +38,7 @@ func Test_AccountId_Encode_Sr25519_Signer(t *testing.T) {
 	assert.Equal(t, pubKeySr25519, buffer.Bytes())
 }
 
-func Test_AccountId_Encode_Ecdsa_Signer(t *testing.T) {
+func Test_AccountId_Encode_Ecdsa_PublicKey(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
 	targetAccountIdEcdsa.Encode(buffer)
@@ -52,7 +52,7 @@ func Test_AccountId_Bytes(t *testing.T) {
 	assert.Equal(t, pubKeyEcdsa, targetAccountIdEcdsa.Bytes())
 }
 
-func Test_DecodeAccountId_Ed25519_Signer(t *testing.T) {
+func Test_DecodeAccountId_Ed25519_PublicKey(t *testing.T) {
 	buffer := bytes.NewBuffer(pubKeyEd25519)
 
 	result, err := DecodeAccountId[testPublicKeyType](buffer)
@@ -61,7 +61,7 @@ func Test_DecodeAccountId_Ed25519_Signer(t *testing.T) {
 	assert.Equal(t, targetAccountIdEd25519, result)
 }
 
-func Test_DecodeAccountId_Sr25519_Signer(t *testing.T) {
+func Test_DecodeAccountId_Sr25519_PublicKey(t *testing.T) {
 	buffer := bytes.NewBuffer(pubKeySr25519)
 
 	result, err := DecodeAccountId[Sr25519PublicKey](buffer)
@@ -70,7 +70,7 @@ func Test_DecodeAccountId_Sr25519_Signer(t *testing.T) {
 	assert.Equal(t, targetAccountIdSr25519, result)
 }
 
-func Test_DecodeAccountId_Ecdsa_Signer(t *testing.T) {
+func Test_DecodeAccountId_Ecdsa_PublicKey(t *testing.T) {
 	buffer := bytes.NewBuffer(pubKeyEcdsa)
 
 	result, err := DecodeAccountId[EcdsaPublicKey](buffer)

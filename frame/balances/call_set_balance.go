@@ -8,7 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
-type callSetBalance struct {
+type callSetBalance[T types.PublicKey] struct {
 	types.Callable
 	constants      *consts
 	storedMap      types.StoredMap
@@ -16,8 +16,8 @@ type callSetBalance struct {
 	issuance       support.StorageValue[sc.U128]
 }
 
-func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredMap, constants *consts, mutator accountMutator, issuance support.StorageValue[sc.U128]) types.Call {
-	call := callSetBalance{
+func newCallSetBalance[T types.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap types.StoredMap, constants *consts, mutator accountMutator, issuance support.StorageValue[sc.U128]) types.Call {
+	call := callSetBalance[T]{
 		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -31,8 +31,8 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 	return call
 }
 
-func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
-	targetAddress, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
+func (c callSetBalance[T]) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
+	targetAddress, err := types.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -53,27 +53,27 @@ func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	return c, nil
 }
 
-func (c callSetBalance) Encode(buffer *bytes.Buffer) error {
+func (c callSetBalance[T]) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callSetBalance) Bytes() []byte {
+func (c callSetBalance[T]) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callSetBalance) ModuleIndex() sc.U8 {
+func (c callSetBalance[T]) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callSetBalance) FunctionIndex() sc.U8 {
+func (c callSetBalance[T]) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callSetBalance) Args() sc.VaryingData {
+func (c callSetBalance[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callSetBalance) BaseWeight() types.Weight {
+func (c callSetBalance[T]) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
@@ -87,23 +87,23 @@ func (c callSetBalance) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callSetBalance) IsInherent() bool {
+func (_ callSetBalance[T]) IsInherent() bool {
 	return false
 }
 
-func (_ callSetBalance) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callSetBalance[T]) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callSetBalance) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callSetBalance[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callSetBalance[T]) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	newFree := sc.U128(args[1].(sc.Compact))
 	newReserved := sc.U128(args[2].(sc.Compact))
 
@@ -127,7 +127,7 @@ func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
+func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

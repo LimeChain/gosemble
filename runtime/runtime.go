@@ -114,7 +114,7 @@ func initializeModules() []primitives.Module {
 
 	grandpaModule := grandpa.New[PublicKeyType](GrandpaIndex)
 
-	balancesModule := balances.New(
+	balancesModule := balances.New[PublicKeyType](
 		BalancesIndex,
 		balances.NewConfig(DbWeight, BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
 	)

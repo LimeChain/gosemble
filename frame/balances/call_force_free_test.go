@@ -38,7 +38,7 @@ var (
 
 func Test_Call_ForceFree_new(t *testing.T) {
 	target := setupCallForceFree()
-	expected := callForceFree{
+	expected := callForceFree[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
@@ -267,9 +267,9 @@ func Test_removeReserveAndFree(t *testing.T) {
 	assert.Equal(t, sc.NewU128(5), accountData.Free)
 }
 
-func setupCallForceFree() callForceFree {
+func setupCallForceFree() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator).(callForceFree)
+	return newCallForceFree[testPublicKeyType](moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
 }

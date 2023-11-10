@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferAll_new(t *testing.T) {
 	target := setupCallTransferAll()
-	expected := callTransferAll{
+	expected := callTransferAll[testPublicKeyType]{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferAllIndex,
@@ -248,9 +248,9 @@ func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 	)
 }
 
-func setupCallTransferAll() callTransferAll {
+func setupCallTransferAll() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferAll(moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator).(callTransferAll)
+	return newCallTransferAll[testPublicKeyType](moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator)
 }

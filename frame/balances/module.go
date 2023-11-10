@@ -34,7 +34,7 @@ type Module struct {
 	functions map[sc.U8]primitives.Call
 }
 
-func New(index sc.U8, config *Config) Module {
+func New[T primitives.PublicKey](index sc.U8, config *Config) Module {
 	constants := newConstants(config.DbWeight, config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 	storage := newStorage()
 
@@ -45,12 +45,12 @@ func New(index sc.U8, config *Config) Module {
 		storage:   storage,
 	}
 	functions := make(map[sc.U8]primitives.Call)
-	functions[functionTransferIndex] = newCallTransfer(index, functionTransferIndex, config.StoredMap, constants, module)
-	functions[functionSetBalanceIndex] = newCallSetBalance(index, functionSetBalanceIndex, config.StoredMap, constants, module, storage.TotalIssuance)
-	functions[functionForceTransferIndex] = newCallForceTransfer(index, functionForceTransferIndex, config.StoredMap, constants, module)
-	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive(index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
-	functions[functionTransferAllIndex] = newCallTransferAll(index, functionTransferAllIndex, config.StoredMap, constants, module)
-	functions[functionForceFreeIndex] = newCallForceFree(index, functionForceFreeIndex, config.StoredMap, constants, module)
+	functions[functionTransferIndex] = newCallTransfer[T](index, functionTransferIndex, config.StoredMap, constants, module)
+	functions[functionSetBalanceIndex] = newCallSetBalance[T](index, functionSetBalanceIndex, config.StoredMap, constants, module, storage.TotalIssuance)
+	functions[functionForceTransferIndex] = newCallForceTransfer[T](index, functionForceTransferIndex, config.StoredMap, constants, module)
+	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive[T](index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
+	functions[functionTransferAllIndex] = newCallTransferAll[T](index, functionTransferAllIndex, config.StoredMap, constants, module)
+	functions[functionForceFreeIndex] = newCallForceFree[T](index, functionForceFreeIndex, config.StoredMap, constants, module)
 
 	module.functions = functions
 
