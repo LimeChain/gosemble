@@ -3,6 +3,8 @@ package account_nonce
 import (
 	"bytes"
 
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -58,4 +60,26 @@ func (m Module[T]) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	nonce := account.Nonce
 
 	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
+}
+
+func (m Module[T]) Metadata() types.RuntimeApiMetadata {
+	methods := sc.Sequence[types.RuntimeApiMethodMetadata]{
+		types.RuntimeApiMethodMetadata{
+			Name: "account_nonce",
+			Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{
+				types.RuntimeApiMethodParamMetadata{
+					Name: "account",
+					Type: sc.ToCompact(metadata.TypesAddress32),
+				},
+			},
+			Output: sc.ToCompact(metadata.PrimitiveTypesU32),
+			Docs:   sc.Sequence[sc.Str]{" Get current account nonce of given `AccountId`."},
+		},
+	}
+
+	return types.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The API to query account nonce."},
+	}
 }

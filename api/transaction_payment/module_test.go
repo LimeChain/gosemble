@@ -7,6 +7,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -205,6 +206,49 @@ func Test_Module_QueryFeeDetails_Unsigned(t *testing.T) {
 	mockUxt.AssertCalled(t, "IsSigned")
 	mockTransactionPayment.AssertNotCalled(t, "ComputeFeeDetails", mock.Anything, mock.Anything, mock.Anything)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", feeDetails.Bytes())
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := primitives.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+			primitives.RuntimeApiMethodMetadata{
+				Name: "query_info",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "uxt",
+						Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+					},
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "len",
+						Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesTransactionPaymentRuntimeDispatchInfo),
+				Docs:   sc.Sequence[sc.Str]{},
+			},
+			primitives.RuntimeApiMethodMetadata{
+				Name: "query_fee_details",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "uxt",
+						Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+					},
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "len",
+						Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesTransactionPaymentFeeDetails),
+				Docs:   sc.Sequence[sc.Str]{},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module {

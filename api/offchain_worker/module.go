@@ -3,6 +3,8 @@ package offchain_worker
 import (
 	"bytes"
 
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -51,4 +53,26 @@ func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 		log.Critical(err.Error())
 	}
 	m.executive.OffchainWorker(header)
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name: "offchain_worker",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "header",
+					Type: sc.ToCompact(metadata.Header),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesEmptyTuple),
+			Docs:   sc.Sequence[sc.Str]{" Starts the off-chain task for given block header."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The offchain worker api."},
+	}
 }

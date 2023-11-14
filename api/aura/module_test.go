@@ -5,6 +5,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -82,4 +83,29 @@ func Test_SlotDuration(t *testing.T) {
 
 	mockAura.AssertCalled(t, "SlotDuration")
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", durationBytes)
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	setup()
+
+	expect := types.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[types.RuntimeApiMethodMetadata]{
+			types.RuntimeApiMethodMetadata{
+				Name:   "authorities",
+				Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{},
+				Output: sc.ToCompact(metadata.TypesSequenceU8),
+				Docs:   sc.Sequence[sc.Str]{""},
+			},
+			types.RuntimeApiMethodMetadata{
+				Name:   "slot_duration",
+				Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{},
+				Output: sc.ToCompact(metadata.PrimitiveTypesU64),
+				Docs:   sc.Sequence[sc.Str]{},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{" The API to query account nonce."},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }

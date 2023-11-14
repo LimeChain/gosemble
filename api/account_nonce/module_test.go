@@ -6,6 +6,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -53,6 +54,30 @@ func Test_Module_AccountNonce(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
 	mockSystem.AssertCalled(t, "Get", publicKey)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := types.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[types.RuntimeApiMethodMetadata]{
+			types.RuntimeApiMethodMetadata{
+				Name: "account_nonce",
+				Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{
+					types.RuntimeApiMethodParamMetadata{
+						Name: "account",
+						Type: sc.ToCompact(metadata.TypesAddress32),
+					},
+				},
+				Output: sc.ToCompact(metadata.PrimitiveTypesU32),
+				Docs:   sc.Sequence[sc.Str]{" Get current account nonce of given `AccountId`."},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{" The API to query account nonce."},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module[types.Ed25519PublicKey] {

@@ -3,6 +3,8 @@ package core
 import (
 	"bytes"
 
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -51,7 +53,7 @@ func (m Module) Item() primitives.ApiItem {
 // [Specification](https://spec.polkadot.network/#defn-rt-core-version)
 func (m Module) Version() int64 {
 	buffer := &bytes.Buffer{}
-	m.runtimeVersion.Encode(buffer)
+	m.runtimeVersion.Encode(buffer) // TODO: handle err
 	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
 }
 
@@ -68,7 +70,7 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	m.executive.InitializeBlock(header)
+	m.executive.InitializeBlock(header) // TODO: handle err
 }
 
 // ExecuteBlock executes the provided block.
@@ -84,5 +86,44 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	m.executive.ExecuteBlock(block)
+	m.executive.ExecuteBlock(block) // TODO: handle err
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "version",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.TypesRuntimeVersion),
+			Docs:   sc.Sequence[sc.Str]{" Returns the version of the runtime."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "execute_block",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "block",
+					Type: sc.ToCompact(metadata.TypesBlock),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesEmptyTuple),
+			Docs:   sc.Sequence[sc.Str]{" Execute the given block."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "initialize_block",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "header",
+					Type: sc.ToCompact(metadata.Header),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesEmptyTuple),
+			Docs:   sc.Sequence[sc.Str]{" Initialize a block with the given header."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The `Core` runtime api that every Substrate runtime needs to implement."},
+	}
 }

@@ -3,6 +3,8 @@ package blockbuilder
 import (
 	"bytes"
 
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
@@ -80,7 +82,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	}
 
 	buffer.Reset()
-	applyExtrinsicResult.Encode(buffer)
+	applyExtrinsicResult.Encode(buffer) // TODO: handle err
 
 	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
 }
@@ -145,4 +147,61 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	result := m.runtimeExtrinsic.CheckInherents(*inherentData, block)
 
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name: "apply_extrinsic",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "Extrinsic",
+					Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesResult),
+			Docs: sc.Sequence[sc.Str]{" Apply the given extrinsic.",
+				"",
+				" Returns an inclusion outcome which specifies if this extrinsic is included in",
+				" this block or not."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "finalize_block",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.Header),
+			Docs:   sc.Sequence[sc.Str]{" Finish the current block."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "inherent_extrinsics",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "inherent",
+					Type: sc.ToCompact(metadata.TypesInherentData),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesSequenceUncheckedExtrinsics),
+			Docs:   sc.Sequence[sc.Str]{" Generate inherent extrinsics. The inherent data will vary from chain to chain."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "check_inherents",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "block",
+					Type: sc.ToCompact(metadata.TypesBlock),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "data",
+					Type: sc.ToCompact(metadata.TypesInherentData),
+				},
+			},
+			Output: sc.ToCompact(metadata.CheckInherentsResult),
+			Docs:   sc.Sequence[sc.Str]{" Check that the inherents are valid. The inherent data will vary from chain to chain."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The `BlockBuilder` api trait that provides the required functionality for building a block."},
+	}
 }

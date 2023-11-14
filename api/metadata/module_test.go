@@ -71,6 +71,43 @@ var (
 		SignedExtensions: signedExtensions,
 	}
 
+	mdRuntimeApi = sc.Sequence[primitives.RuntimeApiMetadata]{
+		primitives.RuntimeApiMetadata{
+			Name: ApiModuleName,
+			Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+				primitives.RuntimeApiMethodMetadata{
+					Name:   "metadata",
+					Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+					Output: sc.ToCompact(metadata.TypesOpaqueMetadata),
+					Docs:   sc.Sequence[sc.Str]{" Returns the metadata of a runtime."},
+				},
+				primitives.RuntimeApiMethodMetadata{
+					Name: "metadata_at_version",
+					Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+						primitives.RuntimeApiMethodParamMetadata{
+							Name: "version",
+							Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+						},
+					},
+					Output: sc.ToCompact(metadata.TypeOptionOpaqueMetadata),
+					Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
+						"",
+						" If the given `version` isn't supported, this will return `None`.",
+						" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
+				},
+				primitives.RuntimeApiMethodMetadata{
+					Name:   "metadata_versions",
+					Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+					Output: sc.ToCompact(metadata.TypesSequenceU32),
+					Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
+						"",
+						" This can be used to call `metadata_at_version`."},
+				},
+			},
+			Docs: sc.Sequence[sc.Str]{" The `Metadata` api trait that returns metadata for the runtime."},
+		},
+	}
+
 	expectedSupportVersions = sc.Sequence[sc.U32]{
 		sc.U32(primitives.MetadataVersion14), sc.U32(primitives.MetadataVersion15),
 	}
@@ -173,8 +210,6 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 
 	version15 := sc.U32(primitives.MetadataVersion15)
 
-	apis := primitives.ApiMetadata()
-
 	outerEnums := primitives.OuterEnums{
 		CallEnumType:  sc.ToCompact(metadata.RuntimeCall),
 		EventEnumType: sc.ToCompact(metadata.TypesRuntimeEvent),
@@ -194,7 +229,7 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 		Modules:    mdModules15,
 		Extrinsic:  mdExtrinsic15,
 		Type:       sc.ToCompact(metadata.Runtime),
-		Apis:       apis,
+		Apis:       mdRuntimeApi,
 		OuterEnums: outerEnums,
 		Custom:     custom,
 	}
@@ -238,7 +273,7 @@ func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic)
+	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{})
 	target.memUtils = mockMemoryUtils
 
 	return target

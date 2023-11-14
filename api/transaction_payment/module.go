@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	tx_types "github.com/LimeChain/gosemble/frame/transaction_payment/types"
@@ -116,4 +117,45 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name: "query_info",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "uxt",
+					Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "len",
+					Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesTransactionPaymentRuntimeDispatchInfo),
+			Docs:   sc.Sequence[sc.Str]{},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "query_fee_details",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "uxt",
+					Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "len",
+					Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesTransactionPaymentFeeDetails),
+			Docs:   sc.Sequence[sc.Str]{},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{},
+	}
 }

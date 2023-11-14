@@ -2,6 +2,7 @@ package aura
 
 import (
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -55,4 +56,27 @@ func (m Module) Authorities() int64 {
 func (m Module) SlotDuration() int64 {
 	slotDuration := m.aura.SlotDuration()
 	return m.memUtils.BytesToOffsetAndSize(slotDuration.Bytes())
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "authorities",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.TypesSequenceU8),
+			Docs:   sc.Sequence[sc.Str]{""},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "slot_duration",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.PrimitiveTypesU64),
+			Docs:   sc.Sequence[sc.Str]{},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The API to query account nonce."},
+	}
 }

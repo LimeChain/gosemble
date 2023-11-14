@@ -6,6 +6,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -103,6 +104,47 @@ func Test_Module_ExecuteBlock(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockRuntimeDecoder.AssertCalled(t, "DecodeBlock", buffer)
 	mockExecutive.AssertCalled(t, "ExecuteBlock", block)
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := primitives.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+			primitives.RuntimeApiMethodMetadata{
+				Name:   "version",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+				Output: sc.ToCompact(metadata.TypesRuntimeVersion),
+				Docs:   sc.Sequence[sc.Str]{" Returns the version of the runtime."},
+			},
+			primitives.RuntimeApiMethodMetadata{
+				Name: "execute_block",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "block",
+						Type: sc.ToCompact(metadata.TypesBlock),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesEmptyTuple),
+				Docs:   sc.Sequence[sc.Str]{" Execute the given block."},
+			},
+			primitives.RuntimeApiMethodMetadata{
+				Name: "initialize_block",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "header",
+						Type: sc.ToCompact(metadata.Header),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesEmptyTuple),
+				Docs:   sc.Sequence[sc.Str]{" Initialize a block with the given header."},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{" The `Core` runtime api that every Substrate runtime needs to implement."},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module {
