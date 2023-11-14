@@ -5,6 +5,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -61,6 +62,30 @@ func Test_Module_OffchainWorker(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockExecutive.AssertCalled(t, "OffchainWorker", header)
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := primitives.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+			primitives.RuntimeApiMethodMetadata{
+				Name: "offchain_worker",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "header",
+						Type: sc.ToCompact(metadata.Header),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesEmptyTuple),
+				Docs:   sc.Sequence[sc.Str]{" Starts the off-chain task for given block header."},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{" The offchain worker api."},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module {

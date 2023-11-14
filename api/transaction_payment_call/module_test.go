@@ -7,6 +7,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -125,6 +126,49 @@ func Test_Module_QueryCallFeeDetails(t *testing.T) {
 	mockCall.AssertCalled(t, "PaysFee", baseWeight)
 	mockTransactionPayment.AssertCalled(t, "ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", feeDetails.Bytes())
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := primitives.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+			primitives.RuntimeApiMethodMetadata{
+				Name: "query_call_info",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "call",
+						Type: sc.ToCompact(metadata.RuntimeCall),
+					},
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "len",
+						Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesTransactionPaymentRuntimeDispatchInfo),
+				Docs:   sc.Sequence[sc.Str]{" Query information of a dispatch class, weight, and fee of a given encoded `Call`."},
+			},
+			primitives.RuntimeApiMethodMetadata{
+				Name: "query_call_fee_details",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "call",
+						Type: sc.ToCompact(metadata.RuntimeCall),
+					},
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "len",
+						Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesTransactionPaymentFeeDetails),
+				Docs:   sc.Sequence[sc.Str]{" Query fee details of a given encoded `Call`."},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module {

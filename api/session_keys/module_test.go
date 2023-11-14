@@ -5,6 +5,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -144,6 +145,53 @@ func Test_Module_DecodeSessionKeys(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockSessionKey.AssertCalled(t, "KeyTypeId")
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", expect.Bytes())
+}
+
+func Test_Module_Metadata(t *testing.T) {
+	target := setup()
+
+	expect := primitives.RuntimeApiMetadata{
+		Name: ApiModuleName,
+		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+			primitives.RuntimeApiMethodMetadata{
+				Name: "generate_session_keys",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "seed",
+						Type: sc.ToCompact(metadata.TypesOptionSequenceU8),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesSequenceU8),
+				Docs: sc.Sequence[sc.Str]{
+					" Generate a set of session keys with optionally using the given seed.",
+					" The keys should be stored within the keystore exposed via runtime",
+					" externalities.",
+					"",
+					" The seed needs to be a valid `utf8` string.",
+					"",
+					" Returns the concatenated SCALE encoded public keys.",
+				},
+			},
+			primitives.RuntimeApiMethodMetadata{
+				Name: "decode_session_keys",
+				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+					primitives.RuntimeApiMethodParamMetadata{
+						Name: "encoded",
+						Type: sc.ToCompact(metadata.TypesSequenceU8),
+					},
+				},
+				Output: sc.ToCompact(metadata.TypesOptionTupleSequenceU8KeyTypeId),
+				Docs: sc.Sequence[sc.Str]{
+					" Decode the given public session keys.",
+					"",
+					" Returns the list of public raw public keys + key type.",
+				},
+			},
+		},
+		Docs: sc.Sequence[sc.Str]{" Session keys runtime api."},
+	}
+
+	assert.Equal(t, expect, target.Metadata())
 }
 
 func setup() Module[primitives.Ed25519PublicKey] {

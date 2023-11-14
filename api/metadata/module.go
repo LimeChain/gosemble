@@ -28,14 +28,16 @@ const (
 )
 
 type Module struct {
-	runtimeExtrinsic extrinsic.RuntimeExtrinsic
-	memUtils         utils.WasmMemoryTranslator
+	runtimeApiModules []primitives.RuntimeApiModule
+	runtimeExtrinsic  extrinsic.RuntimeExtrinsic
+	memUtils          utils.WasmMemoryTranslator
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primitives.RuntimeApiModule) Module {
 	return Module{
-		runtimeExtrinsic: runtimeExtrinsic,
-		memUtils:         utils.NewMemoryTranslator(),
+		runtimeApiModules: runtimeApiModules,
+		runtimeExtrinsic:  runtimeExtrinsic,
+		memUtils:          utils.NewMemoryTranslator(),
 	}
 }
 
@@ -124,7 +126,6 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		apis := primitives.ApiMetadata()
 		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
@@ -132,7 +133,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 			Modules:    modulesV15,
 			Extrinsic:  extrinsicV15,
 			Type:       sc.ToCompact(metadata.Runtime),
-			Apis:       apis,
+			Apis:       m.runtimeApiMetadata(),
 			OuterEnums: outerEnums,
 			Custom:     custom,
 		}
@@ -156,6 +157,55 @@ func (m Module) MetadataVersions() int64 {
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(bVersions.Bytes())
+}
+
+func (m Module) runtimeApiMetadata() sc.Sequence[primitives.RuntimeApiMetadata] {
+	runtimeApiMetadata := sc.Sequence[primitives.RuntimeApiMetadata]{}
+
+	for _, module := range m.runtimeApiModules {
+		runtimeApiMetadata = append(runtimeApiMetadata, module.Metadata())
+	}
+
+	return append(runtimeApiMetadata, m.apiMetadata())
+}
+
+func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
+	modules := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "metadata",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.TypesOpaqueMetadata),
+			Docs:   sc.Sequence[sc.Str]{" Returns the metadata of a runtime."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "metadata_at_version",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "version",
+					Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypeOptionOpaqueMetadata),
+			Docs: sc.Sequence[sc.Str]{" Returns the metadata at a given version.",
+				"",
+				" If the given `version` isn't supported, this will return `None`.",
+				" Use [`Self::metadata_versions`] to find out about supported metadata version of the runtime."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name:   "metadata_versions",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{},
+			Output: sc.ToCompact(metadata.TypesSequenceU32),
+			Docs: sc.Sequence[sc.Str]{" Returns the supported metadata versions.",
+				"",
+				" This can be used to call `metadata_at_version`."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: modules,
+		Docs:    sc.Sequence[sc.Str]{" The `Metadata` api trait that returns metadata for the runtime."},
+	}
 }
 
 // primitiveTypes returns all primitive types

@@ -179,18 +179,44 @@ func runtimeApi() types.RuntimeApi {
 		grandpaModule,
 	}
 
+	coreApi := core.New(executiveModule, decoder, RuntimeVersion)
+	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder)
+	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder)
+	auraApi := apiAura.New(auraModule)
+	grandpaApi := apiGrandpa.New(grandpaModule)
+	accountNonceApi := account_nonce.New[PublicKeyType](systemModule)
+	txPaymentsApi := apiTxPayments.New(decoder, txPaymentsModule)
+	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
+	sessionKeysApi := session_keys.New[PublicKeyType](sessions)
+	offchainWorkerApi := offchain_worker.New(executiveModule)
+
+	metadataApi := metadata.New(
+		runtimeExtrinsic,
+		[]primitives.RuntimeApiModule{
+			coreApi,
+			blockBuilderApi,
+			taggedTxQueueApi,
+			auraApi,
+			grandpaApi,
+			accountNonceApi,
+			txPaymentsApi,
+			txPaymentsCallApi,
+			sessionKeysApi,
+			offchainWorkerApi,
+		})
+
 	apis := []primitives.ApiModule{
-		core.New(executiveModule, decoder, RuntimeVersion),
-		blockbuilder.New(runtimeExtrinsic, executiveModule, decoder),
-		taggedtransactionqueue.New(executiveModule, decoder),
-		metadata.New(runtimeExtrinsic),
-		apiAura.New(auraModule),
-		apiGrandpa.New(grandpaModule),
-		account_nonce.New[PublicKeyType](systemModule),
-		apiTxPayments.New(decoder, txPaymentsModule),
-		apiTxPaymentsCall.New(decoder, txPaymentsModule),
-		session_keys.New[PublicKeyType](sessions),
-		offchain_worker.New(executiveModule),
+		coreApi,
+		blockBuilderApi,
+		taggedTxQueueApi,
+		metadataApi,
+		auraApi,
+		grandpaApi,
+		accountNonceApi,
+		txPaymentsApi,
+		txPaymentsCallApi,
+		sessionKeysApi,
+		offchainWorkerApi,
 	}
 
 	runtimeApi := types.NewRuntimeApi(apis)

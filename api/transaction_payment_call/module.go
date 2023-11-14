@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -103,4 +104,45 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name: "query_call_info",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "call",
+					Type: sc.ToCompact(metadata.RuntimeCall),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "len",
+					Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesTransactionPaymentRuntimeDispatchInfo),
+			Docs:   sc.Sequence[sc.Str]{" Query information of a dispatch class, weight, and fee of a given encoded `Call`."},
+		},
+		primitives.RuntimeApiMethodMetadata{
+			Name: "query_call_fee_details",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "call",
+					Type: sc.ToCompact(metadata.RuntimeCall),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "len",
+					Type: sc.ToCompact(metadata.PrimitiveTypesU32),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesTransactionPaymentFeeDetails),
+			Docs:   sc.Sequence[sc.Str]{" Query fee details of a given encoded `Call`."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{},
+	}
 }

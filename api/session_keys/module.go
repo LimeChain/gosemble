@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/primitives/hashing"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -98,6 +99,51 @@ func (m Module[T]) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 	result := sc.NewOption[sc.Sequence[types.SessionKey]](sessionKeys)
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
+}
+
+func (m Module[T]) Metadata() types.RuntimeApiMetadata {
+	methods := sc.Sequence[types.RuntimeApiMethodMetadata]{
+		types.RuntimeApiMethodMetadata{
+			Name: "generate_session_keys",
+			Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{
+				types.RuntimeApiMethodParamMetadata{
+					Name: "seed",
+					Type: sc.ToCompact(metadata.TypesOptionSequenceU8),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesSequenceU8),
+			Docs: sc.Sequence[sc.Str]{
+				" Generate a set of session keys with optionally using the given seed.",
+				" The keys should be stored within the keystore exposed via runtime",
+				" externalities.",
+				"",
+				" The seed needs to be a valid `utf8` string.",
+				"",
+				" Returns the concatenated SCALE encoded public keys.",
+			},
+		},
+		types.RuntimeApiMethodMetadata{
+			Name: "decode_session_keys",
+			Inputs: sc.Sequence[types.RuntimeApiMethodParamMetadata]{
+				types.RuntimeApiMethodParamMetadata{
+					Name: "encoded",
+					Type: sc.ToCompact(metadata.TypesSequenceU8),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesOptionTupleSequenceU8KeyTypeId),
+			Docs: sc.Sequence[sc.Str]{
+				" Decode the given public session keys.",
+				"",
+				" Returns the list of public raw public keys + key type.",
+			},
+		},
+	}
+
+	return types.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" Session keys runtime api."},
+	}
 }
 
 func getKeyFunction[T types.PublicKey](m Module[T], keyType types.PublicKeyType) func([]byte, []byte) []byte {

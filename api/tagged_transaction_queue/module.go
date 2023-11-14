@@ -3,6 +3,8 @@ package tagged_transaction_queue
 import (
 	"bytes"
 
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/primitives/hashing"
@@ -83,4 +85,42 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(res.Bytes())
+}
+
+func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
+		primitives.RuntimeApiMethodMetadata{
+			Name: "validate_transaction",
+			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "source",
+					Type: sc.ToCompact(metadata.TypesTransactionSource),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "tx",
+					Type: sc.ToCompact(metadata.UncheckedExtrinsic),
+				},
+				primitives.RuntimeApiMethodParamMetadata{
+					Name: "block_hash",
+					Type: sc.ToCompact(metadata.TypesH256),
+				},
+			},
+			Output: sc.ToCompact(metadata.TypesResultValidityTransaction),
+			Docs: sc.Sequence[sc.Str]{" Validate the transaction.",
+				"",
+				" This method is invoked by the transaction pool to learn details about given transaction.",
+				" The implementation should make sure to verify the correctness of the transaction",
+				" against current state. The given `block_hash` corresponds to the hash of the block",
+				" that is used as current state.",
+				"",
+				" Note that this call may be performed by the pool multiple times and transactions",
+				" might be verified in any possible order."},
+		},
+	}
+
+	return primitives.RuntimeApiMetadata{
+		Name:    ApiModuleName,
+		Methods: methods,
+		Docs:    sc.Sequence[sc.Str]{" The `TaggedTransactionQueue` api trait for interfering with the transaction queue."},
+	}
 }
