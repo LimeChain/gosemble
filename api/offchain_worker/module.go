@@ -52,7 +52,11 @@ func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	m.executive.OffchainWorker(header)
+
+	err = m.executive.OffchainWorker(header)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 }
 
 func (m Module) Metadata() primitives.RuntimeApiMetadata {

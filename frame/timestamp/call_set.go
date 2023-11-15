@@ -81,7 +81,6 @@ func (c callSet) BaseWeight() primitives.Weight {
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	// Storage: Babe CurrentSlot (r:1 w:0)
 	// Proof: Babe CurrentSlot (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-	// TODO: Consensus algorithm affects weight values.
 	// Proof Size summary in bytes:
 	//  Measured:  `312`
 	//  Estimated: `1006`

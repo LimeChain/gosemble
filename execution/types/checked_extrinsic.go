@@ -8,11 +8,8 @@ import (
 )
 
 // CheckedExtrinsic is the definition of something that the external world might want to say; its
-// existence implies that it has been checked and is good, particularly with
-// regards to the signature.
-//
-// TODO: make it generic
-// generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
+// existence implies that it has been checked and is good, particularly
+// in regard to the signature.
 type checkedExtrinsic struct {
 	// Who this purports to be from and the number of extrinsics have come before
 	// from the same signer, if anyone (note this is not a signature).

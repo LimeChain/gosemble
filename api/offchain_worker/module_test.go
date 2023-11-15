@@ -56,7 +56,7 @@ func Test_Module_OffchainWorker(t *testing.T) {
 	}
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(header.Bytes())
-	mockExecutive.On("OffchainWorker", header).Return()
+	mockExecutive.On("OffchainWorker", header).Return(nil)
 
 	target.OffchainWorker(dataPtr, dataLen)
 

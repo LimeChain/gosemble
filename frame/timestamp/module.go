@@ -29,7 +29,7 @@ type Module struct {
 	Index     sc.U8
 	Config    *Config
 	storage   *storage
-	Constants *consts
+	constants *consts
 	functions map[sc.U8]primitives.Call
 }
 
@@ -43,7 +43,7 @@ func New(index sc.U8, config *Config) Module {
 		Index:     index,
 		Config:    config,
 		storage:   storage,
-		Constants: constants,
+		constants: constants,
 		functions: functions,
 	}
 }
@@ -92,14 +92,13 @@ func (m Module) CreateInherent(inherent primitives.InherentData) (sc.Option[prim
 	if err != nil {
 		return sc.Option[primitives.Call]{}, err
 	}
-	// TODO: err if not able to parse it.
 
 	now, err := m.storage.Now.Get()
 	if err != nil {
 		return sc.Option[primitives.Call]{}, err
 	}
 
-	nextTimestamp := sc.Max64(ts, now+m.Constants.MinimumPeriod)
+	nextTimestamp := sc.Max64(ts, now+m.constants.MinimumPeriod)
 
 	function := newCallSetWithArgs(m.Index, functionSetIndex, sc.NewVaryingData(sc.ToCompact(uint64(nextTimestamp))))
 
@@ -128,14 +127,13 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	if err != nil {
 		return primitives.NewInherentErrorFatalErrorReported()
 	}
-	// TODO: err if not able to parse it.
 
 	systemNow, err := m.storage.Now.Get()
 	if err != nil {
 		return primitives.NewInherentErrorFatalErrorReported()
 	}
 
-	minimum := systemNow + m.Constants.MinimumPeriod
+	minimum := systemNow + m.constants.MinimumPeriod
 	if t > ts+maxTimestampDriftMillis {
 		return primitives.NewTimestampErrorTooFarInFuture()
 	} else if t < minimum {
@@ -173,7 +171,7 @@ func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 			primitives.NewMetadataModuleConstant(
 				"MinimumPeriod",
 				sc.ToCompact(metadata.PrimitiveTypesU64),
-				sc.BytesToSequenceU8(m.Constants.MinimumPeriod.Bytes()),
+				sc.BytesToSequenceU8(m.constants.MinimumPeriod.Bytes()),
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
