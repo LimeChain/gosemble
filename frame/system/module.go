@@ -116,8 +116,10 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.Transaction
 
 func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
 	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+	// unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+	// todo
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 func (m module) BlockHashCount() sc.U64 {

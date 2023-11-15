@@ -22,7 +22,9 @@ const (
 )
 
 var (
-	unknownTransactionNoUnsignedValidator, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+	// unknownTransactionNoUnsignedValidator, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+	// todo
+	unknownTransactionNoUnsignedValidator = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (

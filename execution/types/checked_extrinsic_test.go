@@ -39,9 +39,13 @@ var (
 )
 
 var (
-	expectedInvalidTransactionStaleErr, _               = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
-	expectedInvalidTransactionPaymentErr, _             = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
-	expectedUnknownTransactionNoUnsignedValidatorErr, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+	// expectedInvalidTransactionStaleErr, _               = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
+	// expectedInvalidTransactionPaymentErr, _             = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
+	// expectedUnknownTransactionNoUnsignedValidatorErr, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+	// todo
+	expectedInvalidTransactionStaleErr               = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
+	expectedInvalidTransactionPaymentErr             = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
+	expectedUnknownTransactionNoUnsignedValidatorErr = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (

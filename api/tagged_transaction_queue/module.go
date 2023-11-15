@@ -70,6 +70,9 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	}
 
 	ok, errTx := m.executive.ValidateTransaction(txSource, tx, blockHash)
+	if errTx.UnexpectedError() != nil {
+		log.Critical(errTx.Error())
+	}
 
 	var res primitives.TransactionValidityResult
 	if errTx != nil {

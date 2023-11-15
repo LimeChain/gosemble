@@ -4,13 +4,24 @@ import sc "github.com/LimeChain/goscale"
 
 func Lookup(a MultiAddress) (AccountId[PublicKey], TransactionValidityError) {
 	// TODO https://github.com/LimeChain/gosemble/issues/271
-	address, _ := lookupAddress(a)
+	// address, _ := lookupAddress(a)
+	// if address.HasValue {
+	// 	return address.Value, nil
+	// }
+
+	// unknownTransactionCannotLookup, _ := NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	// return AccountId[PublicKey]{}, unknownTransactionCannotLooku
+	// todo
+	address, err := lookupAddress(a)
+	if err != nil {
+		return AccountId[PublicKey]{}, NewTransactionValidityError(NewUnexpectedError(err))
+	}
+
 	if address.HasValue {
 		return address.Value, nil
 	}
 
-	unknownTransactionCannotLookup, _ := NewTransactionValidityError(NewUnknownTransactionCannotLookup())
-	return AccountId[PublicKey]{}, unknownTransactionCannotLookup
+	return AccountId[PublicKey]{}, NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 }
 
 // LookupAddress Lookup an address to get an Id, if there's one there.

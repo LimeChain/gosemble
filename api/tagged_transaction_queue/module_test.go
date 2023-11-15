@@ -2,6 +2,7 @@ package tagged_transaction_queue
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -23,10 +24,13 @@ var (
 			common.MustHexToHash("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff").ToBytes(),
 		)}
 
-	validTx                  = primitives.DefaultValidTransaction()
-	txValidityError, _       = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	validitySuccessResult, _ = primitives.NewTransactionValidityResult(validTx)
-	validityFailResult, _    = primitives.NewTransactionValidityResult(txValidityError)
+	validTx = primitives.DefaultValidTransaction()
+	// txValidityError, _       = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	// todo
+	txValidityError           = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	txValidityUnexpectedError = primitives.NewTransactionValidityError(primitives.NewUnexpectedError(fmt.Errorf("panic error")))
+	validitySuccessResult, _  = primitives.NewTransactionValidityResult(validTx)
+	validityFailResult, _     = primitives.NewTransactionValidityResult(txValidityError)
 )
 
 var (
@@ -98,6 +102,23 @@ func Test_Module_ValidateTransaction_Fails(t *testing.T) {
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ValidateTransaction", txSource, mockUxt, blockHash)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", validityFailResult.Bytes())
+}
+
+func Test_Module_ValidateTransaction_UnexpectedError_Panics(t *testing.T) {
+	target := setup()
+
+	data := append(txSource.Bytes(), blockHash.Bytes()...)
+	expectBuffer := bytes.NewBuffer(data)
+	_, err := expectBuffer.ReadByte()
+	assert.Nil(t, err)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
+	mockExecutive.On("ValidateTransaction", txSource, mockUxt, blockHash).
+		Return(primitives.ValidTransaction{}, txValidityUnexpectedError)
+	mockMemoryUtils.On("BytesToOffsetAndSize", validityFailResult.Bytes()).Return(ptrAndSize)
+
+	assert.PanicsWithValue(t, "panic error", func() { target.ValidateTransaction(dataPtr, dataLen) })
 }
 
 func Test_Module_Metadata(t *testing.T) {

@@ -14,7 +14,9 @@ var (
 
 	expectedAdditionalSigned = sc.NewVaryingData(sc.U32(1))
 
-	expectedTransactionValidityErr, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	// expectedTransactionValidityErr, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	// todo
+	expectedTransactionValidityErr = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 )
 
 var (

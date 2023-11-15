@@ -33,8 +33,10 @@ func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, primitiv
 	hash, err := cg.module.StorageBlockHash(0)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return nil, transactionValidityError
+		// todo
+		return nil, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 
 	return sc.NewVaryingData(primitives.H256(hash)), nil

@@ -64,12 +64,19 @@ var (
 )
 
 var (
-	invalidTransactionStaleErr, _             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	invalidTransactionFutureErr, _            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
-	invalidTransactionBadProofErr, _          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-	invalidTransactionExhaustsResourcesErr, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-	unknownTransactionNoUnsignedValidator, _  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	invalidTransactionMandatoryValidation, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+	// invalidTransactionStaleErr, _             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	// invalidTransactionFutureErr, _            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	// invalidTransactionBadProofErr, _          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+	// invalidTransactionExhaustsResourcesErr, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	// unknownTransactionNoUnsignedValidator, _  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// invalidTransactionMandatoryValidation, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+	// todo
+	invalidTransactionStaleErr             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFutureErr            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionBadProofErr          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+	invalidTransactionExhaustsResourcesErr = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	unknownTransactionNoUnsignedValidator  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	invalidTransactionMandatoryValidation  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 )
 
 var (

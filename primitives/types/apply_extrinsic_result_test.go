@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	invalidTransactionCall, _ = NewTransactionValidityError(NewInvalidTransactionCall())
+	// invalidTransactionCall, _ = NewTransactionValidityError(NewInvalidTransactionCall())
+	// todo
+	invalidTransactionCall = NewTransactionValidityError(NewInvalidTransactionCall())
 
 	dispatchOutcome, _             = NewDispatchOutcome(nil)
 	dispatchOutcomeBadOriginErr, _ = NewDispatchOutcome(NewDispatchErrorBadOrigin())

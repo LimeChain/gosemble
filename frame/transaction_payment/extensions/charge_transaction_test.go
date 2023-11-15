@@ -25,7 +25,9 @@ var (
 	alreadyWithdrawn = sc.NewOption[sc.U128](sc.NewU128(11))
 	refundAmount     = sc.NewU128(1)
 
-	expectedError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+	// expectedError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+	// todo
+	expectedError = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 )
 
 func Test_ChargeTransaction_WithdrawFee_Success(t *testing.T) {

@@ -29,8 +29,10 @@ func (ct chargeTransaction) WithdrawFee(who primitives.AccountId[primitives.Publ
 	imbalance, err := ct.currencyAdapter.Withdraw(who, fee, sc.U8(withdrawReasons), primitives.ExistenceRequirementKeepAlive)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-		return sc.NewOption[primitives.Balance](nil), transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+		// return sc.NewOption[primitives.Balance](nil), transactionValidityError
+		// todo
+		return sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 	}
 
 	return sc.NewOption[primitives.Balance](imbalance), nil
@@ -44,14 +46,18 @@ func (ct chargeTransaction) CorrectAndDepositFee(who primitives.AccountId[primit
 		refundPositiveImbalance, err := ct.currencyAdapter.DepositIntoExisting(who, refundAmount)
 		if err != nil {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-			return invalidTransactionPayment
+			// invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			// return invalidTransactionPayment
+			// todo
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 		}
 
 		if alreadyPaidNegativeImbalance.Lt(refundPositiveImbalance) {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
-			return invalidTransactionPayment
+			// invalidTransactionPayment, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+			// return invalidTransactionPayment
+			// todo
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 		}
 	}
 	return nil

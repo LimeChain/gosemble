@@ -60,8 +60,10 @@ func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primiti
 		currentWeight, err := cw.systemModule.StorageBlockWeight()
 		if err != nil {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-			return transactionValidityError
+			// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			// return transactionValidityError
+			// todo
+			return primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 		}
 		err = currentWeight.Reduce(unspent, info.Class)
 		if err != nil {
@@ -123,8 +125,10 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 	currentLen, err := cw.systemModule.StorageAllExtrinsicsLen()
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return 0, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return 0, transactionValidityError
+		// todo
+		return 0, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
@@ -132,8 +136,10 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 
 	if nextLen > maxLimit(lengthLimit, info) {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-		return sc.U32(0), invalidTransactionExhaustsResources
+		// invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+		// return sc.U32(0), invalidTransactionExhaustsResources
+		// todo
+		return 0, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 
 	return nextLen, nil
@@ -147,8 +153,10 @@ func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitive
 	allWeight, err := cw.systemModule.StorageBlockWeight()
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.ConsumedWeight{}, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return primitives.ConsumedWeight{}, transactionValidityError
+		// todo
+		return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
 }
@@ -166,8 +174,10 @@ func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primit
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return invalidTransactionExhaustsResources
+			// invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			// return invalidTransactionExhaustsResources
+			// todo
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
@@ -189,8 +199,10 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 		err := allConsumedWeight.CheckedAccrue(extrinsicWeight, info.Class)
 		if err != nil {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			// invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			// return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			// todo
+			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
@@ -204,8 +216,10 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 		max := limitPerClass.MaxTotal.Value
 		if consumedPerClass.AnyGt(max) {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			// invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+			// return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			// todo
+			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
@@ -221,8 +235,10 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 			reserved := limitPerClass.Reserved.Value
 			if consumedPerClass.AnyGt(reserved) {
 				// TODO https://github.com/LimeChain/gosemble/issues/271
-				invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-				return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+				// invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+				// return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+				// todo
+				return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 			}
 		}
 	}

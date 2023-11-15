@@ -16,9 +16,13 @@ var (
 )
 
 var (
-	expectedInvalidTransactionStaleErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	expectedUnknownTransactionNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	expectInvalidTransactionPaymentErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+	// expectedInvalidTransactionStaleErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	// expectedUnknownTransactionNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	// expectInvalidTransactionPaymentErr, _               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+	// todo
+	expectedInvalidTransactionStaleErr               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	expectedUnknownTransactionNoUnsignedValidatorErr = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	expectInvalidTransactionPaymentErr               = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 )
 
 var (

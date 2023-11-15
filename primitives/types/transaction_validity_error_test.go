@@ -10,15 +10,23 @@ import (
 )
 
 var (
-	unknownTransactionCannotLookup, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	// unknownTransactionCannotLookup, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	// todo
+	unknownTransactionCannotLookup = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 )
 
 func Test_NewTransactionValidityError_TypeError(t *testing.T) {
-	result, err := NewTransactionValidityError(sc.U8(6))
+	// result, err := NewTransactionValidityError(sc.U8(6))
 
-	assert.Error(t, err)
-	assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
-	assert.Equal(t, TransactionValidityError{}, result)
+	// assert.Error(t, err)
+	// assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
+	// assert.Equal(t, TransactionValidityError{}, result)
+	// todo
+	result := NewTransactionValidityError(sc.U8(6))
+
+	assert.Error(t, result.UnexpectedError())
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", result.Error())
+	assert.Equal(t, TransactionValidityError{NewUnexpectedError(newTypeError("TransactionValidityError"))}, result)
 }
 
 func Test_TransactionValidityError_Encode(t *testing.T) {

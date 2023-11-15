@@ -85,8 +85,10 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 		actualFee, err := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
 		if err != nil {
 			// TODO https://github.com/LimeChain/gosemble/issues/271
-			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-			return transactionValidityError
+			// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+			// return transactionValidityError
+			// todo
+			return primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 		}
 
 		errFee := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
@@ -204,8 +206,10 @@ func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId[primiti
 	fee, err := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), transactionValidityError
+		// todo
+		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 
 	imbalance, errWithdraw := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)

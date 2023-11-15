@@ -2,6 +2,7 @@ package blockbuilder
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"testing"
 
@@ -80,8 +81,10 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(bUxt)
 	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
 	assert.Nil(t, err)
-	validityError, err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	assert.Nil(t, err)
+	// validityError, err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	// assert.Nil(t, err)
+	// todo
+	validityError := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 	applyExtrinsicResultValidityErr, err := primitives.NewApplyExtrinsicResult(validityError)
 	assert.Nil(t, err)
 	bExtrinsicResult := applyExtrinsicResultValidityErr.Bytes()
@@ -98,6 +101,28 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ApplyExtrinsic", uxt)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", bExtrinsicResult)
+}
+
+func Test_Module_ApplyExtrinsic_UnexpectedError_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer(bUxt)
+	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
+	assert.Nil(t, err)
+	// validityError, err := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	// assert.Nil(t, err)
+	// todo
+	validityError := primitives.NewTransactionValidityError(primitives.NewUnexpectedError(fmt.Errorf("panic error")))
+	applyExtrinsicResultValidityErr, err := primitives.NewApplyExtrinsicResult(validityError)
+	assert.Nil(t, err)
+	bExtrinsicResult := applyExtrinsicResultValidityErr.Bytes()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
+	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, validityError)
+	mockMemoryUtils.On("BytesToOffsetAndSize", bExtrinsicResult).Return(ptrAndSize)
+
+	assert.PanicsWithValue(t, "panic error", func() { target.ApplyExtrinsic(dataPtr, dataLen) })
 }
 
 func Test_Module_FinalizeBlock(t *testing.T) {

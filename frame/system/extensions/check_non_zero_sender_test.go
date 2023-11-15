@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	invalidTransactionBadSigner, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
+	// invalidTransactionBadSigner, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
+	// todo
+	invalidTransactionBadSigner = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 )
 
 func Test_CheckNonZeroAddress_AdditionalSigned(t *testing.T) {

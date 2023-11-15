@@ -10,7 +10,9 @@ import (
 )
 
 var (
-	invalidTransactionPayment, _ = NewTransactionValidityError(NewInvalidTransactionPayment())
+	// invalidTransactionPayment, _ = NewTransactionValidityError(NewInvalidTransactionPayment())
+	// todo
+	invalidTransactionPayment = NewTransactionValidityError(NewInvalidTransactionPayment())
 
 	transactionValidityResultTransactionPayment, _ = NewTransactionValidityResult(invalidTransactionPayment)
 	transactionValidityResultDefaultValid, _       = NewTransactionValidityResult(DefaultValidTransaction())

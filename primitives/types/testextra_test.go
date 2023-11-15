@@ -7,7 +7,9 @@ import (
 )
 
 var (
-	unknownTransactionCustomUnknownTransaction, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	// unknownTransactionCustomUnknownTransaction, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	// todo
+	unknownTransactionCustomUnknownTransaction = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 )
 
 type testExtraCheck struct {

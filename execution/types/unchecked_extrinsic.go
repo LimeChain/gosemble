@@ -123,8 +123,10 @@ func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.T
 
 		if !uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress) {
 			// https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionBadProof, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-			return nil, invalidTransactionBadProof
+			// invalidTransactionBadProof, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+			// return nil, invalidTransactionBadProof
+			// todo
+			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
 		return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId[primitives.PublicKey]](signerAddress), uxt.function, extra), nil

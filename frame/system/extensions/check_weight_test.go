@@ -51,7 +51,9 @@ var (
 )
 
 var (
-	invalidTransactionExhaustsResources, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	// invalidTransactionExhaustsResources, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	// todo
+	invalidTransactionExhaustsResources = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 )
 
 func Test_CheckWeight_AdditionalSigned(t *testing.T) {

@@ -37,8 +37,10 @@ func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.Public
 	// before this check if the address is all zeros.
 	if reflect.DeepEqual(who, constants.ZeroAddressAccountId) {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionBadSigner, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
-		return primitives.ValidTransaction{}, invalidTransactionBadSigner
+		// invalidTransactionBadSigner, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
+		// return primitives.ValidTransaction{}, invalidTransactionBadSigner
+		// todo
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
 
 	return primitives.DefaultValidTransaction(), nil

@@ -42,25 +42,34 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primit
 	current, err := cm.systemModule.StorageBlockNumber() // TODO: impl saturated_into::<u64>()
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return nil, transactionValidityError
+		// todo
+		return nil, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 	n := cm.era.Birth(current) // TODO: impl saturated_into::<T::BlockNumber>()
 
 	if !cm.systemModule.StorageBlockHashExists(n) {
-		invalidTransactionAncientBirthBlock, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
-		return nil, invalidTransactionAncientBirthBlock
+		// invalidTransactionAncientBirthBlock, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+		// return nil, invalidTransactionAncientBirthBlock
+		// todo
+		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 	}
 
 	blockHash, err := cm.systemModule.StorageBlockHash(n)
 	if err != nil {
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return nil, transactionValidityError
+		// todo
+		return nil, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
+		// return nil, transactionValidityError
 	}
 	hash, err := primitives.NewH256(blockHash.FixedSequence...)
 	if err != nil {
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		// transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
+		// return nil, transactionValidityError
+		// todo
+		return nil, primitives.NewTransactionValidityError(primitives.NewUnexpectedError(err))
 	}
 	return sc.NewVaryingData(hash), nil
 }

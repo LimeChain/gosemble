@@ -91,19 +91,35 @@ var (
 var (
 	transactionValidityError primitives.TransactionValidityError
 
-	unknownTransactionCannotLookupError, _ = primitives.NewTransactionValidityError(
+	// unknownTransactionCannotLookupError, _ = primitives.NewTransactionValidityError(
+	// 	primitives.NewUnknownTransactionCannotLookup(),
+	// )
+
+	// invalidTransactionExhaustsResourcesError, _ = primitives.NewTransactionValidityError(
+	// 	primitives.NewInvalidTransactionExhaustsResources(),
+	// )
+
+	// invalidTransactionBadMandatory, _ = primitives.NewTransactionValidityError(
+	// 	primitives.NewInvalidTransactionBadMandatory(),
+	// )
+
+	// invalidTransactionMandatoryValidation, _ = primitives.NewTransactionValidityError(
+	// 	primitives.NewInvalidTransactionMandatoryValidation(),
+	// )
+	// todo
+	unknownTransactionCannotLookupError = primitives.NewTransactionValidityError(
 		primitives.NewUnknownTransactionCannotLookup(),
 	)
 
-	invalidTransactionExhaustsResourcesError, _ = primitives.NewTransactionValidityError(
+	invalidTransactionExhaustsResourcesError = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionExhaustsResources(),
 	)
 
-	invalidTransactionBadMandatory, _ = primitives.NewTransactionValidityError(
+	invalidTransactionBadMandatory = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionBadMandatory(),
 	)
 
-	invalidTransactionMandatoryValidation, _ = primitives.NewTransactionValidityError(
+	invalidTransactionMandatoryValidation = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionMandatoryValidation(),
 	)
 
