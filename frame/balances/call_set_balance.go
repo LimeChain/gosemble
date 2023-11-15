@@ -159,17 +159,21 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
+		// TODO: handle err
 		newPositiveImbalance(newFree.Sub(oldFree), c.issuance).
 			Drop()
 	} else if newFree.Lt(oldFree) {
+		// TODO: handle err
 		newNegativeImbalance(oldFree.Sub(newFree), c.issuance).
 			Drop()
 	}
 
 	if newReserved.Gt(oldReserved) {
+		// TODO: handle err
 		newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).
 			Drop()
 	} else if newReserved.Lt(oldReserved) {
+		// TODO: handle err
 		newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).
 			Drop()
 	}

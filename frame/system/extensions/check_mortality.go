@@ -39,26 +39,29 @@ func (cm CheckMortality) Bytes() []byte {
 }
 
 func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
-	current, err := cm.systemModule.StorageBlockNumber() // TODO: impl saturated_into::<u64>()
+	current, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
 		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
 		return nil, transactionValidityError
 	}
-	n := cm.era.Birth(current) // TODO: impl saturated_into::<T::BlockNumber>()
+	n := cm.era.Birth(current)
 
 	if !cm.systemModule.StorageBlockHashExists(n) {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
 		invalidTransactionAncientBirthBlock, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 		return nil, invalidTransactionAncientBirthBlock
 	}
 
 	blockHash, err := cm.systemModule.StorageBlockHash(n)
 	if err != nil {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
 		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
 		return nil, transactionValidityError
 	}
 	hash, err := primitives.NewH256(blockHash.FixedSequence...)
 	if err != nil {
+		// TODO https://github.com/LimeChain/gosemble/issues/271
 		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
 		return nil, transactionValidityError
 	}
@@ -66,7 +69,7 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primit
 }
 
 func (cm CheckMortality) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	currentBlockNum, err := cm.systemModule.StorageBlockNumber() // TODO: per module implementation
+	currentBlockNum, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
 		log.Critical(err.Error())
 	}

@@ -124,6 +124,7 @@ func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddre
 		return types.NewDispatchErrorCannotLookup()
 	}
 
+	// TODO: handle err
 	c.force(target, amount)
 
 	return nil
@@ -167,8 +168,7 @@ func removeReserveAndFree(account *types.AccountData, value sc.U128) sc.Result[s
 	actual := sc.Min128(account.Reserved, value)
 	account.Reserved = account.Reserved.Sub(actual)
 
-	// TODO: defensive_saturating_add
-	account.Free = account.Free.Add(actual)
+	account.Free = sc.SaturatingAddU128(account.Free, actual)
 
 	return sc.Result[sc.Encodable]{
 		HasError: false,

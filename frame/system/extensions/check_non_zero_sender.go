@@ -31,10 +31,6 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 }
 
 func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO:
-	// Not sure when this is possible.
-	// Checks signed transactions but will fail
-	// before this check if the address is all zeros.
 	if reflect.DeepEqual(who, constants.ZeroAddressAccountId) {
 		// TODO https://github.com/LimeChain/gosemble/issues/271
 		invalidTransactionBadSigner, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())

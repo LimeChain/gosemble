@@ -188,7 +188,3 @@ func Test_Era_Death(t *testing.T) {
 		})
 	}
 }
-
-func Test_EraTypeDefinition(t *testing.T) {
-	// TODO
-}

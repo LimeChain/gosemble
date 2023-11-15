@@ -21,9 +21,6 @@ type AdditionalSigned = sc.VaryingData
 // Note that the payload that we sign to produce unchecked extrinsic signature
 // is going to be different than the `SignaturePayload` - so the thing the extrinsic
 // actually contains.
-//
-// TODO: make it generic
-// generic::SignedPayload<RuntimeCall, SignedExtra>;
 type signedPayload struct {
 	additionalSigned AdditionalSigned
 	call             Call

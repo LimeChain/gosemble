@@ -130,7 +130,6 @@ func (m Module[T]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 func (m Module[T]) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
-			// TODO: types
 			sc.Sequence[primitives.MetadataDefinitionVariant]{}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataEmptyTypeParameter("T"),

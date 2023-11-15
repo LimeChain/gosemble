@@ -56,6 +56,11 @@ func (m *Executive) ValidateTransaction(source primitives.TransactionSource, uxt
 	return args.Get(0).(primitives.ValidTransaction), nil
 }
 
-func (m *Executive) OffchainWorker(header primitives.Header) {
-	m.Called(header)
+func (m *Executive) OffchainWorker(header primitives.Header) error {
+	args := m.Called(header)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(error)
 }

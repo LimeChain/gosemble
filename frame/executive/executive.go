@@ -18,7 +18,7 @@ type Module interface {
 	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
 	FinalizeBlock() (primitives.Header, error)
 	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
-	OffchainWorker(header primitives.Header)
+	OffchainWorker(header primitives.Header) error
 }
 
 type module struct {
@@ -62,7 +62,10 @@ func (m module) InitializeBlock(header primitives.Header) error {
 	weight = weight.SaturatingAdd(onInit)
 	weight = weight.SaturatingAdd(m.system.BlockWeights().BaseBlock)
 	// use in case of dynamic weight calculation
-	m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
+	err = m.system.RegisterExtraWeightUnchecked(weight, primitives.NewDispatchClassMandatory())
+	if err != nil {
+		return err
+	}
 
 	m.system.NoteFinishedInitialize()
 	return nil
@@ -73,9 +76,12 @@ func (m module) ExecuteBlock(block primitives.Block) error {
 	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
 	log.Trace("execute_block " + strconv.Itoa(int(block.Header().Number)))
 
-	m.InitializeBlock(block.Header())
+	err := m.InitializeBlock(block.Header())
+	if err != nil {
+		return err
+	}
 
-	err := m.initialChecks(block)
+	err = m.initialChecks(block)
 	if err != nil {
 		return err
 	}
@@ -207,18 +213,20 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	return checked.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
 
-func (m module) OffchainWorker(header primitives.Header) {
+func (m module) OffchainWorker(header primitives.Header) error {
 	m.system.Initialize(header.Number, header.ParentHash, header.Digest)
 
 	hash := m.hashing.Blake256(header.Bytes())
 	blockHash, err := primitives.NewBlake2bHash(sc.BytesToSequenceU8(hash)...)
 	if err != nil {
-		log.Critical(err.Error())
+		return err
 	}
 
 	m.system.StorageBlockHashSet(header.Number, blockHash)
 
 	m.runtimeExtrinsic.OffchainWorker(header.Number)
+
+	return nil
 }
 
 func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {

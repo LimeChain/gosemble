@@ -85,7 +85,6 @@ func New(index sc.U8, config *Config) Module {
 	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
 
 	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
-	// TODO: add more dispatchables
 
 	return module{
 		Index:     index,

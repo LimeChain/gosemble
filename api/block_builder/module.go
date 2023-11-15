@@ -82,7 +82,10 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	}
 
 	buffer.Reset()
-	applyExtrinsicResult.Encode(buffer) // TODO: handle err
+	err = applyExtrinsicResult.Encode(buffer)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 
 	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
 }

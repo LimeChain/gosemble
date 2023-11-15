@@ -29,7 +29,7 @@ type Module struct {
 	hooks.DefaultDispatchModule
 	Index     sc.U8
 	Config    *Config
-	Constants *consts
+	constants *consts
 	storage   *storage
 	functions map[sc.U8]primitives.Call
 }
@@ -41,7 +41,7 @@ func New[T primitives.PublicKey](index sc.U8, config *Config) Module {
 	module := Module{
 		Index:     index,
 		Config:    config,
-		Constants: constants,
+		constants: constants,
 		storage:   storage,
 	}
 	functions := make(map[sc.U8]primitives.Call)
@@ -224,7 +224,7 @@ func (m Module) mutateAccount(maybeAccount *primitives.AccountData, f func(who *
 func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
 	total := new.Total()
 
-	if total.Lt(m.Constants.ExistentialDeposit) {
+	if total.Lt(m.constants.ExistentialDeposit) {
 		if total.Eq(constants.Zero) {
 			return sc.NewOption[primitives.AccountData](nil), sc.NewOption[negativeImbalance](nil)
 		} else {
@@ -248,7 +248,7 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 		}
 	}
 
-	existentialDeposit := m.Constants.ExistentialDeposit
+	existentialDeposit := m.constants.ExistentialDeposit
 
 	wouldBeDead := (newFreeAccount.Add(account.Reserved)).Lt(existentialDeposit)
 	wouldKill := wouldBeDead && ((account.Free.Add(account.Reserved)).Gte(existentialDeposit))
@@ -579,11 +579,6 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				primitives.MetadataModuleStorageEntryModifierDefault,
 				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
 				"The total units issued in the system."),
-			//primitives.NewMetadataModuleStorageEntry(
-			//	"InactiveIssuance",
-			//	primitives.MetadataModuleStorageEntryModifierDefault,
-			//	primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.PrimitiveTypesU128)),
-			// TODO: Locks, Reserves, currently not used
 		},
 	})
 }
@@ -593,20 +588,20 @@ func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 		primitives.NewMetadataModuleConstant(
 			"ExistentialDeposit",
 			sc.ToCompact(metadata.PrimitiveTypesU128),
-			sc.BytesToSequenceU8(m.Constants.ExistentialDeposit.Bytes()),
+			sc.BytesToSequenceU8(m.constants.ExistentialDeposit.Bytes()),
 			"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
 		),
 		primitives.NewMetadataModuleConstant(
 			"MaxLocks",
 			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.Constants.MaxLocks.Bytes()),
+			sc.BytesToSequenceU8(m.constants.MaxLocks.Bytes()),
 			"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
 		),
 		primitives.NewMetadataModuleConstant(
 			"MaxReserves",
 			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.Constants.MaxReserves.Bytes()),
+			sc.BytesToSequenceU8(m.constants.MaxReserves.Bytes()),
 			"The maximum number of named reserves that can exist on an account.",
 		),
-	} // TODO: add more
+	}
 }

@@ -420,7 +420,7 @@ func Test_Module_postMutation_LessExistentialDeposit(t *testing.T) {
 	target := setupModule()
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
-	target.Constants.ExistentialDeposit = sc.NewU128(6)
+	target.constants.ExistentialDeposit = sc.NewU128(6)
 
 	accOption, imbalance := target.postMutation(*fromAccountData)
 

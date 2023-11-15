@@ -52,9 +52,9 @@ func (m Module) Item() primitives.ApiItem {
 // Version returns a pointer-size SCALE-encoded Runtime version.
 // [Specification](https://spec.polkadot.network/#defn-rt-core-version)
 func (m Module) Version() int64 {
-	buffer := &bytes.Buffer{}
-	m.runtimeVersion.Encode(buffer) // TODO: handle err
-	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
+	encoded := m.runtimeVersion.Bytes()
+
+	return m.memUtils.BytesToOffsetAndSize(encoded)
 }
 
 // InitializeBlock starts the execution of a particular block.
@@ -70,7 +70,11 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	m.executive.InitializeBlock(header) // TODO: handle err
+
+	err = m.executive.InitializeBlock(header)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 }
 
 // ExecuteBlock executes the provided block.
@@ -86,7 +90,11 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	m.executive.ExecuteBlock(block) // TODO: handle err
+
+	err = m.executive.ExecuteBlock(block)
+	if err != nil {
+		log.Critical(err.Error())
+	}
 }
 
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
