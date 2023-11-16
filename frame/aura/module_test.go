@@ -213,7 +213,7 @@ func Test_Aura_Metadata(t *testing.T) {
 
 func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageDigest.On("Get").Return(types.Digest{})
+	mockStorageDigest.On("Get").Return(types.Digest{}, nil)
 
 	onInit, err := module.OnInitialize(blockNumber)
 	assert.Nil(t, err)
@@ -225,8 +225,8 @@ func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
 
 func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)))
-	mockStorageCurrentSlot.On("Get").Return(sc.U64(2))
+	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)), nil)
+	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
 
 	assert.PanicsWithValue(t, errSlotMustIncrease, func() {
 		module.OnInitialize(blockNumber)
@@ -237,8 +237,8 @@ func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 
 func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)))
-	mockStorageCurrentSlot.On("Get").Return(sc.U64(0))
+	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)), nil)
+	mockStorageCurrentSlot.On("Get").Return(sc.U64(0), nil)
 	mockStorageCurrentSlot.On("Put", sc.U64(1)).Return()
 	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(3)), nil)
 
@@ -252,7 +252,7 @@ func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {
 
 func Test_Aura_OnTimestampSet_DurationCannotBeZero(t *testing.T) {
 	setup(0)
-	mockStorageCurrentSlot.On("Get").Return(0)
+	mockStorageCurrentSlot.On("Get").Return(0, nil)
 
 	assert.PanicsWithValue(t, errSlotDurationZero, func() {
 		module.OnTimestampSet(1)
@@ -261,7 +261,7 @@ func Test_Aura_OnTimestampSet_DurationCannotBeZero(t *testing.T) {
 
 func Test_Aura_OnTimestampSet_TimestampSlotMismatch(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageCurrentSlot.On("Get").Return(sc.U64(2))
+	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
 
 	assert.PanicsWithValue(t, errTimestampSlotMismatch, func() {
 		module.OnTimestampSet(sc.U64(4_000))

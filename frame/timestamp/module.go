@@ -20,8 +20,9 @@ var (
 )
 
 var (
-	errTimestampNotUpdated          = "Timestamp must be updated once in the block"
-	errTimestampInherentNotProvided = "Timestamp inherent must be provided."
+	errTimestampNotUpdated                      = "Timestamp must be updated once in the block"
+	errTimestampInherentNotProvided             = "Timestamp inherent data must be provided."
+	errTimestampInherentDataNotCorrectlyEncoded = "Timestamp inherent data not correctly encoded."
 )
 
 type Module struct {
@@ -86,16 +87,15 @@ func (m Module) CreateInherent(inherent primitives.InherentData) (sc.Option[prim
 		log.Critical(errTimestampInherentNotProvided)
 	}
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(inherentData))
 	ts, err := sc.DecodeU64(buffer)
 	if err != nil {
-		return sc.Option[primitives.Call]{}, err
+		log.Critical(errTimestampInherentDataNotCorrectlyEncoded)
 	}
 
 	now, err := m.storage.Now.Get()
 	if err != nil {
-		return sc.Option[primitives.Call]{}, err
+		log.Critical(err.Error())
 	}
 
 	nextTimestamp := sc.Max64(ts, now+m.constants.MinimumPeriod)
@@ -121,16 +121,15 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 		log.Critical(errTimestampInherentNotProvided)
 	}
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(inherentData))
 	ts, err := sc.DecodeU64(buffer)
 	if err != nil {
-		return primitives.NewInherentErrorFatalErrorReported()
+		log.Critical(errTimestampInherentDataNotCorrectlyEncoded)
 	}
 
 	systemNow, err := m.storage.Now.Get()
 	if err != nil {
-		return primitives.NewInherentErrorFatalErrorReported()
+		log.Critical(err.Error())
 	}
 
 	minimum := systemNow + m.constants.MinimumPeriod

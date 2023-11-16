@@ -92,7 +92,7 @@ func Test_InherentData_Put_Error(t *testing.T) {
 
 	result := inherent.Put(key0, value1)
 
-	assert.Equal(t, NewInherentErrorInherentDataExists(sc.BytesToSequenceU8(key0[:])), result)
+	assert.Equal(t, NewInherentErrorInherentDataExists(sc.BytesToFixedSequenceU8(key0[:])), result)
 }
 
 func Test_InherentData_Get(t *testing.T) {

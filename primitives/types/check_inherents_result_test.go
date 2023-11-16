@@ -102,9 +102,9 @@ func Test_CheckInherentsResult_PutError(t *testing.T) {
 }
 
 func Test_CheckInherentsResult_PutError_ExistingIdentifier(t *testing.T) {
-	err := targetCheckInherentsResultOkWithIdent.PutError(inherentIdentifier, NewInherentErrorApplication())
+	err := targetCheckInherentsResultOkWithIdent.PutError(inherentIdentifier, NewInherentErrorApplication("error"))
 
-	assert.Equal(t, NewInherentErrorInherentDataExists(sc.BytesToSequenceU8(inherentIdentifier[:])), err)
+	assert.Equal(t, NewInherentErrorInherentDataExists(sc.BytesToFixedSequenceU8(inherentIdentifier[:])), err)
 }
 
 func Test_DecodeCheckInherentsResult(t *testing.T) {

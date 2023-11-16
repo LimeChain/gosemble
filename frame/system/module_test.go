@@ -169,7 +169,7 @@ func Test_Module_Version(t *testing.T) {
 func Test_Module_StorageDigest(t *testing.T) {
 	target := setupModule()
 
-	mockStorageDigest.On("Get").Return(digest)
+	mockStorageDigest.On("Get").Return(digest, nil)
 
 	result, err := target.StorageDigest()
 	assert.Nil(t, err)
@@ -186,7 +186,7 @@ func Test_Module_StorageBlockWeight(t *testing.T) {
 	}
 	target := setupModule()
 
-	mockStorageBlockWeight.On("Get").Return(blockWeight)
+	mockStorageBlockWeight.On("Get").Return(blockWeight, nil)
 
 	result, err := target.StorageBlockWeight()
 	assert.Nil(t, err)
@@ -249,7 +249,7 @@ func Test_Module_StorageBlockHashExists(t *testing.T) {
 func Test_Module_StorageBlockNumber(t *testing.T) {
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(blockNumber)
+	mockStorageBlockNumber.On("Get").Return(blockNumber, nil)
 
 	result, err := target.StorageBlockNumber()
 	assert.Nil(t, err)
@@ -275,7 +275,7 @@ func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
 	}
 	target := setupModule()
 
-	mockStorageLastRuntimeUpgrade.On("Get").Return(lrui)
+	mockStorageLastRuntimeUpgrade.On("Get").Return(lrui, nil)
 
 	result, err := target.StorageLastRuntimeUpgrade()
 	assert.Nil(t, err)
@@ -324,7 +324,7 @@ func Test_Module_StorageAllExtrinsicLen(t *testing.T) {
 	extrinsicLen := sc.U32(2)
 	target := setupModule()
 
-	mockStorageAllExtrinsicsLen.On("Get").Return(extrinsicLen)
+	mockStorageAllExtrinsicsLen.On("Get").Return(extrinsicLen, nil)
 
 	result, err := target.StorageAllExtrinsicsLen()
 	assert.Nil(t, err)
@@ -382,7 +382,7 @@ func Test_Module_RegisterExtraWeightUnchecked(t *testing.T) {
 		Mandatory:   blockWeight.Mandatory,
 	}
 
-	mockStorageBlockWeight.On("Get").Return(blockWeight)
+	mockStorageBlockWeight.On("Get").Return(blockWeight, nil)
 	mockStorageBlockWeight.On("Put", expectCurrentWeight)
 
 	target.RegisterExtraWeightUnchecked(weight, class)
@@ -407,7 +407,7 @@ func Test_Module_NoteExtrinsic(t *testing.T) {
 	extrinsicIndex := sc.U32(1)
 	target := setupModule()
 
-	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex)
+	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex, nil)
 	mockStorageExtrinsicData.On("Put", extrinsicIndex, sc.BytesToSequenceU8(extrinsicBytes)).Return()
 
 	target.NoteExtrinsic(extrinsicBytes)
@@ -444,13 +444,13 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicSuccess(t *testing.T) {
 
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(blockNum)
-	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
-	mockStorageEventCount.On("Get").Return(eventCount)
+	mockStorageBlockNumber.On("Get").Return(blockNum, nil)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization(), nil)
+	mockStorageEventCount.On("Get").Return(eventCount, nil)
 	mockStorageEventCount.On("Put", eventCount+1).Return()
 	mockStorageEvents.On("Append", expectEventRecord).Return()
 
-	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex)
+	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex, nil)
 	mockStorageExtrinsicIndex.On("Put", extrinsicIndex+1).Return()
 	mockStorageExecutionPhase.On("Put", primitives.NewExtrinsicPhaseApply(extrinsicIndex+1)).Return()
 
@@ -496,13 +496,13 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(blockNum)
-	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
-	mockStorageEventCount.On("Get").Return(eventCount)
+	mockStorageBlockNumber.On("Get").Return(blockNum, nil)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization(), nil)
+	mockStorageEventCount.On("Get").Return(eventCount, nil)
 	mockStorageEventCount.On("Put", eventCount+1).Return()
 	mockStorageEvents.On("Append", expectEventRecord).Return()
 
-	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex)
+	mockStorageExtrinsicIndex.On("Get").Return(extrinsicIndex, nil)
 	mockStorageExtrinsicIndex.On("Put", extrinsicIndex+1).Return()
 	mockStorageExecutionPhase.On("Put", primitives.NewExtrinsicPhaseApply(extrinsicIndex+1)).Return()
 
@@ -913,7 +913,7 @@ func Test_Module_incrementProviders_RefStatusCreated(t *testing.T) {
 	}
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
+	mockStorageBlockNumber.On("Get").Return(sc.U64(0), nil)
 
 	result := target.incrementProviders(targetAccountId, accountInfo)
 
@@ -966,9 +966,9 @@ func Test_Module_DepositEvent_Success(t *testing.T) {
 	eventCount := sc.U32(2)
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(blockNum)
-	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
-	mockStorageEventCount.On("Get").Return(eventCount)
+	mockStorageBlockNumber.On("Get").Return(blockNum, nil)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization(), nil)
+	mockStorageEventCount.On("Get").Return(eventCount, nil)
 	mockStorageEventCount.On("Put", eventCount+1).Return()
 	mockStorageEvents.On("Append", expectEventRecord).Return()
 
@@ -1005,9 +1005,9 @@ func Test_Module_depositEventIndexed_Success(t *testing.T) {
 	topicValue := sc.NewVaryingData(blockNum, eventCount)
 	target := setupModule()
 
-	mockStorageBlockNumber.On("Get").Return(blockNum)
-	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
-	mockStorageEventCount.On("Get").Return(eventCount)
+	mockStorageBlockNumber.On("Get").Return(blockNum, nil)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization(), nil)
+	mockStorageEventCount.On("Get").Return(eventCount, nil)
 	mockStorageEventCount.On("Put", eventCount+1).Return()
 	mockStorageEvents.On("Append", expectEventRecord).Return()
 	mockStorageEventTopics.On("Append", topics[0], topicValue).Once()
@@ -1027,9 +1027,9 @@ func Test_Module_depositEventIndexed_Success(t *testing.T) {
 
 func Test_Module_DepositEvent_Overflow(t *testing.T) {
 	target := setupModule()
-	mockStorageBlockNumber.On("Get").Return(sc.U64(1))
-	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization())
-	mockStorageEventCount.On("Get").Return(sc.U32(math.MaxUint32))
+	mockStorageBlockNumber.On("Get").Return(sc.U64(1), nil)
+	mockStorageExecutionPhase.On("Get").Return(primitives.NewExtrinsicPhaseInitialization(), nil)
+	mockStorageEventCount.On("Get").Return(sc.U32(math.MaxUint32), nil)
 
 	target.DepositEvent(newEventCodeUpdated(moduleId))
 
@@ -1043,7 +1043,7 @@ func Test_Module_DepositEvent_Overflow(t *testing.T) {
 
 func Test_Module_DepositEvent_ZeroBlockNumber(t *testing.T) {
 	target := setupModule()
-	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
+	mockStorageBlockNumber.On("Get").Return(sc.U64(0), nil)
 
 	target.DepositEvent(newEventCodeUpdated(moduleId))
 
@@ -1062,7 +1062,7 @@ func Test_Module_decrementProviders_HasAccount_NoProvidersLeft(t *testing.T) {
 		Value: primitives.DecRefStatusReaped,
 	}
 
-	mockStorageBlockNumber.On("Get").Return(sc.U64(0))
+	mockStorageBlockNumber.On("Get").Return(sc.U64(0), nil)
 
 	result := target.decrementProviders(targetAccountId, &maybeAccount)
 

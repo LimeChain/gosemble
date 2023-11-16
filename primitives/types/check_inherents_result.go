@@ -6,13 +6,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-const (
-	InherentErrorInherentDataExists sc.U8 = iota
-	InherentErrorDecodingFailed
-	InherentErrorFatalErrorReported
-	InherentErrorApplication
-)
-
 type CheckInherentsResult struct {
 	Okay       sc.Bool
 	FatalError sc.Bool

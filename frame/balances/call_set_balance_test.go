@@ -204,7 +204,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1)) // positive imbalance
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1), nil) // positive imbalance
 	mockStorageTotalIssuance.On("Put", newFree.Sub(oldFree).Add(sc.NewU128(1))).
 		Return().Once() // newFree positive imbalance
 	mockStorageTotalIssuance.On("Put", newReserved.Sub(oldReserved).Add(sc.NewU128(1))).
@@ -284,10 +284,10 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).Return(mockResult)
-	mockStorageTotalIssuance.On("Get").Return(oldReserved.Add(oldFree)).Once() // newFree negative imbalance
-	mockStorageTotalIssuance.On("Put", oldFree).Return().Once()                // newFree negative imbalance
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(4)).Once()            // newReserved negative imbalance
-	mockStorageTotalIssuance.On("Put", sc.NewU128(2)).Return().Once()          // newReserved negative imbalance
+	mockStorageTotalIssuance.On("Get").Return(oldReserved.Add(oldFree), nil).Once() // newFree negative imbalance
+	mockStorageTotalIssuance.On("Put", oldFree).Return().Once()                     // newFree negative imbalance
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(4), nil).Once()            // newReserved negative imbalance
+	mockStorageTotalIssuance.On("Put", sc.NewU128(2)).Return().Once()               // newReserved negative imbalance
 	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)

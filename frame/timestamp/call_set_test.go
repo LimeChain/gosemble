@@ -164,7 +164,7 @@ func Test_Call_Set_PaysFee(t *testing.T) {
 func Test_Call_Set_Dispatch_Success(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
-	mockStorageNow.On("Get").Return(sc.U64(0))
+	mockStorageNow.On("Get").Return(sc.U64(0), nil)
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
@@ -182,7 +182,7 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
-	mockStorageNow.On("Get").Return(now - c.MinimumPeriod)
+	mockStorageNow.On("Get").Return(now-c.MinimumPeriod, nil)
 	mockStorageNow.On("Put", now).Return()
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
@@ -235,7 +235,7 @@ func Test_Call_Set_Dispatch_InvalidStorageDidUpdate(t *testing.T) {
 func Test_Call_Set_Dispatch_InvalidPreviousTimestamp(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
-	mockStorageNow.On("Get").Return(sc.U64(1000))
+	mockStorageNow.On("Get").Return(sc.U64(1000), nil)
 
 	assert.PanicsWithValue(t,
 		errTimestampMinimumPeriod,
@@ -251,7 +251,7 @@ func Test_Call_Set_Dispatch_InvalidPreviousTimestamp(t *testing.T) {
 func Test_Call_Set_Dispatch_InvalidLessThanMinPeriod(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(false)
-	mockStorageNow.On("Get").Return(sc.U64(1001))
+	mockStorageNow.On("Get").Return(sc.U64(1001), nil)
 
 	assert.PanicsWithValue(t,
 		errTimestampMinimumPeriod,
