@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -35,16 +37,11 @@ func (ie InherentError) IsFatal() sc.Bool {
 }
 
 func (ie InherentError) Error() string {
-	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	switch ie.VaryingData[0] {
 	case InherentErrorInherentDataExists:
-		// return fmt.Sprintf("Inherent data already exists for identifier: [%v]", ie.VaryingData[1])
-		identifier := sc.SequenceU8ToBytes(ie.VaryingData[1].(sc.Sequence[sc.U8]))
-		return "Inherent data already exists for identifier: [" + string(identifier) + "]"
+		return fmt.Sprintf("Inherent data already exists for identifier: %v", ie.VaryingData[1].(sc.Sequence[sc.U8]))
 	case InherentErrorDecodingFailed:
-		// return fmt.Sprintf("Failed to decode inherent data for identifier: [%v]", ie.VaryingData[1])
-		identifier := sc.SequenceU8ToBytes(ie.VaryingData[1].(sc.Sequence[sc.U8]))
-		return "Failed to decode inherent data for identifier: [" + string(identifier) + "]"
+		return fmt.Sprintf("Failed to decode inherent data for identifier: %v", ie.VaryingData[1].(sc.Sequence[sc.U8]))
 	case InherentErrorFatalErrorReported:
 		return "There was already a fatal error reported and no other errors are allowed"
 	case InherentErrorApplication:

@@ -1,7 +1,7 @@
 package grandpa
 
 import (
-	"strconv"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -90,9 +90,7 @@ func (m Module[T]) Authorities() (sc.Sequence[primitives.Authority], error) {
 
 	authorities := versionedAuthorityList.AuthorityList
 	if versionedAuthorityList.Version != AuthorityVersion {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		// log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
-		log.Warn("unknown Grandpa authorities version: [" + strconv.Itoa(int(versionedAuthorityList.Version)) + "]")
+		log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
 		return sc.Sequence[primitives.Authority]{}, nil
 	}
 

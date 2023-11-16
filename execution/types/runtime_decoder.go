@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"strconv"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -111,9 +111,7 @@ func (rd runtimeDecoder[T]) DecodeCall(buffer *bytes.Buffer) (primitives.Call, e
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		// log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
-		log.Critical("function index [" + strconv.Itoa(int(functionIndex)) + "] for module [" + strconv.Itoa(int(moduleIndex)) + "] not found")
+		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
 	}
 
 	function, err = function.DecodeArgs(buffer)

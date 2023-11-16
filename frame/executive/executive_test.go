@@ -257,7 +257,7 @@ func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
 	mockSystemModule.On("NoteFinishedInitialize")
 	mockRuntimeExtrinsic.On("EnsureInherentsAreFirst", block).Return(0)
 
-	assert.PanicsWithValue(t, "invalid inherent position for extrinsic at index 0", func() {
+	assert.PanicsWithValue(t, "invalid inherent position for extrinsic at index [0]", func() {
 		target.ExecuteBlock(block)
 	})
 }

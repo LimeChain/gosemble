@@ -77,7 +77,6 @@ func (m Metadata) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeMetadata(buffer *bytes.Buffer) (Metadata, error) {
-	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 	metaReserved, err := sc.DecodeU32(buffer)
 	if err != nil {
 		return Metadata{}, err
