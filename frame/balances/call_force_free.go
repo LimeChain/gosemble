@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -118,9 +119,7 @@ func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddre
 
 	target, err := types.Lookup(who)
 	if err != nil {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		// log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
-		log.Debug("Failed to lookup [" + string(who.Bytes()) + "]")
+		log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
 		return types.NewDispatchErrorCannotLookup()
 	}
 

@@ -2,6 +2,7 @@ package system
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"reflect"
 	"strconv"
@@ -266,8 +267,8 @@ func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
 
 	if r.HasError {
-		// log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", m.Storage.BlockNumber.Get(), r.Err))
 		blockNum, err := m.StorageBlockNumber()
+		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", blockNum, r.Err))
 		if err != nil {
 			return err
 		}

@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 	"math/bits"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -133,16 +133,13 @@ func EraTypeDefinition() sc.Sequence[MetadataDefinitionVariant] {
 	// this is necessary since the size of the encoded Mortal variant is `u16`, conditional on
 	// the value of the first byte being > 0.
 	for i := 1; i <= 255; i++ {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
 		result = append(result, NewMetadataDefinitionVariant(
-			// fmt.Sprintf("Mortal%d", i),
-			"Mortal "+strconv.Itoa(int(i)),
+			fmt.Sprintf("Mortal%d", i),
 			sc.Sequence[MetadataTypeDefinitionField]{
 				NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
 			},
 			sc.U8(i),
-			// fmt.Sprintf("Era.Mortal%d", i),
-			"Era.Mortal "+strconv.Itoa(int(i)),
+			fmt.Sprintf("Era.Mortal%d", i),
 		))
 	}
 

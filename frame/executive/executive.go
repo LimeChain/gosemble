@@ -1,6 +1,7 @@
 package executive
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 
@@ -72,9 +73,7 @@ func (m module) InitializeBlock(header primitives.Header) error {
 }
 
 func (m module) ExecuteBlock(block primitives.Block) error {
-	// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-	// log.Trace(fmt.Sprintf("execute_block %v", block.Header.Number))
-	log.Trace("execute_block " + strconv.Itoa(int(block.Header().Number)))
+	log.Trace(fmt.Sprintf("execute_block %v", block.Header().Number))
 
 	err := m.InitializeBlock(block.Header())
 	if err != nil {
@@ -290,9 +289,7 @@ func (m module) initialChecks(block primitives.Block) error {
 
 	inherentsAreFirst := m.runtimeExtrinsic.EnsureInherentsAreFirst(block)
 	if inherentsAreFirst >= 0 {
-		// TODO: there is an issue with fmt.Sprintf when compiled with the "custom gc"
-		// log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
-		log.Critical("invalid inherent position for extrinsic at index " + strconv.Itoa(int(inherentsAreFirst)))
+		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
 	}
 	return nil
 }

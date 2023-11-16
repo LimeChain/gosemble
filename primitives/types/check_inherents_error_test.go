@@ -56,7 +56,7 @@ func Test_InherentError_Error_InherentDataExists(t *testing.T) {
 	err := NewInherentErrorInherentDataExists(identifier)
 
 	assert.Equal(t,
-		"Inherent data already exists for identifier: [\x05\x06]",
+		"Inherent data already exists for identifier: [5 6]",
 		err.Error(),
 	)
 }
@@ -65,7 +65,7 @@ func Test_InherentError_Error_DecodingFailed(t *testing.T) {
 	err := NewInherentErrorDecodingFailed(identifier)
 
 	assert.Equal(t,
-		"Failed to decode inherent data for identifier: [\x05\x06]",
+		"Failed to decode inherent data for identifier: [5 6]",
 		err.Error(),
 	)
 }
