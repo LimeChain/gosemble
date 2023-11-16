@@ -83,10 +83,20 @@ func Test_Module_OnFinalize_Nil(t *testing.T) {
 
 	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), nil)
 
-	assert.PanicsWithValue(t, errTimestampNotUpdated, func() {
-		target.OnFinalize(ts)
-	})
+	result := target.OnFinalize(ts)
 
+	assert.Equal(t, errTimestampNotUpdated, result)
+	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
+}
+
+func Test_Module_OnFinalize_CannotTakeStorageValue(t *testing.T) {
+	target := setupModule()
+
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), errorCannotGetStorageValue)
+
+	result := target.OnFinalize(ts)
+
+	assert.Equal(t, errorCannotGetStorageValue, result)
 	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
 }
 
@@ -95,8 +105,9 @@ func Test_Module_OnFinalize(t *testing.T) {
 
 	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"), nil)
 
-	target.OnFinalize(ts)
+	result := target.OnFinalize(ts)
 
+	assert.NoError(t, result)
 	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
 }
 
@@ -138,9 +149,9 @@ func Test_Module_CreateInherent_NotProvided(t *testing.T) {
 	data := primitives.NewInherentData()
 	target := setupModule()
 
-	assert.PanicsWithValue(t, errTimestampInherentNotProvided, func() {
-		target.CreateInherent(*data)
-	})
+	result, err := target.CreateInherent(*data)
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errTimestampInherentNotProvided, err)
 }
 
 func Test_Module_CreateInherent_CannotGetStorageValue(t *testing.T) {
@@ -151,10 +162,10 @@ func Test_Module_CreateInherent_CannotGetStorageValue(t *testing.T) {
 
 	mockStorageNow.On("Get").Return(ts, errorCannotGetStorageValue)
 
-	assert.PanicsWithValue(t, errorCannotGetStorageValue.Error(), func() {
-		target.CreateInherent(*data)
-	})
+	result, err := target.CreateInherent(*data)
 
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errorCannotGetStorageValue, err)
 	mockStorageNow.AssertCalled(t, "Get")
 }
 
@@ -165,9 +176,9 @@ func Test_Module_CreateInherent_InherentDataNotCorrectlyEncoded(t *testing.T) {
 	inherentData := primitives.NewInherentData()
 	assert.NoError(t, inherentData.Put(inherentIdentifier, invalid))
 
-	assert.PanicsWithValue(t, errTimestampInherentDataNotCorrectlyEncoded, func() {
-		target.CreateInherent(*inherentData)
-	})
+	result, err := target.CreateInherent(*inherentData)
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errTimestampInherentDataNotCorrectlyEncoded, err)
 }
 
 func Test_Module_CheckInherent(t *testing.T) {
@@ -213,7 +224,7 @@ func Test_Module_CheckInherent_InherentNotProvided(t *testing.T) {
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
 
-	assert.PanicsWithValue(t, errTimestampInherentNotProvided, func() {
+	assert.PanicsWithValue(t, errTimestampInherentNotProvided.Error(), func() {
 		target.CheckInherent(mockCall, *inherentData)
 	})
 
@@ -233,7 +244,7 @@ func Test_Module_CheckInherent_InherentDataNotCorrectlyEncoded(t *testing.T) {
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
 
-	assert.PanicsWithValue(t, errTimestampInherentDataNotCorrectlyEncoded, func() {
+	assert.PanicsWithValue(t, errTimestampInherentDataNotCorrectlyEncoded.Error(), func() {
 		target.CheckInherent(mockCall, *inherentData)
 	})
 
