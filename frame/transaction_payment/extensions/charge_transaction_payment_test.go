@@ -75,11 +75,12 @@ func setup(fee types.Balance) {
 	mockCurrencyAdapterForChargeTxPayment = new(mocks.CurrencyAdapter)
 	mockCall = new(mocks.Call)
 
-	targetChargeTxPayment = NewChargeTransactionPayment(
-		mockSystemModule,
-		mockTxPaymentModule,
-		mockCurrencyAdapterForChargeTxPayment,
-	)
+	targetChargeTxPayment = ChargeTransactionPayment{
+		systemModule:        mockSystemModule,
+		txPaymentModule:     mockTxPaymentModule,
+		onChargeTransaction: newChargeTransaction(mockCurrencyAdapterForChargeTxPayment),
+	}
+
 	targetChargeTxPayment.onChargeTransaction = mockOnChargeTransaction
 	targetChargeTxPayment.fee = fee
 }

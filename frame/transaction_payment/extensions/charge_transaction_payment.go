@@ -19,8 +19,8 @@ type ChargeTransactionPayment struct {
 	onChargeTransaction hooks.OnChargeTransaction
 }
 
-func NewChargeTransactionPayment(module system.Module, txPaymentModule transaction_payment.Module, currencyAdapter primitives.CurrencyAdapter) ChargeTransactionPayment {
-	return ChargeTransactionPayment{
+func NewChargeTransactionPayment(module system.Module, txPaymentModule transaction_payment.Module, currencyAdapter primitives.CurrencyAdapter) primitives.SignedExtension {
+	return &ChargeTransactionPayment{
 		systemModule:        module,
 		txPaymentModule:     txPaymentModule,
 		onChargeTransaction: newChargeTransaction(currencyAdapter),

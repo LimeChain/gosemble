@@ -182,6 +182,5 @@ func Test_CheckMortality_Metadata(t *testing.T) {
 
 func setupCheckMortality() CheckMortality {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckMortality(mockModule)
+	return CheckMortality{systemModule: mockModule}
 }

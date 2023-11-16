@@ -13,10 +13,8 @@ type CheckGenesis struct {
 	module system.Module
 }
 
-func NewCheckGenesis(module system.Module) CheckGenesis {
-	return CheckGenesis{
-		module,
-	}
+func NewCheckGenesis(module system.Module) primitives.SignedExtension {
+	return &CheckGenesis{module}
 }
 
 func (cg CheckGenesis) Encode(*bytes.Buffer) error {

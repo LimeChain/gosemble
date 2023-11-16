@@ -117,6 +117,5 @@ func Test_CheckSpecVersion_Metadata(t *testing.T) {
 
 func setupCheckSpecVersion() CheckSpecVersion {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckSpecVersion(mockModule)
+	return CheckSpecVersion{systemModule: mockModule}
 }

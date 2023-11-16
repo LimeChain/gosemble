@@ -255,6 +255,5 @@ func Test_CheckNonce_Metadata(t *testing.T) {
 
 func setupCheckNonce() CheckNonce {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckNonce(mockModule)
+	return CheckNonce{systemModule: mockModule}
 }

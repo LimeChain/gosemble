@@ -666,6 +666,5 @@ func Test_CheckWeight_Metadata(t *testing.T) {
 
 func setupCheckWeight() CheckWeight {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckWeight(mockModule)
+	return CheckWeight{systemModule: mockModule}
 }

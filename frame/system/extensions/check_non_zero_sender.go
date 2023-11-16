@@ -12,8 +12,8 @@ import (
 
 type CheckNonZeroAddress struct{}
 
-func NewCheckNonZeroAddress() CheckNonZeroAddress {
-	return CheckNonZeroAddress{}
+func NewCheckNonZeroAddress() primitives.SignedExtension {
+	return &CheckNonZeroAddress{}
 }
 
 func (c CheckNonZeroAddress) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {

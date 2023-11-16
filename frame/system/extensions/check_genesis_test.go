@@ -123,6 +123,5 @@ func Test_CheckGenesis_Metadata(t *testing.T) {
 
 func setupCheckGenesis() CheckGenesis {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckGenesis(mockModule)
+	return CheckGenesis{mockModule}
 }

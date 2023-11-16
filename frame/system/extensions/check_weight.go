@@ -18,10 +18,8 @@ type CheckWeight struct {
 	systemModule system.Module
 }
 
-func NewCheckWeight(systemModule system.Module) CheckWeight {
-	return CheckWeight{
-		systemModule: systemModule,
-	}
+func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
+	return &CheckWeight{systemModule: systemModule}
 }
 
 func (cw CheckWeight) Encode(*bytes.Buffer) error {

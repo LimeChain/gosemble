@@ -117,6 +117,5 @@ func Test_CheckTxVersion_Metadata(t *testing.T) {
 
 func setupCheckTxVersion() CheckTxVersion {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckTxVersion(mockModule)
+	return CheckTxVersion{systemModule: mockModule}
 }
