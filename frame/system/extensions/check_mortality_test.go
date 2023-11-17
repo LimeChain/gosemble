@@ -182,9 +182,9 @@ func Test_CheckMortality_Metadata(t *testing.T) {
 
 func setupCheckMortality() CheckMortality {
 	mockModule = new(mocks.SystemModule)
-	extention, ok := NewCheckMortality(mockModule).(*CheckMortality)
+	extension, ok := NewCheckMortality(mockModule).(*CheckMortality)
 	if !ok {
 		panic("invalid type assert for *CheckMortality")
 	}
-	return *extention
+	return *extension
 }

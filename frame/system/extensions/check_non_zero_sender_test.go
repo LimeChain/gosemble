@@ -122,9 +122,9 @@ func Test_CheckNonZeroAddress_Metadata(t *testing.T) {
 }
 
 func setupCheckNonZeroSender() CheckNonZeroAddress {
-	extention, ok := NewCheckNonZeroAddress().(*CheckNonZeroAddress)
+	extension, ok := NewCheckNonZeroAddress().(*CheckNonZeroAddress)
 	if !ok {
 		panic("invalid type assert for *CheckNonZeroAddress")
 	}
-	return *extention
+	return *extension
 }
