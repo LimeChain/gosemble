@@ -255,6 +255,9 @@ func Test_CheckNonce_Metadata(t *testing.T) {
 
 func setupCheckNonce() CheckNonce {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckNonce(mockModule)
+	extension, ok := NewCheckNonce(mockModule).(*CheckNonce)
+	if !ok {
+		panic("invalid type assert for *CheckNonce")
+	}
+	return *extension
 }

@@ -666,6 +666,9 @@ func Test_CheckWeight_Metadata(t *testing.T) {
 
 func setupCheckWeight() CheckWeight {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckWeight(mockModule)
+	extension, ok := NewCheckWeight(mockModule).(*CheckWeight)
+	if !ok {
+		panic("invalid type assert for *CheckWeight")
+	}
+	return *extension
 }

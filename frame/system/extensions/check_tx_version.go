@@ -13,10 +13,8 @@ type CheckTxVersion struct {
 	systemModule system.Module
 }
 
-func NewCheckTxVersion(module system.Module) CheckTxVersion {
-	return CheckTxVersion{
-		systemModule: module,
-	}
+func NewCheckTxVersion(module system.Module) primitives.SignedExtension {
+	return &CheckTxVersion{systemModule: module}
 }
 
 func (ctv CheckTxVersion) Encode(*bytes.Buffer) error {

@@ -117,6 +117,9 @@ func Test_CheckTxVersion_Metadata(t *testing.T) {
 
 func setupCheckTxVersion() CheckTxVersion {
 	mockModule = new(mocks.SystemModule)
-
-	return NewCheckTxVersion(mockModule)
+	extension, ok := NewCheckTxVersion(mockModule).(*CheckTxVersion)
+	if !ok {
+		panic("invalid type assert for *CheckTxVersion")
+	}
+	return *extension
 }

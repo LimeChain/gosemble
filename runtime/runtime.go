@@ -142,20 +142,17 @@ func newSignedExtra() primitives.SignedExtra {
 	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
 	txPaymentModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
-	checkMortality := sysExtensions.NewCheckMortality(systemModule)
-	checkNonce := sysExtensions.NewCheckNonce(systemModule)
-	chargeTxPayment := txExtensions.NewChargeTransactionPayment(systemModule, txPaymentModule, balancesModule)
-
 	extras := []primitives.SignedExtension{
 		sysExtensions.NewCheckNonZeroAddress(),
 		sysExtensions.NewCheckSpecVersion(systemModule),
 		sysExtensions.NewCheckTxVersion(systemModule),
 		sysExtensions.NewCheckGenesis(systemModule),
-		&checkMortality,
-		&checkNonce,
+		sysExtensions.NewCheckMortality(systemModule),
+		sysExtensions.NewCheckNonce(systemModule),
 		sysExtensions.NewCheckWeight(systemModule),
-		&chargeTxPayment,
+		txExtensions.NewChargeTransactionPayment(systemModule, txPaymentModule, balancesModule),
 	}
+
 	return primitives.NewSignedExtra(extras)
 }
 

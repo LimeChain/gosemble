@@ -15,8 +15,8 @@ type CheckNonce struct {
 	systemModule system.Module
 }
 
-func NewCheckNonce(systemModule system.Module) CheckNonce {
-	return CheckNonce{systemModule: systemModule}
+func NewCheckNonce(systemModule system.Module) primitives.SignedExtension {
+	return &CheckNonce{systemModule: systemModule}
 }
 
 func (cn CheckNonce) Encode(buffer *bytes.Buffer) error {

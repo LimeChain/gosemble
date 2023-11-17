@@ -15,10 +15,8 @@ type CheckMortality struct {
 	systemModule system.Module
 }
 
-func NewCheckMortality(systemModule system.Module) CheckMortality {
-	return CheckMortality{
-		systemModule: systemModule,
-	}
+func NewCheckMortality(systemModule system.Module) primitives.SignedExtension {
+	return &CheckMortality{systemModule: systemModule}
 }
 
 func (cm CheckMortality) Encode(buffer *bytes.Buffer) error {

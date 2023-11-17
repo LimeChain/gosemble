@@ -13,10 +13,8 @@ type CheckSpecVersion struct {
 	systemModule system.Module
 }
 
-func NewCheckSpecVersion(systemModule system.Module) CheckSpecVersion {
-	return CheckSpecVersion{
-		systemModule: systemModule,
-	}
+func NewCheckSpecVersion(systemModule system.Module) primitives.SignedExtension {
+	return &CheckSpecVersion{systemModule: systemModule}
 }
 
 func (csv CheckSpecVersion) Encode(*bytes.Buffer) error {
