@@ -123,5 +123,9 @@ func Test_CheckGenesis_Metadata(t *testing.T) {
 
 func setupCheckGenesis() CheckGenesis {
 	mockModule = new(mocks.SystemModule)
-	return CheckGenesis{mockModule}
+	extension, ok := NewCheckGenesis(mockModule).(*CheckGenesis)
+	if !ok {
+		panic("invalid type assert for *CheckGenesis")
+	}
+	return *extension
 }

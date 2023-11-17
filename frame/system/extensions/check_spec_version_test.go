@@ -117,5 +117,9 @@ func Test_CheckSpecVersion_Metadata(t *testing.T) {
 
 func setupCheckSpecVersion() CheckSpecVersion {
 	mockModule = new(mocks.SystemModule)
-	return CheckSpecVersion{systemModule: mockModule}
+	extension, ok := NewCheckSpecVersion(mockModule).(*CheckSpecVersion)
+	if !ok {
+		panic("invalid type assert for *CheckSpecVersion")
+	}
+	return *extension
 }
