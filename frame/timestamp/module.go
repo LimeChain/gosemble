@@ -2,6 +2,7 @@ package timestamp
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -20,8 +21,9 @@ var (
 )
 
 var (
-	errTimestampNotUpdated          = "Timestamp must be updated once in the block"
-	errTimestampInherentNotProvided = "Timestamp inherent must be provided."
+	errTimestampNotUpdated                      = errors.New("Timestamp must be updated once in the block")
+	errTimestampInherentNotProvided             = errors.New("Timestamp inherent data must be provided.")
+	errTimestampInherentDataNotCorrectlyEncoded = errors.New("Timestamp inherent data not correctly encoded.")
 )
 
 type Module struct {
@@ -74,7 +76,7 @@ func (m Module) OnFinalize(_ sc.U64) error {
 		return err
 	}
 	if value == nil {
-		log.Critical(errTimestampNotUpdated)
+		return errTimestampNotUpdated
 	}
 	return nil
 }
@@ -83,14 +85,13 @@ func (m Module) CreateInherent(inherent primitives.InherentData) (sc.Option[prim
 	inherentData := inherent.Get(inherentIdentifier)
 
 	if inherentData == nil {
-		log.Critical(errTimestampInherentNotProvided)
+		return sc.Option[primitives.Call]{}, errTimestampInherentNotProvided
 	}
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(inherentData))
 	ts, err := sc.DecodeU64(buffer)
 	if err != nil {
-		return sc.Option[primitives.Call]{}, err
+		return sc.Option[primitives.Call]{}, errTimestampInherentDataNotCorrectlyEncoded
 	}
 
 	now, err := m.storage.Now.Get()
@@ -118,19 +119,21 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 	inherentData := inherent.Get(inherentIdentifier)
 
 	if inherentData == nil {
-		log.Critical(errTimestampInherentNotProvided)
+		// TODO: return err
+		log.Critical(errTimestampInherentNotProvided.Error())
 	}
 
-	buffer := &bytes.Buffer{}
-	buffer.Write(sc.SequenceU8ToBytes(inherentData))
+	buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(inherentData))
 	ts, err := sc.DecodeU64(buffer)
 	if err != nil {
-		return primitives.NewInherentErrorFatalErrorReported()
+		// TODO: return err
+		log.Critical(errTimestampInherentDataNotCorrectlyEncoded.Error())
 	}
 
 	systemNow, err := m.storage.Now.Get()
 	if err != nil {
-		return primitives.NewInherentErrorFatalErrorReported()
+		// TODO: return err
+		log.Critical(err.Error())
 	}
 
 	minimum := systemNow + m.constants.MinimumPeriod

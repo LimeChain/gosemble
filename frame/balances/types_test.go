@@ -33,7 +33,7 @@ func Test_NegativeImbalance_New(t *testing.T) {
 
 func Test_NegativeImbalance_Drop(t *testing.T) {
 	target := setupNegativeImbalance()
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5))
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5), nil)
 	mockStorageTotalIssuance.On("Put", sc.NewU128(0)).Return()
 
 	target.Drop()
@@ -50,7 +50,7 @@ func Test_PositiveImbalance_New(t *testing.T) {
 
 func Test_PositiveImbalance_Drop(t *testing.T) {
 	target := setupPositiveImbalance()
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5))
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5), nil)
 	mockStorageTotalIssuance.On("Put", sc.NewU128(128)).Return()
 
 	target.Drop()
@@ -94,7 +94,7 @@ func Test_DustCleanerValue_Drop(t *testing.T) {
 	expectedEvent := newEventDustLost(moduleId, dustCleanerAccount, issuanceBalance)
 	target := setupDustCleanerValue()
 	mockEventDepositor.On("DepositEvent", expectedEvent).Return()
-	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5))
+	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(5), nil)
 	mockStorageTotalIssuance.On("Put", sc.NewU128(0))
 
 	target.Drop()

@@ -12,12 +12,21 @@ type StorageValue[T sc.Encodable] struct {
 func (m *StorageValue[T]) Get() (T, error) {
 	args := m.Called()
 
-	return args.Get(0).(T), nil
+	if args.Get(1) == nil {
+		return args.Get(0).(T), nil
+	}
+
+	return args.Get(0).(T), args.Get(1).(error)
 }
 
 func (m *StorageValue[T]) GetBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
 	args := m.Called()
-	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
+
+	if args.Get(1) == nil {
+		return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
+	}
+
+	return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), args.Get(1).(error)
 }
 
 func (m *StorageValue[T]) Exists() bool {

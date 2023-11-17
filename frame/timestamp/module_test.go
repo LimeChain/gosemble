@@ -1,6 +1,7 @@
 package timestamp
 
 import (
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -18,6 +19,10 @@ var (
 	minimumPeriod = sc.U64(5)
 	ts            = sc.U64(1000)
 	mockCall      *mocks.Call
+)
+
+var (
+	errorCannotGetStorageValue = errors.New("cannot get storage value")
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -78,10 +83,20 @@ func Test_Module_OnFinalize_Nil(t *testing.T) {
 
 	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), nil)
 
-	assert.PanicsWithValue(t, errTimestampNotUpdated, func() {
-		target.OnFinalize(ts)
-	})
+	result := target.OnFinalize(ts)
 
+	assert.Equal(t, errTimestampNotUpdated, result)
+	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
+}
+
+func Test_Module_OnFinalize_CannotTakeStorageValue(t *testing.T) {
+	target := setupModule()
+
+	mockStorageDidUpdate.On("TakeBytes").Return([]byte(nil), errorCannotGetStorageValue)
+
+	result := target.OnFinalize(ts)
+
+	assert.Equal(t, errorCannotGetStorageValue, result)
 	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
 }
 
@@ -90,8 +105,9 @@ func Test_Module_OnFinalize(t *testing.T) {
 
 	mockStorageDidUpdate.On("TakeBytes").Return([]byte("test"), nil)
 
-	target.OnFinalize(ts)
+	result := target.OnFinalize(ts)
 
+	assert.NoError(t, result)
 	mockStorageDidUpdate.AssertCalled(t, "TakeBytes")
 }
 
@@ -102,7 +118,7 @@ func Test_Module_CreateInherent(t *testing.T) {
 	assert.NoError(t, data.Put(inherentIdentifier, ts))
 	expect := sc.NewOption[primitives.Call](newCallSetWithArgs(moduleId, functionSetIndex, sc.NewVaryingData(sc.ToCompact(ts+minimumPeriod))))
 
-	mockStorageNow.On("Get").Return(ts)
+	mockStorageNow.On("Get").Return(ts, nil)
 
 	result, err := target.CreateInherent(*data)
 	assert.Nil(t, err)
@@ -119,7 +135,7 @@ func Test_Module_CreateInherent_MoreThanStorageTimestamp(t *testing.T) {
 	assert.NoError(t, data.Put(inherentIdentifier, ts+10))
 	expect := sc.NewOption[primitives.Call](newCallSetWithArgs(moduleId, functionSetIndex, sc.NewVaryingData(sc.ToCompact(ts+10))))
 
-	mockStorageNow.On("Get").Return(ts)
+	mockStorageNow.On("Get").Return(ts, nil)
 
 	result, err := target.CreateInherent(*data)
 	assert.Nil(t, err)
@@ -133,9 +149,36 @@ func Test_Module_CreateInherent_NotProvided(t *testing.T) {
 	data := primitives.NewInherentData()
 	target := setupModule()
 
-	assert.PanicsWithValue(t, errTimestampInherentNotProvided, func() {
-		target.CreateInherent(*data)
-	})
+	result, err := target.CreateInherent(*data)
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errTimestampInherentNotProvided, err)
+}
+
+func Test_Module_CreateInherent_CannotGetStorageValue(t *testing.T) {
+	target := setupModule()
+
+	data := primitives.NewInherentData()
+	assert.NoError(t, data.Put(inherentIdentifier, ts))
+
+	mockStorageNow.On("Get").Return(ts, errorCannotGetStorageValue)
+
+	result, err := target.CreateInherent(*data)
+
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errorCannotGetStorageValue, err)
+	mockStorageNow.AssertCalled(t, "Get")
+}
+
+func Test_Module_CreateInherent_InherentDataNotCorrectlyEncoded(t *testing.T) {
+	target := setupModule()
+
+	invalid := sc.U32(1)
+	inherentData := primitives.NewInherentData()
+	assert.NoError(t, inherentData.Put(inherentIdentifier, invalid))
+
+	result, err := target.CreateInherent(*inherentData)
+	assert.Equal(t, sc.NewOption[primitives.Call](nil), result)
+	assert.Equal(t, errTimestampInherentDataNotCorrectlyEncoded, err)
 }
 
 func Test_Module_CheckInherent(t *testing.T) {
@@ -148,7 +191,7 @@ func Test_Module_CheckInherent(t *testing.T) {
 	mockCall.On("ModuleIndex").Return(sc.U8(moduleId))
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(validTs)))
-	mockStorageNow.On("Get").Return(ts)
+	mockStorageNow.On("Get").Return(ts, nil)
 
 	result := target.CheckInherent(mockCall, *inherentData)
 
@@ -181,13 +224,53 @@ func Test_Module_CheckInherent_InherentNotProvided(t *testing.T) {
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
 
-	assert.PanicsWithValue(t, errTimestampInherentNotProvided, func() {
+	assert.PanicsWithValue(t, errTimestampInherentNotProvided.Error(), func() {
 		target.CheckInherent(mockCall, *inherentData)
 	})
 
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockCall.AssertCalled(t, "FunctionIndex")
 	mockCall.AssertCalled(t, "Args")
+}
+
+func Test_Module_CheckInherent_InherentDataNotCorrectlyEncoded(t *testing.T) {
+	target := setupModule()
+
+	invalid := sc.U32(1)
+	inherentData := primitives.NewInherentData()
+	assert.NoError(t, inherentData.Put(inherentIdentifier, invalid))
+
+	mockCall.On("ModuleIndex").Return(sc.U8(moduleId))
+	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
+	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
+
+	assert.PanicsWithValue(t, errTimestampInherentDataNotCorrectlyEncoded.Error(), func() {
+		target.CheckInherent(mockCall, *inherentData)
+	})
+
+	mockCall.AssertCalled(t, "ModuleIndex")
+	mockCall.AssertCalled(t, "FunctionIndex")
+	mockCall.AssertCalled(t, "Args")
+}
+
+func Test_Module_CheckInherent_CannotGetStorageValue(t *testing.T) {
+	target := setupModule()
+	inherentData := primitives.NewInherentData()
+	assert.NoError(t, inherentData.Put(inherentIdentifier, ts))
+
+	mockCall.On("ModuleIndex").Return(sc.U8(moduleId))
+	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
+	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(sc.U64(2))))
+	mockStorageNow.On("Get").Return(ts, errorCannotGetStorageValue)
+
+	assert.PanicsWithValue(t, errorCannotGetStorageValue.Error(), func() {
+		target.CheckInherent(mockCall, *inherentData)
+	})
+
+	mockCall.AssertCalled(t, "ModuleIndex")
+	mockCall.AssertCalled(t, "FunctionIndex")
+	mockCall.AssertCalled(t, "Args")
+	mockStorageNow.AssertCalled(t, "Get")
 }
 
 func Test_Module_CheckInherent_TooFarInFuture(t *testing.T) {
@@ -201,7 +284,7 @@ func Test_Module_CheckInherent_TooFarInFuture(t *testing.T) {
 	mockCall.On("ModuleIndex").Return(sc.U8(moduleId))
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(tsTooFar)))
-	mockStorageNow.On("Get").Return(ts)
+	mockStorageNow.On("Get").Return(ts, nil)
 
 	result := target.CheckInherent(mockCall, *inherentData)
 
@@ -222,7 +305,7 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 	mockCall.On("ModuleIndex").Return(sc.U8(moduleId))
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
-	mockStorageNow.On("Get").Return(ts)
+	mockStorageNow.On("Get").Return(ts, nil)
 
 	result := target.CheckInherent(mockCall, *inherentData)
 

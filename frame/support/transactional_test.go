@@ -19,7 +19,7 @@ var (
 func Test_Transactional_GetTransactionLevel(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(transactionLevel)
+	mockStorageValue.On("Get").Return(transactionLevel, nil)
 	txLevel, err := target.GetTransactionLevel()
 	assert.NoError(t, err)
 
@@ -50,7 +50,7 @@ func Test_Transactional_KillTransactionLevel(t *testing.T) {
 func Test_Transactional_IncTransactionLevel(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(transactionLevel)
+	mockStorageValue.On("Get").Return(transactionLevel, nil)
 	mockStorageValue.On("Put", transactionLevel+1).Return()
 
 	err := target.IncTransactionLevel()
@@ -63,7 +63,7 @@ func Test_Transactional_IncTransactionLevel(t *testing.T) {
 func Test_Transactional_IncTransactionLevel_MaxLimit(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(TransactionalLimit)
+	mockStorageValue.On("Get").Return(TransactionalLimit, nil)
 
 	result := target.IncTransactionLevel()
 
@@ -75,7 +75,7 @@ func Test_Transactional_IncTransactionLevel_MaxLimit(t *testing.T) {
 func Test_Transactional_DecTransactionLevel_Zero(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(sc.U32(0))
+	mockStorageValue.On("Get").Return(sc.U32(0), nil)
 
 	target.DecTransactionLevel()
 
@@ -87,7 +87,7 @@ func Test_Transactional_DecTransactionLevel_Zero(t *testing.T) {
 func Test_Transactional_DecTransactionLevel_One(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(sc.U32(1))
+	mockStorageValue.On("Get").Return(sc.U32(1), nil)
 	mockStorageValue.On("Clear").Return()
 
 	target.DecTransactionLevel()
@@ -100,7 +100,7 @@ func Test_Transactional_DecTransactionLevel_One(t *testing.T) {
 func Test_Transactional_DecTransactionLevel(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(transactionLevel)
+	mockStorageValue.On("Get").Return(transactionLevel, nil)
 	mockStorageValue.On("Put", transactionLevel-1).Return()
 
 	target.DecTransactionLevel()
@@ -113,7 +113,7 @@ func Test_Transactional_WithTransaction_ErrorLimitReached(t *testing.T) {
 	target := setupTransactional()
 	expect := primitives.NewDispatchErrorTransactional(primitives.NewTransactionalErrorLimitReached())
 
-	mockStorageValue.On("Get").Return(TransactionalLimit)
+	mockStorageValue.On("Get").Return(TransactionalLimit, nil)
 
 	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
 		return primitives.NewTransactionOutcomeCommit(sc.U32(2))
@@ -129,11 +129,11 @@ func Test_Transactional_WithTransaction_Commit(t *testing.T) {
 	target := setupTransactional()
 	expect := sc.U32(2)
 
-	mockStorageValue.On("Get").Return(transactionLevel).Once()
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 	mockTransactionBroker.On("Commit").Return()
-	mockStorageValue.On("Get").Return(transactionLevel + 1).Once()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
 	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
@@ -154,11 +154,11 @@ func Test_Transactional_WithTransaction_Rollback(t *testing.T) {
 	target := setupTransactional()
 	expect := primitives.NewDispatchErrorCorruption()
 
-	mockStorageValue.On("Get").Return(transactionLevel).Once()
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 	mockTransactionBroker.On("Rollback").Return()
-	mockStorageValue.On("Get").Return(transactionLevel + 1).Once()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
 	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
@@ -179,7 +179,7 @@ func Test_Transactional_WithTransaction_Rollback(t *testing.T) {
 func Test_Transactional_WithTransaction_InvalidTransactionOutcome(t *testing.T) {
 	target := setupTransactional()
 
-	mockStorageValue.On("Get").Return(transactionLevel).Once()
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 
@@ -199,11 +199,11 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	target := setupTransactional()
 	expect := sc.U32(2)
 
-	mockStorageValue.On("Get").Return(transactionLevel).Once()
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 	mockTransactionBroker.On("Commit").Return()
-	mockStorageValue.On("Get").Return(transactionLevel + 1).Once()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
 	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
@@ -224,11 +224,11 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	target := setupTransactional()
 	expect := primitives.NewDispatchErrorCorruption()
 
-	mockStorageValue.On("Get").Return(transactionLevel).Once()
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 	mockTransactionBroker.On("Rollback").Return()
-	mockStorageValue.On("Get").Return(transactionLevel + 1).Once()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
 	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {

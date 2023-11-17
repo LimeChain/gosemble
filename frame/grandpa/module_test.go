@@ -88,7 +88,7 @@ func Test_Module_Authorities_Success(t *testing.T) {
 		AuthorityList: expectAuthorites,
 	}
 
-	mockStorageAuthorities.On("Get").Return(storageAuthorites)
+	mockStorageAuthorities.On("Get").Return(storageAuthorites, nil)
 
 	result, err := target.Authorities()
 	assert.Nil(t, err)
@@ -109,7 +109,7 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 		},
 	}
 
-	mockStorageAuthorities.On("Get").Return(storageAuthorites)
+	mockStorageAuthorities.On("Get").Return(storageAuthorites, nil)
 
 	result, err := target.Authorities()
 	assert.Nil(t, err)

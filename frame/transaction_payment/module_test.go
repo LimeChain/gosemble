@@ -246,7 +246,7 @@ func Test_ComputeFee_NoTipOnlyBaseFee(t *testing.T) {
 		PaysFee: primitives.NewPaysYes(),
 	}
 
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
 
 	fee, err := target.ComputeFee(0, info, sc.NewU128(0))
 	assert.Nil(t, err)
@@ -264,7 +264,7 @@ func Test_ComputeFee_TipPlusBaseFee(t *testing.T) {
 		PaysFee: primitives.NewPaysYes(),
 	}
 
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(2))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(2), nil)
 
 	fee, err := target.ComputeFee(0, info, sc.NewU128(69))
 	assert.Nil(t, err)
@@ -282,7 +282,7 @@ func Test_ComputeFee_ByteFeePlusBaseFee(t *testing.T) {
 		PaysFee: primitives.NewPaysYes(),
 	}
 
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
 
 	fee, err := target.ComputeFee(42, info, sc.NewU128(0))
 	assert.Nil(t, err)
@@ -300,7 +300,7 @@ func Test_ComputeFee_WeightFeePlusBaseFee(t *testing.T) {
 		PaysFee: primitives.NewPaysYes(),
 	}
 
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
 
 	fee, err := target.ComputeFee(0, info, sc.NewU128(0))
 	assert.Nil(t, err)
@@ -318,7 +318,7 @@ func Test_ComputeFeeDetails(t *testing.T) {
 		PaysFee: primitives.NewPaysYes(),
 	}
 
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
 
 	result, err := target.ComputeFeeDetails(5, info, sc.NewU128(3))
 	assert.NoError(t, err)
@@ -343,7 +343,7 @@ func Test_ComputeActualFee(t *testing.T) {
 		ActualWeight: sc.NewOption[types.Weight](primitives.WeightFromParts(0, 0)),
 		PaysFee:      0,
 	}
-	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0))
+	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
 
 	result, err := target.ComputeActualFee(0, info, postInfo, sc.NewU128(0))
 	assert.Nil(t, err)

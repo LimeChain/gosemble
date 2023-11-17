@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -8,7 +9,8 @@ import (
 )
 
 var (
-	identifier = sc.BytesToSequenceU8([]byte{0x05, 0x06})
+	identifier   = sc.BytesToFixedSequenceU8([]byte{0x05, 0x06})
+	errorMessage = sc.Str("fail")
 )
 
 func Test_NewInherentErrorInherentDataExists(t *testing.T) {
@@ -20,8 +22,8 @@ func Test_NewInherentErrorInherentDataExists(t *testing.T) {
 
 func Test_NewInherentErrorDecodingFailed(t *testing.T) {
 	assert.Equal(t,
-		InherentError{sc.NewVaryingData(sc.U8(1), identifier)},
-		NewInherentErrorDecodingFailed(identifier),
+		InherentError{sc.NewVaryingData(sc.U8(1), errorMessage, identifier)},
+		NewInherentErrorDecodingFailed(errorMessage, identifier),
 	)
 }
 
@@ -33,10 +35,9 @@ func Test_NewInherentErrorFatalErrorReported(t *testing.T) {
 }
 
 func Test_NewInherentErrorApplication(t *testing.T) {
-	// TODO: encode additional value
 	assert.Equal(t,
-		InherentError{sc.NewVaryingData(sc.U8(3))},
-		NewInherentErrorApplication(),
+		InherentError{sc.NewVaryingData(sc.U8(3), errorMessage)},
+		NewInherentErrorApplication(errorMessage),
 	)
 }
 
@@ -62,7 +63,7 @@ func Test_InherentError_Error_InherentDataExists(t *testing.T) {
 }
 
 func Test_InherentError_Error_DecodingFailed(t *testing.T) {
-	err := NewInherentErrorDecodingFailed(identifier)
+	err := NewInherentErrorDecodingFailed(errorMessage, identifier)
 
 	assert.Equal(t,
 		"Failed to decode inherent data for identifier: [5 6]",
@@ -80,10 +81,10 @@ func Test_InherentError_Error_FatalErrorReported(t *testing.T) {
 }
 
 func Test_InherentError_Error_ErrorApplication(t *testing.T) {
-	err := NewInherentErrorApplication()
+	err := NewInherentErrorApplication(errorMessage)
 
 	assert.Equal(t,
-		"Inherent error application",
+		fmt.Sprintf("Inherent error application: [%s]", errorMessage),
 		err.Error(),
 	)
 }
