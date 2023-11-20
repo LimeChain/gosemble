@@ -631,7 +631,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 					},
-					primitives.DigestTypePreRuntime,
+					primitives.DigestItemPreRuntime,
 					"DigestItem.PreRuntime"),
 				primitives.NewMetadataDefinitionVariant(
 					"Consensus",
@@ -639,7 +639,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 					},
-					primitives.DigestTypeConsensusMessage,
+					primitives.DigestItemConsensusMessage,
 					"DigestItem.Consensus"),
 				primitives.NewMetadataDefinitionVariant(
 					"Seal",
@@ -647,19 +647,19 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence4U8, "ConsensusEngineId"),
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 					},
-					primitives.DigestTypeSeal,
+					primitives.DigestItemSeal,
 					"DigestItem.Seal"),
 				primitives.NewMetadataDefinitionVariant(
 					"Other",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Vec<u8>"),
 					},
-					0,
+					primitives.DigestItemOther,
 					"DigestItem.Other"),
 				primitives.NewMetadataDefinitionVariant(
 					"RuntimeEnvironmentUpdated",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DigestTypeRuntimeEnvironmentUpgraded,
+					primitives.DigestItemRuntimeEnvironmentUpgraded,
 					"DigestItem.RuntimeEnvironmentUpdated"),
 			},
 		)),

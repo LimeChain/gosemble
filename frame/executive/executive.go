@@ -321,12 +321,12 @@ func (m module) finalChecks(header *primitives.Header) error {
 		return err
 	}
 
-	if len(header.Digest) != len(newHeader.Digest) {
+	if len(header.Digest.Sequence) != len(newHeader.Digest.Sequence) {
 		log.Critical("Number of digest must match the calculated")
 	}
 
-	for key, digest := range header.Digest {
-		otherDigest := newHeader.Digest[key]
+	for i, digest := range header.Digest.Sequence {
+		otherDigest := newHeader.Digest.Sequence[i]
 		if !reflect.DeepEqual(digest, otherDigest) {
 			log.Critical("digest item must match that calculated")
 		}
@@ -350,14 +350,7 @@ func (m module) executeOnRuntimeUpgrade() primitives.Weight {
 }
 
 func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
-	result := primitives.Digest{}
-	for k, v := range digest {
-		if k == primitives.DigestTypePreRuntime {
-			result[k] = v
-		}
-	}
-
-	return result
+	return digest.OnlyPreRuntimes()
 }
 
 func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) sc.Bool {
