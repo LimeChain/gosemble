@@ -70,18 +70,16 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	}
 
 	ok, errTx := m.executive.ValidateTransaction(txSource, tx, blockHash)
-
 	var res primitives.TransactionValidityResult
-	if errTx != nil {
-		res, err = primitives.NewTransactionValidityResult(errTx)
-		if err != nil {
-			log.Critical(err.Error())
-		}
-	} else {
+	switch errTx.(type) {
+	case primitives.TransactionValidityError:
+		res, err = primitives.NewTransactionValidityResult(errTx.(primitives.TransactionValidityError))
+	case nil:
 		res, err = primitives.NewTransactionValidityResult(ok)
-		if err != nil {
-			log.Critical(err.Error())
-		}
+	default:
+	}
+	if err != nil {
+		log.Critical(err.Error())
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(res.Bytes())

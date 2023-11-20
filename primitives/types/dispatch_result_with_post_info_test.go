@@ -31,7 +31,7 @@ func Test_ExtractActualWeight_DispatchResultOk(t *testing.T) {
 		Ok:       postDispatchInfoOk,
 		Err: DispatchErrorWithPostInfo[PostDispatchInfo]{
 			PostInfo: postDispatchInfoErr,
-			Error:    NewDispatchErrorBadOrigin(),
+			Err:      NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -46,7 +46,7 @@ func Test_ExtractActualWeight_DispatchResultErr(t *testing.T) {
 		Ok:       postDispatchInfoOk,
 		Err: DispatchErrorWithPostInfo[PostDispatchInfo]{
 			PostInfo: postDispatchInfoErr,
-			Error:    NewDispatchErrorBadOrigin(),
+			Err:      NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -61,7 +61,7 @@ func Test_ExtractActualPaysFee_DispatchResultOk(t *testing.T) {
 		Ok:       postDispatchInfoOk,
 		Err: DispatchErrorWithPostInfo[PostDispatchInfo]{
 			PostInfo: postDispatchInfoErr,
-			Error:    NewDispatchErrorBadOrigin(),
+			Err:      NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -76,7 +76,7 @@ func Test_ExtractActualPaysFee_DispatchResultErr(t *testing.T) {
 		Ok:       postDispatchInfoOk,
 		Err: DispatchErrorWithPostInfo[PostDispatchInfo]{
 			PostInfo: postDispatchInfoErr,
-			Error:    NewDispatchErrorBadOrigin(),
+			Err:      NewDispatchErrorBadOrigin(),
 		},
 	}
 

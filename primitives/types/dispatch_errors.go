@@ -22,153 +22,195 @@ const (
 	DispatchErrorUnavailable
 )
 
-type DispatchError = sc.VaryingData
+type DispatchError struct {
+	sc.VaryingData
+}
 
 func NewDispatchErrorOther(str sc.Str) DispatchError {
-	return sc.NewVaryingData(DispatchErrorOther, str)
+	return DispatchError{sc.NewVaryingData(DispatchErrorOther, str)}
 }
 
 func NewDispatchErrorCannotLookup() DispatchError {
-	return sc.NewVaryingData(DispatchErrorCannotLookup)
+	return DispatchError{sc.NewVaryingData(DispatchErrorCannotLookup)}
 }
 
 func NewDispatchErrorBadOrigin() DispatchError {
-	return sc.NewVaryingData(DispatchErrorBadOrigin)
+	return DispatchError{sc.NewVaryingData(DispatchErrorBadOrigin)}
 }
 
 func NewDispatchErrorModule(customModuleError CustomModuleError) DispatchError {
-	return sc.NewVaryingData(DispatchErrorModule, customModuleError)
+	return DispatchError{sc.NewVaryingData(DispatchErrorModule, customModuleError)}
 }
 
 func NewDispatchErrorConsumerRemaining() DispatchError {
-	return sc.NewVaryingData(DispatchErrorConsumerRemaining)
+	return DispatchError{sc.NewVaryingData(DispatchErrorConsumerRemaining)}
 }
 
 func NewDispatchErrorNoProviders() DispatchError {
-	return sc.NewVaryingData(DispatchErrorNoProviders)
+	return DispatchError{sc.NewVaryingData(DispatchErrorNoProviders)}
 }
 
 func NewDispatchErrorTooManyConsumers() DispatchError {
-	return sc.NewVaryingData(DispatchErrorTooManyConsumers)
+	return DispatchError{sc.NewVaryingData(DispatchErrorTooManyConsumers)}
 }
 
 func NewDispatchErrorToken(tokenError TokenError) DispatchError {
 	// TODO: type safety
-	return sc.NewVaryingData(DispatchErrorToken, tokenError)
+	return DispatchError{sc.NewVaryingData(DispatchErrorToken, tokenError)}
 }
 
 func NewDispatchErrorArithmetic(arithmeticError ArithmeticError) DispatchError {
 	// TODO: type safety
-	return sc.NewVaryingData(DispatchErrorArithmetic, arithmeticError)
+	return DispatchError{sc.NewVaryingData(DispatchErrorArithmetic, arithmeticError)}
 }
 
 func NewDispatchErrorTransactional(transactionalError TransactionalError) DispatchError {
 	// TODO: type safety
-	return sc.NewVaryingData(DispatchErrorTransactional, transactionalError)
+	return DispatchError{sc.NewVaryingData(DispatchErrorTransactional, transactionalError)}
 }
 
 func NewDispatchErrorExhausted() DispatchError {
-	return sc.NewVaryingData(DispatchErrorExhausted)
+	return DispatchError{sc.NewVaryingData(DispatchErrorExhausted)}
 }
 
 func NewDispatchErrorCorruption() DispatchError {
-	return sc.NewVaryingData(DispatchErrorCorruption)
+	return DispatchError{sc.NewVaryingData(DispatchErrorCorruption)}
 }
 
 func NewDispatchErrorUnavailable() DispatchError {
-	return sc.NewVaryingData(DispatchErrorUnavailable)
+	return DispatchError{sc.NewVaryingData(DispatchErrorUnavailable)}
 }
 
-func DecodeDispatchError(buffer *bytes.Buffer) (DispatchError, error) {
+func (err DispatchError) Error() string {
+	if len(err.VaryingData) == 0 {
+		return ""
+	}
+
+	switch dispatchErr := err.VaryingData[0]; dispatchErr {
+	case DispatchErrorOther:
+		return "Some unknown error occurred"
+	case DispatchErrorCannotLookup:
+		return "Cannot lookup"
+	case DispatchErrorBadOrigin:
+		return "Bad origin"
+	case DispatchErrorModule:
+		return dispatchErr.(CustomModuleError).Error()
+	case DispatchErrorConsumerRemaining:
+		return "Consumer remaining"
+	case DispatchErrorNoProviders:
+		return "No providers"
+	case DispatchErrorTooManyConsumers:
+		return "Too many consumers"
+	case DispatchErrorToken:
+		return dispatchErr.(TokenError).Error()
+	case DispatchErrorArithmetic:
+		return dispatchErr.(ArithmeticError).Error()
+	case DispatchErrorExhausted:
+		return "Resources exhausted"
+	case DispatchErrorCorruption:
+		return "State corrupt"
+	case DispatchErrorUnavailable:
+		return "Resource unavailable"
+	default:
+		return ""
+	}
+} // e[0].(InvalidTransaction).Error()
+
+func DecodeDispatchError(buffer *bytes.Buffer) error {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	switch b {
 	case DispatchErrorOther:
 		value, err := sc.DecodeStr(buffer)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return NewDispatchErrorOther(value), nil
+		return NewDispatchErrorOther(value)
 	case DispatchErrorCannotLookup:
-		return NewDispatchErrorCannotLookup(), nil
+		return NewDispatchErrorCannotLookup()
 	case DispatchErrorBadOrigin:
-		return NewDispatchErrorBadOrigin(), nil
+		return NewDispatchErrorBadOrigin()
 	case DispatchErrorModule:
-		module, err := DecodeCustomModuleError(buffer)
-		if err != nil {
-			return DispatchError{}, err
+		customErr := DecodeCustomModuleError(buffer)
+		if _, ok := customErr.(CustomModuleError); !ok {
+			return err
 		}
-		return NewDispatchErrorModule(module), nil
+		return NewDispatchErrorModule(customErr.(CustomModuleError))
 	case DispatchErrorConsumerRemaining:
-		return NewDispatchErrorConsumerRemaining(), nil
+		return NewDispatchErrorConsumerRemaining()
 	case DispatchErrorNoProviders:
-		return NewDispatchErrorNoProviders(), nil
+		return NewDispatchErrorNoProviders()
 	case DispatchErrorTooManyConsumers:
-		return NewDispatchErrorTooManyConsumers(), nil
+		return NewDispatchErrorTooManyConsumers()
 	case DispatchErrorToken:
-		tokenError, err := DecodeTokenError(buffer)
-		if err != nil {
-			return DispatchError{}, err
+		tokenError := DecodeTokenError(buffer)
+		if _, ok := tokenError.(TokenError); !ok {
+			return err
 		}
-		return NewDispatchErrorToken(tokenError), nil
+		return NewDispatchErrorToken(tokenError.(TokenError))
 	case DispatchErrorArithmetic:
-		arithmeticError, err := DecodeArithmeticError(buffer)
-		if err != nil {
-			return nil, err
+		arithmeticErr := DecodeArithmeticError(buffer)
+		if _, ok := arithmeticErr.(ArithmeticError); !ok {
+			return err
 		}
-		return NewDispatchErrorArithmetic(arithmeticError), nil
+		return NewDispatchErrorArithmetic(arithmeticErr.(ArithmeticError))
 	case DispatchErrorTransactional:
-		transactionalError, err := DecodeTransactionalError(buffer)
-		if err != nil {
-			return DispatchError{}, err
+		txErr := DecodeTransactionalError(buffer)
+		if _, ok := txErr.(TransactionalError); !ok {
+			return err
 		}
-		return NewDispatchErrorTransactional(transactionalError), nil
+		return NewDispatchErrorTransactional(txErr.(TransactionalError))
 	case DispatchErrorExhausted:
-		return NewDispatchErrorExhausted(), nil
+		return NewDispatchErrorExhausted()
 	case DispatchErrorCorruption:
-		return NewDispatchErrorCorruption(), nil
+		return NewDispatchErrorCorruption()
 	case DispatchErrorUnavailable:
-		return NewDispatchErrorUnavailable(), nil
+		return NewDispatchErrorUnavailable()
 	default:
-		return DispatchError{}, newTypeError("DispatchError")
+		return newTypeError("DispatchError")
 	}
 }
 
 // CustomModuleError A custom error in a module.
 type CustomModuleError struct {
 	Index   sc.U8             // Module index matching the metadata module index.
-	Error   sc.U32            // Module specific error value.
+	Err     sc.U32            // Module specific error value.
 	Message sc.Option[sc.Str] // Varying data type Option (Definition 190). The optional value is a SCALE encoded byte array containing a valid UTF-8 sequence.
 }
 
-func (e CustomModuleError) Encode(buffer *bytes.Buffer) error {
+func (err CustomModuleError) Error() string {
+	// todo
+	return "todo"
+}
+
+func (err CustomModuleError) Encode(buffer *bytes.Buffer) error {
 	return sc.EncodeEach(buffer,
-		e.Index,
-		e.Error,
+		err.Index,
+		err.Err,
 	) // e.Message is skipped in codec
 }
 
-func DecodeCustomModuleError(buffer *bytes.Buffer) (CustomModuleError, error) {
-	e := CustomModuleError{}
+func DecodeCustomModuleError(buffer *bytes.Buffer) error {
+	cErr := CustomModuleError{}
 	idx, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return CustomModuleError{}, err
+		return err
 	}
-	e.Index = idx
+	cErr.Index = idx
 	decodedErr, err := sc.DecodeU32(buffer)
 	if err != nil {
-		return CustomModuleError{}, err
+		return err
 	}
-	e.Error = decodedErr
+	cErr.Err = decodedErr
 	//e.Message = sc.DecodeOption[sc.Str](buffer) // Skipped in codec
-	return e, nil
+	return cErr
 }
 
-func (e CustomModuleError) Bytes() []byte {
-	return sc.EncodedBytes(e)
+func (err CustomModuleError) Bytes() []byte {
+	return sc.EncodedBytes(err)
 }
 
 // DispatchErrorWithPostInfo Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
@@ -178,31 +220,33 @@ type DispatchErrorWithPostInfo[T sc.Encodable] struct {
 	PostInfo T
 
 	// The actual `DispatchResult` indicating whether the dispatch was successful.
-	Error DispatchError
+	Err error
 }
 
-func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) error {
-	return sc.EncodeEach(buffer,
-		e.PostInfo,
-		e.Error,
-	)
+func (err DispatchErrorWithPostInfo[PostDispatchInfo]) Error() string {
+	return err.Err.Error()
 }
 
-func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {
-	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
+func (err DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) error {
+	if err := err.PostInfo.Encode(buffer); err != nil {
+		return err
+	}
+	if _, ok := err.Err.(DispatchError); ok {
+		return err.Err.(DispatchError).Encode(buffer)
+	}
+
+	return nil
+}
+
+func DecodeErrorWithPostInfo(buffer *bytes.Buffer) error {
 	postInfo, err := DecodePostDispatchInfo(buffer)
 	if err != nil {
-		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
+		return err
 	}
-	e.PostInfo = postInfo
-	dispatchError, err := DecodeDispatchError(buffer)
-	if err != nil {
-		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
-	}
-	e.Error = dispatchError
-	return e, nil
+
+	return DispatchErrorWithPostInfo[PostDispatchInfo]{PostInfo: postInfo, Err: DecodeDispatchError(buffer)}
 }
 
-func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
-	return sc.EncodedBytes(e)
+func (err DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
+	return sc.EncodedBytes(err)
 }

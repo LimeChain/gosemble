@@ -74,7 +74,7 @@ func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) pr
 	storage.Set([]byte("testvalue"), []byte{1})
 
 	transactional := support.NewTransactional[primitives.PostDispatchInfo]()
-	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, primitives.DispatchError) {
+	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, error) {
 		storage.Set([]byte("testvalue"), []byte{2})
 		return primitives.PostDispatchInfo{}, primitives.NewDispatchErrorOther("revert")
 	})

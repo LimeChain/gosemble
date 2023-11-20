@@ -193,6 +193,7 @@ func Test_Transactional_WithTransaction_InvalidTransactionOutcome(t *testing.T) 
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
 	mockTransactionBroker.AssertCalled(t, "Start")
 	mockTransactionBroker.AssertNotCalled(t, "Rollback")
+	mockTransactionBroker.AssertNotCalled(t, "Commit")
 }
 
 func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
@@ -206,7 +207,7 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return expect, nil
 	})
 
@@ -231,12 +232,13 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return sc.U32(0), expect
 	})
 
 	assert.Equal(t, sc.U32(0), res)
-	assert.Equal(t, expect, err)
+	dispatchErr, _ := err.(primitives.DispatchError)
+	assert.Equal(t, expect, dispatchErr)
 
 	mockStorageValue.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageValue.AssertNumberOfCalls(t, "Put", 2)
@@ -246,11 +248,11 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel)
 }
 
-func setupTransactional() transactional[sc.U32, primitives.DispatchError] {
+func setupTransactional() transactional[sc.U32] {
 	mockStorageValue = new(mocks.StorageValue[sc.U32])
 	mockTransactionBroker = new(mocks.IoTransactionBroker)
 
-	target := NewTransactional[sc.U32, primitives.DispatchError]().(transactional[sc.U32, primitives.DispatchError])
+	target := NewTransactional[sc.U32]().(transactional[sc.U32])
 	target.storage = mockStorageValue
 	target.transactionBroker = mockTransactionBroker
 

@@ -168,7 +168,7 @@ func Test_Call_ForceFree_Dispatch_InvalidOrigin(t *testing.T) {
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
+			Err: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -184,7 +184,7 @@ func Test_Call_ForceFree_Dispatch_InvalidLookup(t *testing.T) {
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
+			Err: primitives.NewDispatchErrorCannotLookup(),
 		},
 	}
 	target := setupCallForceFree()

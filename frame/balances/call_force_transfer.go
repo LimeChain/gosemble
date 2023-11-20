@@ -102,7 +102,7 @@ func (c callForceTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varyi
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -115,7 +115,7 @@ func (c callForceTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varyi
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func (c callForceTransfer[T]) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callForceTransfer[T]) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

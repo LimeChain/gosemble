@@ -15,7 +15,7 @@ var (
 	expectedAccountId   = NewAccountId[PublicKey](ed25519SignerOnesAddress)
 	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 
-	expectedTransactionCannotLookupErr, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	expectedTransactionCannotLookupErr = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 )
 
 func Test_Lookup_AccountId(t *testing.T) {

@@ -17,7 +17,7 @@ var (
 
 	dispatchErrorWithPostInfo = DispatchErrorWithPostInfo[PostDispatchInfo]{
 		PostInfo: postDispatchInfoWithFee,
-		Error:    dispatchError,
+		Err:      dispatchError,
 	}
 )
 

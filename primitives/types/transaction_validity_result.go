@@ -56,11 +56,11 @@ func DecodeTransactionValidityResult(buffer *bytes.Buffer) (TransactionValidityR
 		}
 		return NewTransactionValidityResult(val)
 	case TransactionValidityResultError:
-		val, err := DecodeTransactionValidityError(buffer)
-		if err != nil {
-			return TransactionValidityResult{}, err
+		txErr := DecodeTransactionValidityError(buffer)
+		if _, ok := txErr.(TransactionValidityError); !ok {
+			return TransactionValidityResult{}, txErr
 		}
-		return NewTransactionValidityResult(val)
+		return NewTransactionValidityResult(txErr.(TransactionValidityError))
 	default:
 		return TransactionValidityResult{}, newTypeError("TransactionValidityResult")
 	}

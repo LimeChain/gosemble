@@ -146,7 +146,7 @@ func Test_Call_TransferKeepAlive_Dispatch_BadOrigin(t *testing.T) {
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
+			Err: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -165,7 +165,7 @@ func Test_Call_TransferKeepAlive_Dispatch_CannotLookup(t *testing.T) {
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
+			Err: primitives.NewDispatchErrorCannotLookup(),
 		},
 	}
 

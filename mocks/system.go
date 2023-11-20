@@ -71,14 +71,14 @@ func (m *SystemModule) Functions() map[sc.U8]primitives.Call {
 	return args.Get(0).(map[sc.U8]primitives.Call)
 }
 
-func (m *SystemModule) PreDispatch(call primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m *SystemModule) PreDispatch(call primitives.Call) (sc.Empty, error) {
 	args := m.Called(call)
-	return args.Get(0).(sc.Empty), args.Get(1).(primitives.TransactionValidityError)
+	return args.Get(0).(sc.Empty), args.Get(1).(error)
 }
 
-func (m *SystemModule) ValidateUnsigned(txSource primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m *SystemModule) ValidateUnsigned(txSource primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, error) {
 	args := m.Called(txSource, call)
-	return args.Get(0).(primitives.ValidTransaction), args.Get(1).(primitives.TransactionValidityError)
+	return args.Get(0).(primitives.ValidTransaction), args.Get(1).(error)
 }
 
 func (m *SystemModule) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {

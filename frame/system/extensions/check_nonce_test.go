@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	invalidTransactionStale, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	invalidTransactionFuture, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionStale  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFuture = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
 )
 
 var (

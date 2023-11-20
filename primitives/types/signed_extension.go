@@ -34,7 +34,7 @@ type SignedExtension interface {
 
 	// Construct any additional data that should be in the signed payload of the transaction. Can
 	// also perform any pre-signature-verification checks and return an error if needed.
-	AdditionalSigned() (AdditionalSigned, TransactionValidityError)
+	AdditionalSigned() (AdditionalSigned, error)
 
 	// Validate a signed transaction for the transaction queue.
 	//
@@ -45,12 +45,12 @@ type SignedExtension interface {
 	// that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch` function.
-	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
 
 	// Do any pre-flight stuff for a signed transaction.
 	//
 	// Make sure to perform the same checks as in [`Self::validate`].
-	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError)
+	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, error)
 
 	// Validate an unsigned transaction for the transaction queue.
 	//
@@ -60,7 +60,7 @@ type SignedExtension interface {
 	// and quickly eliminate ones that are stale or incorrect.
 	//
 	// Make sure to perform the same checks in `pre_dispatch_unsigned` function.
-	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
+	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
 
 	// Do any pre-flight stuff for a unsigned transaction.
 	//
@@ -70,7 +70,7 @@ type SignedExtension interface {
 	//
 	// If you ever override this function, you need to make sure to always
 	// perform the same validation as in `validate_unsigned`.
-	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError
+	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 
 	// Do any post-flight stuff for an extrinsic.
 	//
@@ -88,7 +88,7 @@ type SignedExtension interface {
 	// It can only be used safely when you *know* that the extrinsic is one that can only be
 	// introduced by the current block author; generally this implies that it is an inherent and
 	// will come from either an offchain-worker or via `InherentData`.(
-	PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError
+	PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
 	Metadata() (MetadataType, MetadataSignedExtension)
 }

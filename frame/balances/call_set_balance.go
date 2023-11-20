@@ -112,7 +112,7 @@ func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -127,7 +127,7 @@ func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
+func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -151,7 +151,7 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 		},
 	)
 	if result.HasError {
-		return result.Value.(types.DispatchError)
+		return result.Value.(error)
 	}
 
 	parsedResult := result.Value.(sc.VaryingData)
@@ -159,23 +159,25 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
-		// TODO: handle err
-		newPositiveImbalance(newFree.Sub(oldFree), c.issuance).
-			Drop()
+		if err := newPositiveImbalance(newFree.Sub(oldFree), c.issuance).Drop(); err != nil {
+			return err
+		}
+
 	} else if newFree.Lt(oldFree) {
-		// TODO: handle err
-		newNegativeImbalance(oldFree.Sub(newFree), c.issuance).
-			Drop()
+		if err := newNegativeImbalance(oldFree.Sub(newFree), c.issuance).Drop(); err != nil {
+			return err
+		}
 	}
 
 	if newReserved.Gt(oldReserved) {
-		// TODO: handle err
-		newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).
-			Drop()
+		if err := newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).Drop(); err != nil {
+			return err
+		}
 	} else if newReserved.Lt(oldReserved) {
-		// TODO: handle err
-		newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).
-			Drop()
+		if err := newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).Drop(); err != nil {
+			return err
+		}
+
 	}
 
 	whoAccountId, errAccId := who.AsAccountId()

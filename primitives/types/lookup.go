@@ -2,15 +2,16 @@ package types
 
 import sc "github.com/LimeChain/goscale"
 
-func Lookup(a MultiAddress) (AccountId[PublicKey], TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	address, _ := lookupAddress(a)
+func Lookup(a MultiAddress) (AccountId[PublicKey], error) {
+	address, err := lookupAddress(a)
+	if err != nil {
+		return AccountId[PublicKey]{}, err
+	}
 	if address.HasValue {
 		return address.Value, nil
 	}
 
-	unknownTransactionCannotLookup, _ := NewTransactionValidityError(NewUnknownTransactionCannotLookup())
-	return AccountId[PublicKey]{}, unknownTransactionCannotLookup
+	return AccountId[PublicKey]{}, NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 }
 
 // LookupAddress Lookup an address to get an Id, if there's one there.

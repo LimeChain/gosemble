@@ -22,7 +22,7 @@ type UnsignedValidator interface {
 	// ensure that the transaction is valid.
 	//
 	// Changes made to storage *WILL* be persisted if the call returns `Ok`.
-	PreDispatch(call Call) (ok sc.Empty, err TransactionValidityError)
+	PreDispatch(call Call) (ok sc.Empty, err error)
 
 	// ValidateUnsigned returns the validity of the call
 	//
@@ -36,5 +36,5 @@ type UnsignedValidator interface {
 	// like checking that the unsigned extrinsic was send by an authority in the active set.
 	//
 	// Changes made to storage should be discarded by caller.
-	ValidateUnsigned(source TransactionSource, call Call) (ok ValidTransaction, err TransactionValidityError)
+	ValidateUnsigned(source TransactionSource, call Call) (ok ValidTransaction, err error)
 }

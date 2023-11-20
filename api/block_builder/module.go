@@ -69,16 +69,14 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 
 	ok, errApplyExtr := m.executive.ApplyExtrinsic(uxt)
 	var applyExtrinsicResult primitives.ApplyExtrinsicResult
-	if errApplyExtr != nil {
-		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(errApplyExtr)
-		if err != nil {
-			log.Critical(err.Error())
-		}
-	} else {
+	switch errApplyExtr.(type) {
+	case primitives.TransactionValidityError:
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(errApplyExtr.(primitives.TransactionValidityError))
+	case nil:
 		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(ok)
-		if err != nil {
-			log.Critical(err.Error())
-		}
+	}
+	if err != nil {
+		log.Critical(err.Error())
 	}
 
 	buffer.Reset()

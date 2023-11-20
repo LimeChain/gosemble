@@ -10,21 +10,20 @@ import (
 )
 
 var (
-	unknownTransactionCannotLookup, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	unknownTransactionCannotLookup = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 )
 
 func Test_NewTransactionValidityError_TypeError(t *testing.T) {
-	result, err := NewTransactionValidityError(sc.U8(6))
-
-	assert.Error(t, err)
-	assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
-	assert.Equal(t, TransactionValidityError{}, result)
+	txErr := NewTransactionValidityError(sc.U8(6))
+	_, ok := txErr.(TransactionValidityError)
+	assert.False(t, ok)
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", txErr.Error())
 }
 
 func Test_TransactionValidityError_Encode(t *testing.T) {
 	var testExamples = []struct {
 		label       string
-		input       TransactionValidityError
+		input       error
 		expectation []byte
 	}{
 		{
@@ -42,10 +41,7 @@ func Test_TransactionValidityError_Encode(t *testing.T) {
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
-
-			err := testExample.input.Encode(buffer)
-
-			assert.NoError(t, err)
+			assert.NoError(t, testExample.input.(TransactionValidityError).Encode(buffer))
 			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
@@ -67,7 +63,7 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 	var testExamples = []struct {
 		label       string
 		input       []byte
-		expectation TransactionValidityError
+		expectation error
 	}{
 		{
 			label:       "Encode(TransactionValidityError(InvalidTransaction(PaymentError)))",
@@ -85,11 +81,7 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
-
-			result, err := DecodeTransactionValidityError(buffer)
-			assert.NoError(t, err)
-
-			assert.Equal(t, testExample.expectation, result)
+			assert.Equal(t, testExample.expectation, DecodeTransactionValidityError(buffer))
 		})
 	}
 }
@@ -98,16 +90,14 @@ func Test_DecodeTransactionValidityError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
 
-	res, err := DecodeTransactionValidityError(buffer)
-
-	assert.Error(t, err)
-	assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
-	assert.Equal(t, TransactionValidityError{}, res)
-
+	txErr := DecodeTransactionValidityError(buffer)
+	_, ok := txErr.(TransactionValidityError)
+	assert.False(t, ok)
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", txErr.Error())
 }
 
 func Test_TransactionValidityError_Bytes(t *testing.T) {
 	expect, _ := hex.DecodeString("0001")
 
-	assert.Equal(t, expect, invalidTransactionPayment.Bytes())
+	assert.Equal(t, expect, invalidTransactionPayment.(TransactionValidityError).Bytes())
 }

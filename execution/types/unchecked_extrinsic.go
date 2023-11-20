@@ -21,7 +21,7 @@ const (
 )
 
 type PayloadInitializer = func(call primitives.Call, extra primitives.SignedExtra) (
-	primitives.SignedPayload, primitives.TransactionValidityError,
+	primitives.SignedPayload, error,
 )
 
 type uncheckedExtrinsic struct {
@@ -107,7 +107,7 @@ func (uxt uncheckedExtrinsic) IsSigned() bool {
 	return bool(uxt.signature.HasValue)
 }
 
-func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
+func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, error) {
 	if uxt.signature.HasValue {
 		signer, signature, extra := uxt.signature.Value.Signer, uxt.signature.Value.Signature, uxt.signature.Value.Extra
 
@@ -122,9 +122,7 @@ func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.T
 		}
 
 		if !uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress) {
-			// https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionBadProof, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-			return nil, invalidTransactionBadProof
+			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
 		return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId[primitives.PublicKey]](signerAddress), uxt.function, extra), nil

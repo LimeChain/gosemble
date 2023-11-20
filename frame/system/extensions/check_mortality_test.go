@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	invalidTransactionAncientBirthBlock, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+	invalidTransactionAncientBirthBlock = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 )
 
 func Test_CheckMortality_Encode(t *testing.T) {

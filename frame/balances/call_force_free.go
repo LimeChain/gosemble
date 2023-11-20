@@ -98,7 +98,7 @@ func (c callForceFree[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDa
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -112,7 +112,7 @@ func (c callForceFree[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDa
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
+func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -123,10 +123,8 @@ func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddre
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	// TODO: handle err
-	c.force(target, amount)
-
-	return nil
+	_, err = c.force(target, amount)
+	return err
 }
 
 // forceFree frees funds, returning the amount that has not been freed.

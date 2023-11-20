@@ -95,7 +95,7 @@ func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varying
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -112,7 +112,7 @@ func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varying
 // the funds the account has, causing the sender account to be killed (false), or
 // transfer everything except at least the existential deposit, which will guarantee to
 // keep the sender account alive (true).
-func (c callTransferAll[T]) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) types.DispatchError {
+func (c callTransferAll[T]) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) error {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

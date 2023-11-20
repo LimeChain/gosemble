@@ -19,15 +19,32 @@ const (
 // TransactionValidityError Errors that can occur while checking the validity of a transaction.
 type TransactionValidityError sc.VaryingData
 
-func NewTransactionValidityError(value sc.Encodable) (TransactionValidityError, error) {
+func NewTransactionValidityError(value sc.Encodable) error {
+	// todo CONSIDER returning only error just like the rest
+
 	// InvalidTransaction = 0 - Transaction is invalid.
 	// UnknownTransaction = 1 - Transaction validity can’t be determined.
 	switch value.(type) {
 	case InvalidTransaction, UnknownTransaction:
 	default:
-		return TransactionValidityError{}, errInvalidTransactionValidityErrorType
+		return errInvalidTransactionValidityErrorType
 	}
-	return TransactionValidityError(sc.NewVaryingData(value)), nil
+	return TransactionValidityError(sc.NewVaryingData(value))
+}
+
+func (err TransactionValidityError) Error() string {
+	if len(err) == 0 {
+		return ""
+	}
+
+	switch txErr := err[0]; txErr {
+	case TransactionValidityErrorUnknownTransaction:
+		return txErr.(UnknownTransaction).Error()
+	case TransactionValidityErrorInvalidTransaction:
+		return txErr.(InvalidTransaction).Error()
+	default:
+		return ""
+	}
 }
 
 func (e TransactionValidityError) Encode(buffer *bytes.Buffer) error {
@@ -51,27 +68,27 @@ func (e TransactionValidityError) Encode(buffer *bytes.Buffer) error {
 	return value.Encode(buffer)
 }
 
-func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityError, error) {
+func DecodeTransactionValidityError(buffer *bytes.Buffer) error {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return TransactionValidityError{}, err
+		return err
 	}
 
 	switch b {
 	case TransactionValidityErrorInvalidTransaction:
 		value, err := DecodeInvalidTransaction(buffer)
 		if err != nil {
-			return TransactionValidityError{}, err
+			return err
 		}
 		return NewTransactionValidityError(value)
 	case TransactionValidityErrorUnknownTransaction:
 		value, err := DecodeUnknownTransaction(buffer)
 		if err != nil {
-			return TransactionValidityError{}, err
+			return err
 		}
 		return NewTransactionValidityError(value)
 	default:
-		return TransactionValidityError{}, errInvalidTransactionValidityErrorType
+		return errInvalidTransactionValidityErrorType
 	}
 }
 

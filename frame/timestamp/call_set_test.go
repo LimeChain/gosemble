@@ -202,7 +202,7 @@ func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
+			Err: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 

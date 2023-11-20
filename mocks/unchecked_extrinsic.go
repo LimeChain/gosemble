@@ -42,18 +42,18 @@ func (uxt *UncheckedExtrinsic) IsSigned() bool {
 	return args.Get(0).(bool)
 }
 
-func (uxt *UncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, primitives.TransactionValidityError) {
+func (uxt *UncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, error) {
 	args := uxt.Called()
 
 	var arg0 primitives.CheckedExtrinsic
-	var arg1 primitives.TransactionValidityError
+	var arg1 error
 
 	if args.Get(0) != nil {
 		arg0 = args.Get(0).(primitives.CheckedExtrinsic)
 	}
 
 	if args.Get(1) != nil {
-		arg1 = args.Get(1).(primitives.TransactionValidityError)
+		arg1 = args.Get(1).(error)
 	}
 
 	return arg0, arg1

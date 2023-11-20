@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	unknownTransactionCustomUnknownTransaction, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	unknownTransactionCustomUnknownTransaction = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 )
 
 type testExtraCheck struct {
@@ -47,7 +47,7 @@ func (e *testExtraCheck) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
-func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
+func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, error) {
 	if e.hasError {
 		return nil, unknownTransactionCustomUnknownTransaction
 	}
@@ -55,7 +55,7 @@ func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidit
 	return sc.NewVaryingData(e.value), nil
 }
 
-func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
@@ -66,21 +66,21 @@ func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *Disp
 	return validTransaction, nil
 }
 
-func (e testExtraCheck) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheck) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	return e.Validate(AccountId[PublicKey]{}, call, info, length)
 }
 
-func (e testExtraCheck) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
+func (e testExtraCheck) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, error) {
 	_, err := e.Validate(who, call, info, length)
 	return Pre{}, err
 }
 
-func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
 	_, err := e.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
 	if e.hasError {
 		return unknownTransactionCustomUnknownTransaction
 	}

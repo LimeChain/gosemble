@@ -64,20 +64,20 @@ var (
 )
 
 var (
-	invalidTransactionStaleErr, _             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	invalidTransactionFutureErr, _            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
-	invalidTransactionBadProofErr, _          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-	invalidTransactionExhaustsResourcesErr, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-	unknownTransactionNoUnsignedValidator, _  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	invalidTransactionMandatoryValidation, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+	invalidTransactionStaleErr             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFutureErr            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionBadProofErr          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+	invalidTransactionExhaustsResourcesErr = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	unknownTransactionNoUnsignedValidator  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	invalidTransactionMandatoryValidation  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 )
 
 var (
-	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr)
-	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr)
-	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr)
-	transactionValidityResultNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityResult(unknownTransactionNoUnsignedValidator)
-	transactionValidityResultMandatoryValidationErr, _ = primitives.NewTransactionValidityResult(invalidTransactionMandatoryValidation)
+	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr.(primitives.TransactionValidityError))
+	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr.(primitives.TransactionValidityError))
+	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
+	transactionValidityResultNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityResult(unknownTransactionNoUnsignedValidator.(primitives.TransactionValidityError))
+	transactionValidityResultMandatoryValidationErr, _ = primitives.NewTransactionValidityResult(invalidTransactionMandatoryValidation.(primitives.TransactionValidityError))
 
 	dispatchOutcome, _             = primitives.NewDispatchOutcome(nil)
 	dispatchOutcomeBadOriginErr, _ = primitives.NewDispatchOutcome(primitives.NewDispatchErrorBadOrigin())
@@ -86,27 +86,27 @@ var (
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorInsufficientBalance),
+				Err:   sc.U32(balances.ErrorInsufficientBalance),
 			}))
 
 	dispatchOutcomeExistentialDepositErr, _ = primitives.NewDispatchOutcome(
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorExistentialDeposit),
+				Err:   sc.U32(balances.ErrorExistentialDeposit),
 			}))
 
 	dispatchOutcomeKeepAliveErr, _ = primitives.NewDispatchOutcome(
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorKeepAlive),
+				Err:   sc.U32(balances.ErrorKeepAlive),
 			}))
 
 	applyExtrinsicResultOutcome, _              = primitives.NewApplyExtrinsicResult(dispatchOutcome)
-	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr)
+	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
 	applyExtrinsicResultBadOriginErr, _         = primitives.NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
-	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr)
+	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr.(primitives.TransactionValidityError))
 
 	applyExtrinsicResultCustomModuleErr, _       = primitives.NewApplyExtrinsicResult(dispatchOutcomeCustomModuleErr)
 	applyExtrinsicResultExistentialDepositErr, _ = primitives.NewApplyExtrinsicResult(dispatchOutcomeExistentialDepositErr)

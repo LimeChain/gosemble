@@ -22,42 +22,42 @@ var (
 	errInvalidTransactionOutcome = "invalid transaction outcome"
 )
 
-type Transactional[T sc.Encodable, E types.DispatchError] interface {
-	WithStorageLayer(fn func() (T, types.DispatchError)) (T, E)
+type Transactional[T sc.Encodable] interface {
+	WithStorageLayer(fn func() (T, error)) (T, error)
 }
 
-type transactional[T sc.Encodable, E types.DispatchError] struct {
+type transactional[T sc.Encodable] struct {
 	storage           StorageValue[sc.U32]
 	transactionBroker io.TransactionBroker
 }
 
-func NewTransactional[T sc.Encodable, E types.DispatchError]() Transactional[T, E] {
+func NewTransactional[T sc.Encodable]() Transactional[T] {
 	storageVal := NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32)
-	return transactional[T, E]{
+	return transactional[T]{
 		storage:           storageVal,
 		transactionBroker: io.NewTransactionBroker(),
 	}
 }
 
 // GetTransactionLevel returns the current number of nested transactional layers.
-func (t transactional[T, E]) GetTransactionLevel() (Layer, error) {
+func (t transactional[T]) GetTransactionLevel() (Layer, error) {
 	return t.storage.Get()
 }
 
 // SetTransactionLevel Set the current number of nested transactional layers.
-func (t transactional[T, E]) SetTransactionLevel(level Layer) {
+func (t transactional[T]) SetTransactionLevel(level Layer) {
 	t.storage.Put(level)
 }
 
 // KillTransactionLevel kill the transactional layers storage.
-func (t transactional[T, E]) KillTransactionLevel() {
+func (t transactional[T]) KillTransactionLevel() {
 	t.storage.Clear()
 }
 
 // IncTransactionLevel increments the transaction level. Returns an error if levels go past the limit.
 //
 // Returns a guard that when dropped decrements the transaction level automatically.
-func (t transactional[T, E]) IncTransactionLevel() error {
+func (t transactional[T]) IncTransactionLevel() error {
 	existingLevels, err := t.GetTransactionLevel()
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (t transactional[T, E]) IncTransactionLevel() error {
 	return nil
 }
 
-func (t transactional[T, E]) DecTransactionLevel() error {
+func (t transactional[T]) DecTransactionLevel() error {
 	existingLevels, err := t.GetTransactionLevel()
 	if err != nil {
 		return err
@@ -96,19 +96,17 @@ func (t transactional[T, E]) DecTransactionLevel() error {
 // error.
 //
 // Commits happen to the parent transaction.
-func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome) (ok T, err E) {
+func (t transactional[T]) WithTransaction(fn func() types.TransactionOutcome) (T, error) {
 	// This needs to happen before `start_transaction` below.
 	// Otherwise we may rollback the increase, then decrease as the guard goes out of scope
 	// and then end in some bad state.
-	e := t.IncTransactionLevel()
-	if e != nil {
-		return ok, E(types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached()))
+	if err := t.IncTransactionLevel(); err != nil {
+		return *new(T), types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached())
 	}
 
 	t.transactionBroker.Start()
 
 	res := fn()
-
 	switch res[0] {
 	case types.TransactionOutcomeCommit:
 		t.transactionBroker.Commit()
@@ -117,10 +115,10 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 	case types.TransactionOutcomeRollback:
 		t.transactionBroker.Rollback()
 		t.DecTransactionLevel()
-		return ok, res[1].(E)
+		return *new(T), res[1].(error)
 	default:
 		log.Critical(errInvalidTransactionOutcome)
-		return ok, nil
+		return *new(T), nil
 	}
 }
 
@@ -129,15 +127,17 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 // This is the same as `with_transaction`, but assuming that any function returning an `Err` should
 // rollback, and any function returning `Ok` should commit. This provides a cleaner API to the
 // developer who wants this behavior.
-func (t transactional[T, E]) WithStorageLayer(fn func() (T, types.DispatchError)) (T, E) {
+func (t transactional[T]) WithStorageLayer(fn func() (T, error)) (T, error) {
 	return t.WithTransaction(
 		func() types.TransactionOutcome {
 			ok, err := fn()
-
-			if err != nil {
-				return types.NewTransactionOutcomeRollback(err)
-			} else {
+			switch dispatchErr := err.(type) {
+			case nil:
 				return types.NewTransactionOutcomeCommit(ok)
+			case types.DispatchError:
+				return types.NewTransactionOutcomeRollback(dispatchErr)
+			default:
+				return types.NewTransactionOutcomeRollback(sc.Empty{})
 			}
 		},
 	)

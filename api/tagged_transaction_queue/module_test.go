@@ -24,9 +24,9 @@ var (
 		)}
 
 	validTx                  = primitives.DefaultValidTransaction()
-	txValidityError, _       = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	txValidityError          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 	validitySuccessResult, _ = primitives.NewTransactionValidityResult(validTx)
-	validityFailResult, _    = primitives.NewTransactionValidityResult(txValidityError)
+	validityFailResult, _    = primitives.NewTransactionValidityResult(txValidityError.(primitives.TransactionValidityError))
 )
 
 var (

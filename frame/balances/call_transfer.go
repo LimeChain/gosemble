@@ -99,7 +99,7 @@ func (c callTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -129,7 +129,7 @@ func newTransfer(moduleId sc.U8, storedMap primitives.StoredMap, constants *cons
 // transfer transfers liquid free balance from `source` to `dest`.
 // Increases the free balance of `dest` and decreases the free balance of `origin` transactor.
 // Must be signed by the transactor.
-func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -149,7 +149,7 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountId[types.PublicKey], value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
+func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountId[types.PublicKey], value sc.U128, existenceRequirement types.ExistenceRequirement) error {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
 		return nil
 	}
@@ -160,7 +160,7 @@ func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountI
 		})
 	})
 	if result.HasError {
-		return result.Value.(types.DispatchError)
+		return result.Value.(error)
 	}
 
 	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from, to, value))
@@ -181,7 +181,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorInsufficientBalance),
+				Err:     sc.U32(ErrorInsufficientBalance),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
@@ -202,18 +202,23 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorExistentialDeposit),
+				Err:     sc.U32(ErrorExistentialDeposit),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
 	}
 
-	e := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-	if e != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    e,
+	err = t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
+	if err != nil {
+		errRes := sc.Result[sc.Encodable]{HasError: true}
+		switch dispatchErr := err.(type) {
+		case primitives.DispatchError:
+			errRes.Value = dispatchErr
+		default:
+			errRes.Value = sc.Empty{}
 		}
+
+		return errRes
 	}
 
 	canDecProviders, err := t.storedMap.CanDecProviders(from)
@@ -231,7 +236,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorKeepAlive),
+				Err:     sc.U32(ErrorKeepAlive),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}

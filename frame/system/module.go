@@ -110,14 +110,12 @@ func (m module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 func (m module) BlockHashCount() sc.U64 {
@@ -274,7 +272,7 @@ func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 		}
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
-		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
+		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Err.(primitives.DispatchError), info))
 	} else {
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
@@ -419,10 +417,10 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 		}
 	} else if wasProviding && !isProviding {
 		status, err := m.decProviders(who)
-		if err != nil {
+		if dispatchErr, ok := err.(primitives.DispatchError); ok {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
-				Value:    err,
+				Value:    dispatchErr,
 			}, nil
 		}
 		if status == primitives.DecRefStatusExists {
@@ -509,7 +507,7 @@ func (m module) incrementProviders(who primitives.AccountId[primitives.PublicKey
 	}
 }
 
-func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, primitives.DispatchError) {
+func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, error) {
 	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 		return m.decrementProviders(who, maybeAccount)
 	})

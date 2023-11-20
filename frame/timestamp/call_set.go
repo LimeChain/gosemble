@@ -127,7 +127,7 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
 			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: primitives.NewDispatchErrorBadOrigin(),
+				Err: primitives.NewDispatchErrorBadOrigin(),
 			},
 		}
 	}
@@ -142,7 +142,7 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
 			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: primitives.NewDispatchErrorOther(sc.Str(err.Error())),
+				Err: primitives.NewDispatchErrorOther(sc.Str(err.Error())),
 			},
 		}
 	}

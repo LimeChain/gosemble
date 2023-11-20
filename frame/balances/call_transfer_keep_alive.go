@@ -96,7 +96,7 @@ func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.V
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -108,7 +108,7 @@ func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.V
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func (c callTransferKeepAlive[T]) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callTransferKeepAlive[T]) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

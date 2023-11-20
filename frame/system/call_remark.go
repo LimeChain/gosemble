@@ -96,7 +96,7 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
 			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: err,
+				Err: err,
 			},
 		}
 	}
@@ -111,7 +111,7 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 // Returns an empty Option if the origin is `Root`.
 // Returns an Option with the signer if the origin is signed.
 // Returns a `BadOrigin` error if neither of the above.
-func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId[primitives.PublicKey]], primitives.DispatchError) {
+func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId[primitives.PublicKey]], error) {
 	if origin.IsRootOrigin() {
 		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), nil
 	} else if origin.IsSignedOrigin() {

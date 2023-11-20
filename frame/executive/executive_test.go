@@ -59,7 +59,7 @@ var (
 	dispatchResultWithPostInfo = &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
+			Err: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -89,21 +89,19 @@ var (
 )
 
 var (
-	transactionValidityError primitives.TransactionValidityError
-
-	unknownTransactionCannotLookupError, _ = primitives.NewTransactionValidityError(
+	unknownTransactionCannotLookupError = primitives.NewTransactionValidityError(
 		primitives.NewUnknownTransactionCannotLookup(),
 	)
 
-	invalidTransactionExhaustsResourcesError, _ = primitives.NewTransactionValidityError(
+	invalidTransactionExhaustsResourcesError = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionExhaustsResources(),
 	)
 
-	invalidTransactionBadMandatory, _ = primitives.NewTransactionValidityError(
+	invalidTransactionBadMandatory = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionBadMandatory(),
 	)
 
-	invalidTransactionMandatoryValidation, _ = primitives.NewTransactionValidityError(
+	invalidTransactionMandatoryValidation = primitives.NewTransactionValidityError(
 		primitives.NewInvalidTransactionMandatoryValidation(),
 	)
 
@@ -388,16 +386,16 @@ func Test_Executive_ApplyExtrinsic_Success(t *testing.T) {
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
 	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(*dispatchResultWithPostInfo, transactionValidityError)
+		Return(*dispatchResultWithPostInfo, nil)
 	mockSystemModule.On("NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
 
 	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
 
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
-	dispatchOutcomeWithPostInfo, _ := primitives.NewDispatchOutcome(dispatchResultWithPostInfo.Err.Error)
+	dispatchOutcomeWithPostInfo, _ := primitives.NewDispatchOutcome(dispatchResultWithPostInfo.Err.Err.(primitives.DispatchError))
 	assert.Equal(t, dispatchOutcomeWithPostInfo, outcome)
-	assert.Equal(t, transactionValidityError, err)
+	assert.NoError(t, err)
 }
 
 func Test_Executive_FinalizeBlock(t *testing.T) {
@@ -493,7 +491,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
 	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, transactionValidityError)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
@@ -515,7 +513,7 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockCall.AssertCalled(t, "PaysFee", baseWeight)
 	mockCheckedExtrinsic.AssertCalled(t, "Validate", unsignedValidator, txSource, &dispatchInfo, encodedExtrinsicLen)
 	assert.Equal(t, defaultValidTransaction, outcome)
-	assert.Equal(t, transactionValidityError, err)
+	assert.Nil(t, err)
 }
 
 func Test_Executive_OffchainWorker(t *testing.T) {

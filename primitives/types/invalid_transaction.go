@@ -112,6 +112,39 @@ func NewInvalidTransactionBadSigner() InvalidTransaction {
 	return InvalidTransaction{sc.NewVaryingData(InvalidTransactionBadSigner)}
 }
 
+func (err InvalidTransaction) Error() string {
+	if len(err.VaryingData) == 0 {
+		return ""
+	}
+
+	switch err.VaryingData[0] {
+	case InvalidTransactionCall:
+		return "Transaction call is not expected"
+	case InvalidTransactionPayment:
+		return "Inability to pay some fees (e.g. account balance too low)"
+	case InvalidTransactionFuture:
+		return "Transaction will be valid in the future"
+	case InvalidTransactionStale:
+		return "Transaction is outdated"
+	case InvalidTransactionBadProof:
+		return "Transaction has a bad signature"
+	case InvalidTransactionAncientBirthBlock:
+		return "Transaction has an ancient birth block"
+	case InvalidTransactionExhaustsResources:
+		return "Transaction would exhaust the block limits"
+	case InvalidTransactionCustom:
+		return "InvalidTransaction custom error"
+	case InvalidTransactionBadMandatory:
+		return "A call was labelled as mandatory, but resulted in an Error."
+	case InvalidTransactionMandatoryValidation:
+		return "Transaction dispatch is mandatory; transactions must not be validated."
+	case InvalidTransactionBadSigner:
+		return "Invalid signing address"
+	default:
+		return ""
+	}
+}
+
 func DecodeInvalidTransaction(buffer *bytes.Buffer) (InvalidTransaction, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {

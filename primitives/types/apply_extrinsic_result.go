@@ -70,11 +70,11 @@ func DecodeApplyExtrinsicResult(buffer *bytes.Buffer) (ApplyExtrinsicResult, err
 		}
 		return NewApplyExtrinsicResult(value)
 	case 1:
-		value, err := DecodeTransactionValidityError(buffer)
-		if err != nil {
-			return nil, err
+		err := DecodeTransactionValidityError(buffer)
+		if txErr, ok := err.(TransactionValidityError); ok {
+			return NewApplyExtrinsicResult(txErr)
 		}
-		return NewApplyExtrinsicResult(value)
+		return nil, err
 	default:
 		return nil, newTypeError("ApplyExtrinsicResult")
 	}
