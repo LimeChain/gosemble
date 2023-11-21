@@ -10,3 +10,6 @@
 [submodule "substrate"]
 	path = substrate
 	url = git@github.com:LimeChain/substrate.git
+[submodule "polkadot-sdk"]
+	path = polkadot-sdk
+	url = git@github.com:paritytech/polkadot-sdk.git
