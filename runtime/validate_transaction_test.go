@@ -76,7 +76,8 @@ func Test_ValidateTransaction_Success(t *testing.T) {
 	buffer.Reset()
 	buffer.Write(encTransactionValidityResult)
 	transactionValidityResult, err := primitives.DecodeTransactionValidityResult(buffer)
-	assert.NoError(t, err)
+	assert.Nil(t, err)
+
 	assert.Equal(t, true, transactionValidityResult.IsValidTransaction())
 }
 

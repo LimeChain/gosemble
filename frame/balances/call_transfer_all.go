@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -28,7 +27,7 @@ func newCallTransferAll[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8
 }
 
 func (c callTransferAll[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[T](buffer)
+	dest, err := primitives.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -63,46 +62,46 @@ func (c callTransferAll[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransferAll[T]) BaseWeight() types.Weight {
+func (c callTransferAll[T]) BaseWeight() primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
 	// Minimum execution time: 34_878 nanoseconds.
 	r := c.constants.DbWeight.Reads(1)
 	w := c.constants.DbWeight.Writes(1)
-	e := types.WeightFromParts(0, 3593)
-	return types.WeightFromParts(35_121_000, 0).
+	e := primitives.WeightFromParts(0, 3593)
+	return primitives.WeightFromParts(35_121_000, 0).
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
 }
 
-func (_ callTransferAll[T]) WeighData(baseWeight types.Weight) types.Weight {
-	return types.WeightFromParts(baseWeight.RefTime, 0)
+func (_ callTransferAll[T]) WeighData(baseWeight primitives.Weight) primitives.Weight {
+	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransferAll[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassNormal()
+func (_ callTransferAll[T]) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	return primitives.NewDispatchClassNormal()
 }
 
-func (_ callTransferAll[T]) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+func (_ callTransferAll[T]) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	return primitives.NewPaysYes()
 }
 
-func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	err := c.transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+func (c callTransferAll[T]) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+	err := c.transferAll(origin, args[0].(primitives.MultiAddress), bool(args[1].(sc.Bool)))
+	if err.VaryingData != nil {
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Err: err,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: err,
 			},
 		}
 	}
 
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+		Ok:       primitives.PostDispatchInfo{},
 	}
 }
 
@@ -112,9 +111,9 @@ func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varying
 // the funds the account has, causing the sender account to be killed (false), or
 // transfer everything except at least the existential deposit, which will guarantee to
 // keep the sender account alive (true).
-func (c callTransferAll[T]) transferAll(origin types.RawOrigin, dest types.MultiAddress, keepAlive bool) error {
+func (c callTransferAll[T]) transferAll(origin primitives.RawOrigin, dest primitives.MultiAddress, keepAlive bool) primitives.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return types.NewDispatchErrorBadOrigin()
+		return primitives.NewDispatchErrorBadOrigin()
 	}
 
 	transactor, err := origin.AsSigned()
@@ -127,15 +126,15 @@ func (c callTransferAll[T]) transferAll(origin types.RawOrigin, dest types.Multi
 		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
 
-	to, errLookup := types.Lookup(dest)
+	to, errLookup := primitives.Lookup(dest)
 	if errLookup != nil {
 		log.Debug(fmt.Sprintf("Failed to lookup [%s]", dest.Bytes()))
-		return types.NewDispatchErrorCannotLookup()
+		return primitives.NewDispatchErrorCannotLookup()
 	}
 
-	keep := types.ExistenceRequirementKeepAlive
+	keep := primitives.ExistenceRequirementKeepAlive
 	if !keepAlive {
-		keep = types.ExistenceRequirementAllowDeath
+		keep = primitives.ExistenceRequirementAllowDeath
 	}
 
 	return c.transfer.trans(transactor, to, reducibleBalance, keep)

@@ -69,14 +69,13 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	ok, errTx := m.executive.ValidateTransaction(txSource, tx, blockHash)
+	ok, err := m.executive.ValidateTransaction(txSource, tx, blockHash)
 	var res primitives.TransactionValidityResult
-	switch errTx.(type) {
+	switch err.(type) {
 	case primitives.TransactionValidityError:
-		res, err = primitives.NewTransactionValidityResult(errTx.(primitives.TransactionValidityError))
+		res, err = primitives.NewTransactionValidityResult(err.(primitives.TransactionValidityError))
 	case nil:
 		res, err = primitives.NewTransactionValidityResult(ok)
-	default:
 	}
 	if err != nil {
 		log.Critical(err.Error())

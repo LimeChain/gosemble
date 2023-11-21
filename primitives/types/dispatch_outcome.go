@@ -56,11 +56,11 @@ func DecodeDispatchOutcome(buffer *bytes.Buffer) (DispatchOutcome, error) {
 	case 0:
 		return NewDispatchOutcome(sc.Empty{})
 	case 1:
-		dispatchErr := DecodeDispatchError(buffer)
-		if _, ok := dispatchErr.(DispatchError); !ok {
-			return DispatchOutcome{}, dispatchErr
+		value, err := DecodeDispatchError(buffer)
+		if err != nil {
+			return DispatchOutcome{}, err
 		}
-		return NewDispatchOutcome(dispatchErr.(DispatchError))
+		return NewDispatchOutcome(value)
 	default:
 		return DispatchOutcome{}, newTypeError("DispatchOutcome")
 	}

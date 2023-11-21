@@ -16,7 +16,7 @@ type checkedExtrinsic struct {
 	signer        sc.Option[primitives.AccountId[primitives.PublicKey]]
 	function      primitives.Call
 	extra         primitives.SignedExtra
-	transactional support.Transactional[primitives.PostDispatchInfo]
+	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
 }
 
 func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId[primitives.PublicKey]], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
@@ -24,7 +24,7 @@ func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId[primitives.Public
 		signer:        signer,
 		function:      function,
 		extra:         extra,
-		transactional: support.NewTransactional[primitives.PostDispatchInfo](),
+		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](),
 	}
 }
 
@@ -70,16 +70,16 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
 
 	dispatchInfo, err := c.transactional.WithStorageLayer(
-		func() (primitives.PostDispatchInfo, error) {
+		func() (primitives.PostDispatchInfo, primitives.DispatchError) {
 			return c.dispatch(maybeWho)
 		},
 	)
 
-	if err != nil {
+	if err.VaryingData != nil {
 		resWithInfo.HasError = true
 		resWithInfo.Err = primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
 			PostInfo: dispatchInfo,
-			Err:      err,
+			Error:    err,
 		}
 	} else {
 		resWithInfo.Ok = dispatchInfo
@@ -119,12 +119,13 @@ func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, sourc
 	return valid.CombineWith(unsignedValidation), nil
 }
 
-func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId[primitives.PublicKey]]) (primitives.PostDispatchInfo, error) {
+func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId[primitives.PublicKey]]) (primitives.PostDispatchInfo, primitives.DispatchError) {
 	resWithInfo := c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
 
 	if resWithInfo.HasError {
-		return resWithInfo.Err.PostInfo, resWithInfo.Err.Err
+		return resWithInfo.Err.PostInfo, resWithInfo.Err.Error
 	}
 
-	return resWithInfo.Ok, nil
+	return resWithInfo.Ok, primitives.DispatchError{VaryingData: nil}
+
 }

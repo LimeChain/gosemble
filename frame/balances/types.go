@@ -9,7 +9,7 @@ import (
 )
 
 type accountMutator interface {
-	ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) error
+	ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
 	tryMutateAccountWithDust(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 	tryMutateAccount(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 }

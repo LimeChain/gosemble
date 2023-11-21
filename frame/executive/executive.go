@@ -142,10 +142,10 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	}
 
 	if res.HasError {
-		return primitives.NewDispatchOutcome(res.Err.Err.(primitives.DispatchError))
-	} else {
-		return primitives.NewDispatchOutcome(nil)
+		return primitives.NewDispatchOutcome(res.Err.Error)
 	}
+
+	return primitives.NewDispatchOutcome(nil)
 }
 
 func (m module) FinalizeBlock() (primitives.Header, error) {

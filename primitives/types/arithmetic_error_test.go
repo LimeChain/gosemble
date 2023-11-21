@@ -39,13 +39,20 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
-			buffer := bytes.NewBuffer(testExample.input)
-			assert.Equal(t, testExample.expectation, DecodeArithmeticError(buffer))
+			result, err := DecodeArithmeticError(bytes.NewBuffer(testExample.input))
+			assert.NoError(t, err)
+
+			assert.Equal(t, result, testExample.expectation)
 		})
 	}
 }
 
 func Test_Decode_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{0x03})
-	assert.Equal(t, "not a valid 'ArithmeticError' type", DecodeArithmeticError(buffer).Error())
+
+	res, err := DecodeArithmeticError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'ArithmeticError' type", err.Error())
+	assert.Nil(t, res.VaryingData)
 }

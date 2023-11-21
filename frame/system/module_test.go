@@ -476,7 +476,7 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 		Ok:       primitives.PostDispatchInfo{},
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
 			PostInfo: primitives.PostDispatchInfo{},
-			Err:      primitives.NewDispatchErrorCorruption(),
+			Error:    primitives.NewDispatchErrorCorruption(),
 		},
 	}
 	dispatchInfo := primitives.DispatchInfo{
@@ -490,7 +490,7 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 	}
 	expectEventRecord := primitives.EventRecord{
 		Phase:  primitives.NewExtrinsicPhaseInitialization(),
-		Event:  newEventExtrinsicFailed(moduleId, extrinsicResult.Err.Err.(primitives.DispatchError), expectDispatchInfo),
+		Event:  newEventExtrinsicFailed(moduleId, extrinsicResult.Err.Error, expectDispatchInfo),
 		Topics: []primitives.H256{},
 	}
 

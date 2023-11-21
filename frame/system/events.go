@@ -70,9 +70,9 @@ func DecodeEvent[T types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (ty
 		}
 		return newEventExtrinsicSuccess(moduleIndex, dispatchInfo), nil
 	case EventExtrinsicFailed:
-		dispatchErr, ok := types.DecodeDispatchError(buffer).(types.DispatchError)
-		if !ok {
-			return types.Event{}, dispatchErr
+		dispatchErr, err := types.DecodeDispatchError(buffer)
+		if err != nil {
+			return types.Event{}, err
 		}
 		dispatchInfo, err := types.DecodeDispatchInfo(buffer)
 		if err != nil {

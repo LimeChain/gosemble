@@ -14,10 +14,9 @@ var (
 )
 
 func Test_NewTransactionValidityError_TypeError(t *testing.T) {
-	txErr := NewTransactionValidityError(sc.U8(6))
-	_, ok := txErr.(TransactionValidityError)
-	assert.False(t, ok)
-	assert.Equal(t, "not a valid 'TransactionValidityError' type", txErr.Error())
+	result := NewTransactionValidityError(sc.U8(6))
+
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", result.Error())
 }
 
 func Test_TransactionValidityError_Encode(t *testing.T) {
@@ -41,7 +40,10 @@ func Test_TransactionValidityError_Encode(t *testing.T) {
 	for _, testExample := range testExamples {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
-			assert.NoError(t, testExample.input.(TransactionValidityError).Encode(buffer))
+
+			err := testExample.input.(TransactionValidityError).Encode(buffer)
+
+			assert.NoError(t, err)
 			assert.Equal(t, testExample.expectation, buffer.Bytes())
 		})
 	}
@@ -81,7 +83,11 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
 			buffer.Write(testExample.input)
-			assert.Equal(t, testExample.expectation, DecodeTransactionValidityError(buffer))
+
+			result, err := DecodeTransactionValidityError(buffer)
+			assert.NoError(t, err)
+
+			assert.Equal(t, testExample.expectation, result)
 		})
 	}
 }
@@ -90,10 +96,11 @@ func Test_DecodeTransactionValidityError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
 
-	txErr := DecodeTransactionValidityError(buffer)
-	_, ok := txErr.(TransactionValidityError)
-	assert.False(t, ok)
-	assert.Equal(t, "not a valid 'TransactionValidityError' type", txErr.Error())
+	res, err := DecodeTransactionValidityError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TransactionValidityError' type", err.Error())
+	assert.Equal(t, TransactionValidityError{}, res)
 }
 
 func Test_TransactionValidityError_Bytes(t *testing.T) {

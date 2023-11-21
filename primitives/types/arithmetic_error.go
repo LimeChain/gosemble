@@ -30,7 +30,7 @@ func NewArithmeticErrorDivisionByZero() ArithmeticError {
 
 func (err ArithmeticError) Error() string {
 	if len(err.VaryingData) == 0 {
-		return ""
+		return newTypeError("ArithmeticError").Error()
 	}
 
 	switch err.VaryingData[0] {
@@ -41,24 +41,24 @@ func (err ArithmeticError) Error() string {
 	case ArithmeticErrorDivisionByZero:
 		return "Division by zero"
 	default:
-		return ""
+		return newTypeError("ArithmeticError").Error()
 	}
 }
 
-func DecodeArithmeticError(buffer *bytes.Buffer) error {
+func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return err
+		return ArithmeticError{}, err
 	}
 
 	switch b {
 	case ArithmeticErrorUnderflow:
-		return NewArithmeticErrorUnderflow()
+		return NewArithmeticErrorUnderflow(), nil
 	case ArithmeticErrorOverflow:
-		return NewArithmeticErrorOverflow()
+		return NewArithmeticErrorOverflow(), nil
 	case ArithmeticErrorDivisionByZero:
-		return NewArithmeticErrorDivisionByZero()
+		return NewArithmeticErrorDivisionByZero(), nil
 	default:
-		return newTypeError("ArithmeticError")
+		return ArithmeticError{}, newTypeError("ArithmeticError")
 	}
 }

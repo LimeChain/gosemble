@@ -2,6 +2,7 @@ package blockbuilder
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
 
@@ -80,15 +81,15 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	bufferUxt := bytes.NewBuffer(bUxt)
 	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
 	assert.Nil(t, err)
-	txErr, ok := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale()).(primitives.TransactionValidityError)
+	validityError, ok := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale()).(primitives.TransactionValidityError)
 	assert.True(t, ok)
-	applyExtrinsicResultValidityErr, err := primitives.NewApplyExtrinsicResult(txErr)
+	applyExtrinsicResultValidityErr, err := primitives.NewApplyExtrinsicResult(validityError)
 	assert.Nil(t, err)
 	bExtrinsicResult := applyExtrinsicResultValidityErr.Bytes()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
 	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
-	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, txErr)
+	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, validityError)
 	mockMemoryUtils.On("BytesToOffsetAndSize", bExtrinsicResult).Return(ptrAndSize)
 
 	result := target.ApplyExtrinsic(dataPtr, dataLen)
@@ -98,6 +99,28 @@ func Test_Module_ApplyExtrinsic_Fails(t *testing.T) {
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ApplyExtrinsic", uxt)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", bExtrinsicResult)
+}
+
+func Test_Module_ApplyExtrinsic_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer(bUxt)
+	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
+	assert.Nil(t, err)
+	expectedErr := errors.New("panic")
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, nil)
+	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, expectedErr)
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.ApplyExtrinsic(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertCalled(t, "ApplyExtrinsic", uxt)
 }
 
 func Test_Module_FinalizeBlock(t *testing.T) {

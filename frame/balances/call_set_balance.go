@@ -108,11 +108,11 @@ func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 	newReserved := sc.U128(args[2].(sc.Compact))
 
 	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
-	if err != nil {
+	if err.VaryingData != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Err: err,
+				Error: err,
 			},
 		}
 	}
@@ -127,7 +127,7 @@ func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) error {
+func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -151,7 +151,7 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 		},
 	)
 	if result.HasError {
-		return result.Value.(error)
+		return result.Value.(types.DispatchError)
 	}
 
 	parsedResult := result.Value.(sc.VaryingData)
@@ -160,22 +160,22 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 
 	if newFree.Gt(oldFree) {
 		if err := newPositiveImbalance(newFree.Sub(oldFree), c.issuance).Drop(); err != nil {
-			return err
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
 		}
 
 	} else if newFree.Lt(oldFree) {
 		if err := newNegativeImbalance(oldFree.Sub(newFree), c.issuance).Drop(); err != nil {
-			return err
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
 		}
 	}
 
 	if newReserved.Gt(oldReserved) {
 		if err := newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).Drop(); err != nil {
-			return err
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
 		}
 	} else if newReserved.Lt(oldReserved) {
 		if err := newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).Drop(); err != nil {
-			return err
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
 		}
 
 	}
@@ -193,7 +193,7 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 			newReserved,
 		),
 	)
-	return nil
+	return types.DispatchError{VaryingData: nil}
 }
 
 // updateAccount updates the reserved and free amounts and returns the old amounts

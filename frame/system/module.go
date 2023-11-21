@@ -272,7 +272,7 @@ func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[pr
 		}
 		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
 
-		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Err.(primitives.DispatchError), info))
+		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
 	} else {
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
@@ -417,10 +417,10 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 		}
 	} else if wasProviding && !isProviding {
 		status, err := m.decProviders(who)
-		if dispatchErr, ok := err.(primitives.DispatchError); ok {
+		if err.VaryingData != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
-				Value:    dispatchErr,
+				Value:    err,
 			}, nil
 		}
 		if status == primitives.DecRefStatusExists {
@@ -507,7 +507,7 @@ func (m module) incrementProviders(who primitives.AccountId[primitives.PublicKey
 	}
 }
 
-func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, error) {
+func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, primitives.DispatchError) {
 	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 		return m.decrementProviders(who, maybeAccount)
 	})
@@ -520,7 +520,7 @@ func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (pr
 		return sc.U8(0), result.Value.(primitives.DispatchError)
 	}
 
-	return result.Value.(primitives.DecRefStatus), nil
+	return result.Value.(primitives.DecRefStatus), primitives.DispatchError{VaryingData: nil}
 }
 
 // depositEventIndexed Deposits an event into this block's event record adding this event

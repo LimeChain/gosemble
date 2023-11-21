@@ -7,7 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -30,7 +29,7 @@ func newCallTransfer[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, s
 }
 
 func (c callTransfer[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
+	dest, err := primitives.DecodeMultiAddress[testPublicKeyType](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -65,48 +64,48 @@ func (c callTransfer[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransfer[T]) BaseWeight() types.Weight {
+func (c callTransfer[T]) BaseWeight() primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
 	// Minimum execution time: 37_815 nanoseconds.
 	r := c.constants.DbWeight.Reads(1)
 	w := c.constants.DbWeight.Writes(1)
-	e := types.WeightFromParts(0, 3593)
-	return types.WeightFromParts(38_109_000, 0).
+	e := primitives.WeightFromParts(0, 3593)
+	return primitives.WeightFromParts(38_109_000, 0).
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
 }
 
-func (_ callTransfer[T]) WeighData(baseWeight types.Weight) types.Weight {
-	return types.WeightFromParts(baseWeight.RefTime, 0)
+func (_ callTransfer[T]) WeighData(baseWeight primitives.Weight) primitives.Weight {
+	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransfer[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassNormal()
+func (_ callTransfer[T]) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	return primitives.NewDispatchClassNormal()
 }
 
-func (_ callTransfer[T]) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+func (_ callTransfer[T]) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	return primitives.NewPaysYes()
 }
 
-func (c callTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransfer[T]) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
-	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	err := c.transfer.transfer(origin, args[0].(primitives.MultiAddress), value)
+	if err.VaryingData != nil {
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Err: err,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: err,
 			},
 		}
 	}
 
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+		Ok:       primitives.PostDispatchInfo{},
 	}
 }
 
@@ -129,14 +128,14 @@ func newTransfer(moduleId sc.U8, storedMap primitives.StoredMap, constants *cons
 // transfer transfers liquid free balance from `source` to `dest`.
 // Increases the free balance of `dest` and decreases the free balance of `origin` transactor.
 // Must be signed by the transactor.
-func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) error {
+func (t transfer) transfer(origin primitives.RawOrigin, dest primitives.MultiAddress, value sc.U128) primitives.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return types.NewDispatchErrorBadOrigin()
+		return primitives.NewDispatchErrorBadOrigin()
 	}
 
-	to, err := types.Lookup(dest)
+	to, err := primitives.Lookup(dest)
 	if err != nil {
-		return types.NewDispatchErrorCannotLookup()
+		return primitives.NewDispatchErrorCannotLookup()
 	}
 
 	transactor, originErr := origin.AsSigned()
@@ -144,27 +143,27 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 		log.Critical(originErr.Error())
 	}
 
-	return t.trans(transactor, to, value, types.ExistenceRequirementAllowDeath)
+	return t.trans(transactor, to, value, primitives.ExistenceRequirementAllowDeath)
 }
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountId[types.PublicKey], value sc.U128, existenceRequirement types.ExistenceRequirement) error {
+func (t transfer) trans(from primitives.AccountId[primitives.PublicKey], to primitives.AccountId[primitives.PublicKey], value sc.U128, existenceRequirement primitives.ExistenceRequirement) primitives.DispatchError {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
-		return nil
+		return primitives.DispatchError{VaryingData: nil}
 	}
 
-	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
+		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
 			return t.sanityChecks(from, fromAccount, toAccount, value, existenceRequirement)
 		})
 	})
 	if result.HasError {
-		return result.Value.(error)
+		return result.Value.(primitives.DispatchError)
 	}
 
 	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from, to, value))
-	return nil
+	return primitives.DispatchError{VaryingData: nil}
 }
 
 // sanityChecks checks the following:
@@ -174,12 +173,12 @@ func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountI
 // `fromAccount` can withdraw `value`
 // the existence requirements for `fromAccount`
 // Updates the balances of `fromAccount` and `toAccount`.
-func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (t transfer) sanityChecks(from primitives.AccountId[primitives.PublicKey], fromAccount *primitives.AccountData, toAccount *primitives.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
 	fromFree, err := sc.CheckedSubU128(fromAccount.Free, value)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   t.moduleId,
 				Err:     sc.U32(ErrorInsufficientBalance),
 				Message: sc.NewOption[sc.Str](nil),
@@ -192,7 +191,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 	if err != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value:    types.NewDispatchErrorArithmetic(types.NewArithmeticErrorOverflow()),
+			Value:    primitives.NewDispatchErrorArithmetic(primitives.NewArithmeticErrorOverflow()),
 		}
 	}
 	toAccount.Free = toFree
@@ -200,7 +199,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 	if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   t.moduleId,
 				Err:     sc.U32(ErrorExistentialDeposit),
 				Message: sc.NewOption[sc.Str](nil),
@@ -208,33 +207,28 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 		}
 	}
 
-	err = t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-	if err != nil {
-		errRes := sc.Result[sc.Encodable]{HasError: true}
-		switch dispatchErr := err.(type) {
-		case primitives.DispatchError:
-			errRes.Value = dispatchErr
-		default:
-			errRes.Value = sc.Empty{}
+	dispatchErr := t.accountMutator.ensureCanWithdraw(from, value, primitives.ReasonsAll, fromAccount.Free)
+	if dispatchErr.VaryingData != nil {
+		return sc.Result[sc.Encodable]{
+			HasError: true,
+			Value:    dispatchErr,
 		}
-
-		return errRes
 	}
 
 	canDecProviders, err := t.storedMap.CanDecProviders(from)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value:    types.NewDispatchErrorOther(sc.Str(err.Error())),
+			Value:    primitives.NewDispatchErrorOther(sc.Str(err.Error())),
 		}
 	}
-	allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
+	allowDeath := existenceRequirement == primitives.ExistenceRequirementAllowDeath
 	allowDeath = allowDeath && canDecProviders
 
 	if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
+			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   t.moduleId,
 				Err:     sc.U32(ErrorKeepAlive),
 				Message: sc.NewOption[sc.Str](nil),
@@ -245,17 +239,17 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 	return sc.Result[sc.Encodable]{}
 }
 
-func (t transfer) reducibleBalance(who types.AccountId[types.PublicKey], keepAlive bool) (types.Balance, error) {
+func (t transfer) reducibleBalance(who primitives.AccountId[primitives.PublicKey], keepAlive bool) (primitives.Balance, error) {
 	account, err := t.storedMap.Get(who)
 	if err != nil {
-		return types.Balance{}, err
+		return primitives.Balance{}, err
 	}
 	accountData := account.Data
 
 	liquid := sc.SaturatingSubU128(accountData.Free, sc.Max128(accountData.FeeFrozen, accountData.MiscFrozen))
 	canDecProviders, err := t.storedMap.CanDecProviders(who)
 	if err != nil {
-		return types.Balance{}, err
+		return primitives.Balance{}, err
 	}
 	if canDecProviders && !keepAlive {
 		return liquid, nil

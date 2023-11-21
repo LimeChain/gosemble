@@ -39,47 +39,80 @@ func Test_NewTokenErrorUnsupported(t *testing.T) {
 func Test_DecodeTokenError_NoFunds(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(0)
-	assert.Equal(t, NewTokenErrorNoFounds(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorNoFounds(), result)
 }
 
 func Test_DecodeTokenError_WouldDie(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(1)
-	assert.Equal(t, NewTokenErrorWouldDie(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorWouldDie(), result)
 }
 
 func Test_DecodeTokenError_BelowMinimum(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(2)
-	assert.Equal(t, NewTokenErrorBelowMinimum(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorBelowMinimum(), result)
 }
 
 func Test_DecodeTokenError_CannotCreate(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(3)
-	assert.Equal(t, NewTokenErrorCannotCreate(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorCannotCreate(), result)
 }
 
 func Test_DecodeTokenError_UnknownAsset(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(4)
-	assert.Equal(t, NewTokenErrorUnknownAsset(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorUnknownAsset(), result)
 }
 
 func Test_DecodeTokenError_Frozen(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
-	assert.Equal(t, NewTokenErrorFrozen(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorFrozen(), result)
 }
 
 func Test_DecodeTokenError_Unsupported(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(6)
-	assert.Equal(t, NewTokenErrorUnsupported(), DecodeTokenError(buffer))
+
+	result, err := DecodeTokenError(buffer)
+	assert.NoError(t, err)
+
+	assert.Equal(t, NewTokenErrorUnsupported(), result)
 }
 
 func Test_DecodeTokenError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(7)
-	assert.Equal(t, "not a valid 'TokenError' type", DecodeTokenError(buffer).Error())
+
+	res, err := DecodeTokenError(buffer)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'TokenError' type", err.Error())
+	assert.Nil(t, res.VaryingData)
 }

@@ -154,7 +154,7 @@ func Test_Call_SetBalance_Dispatch_BadOrigin(t *testing.T) {
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Err: primitives.NewDispatchErrorBadOrigin(),
+			Error: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -174,7 +174,7 @@ func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Err: primitives.NewDispatchErrorCannotLookup(),
+			Error: primitives.NewDispatchErrorCannotLookup(),
 		},
 	}
 
@@ -215,7 +215,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result)
+	assert.Nil(t, result.VaryingData)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,
@@ -254,7 +254,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result)
+	assert.Nil(t, result.VaryingData)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
@@ -292,7 +292,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result)
+	assert.Nil(t, result.VaryingData)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,

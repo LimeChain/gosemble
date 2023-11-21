@@ -10,10 +10,10 @@ type mockAccountMutator struct {
 	mock.Mock
 }
 
-func (m *mockAccountMutator) ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) error {
+func (m *mockAccountMutator) ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError {
 	args := m.Called(who, amount, reasons, newBalance)
-	err, _ := args[0].(error)
-	return err
+
+	return args[0].(types.DispatchError)
 }
 
 func (m *mockAccountMutator) tryMutateAccountWithDust(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {

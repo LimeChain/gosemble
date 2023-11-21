@@ -7,7 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/primitives/log"
-	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -29,7 +28,7 @@ func newCallForceFree[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, 
 }
 
 func (c callForceFree[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	who, err := types.DecodeMultiAddress[T](buffer)
+	who, err := primitives.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -64,71 +63,74 @@ func (c callForceFree[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callForceFree[T]) BaseWeight() types.Weight {
+func (c callForceFree[T]) BaseWeight() primitives.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `206`
 	//  Estimated: `3593`
 	// Minimum execution time: 16_790 nanoseconds.
 	r := c.constants.DbWeight.Reads(1)
 	w := c.constants.DbWeight.Writes(1)
-	e := types.WeightFromParts(0, 3593)
-	return types.WeightFromParts(17_029_000, 0).
+	e := primitives.WeightFromParts(0, 3593)
+	return primitives.WeightFromParts(17_029_000, 0).
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
 }
 
-func (_ callForceFree[T]) WeighData(baseWeight types.Weight) types.Weight {
-	return types.WeightFromParts(baseWeight.RefTime, 0)
+func (_ callForceFree[T]) WeighData(baseWeight primitives.Weight) primitives.Weight {
+	return primitives.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callForceFree[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
-	return types.NewDispatchClassNormal()
+func (_ callForceFree[T]) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	return primitives.NewDispatchClassNormal()
 }
 
-func (_ callForceFree[T]) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+func (_ callForceFree[T]) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	return primitives.NewPaysYes()
 }
 
-func (c callForceFree[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceFree[T]) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	amount := args[1].(sc.U128)
 
-	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	err := c.forceFree(origin, args[0].(primitives.MultiAddress), amount)
+	if err.VaryingData != nil {
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Err: err,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: err,
 			},
 		}
 	}
 
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
+	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+		Ok:       primitives.PostDispatchInfo{},
 	}
 }
 
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) error {
+func (c callForceFree[T]) forceFree(origin primitives.RawOrigin, who primitives.MultiAddress, amount sc.U128) primitives.DispatchError {
 	if !origin.IsRootOrigin() {
-		return types.NewDispatchErrorBadOrigin()
+		return primitives.NewDispatchErrorBadOrigin()
 	}
 
-	target, err := types.Lookup(who)
+	target, err := primitives.Lookup(who)
 	if err != nil {
 		log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
-		return types.NewDispatchErrorCannotLookup()
+		return primitives.NewDispatchErrorCannotLookup()
 	}
 
-	_, err = c.force(target, amount)
-	return err
+	if _, err := c.force(target, amount); err != nil {
+		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
+	}
+
+	return primitives.DispatchError{VaryingData: nil}
 }
 
 // forceFree frees funds, returning the amount that has not been freed.
-func (c callForceFree[T]) force(who primitives.AccountId[types.PublicKey], value sc.U128) (sc.U128, error) {
+func (c callForceFree[T]) force(who primitives.AccountId[primitives.PublicKey], value sc.U128) (sc.U128, error) {
 	if value.Eq(constants.Zero) {
 		return constants.Zero, nil
 	}
@@ -145,7 +147,7 @@ func (c callForceFree[T]) force(who primitives.AccountId[types.PublicKey], value
 
 	result := c.accountMutator.tryMutateAccount(
 		who,
-		func(account *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+		func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
 			return removeReserveAndFree(account, value)
 		},
 	)
@@ -161,7 +163,7 @@ func (c callForceFree[T]) force(who primitives.AccountId[types.PublicKey], value
 }
 
 // removeReserveAndFree frees reserved value from the account.
-func removeReserveAndFree(account *types.AccountData, value sc.U128) sc.Result[sc.Encodable] {
+func removeReserveAndFree(account *primitives.AccountData, value sc.U128) sc.Result[sc.Encodable] {
 	actual := sc.Min128(account.Reserved, value)
 	account.Reserved = account.Reserved.Sub(actual)
 

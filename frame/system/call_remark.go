@@ -92,11 +92,11 @@ func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) 
 // remark makes some on-chain remark.
 func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	_, err := EnsureSignedOrRoot(origin)
-	if err != nil {
+	if err.VaryingData != nil {
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
 			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Err: err,
+				Error: err,
 			},
 		}
 	}
@@ -111,11 +111,11 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 // Returns an empty Option if the origin is `Root`.
 // Returns an Option with the signer if the origin is signed.
 // Returns a `BadOrigin` error if neither of the above.
-func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId[primitives.PublicKey]], error) {
+func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId[primitives.PublicKey]], primitives.DispatchError) {
 	if origin.IsRootOrigin() {
-		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), nil
+		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), primitives.DispatchError{VaryingData: nil}
 	} else if origin.IsSignedOrigin() {
-		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](origin.VaryingData[1]), nil
+		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](origin.VaryingData[1]), primitives.DispatchError{VaryingData: nil}
 	}
 
 	return sc.Option[primitives.AccountId[primitives.PublicKey]]{}, primitives.NewDispatchErrorBadOrigin()

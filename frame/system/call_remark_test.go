@@ -154,7 +154,7 @@ func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
 	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 		HasError: true,
 		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Err: primitives.NewDispatchErrorBadOrigin(),
+			Error: primitives.NewDispatchErrorBadOrigin(),
 		},
 	}
 
@@ -168,7 +168,7 @@ func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
 func Test_EnsureSignedOrRoot_Root(t *testing.T) {
 	r, err := EnsureSignedOrRoot(primitives.NewRawOriginRoot())
 
-	assert.Nil(t, err)
+	assert.Nil(t, err.VaryingData)
 	assert.Equal(t, sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), r)
 }
 
@@ -181,7 +181,7 @@ func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
 
 	r, e := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
 
-	assert.Nil(t, e)
+	assert.Nil(t, e.VaryingData)
 	assert.Equal(t, sc.NewOption[primitives.AccountId[primitives.PublicKey]](signer), r)
 }
 

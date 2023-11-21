@@ -27,7 +27,7 @@ func NewTransactionalErrorNoLayer() TransactionalError {
 
 func (err TransactionalError) Error() string {
 	if len(err.VaryingData) == 0 {
-		return ""
+		return newTypeError("TransactionalError").Error()
 	}
 
 	switch err.VaryingData[0] {
@@ -36,22 +36,22 @@ func (err TransactionalError) Error() string {
 	case TransactionalErrorNoLayer:
 		return "A transactional layer was expected, but does not exist"
 	default:
-		return ""
+		return newTypeError("TransactionalError").Error()
 	}
 }
 
-func DecodeTransactionalError(buffer *bytes.Buffer) error {
+func DecodeTransactionalError(buffer *bytes.Buffer) (TransactionalError, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return err
+		return TransactionalError{}, err
 	}
 
 	switch b {
 	case TransactionalErrorLimitReached:
-		return NewTransactionalErrorLimitReached()
+		return NewTransactionalErrorLimitReached(), nil
 	case TransactionalErrorNoLayer:
-		return NewTransactionalErrorNoLayer()
+		return NewTransactionalErrorNoLayer(), nil
 	default:
-		return newTypeError("TransactionalError")
+		return TransactionalError{}, newTypeError("TransactionalError")
 	}
 }

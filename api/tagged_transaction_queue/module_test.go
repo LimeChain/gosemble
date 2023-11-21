@@ -2,6 +2,7 @@ package tagged_transaction_queue
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -98,6 +99,31 @@ func Test_Module_ValidateTransaction_Fails(t *testing.T) {
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ValidateTransaction", txSource, mockUxt, blockHash)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", validityFailResult.Bytes())
+}
+
+func Test_Module_ValidateTransaction_Panics(t *testing.T) {
+	target := setup()
+
+	data := append(txSource.Bytes(), blockHash.Bytes()...)
+	expectBuffer := bytes.NewBuffer(data)
+	_, err := expectBuffer.ReadByte()
+	assert.Nil(t, err)
+
+	expectedErr := errors.New("panic")
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
+	mockExecutive.On("ValidateTransaction", txSource, mockUxt, blockHash).
+		Return(primitives.ValidTransaction{}, expectedErr)
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.ValidateTransaction(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertCalled(t, "ValidateTransaction", txSource, mockUxt, blockHash)
 }
 
 func Test_Module_Metadata(t *testing.T) {

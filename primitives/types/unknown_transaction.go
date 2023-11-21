@@ -35,7 +35,7 @@ func NewUnknownTransactionCustomUnknownTransaction(unknown sc.U8) UnknownTransac
 
 func (err UnknownTransaction) Error() string {
 	if len(err.VaryingData) == 0 {
-		return ""
+		return newTypeError("UnknownError").Error()
 	}
 
 	switch err.VaryingData[0] {
@@ -46,7 +46,7 @@ func (err UnknownTransaction) Error() string {
 	case UnknownTransactionCustomUnknownTransaction:
 		return "UnknownTransaction custom error"
 	default:
-		return ""
+		return newTypeError("TransactionalError").Error()
 	}
 }
 

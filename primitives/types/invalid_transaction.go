@@ -114,7 +114,7 @@ func NewInvalidTransactionBadSigner() InvalidTransaction {
 
 func (err InvalidTransaction) Error() string {
 	if len(err.VaryingData) == 0 {
-		return ""
+		return newTypeError("InvalidTransaction").Error()
 	}
 
 	switch err.VaryingData[0] {
@@ -141,7 +141,7 @@ func (err InvalidTransaction) Error() string {
 	case InvalidTransactionBadSigner:
 		return "Invalid signing address"
 	default:
-		return ""
+		return newTypeError("InvalidTransaction").Error()
 	}
 }
 
