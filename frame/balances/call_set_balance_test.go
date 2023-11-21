@@ -215,7 +215,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result.VaryingData)
+	assert.Nil(t, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,
@@ -254,7 +254,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result.VaryingData)
+	assert.Nil(t, result)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
@@ -292,7 +292,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Nil(t, result.VaryingData)
+	assert.Nil(t, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,

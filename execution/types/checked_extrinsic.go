@@ -75,7 +75,7 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		},
 	)
 
-	if err.VaryingData != nil {
+	if err != nil {
 		resWithInfo.HasError = true
 		resWithInfo.Err = primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
 			PostInfo: dispatchInfo,
@@ -126,6 +126,6 @@ func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId[primi
 		return resWithInfo.Err.PostInfo, resWithInfo.Err.Error
 	}
 
-	return resWithInfo.Ok, primitives.DispatchError{VaryingData: nil}
+	return resWithInfo.Ok, nil
 
 }

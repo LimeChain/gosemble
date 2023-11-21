@@ -440,7 +440,7 @@ func Test_CheckedExtrinsic_dispatch_Success(t *testing.T) {
 
 	res, err := target.dispatch(signerOption)
 
-	assert.Nil(t, err.VaryingData)
+	assert.Nil(t, err)
 	assert.Equal(t, postDispatchInfo, res)
 	mockCall.AssertCalled(t, "Args")
 	mockCall.AssertCalled(t, "Dispatch", types.RawOriginFrom(signerOption), args)

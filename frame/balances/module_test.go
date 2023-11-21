@@ -64,7 +64,7 @@ func Test_Module_DepositIntoExisting_Success(t *testing.T) {
 	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(tryMutateResult, nil)
 
 	result, errDeposit := target.DepositIntoExisting(fromAddressId, targetValue)
-	assert.Nil(t, errDeposit.VaryingData)
+	assert.Nil(t, errDeposit)
 
 	assert.Equal(t, targetValue, result)
 	assert.Nil(t, err)
@@ -80,7 +80,7 @@ func Test_Module_DepositIntoExisting_ZeroValue(t *testing.T) {
 	assert.Nil(t, err)
 
 	result, errDeposit := target.DepositIntoExisting(fromAddressId, sc.NewU128(0))
-	assert.Nil(t, errDeposit.VaryingData)
+	assert.Nil(t, errDeposit)
 
 	assert.Equal(t, sc.NewU128(0), result)
 	assert.Nil(t, err)
@@ -123,7 +123,7 @@ func Test_Module_Withdraw_Success(t *testing.T) {
 	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(tryMutateResult, nil)
 
 	result, errWithdraw := target.Withdraw(fromAddressId, targetValue, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
-	assert.Nil(t, errWithdraw.VaryingData)
+	assert.Nil(t, errWithdraw)
 
 	assert.Equal(t, targetValue, result)
 	assert.Nil(t, err)
@@ -139,7 +139,7 @@ func Test_Module_Withdraw_ZeroValue(t *testing.T) {
 	assert.Nil(t, err)
 
 	result, errWithdraw := target.Withdraw(fromAddressId, sc.NewU128(0), sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
-	assert.Nil(t, errWithdraw.VaryingData)
+	assert.Nil(t, errWithdraw)
 
 	assert.Equal(t, sc.NewU128(0), result)
 	assert.Nil(t, err)
@@ -178,7 +178,7 @@ func Test_Module_ensureCanWithdraw_Success(t *testing.T) {
 
 	result := target.ensureCanWithdraw(fromAddressId, targetValue, primitives.ReasonsFee, sc.NewU128(5))
 
-	assert.Nil(t, result.VaryingData)
+	assert.Nil(t, result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 }
 
@@ -190,7 +190,7 @@ func Test_Module_ensureCanWithdraw_ZeroAmount(t *testing.T) {
 
 	result := target.ensureCanWithdraw(fromAddressId, sc.NewU128(0), primitives.ReasonsFee, sc.NewU128(5))
 
-	assert.Nil(t, result.VaryingData)
+	assert.Nil(t, result)
 	mockStoredMap.AssertNotCalled(t, "Get", fromAddressId)
 }
 

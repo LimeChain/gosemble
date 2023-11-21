@@ -14,7 +14,7 @@ func (m *IoTransactional[T, E]) WithStorageLayer(fn func() (T, types.DispatchErr
 	args := m.Called(fn)
 
 	if args.Get(1) == nil {
-		return args.Get(0).(T), E(types.DispatchError{VaryingData: nil})
+		return args.Get(0).(T), nil
 	}
 
 	return args.Get(0).(T), args.Get(1).(E)

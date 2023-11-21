@@ -168,7 +168,7 @@ func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
 func Test_EnsureSignedOrRoot_Root(t *testing.T) {
 	r, err := EnsureSignedOrRoot(primitives.NewRawOriginRoot())
 
-	assert.Nil(t, err.VaryingData)
+	assert.Nil(t, err)
 	assert.Equal(t, sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), r)
 }
 
@@ -181,7 +181,7 @@ func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
 
 	r, e := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
 
-	assert.Nil(t, e.VaryingData)
+	assert.Nil(t, e)
 	assert.Equal(t, sc.NewOption[primitives.AccountId[primitives.PublicKey]](signer), r)
 }
 

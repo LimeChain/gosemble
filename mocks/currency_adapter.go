@@ -17,7 +17,7 @@ func (m *CurrencyAdapter) DepositIntoExisting(who types.AccountId[types.PublicKe
 		return args.Get(0).(types.Balance), args.Get(1).(types.DispatchError)
 	}
 
-	return args.Get(0).(types.Balance), types.DispatchError{VaryingData: nil}
+	return args.Get(0).(types.Balance), nil
 }
 
 func (m *CurrencyAdapter) Withdraw(who types.AccountId[types.PublicKey], value sc.U128, reasons sc.U8, liveness types.ExistenceRequirement) (types.Balance, types.DispatchError) {
@@ -27,5 +27,5 @@ func (m *CurrencyAdapter) Withdraw(who types.AccountId[types.PublicKey], value s
 		return args.Get(0).(types.Balance), args.Get(1).(types.DispatchError)
 	}
 
-	return args.Get(0).(types.Balance), types.DispatchError{VaryingData: nil}
+	return args.Get(0).(types.Balance), nil
 }

@@ -141,7 +141,7 @@ func Test_Transactional_WithTransaction_Commit(t *testing.T) {
 	})
 
 	assert.Equal(t, expect, res)
-	assert.Nil(t, err.VaryingData)
+	assert.Nil(t, err)
 
 	mockStorageValue.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
@@ -207,11 +207,11 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	mockStorageValue.On("Put", transactionLevel).Once()
 
 	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
-		return expect, primitives.DispatchError{VaryingData: nil}
+		return expect, nil
 	})
 
 	assert.Equal(t, expect, res)
-	assert.Nil(t, err.VaryingData)
+	assert.Nil(t, err)
 
 	mockStorageValue.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)

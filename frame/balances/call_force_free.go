@@ -94,7 +94,7 @@ func (c callForceFree[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDa
 	amount := args[1].(sc.U128)
 
 	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
-	if err.VaryingData != nil {
+	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
@@ -127,7 +127,7 @@ func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddre
 		return types.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
 
-	return types.DispatchError{VaryingData: nil}
+	return nil
 }
 
 // forceFree frees funds, returning the amount that has not been freed.

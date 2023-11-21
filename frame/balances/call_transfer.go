@@ -95,7 +95,7 @@ func (c callTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
-	if err.VaryingData != nil {
+	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
@@ -151,7 +151,7 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 // Does not do anything if value is 0 or `from` and `to` are the same.
 func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountId[types.PublicKey], value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
-		return types.DispatchError{VaryingData: nil}
+		return nil
 	}
 
 	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
@@ -164,7 +164,7 @@ func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountI
 	}
 
 	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from, to, value))
-	return types.DispatchError{VaryingData: nil}
+	return nil
 }
 
 // sanityChecks checks the following:
@@ -209,7 +209,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 	}
 
 	dispatchErr := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-	if dispatchErr.VaryingData != nil {
+	if dispatchErr != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
 			Value:    dispatchErr,

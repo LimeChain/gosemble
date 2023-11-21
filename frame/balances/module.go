@@ -81,7 +81,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 // If `value` is 0, it does nothing.
 func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.PublicKey], value sc.U128) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
-		return sc.NewU128(0), primitives.DispatchError{VaryingData: nil}
+		return sc.NewU128(0), nil
 	}
 
 	result := m.tryMutateAccount(
@@ -95,14 +95,14 @@ func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.PublicKe
 		return sc.NewU128(0), result.Value.(primitives.DispatchError)
 	}
 
-	return result.Value.(primitives.Balance), primitives.DispatchError{VaryingData: nil}
+	return result.Value.(primitives.Balance), nil
 }
 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
 func (m Module) Withdraw(who primitives.AccountId[primitives.PublicKey], value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
-		return sc.NewU128(0), primitives.DispatchError{VaryingData: nil}
+		return sc.NewU128(0), nil
 	}
 
 	result := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
@@ -113,13 +113,13 @@ func (m Module) Withdraw(who primitives.AccountId[primitives.PublicKey], value s
 		return primitives.Balance{}, result.Value.(primitives.DispatchError)
 	}
 
-	return value, primitives.DispatchError{VaryingData: nil}
+	return value, nil
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
 func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey], amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
 	if amount.Eq(constants.Zero) {
-		return primitives.DispatchError{VaryingData: nil}
+		return nil
 	}
 
 	accountInfo, err := m.Config.StoredMap.Get(who)
@@ -135,7 +135,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey]
 		})
 	}
 
-	return primitives.DispatchError{VaryingData: nil}
+	return nil
 }
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
@@ -263,7 +263,7 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 	}
 
 	dispatchErr := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
-	if dispatchErr.VaryingData != nil {
+	if dispatchErr != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
 			Value:    dispatchErr,

@@ -92,7 +92,7 @@ func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.V
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
-	if err.VaryingData != nil {
+	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{

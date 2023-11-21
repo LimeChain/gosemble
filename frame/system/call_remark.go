@@ -92,7 +92,7 @@ func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) 
 // remark makes some on-chain remark.
 func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
 	_, err := EnsureSignedOrRoot(origin)
-	if err.VaryingData != nil {
+	if err != nil {
 		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
 			HasError: true,
 			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
@@ -113,9 +113,9 @@ func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostIn
 // Returns a `BadOrigin` error if neither of the above.
 func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId[primitives.PublicKey]], primitives.DispatchError) {
 	if origin.IsRootOrigin() {
-		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), primitives.DispatchError{VaryingData: nil}
+		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](nil), nil
 	} else if origin.IsSignedOrigin() {
-		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](origin.VaryingData[1]), primitives.DispatchError{VaryingData: nil}
+		return sc.NewOption[primitives.AccountId[primitives.PublicKey]](origin.VaryingData[1]), nil
 	}
 
 	return sc.Option[primitives.AccountId[primitives.PublicKey]]{}, primitives.NewDispatchErrorBadOrigin()

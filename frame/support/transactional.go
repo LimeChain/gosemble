@@ -113,7 +113,7 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 	case types.TransactionOutcomeCommit:
 		t.transactionBroker.Commit()
 		t.DecTransactionLevel()
-		return res[1].(T), E(types.DispatchError{VaryingData: nil})
+		return res[1].(T), nil
 
 	case types.TransactionOutcomeRollback:
 		t.transactionBroker.Rollback()
@@ -121,7 +121,7 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 		return ok, res[1].(E)
 	default:
 		log.Critical(errInvalidTransactionOutcome)
-		return ok, E(types.DispatchError{VaryingData: nil})
+		return ok, nil
 	}
 }
 
@@ -135,7 +135,7 @@ func (t transactional[T, E]) WithStorageLayer(fn func() (T, types.DispatchError)
 		func() types.TransactionOutcome {
 			ok, err := fn()
 
-			if err.VaryingData != nil {
+			if err != nil {
 				return types.NewTransactionOutcomeRollback(err)
 			} else {
 				return types.NewTransactionOutcomeCommit(ok)

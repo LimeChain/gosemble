@@ -108,7 +108,7 @@ func (c callSetBalance[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 	newReserved := sc.U128(args[2].(sc.Compact))
 
 	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
-	if err.VaryingData != nil {
+	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
@@ -193,7 +193,7 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 			newReserved,
 		),
 	)
-	return types.DispatchError{VaryingData: nil}
+	return nil
 }
 
 // updateAccount updates the reserved and free amounts and returns the old amounts

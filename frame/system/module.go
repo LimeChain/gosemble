@@ -417,7 +417,7 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 		}
 	} else if wasProviding && !isProviding {
 		status, err := m.decProviders(who)
-		if err.VaryingData != nil {
+		if err != nil {
 			return sc.Result[sc.Encodable]{
 				HasError: true,
 				Value:    err,
@@ -520,7 +520,7 @@ func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (pr
 		return sc.U8(0), result.Value.(primitives.DispatchError)
 	}
 
-	return result.Value.(primitives.DecRefStatus), primitives.DispatchError{VaryingData: nil}
+	return result.Value.(primitives.DecRefStatus), nil
 }
 
 // depositEventIndexed Deposits an event into this block's event record adding this event

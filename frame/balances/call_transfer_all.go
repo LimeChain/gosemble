@@ -91,7 +91,7 @@ func (_ callTransferAll[T]) PaysFee(baseWeight types.Weight) types.Pays {
 
 func (c callTransferAll[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	err := c.transferAll(origin, args[0].(types.MultiAddress), bool(args[1].(sc.Bool)))
-	if err.VaryingData != nil {
+	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
 			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
