@@ -6,14 +6,13 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-const (
-	DigestTypeConsensusMessage           = 4
-	DigestTypeSeal                       = 5
-	DigestTypePreRuntime                 = 6
-	DigestTypeRuntimeEnvironmentUpgraded = 8
-)
+type Digest struct {
+	sc.Sequence[DigestItem]
+}
 
-type Digest = sc.Dictionary[sc.U8, sc.FixedSequence[DigestItem]]
+func NewDigest(items sc.Sequence[DigestItem]) Digest {
+	return Digest{items}
+}
 
 func DecodeDigest(buffer *bytes.Buffer) (Digest, error) {
 	compactSize, err := sc.DecodeCompact(buffer)
@@ -22,39 +21,45 @@ func DecodeDigest(buffer *bytes.Buffer) (Digest, error) {
 	}
 	size := int(compactSize.ToBigInt().Int64())
 
-	decoder := sc.Decoder{Reader: buffer}
+	items := sc.Sequence[DigestItem]{}
 
-	result := Digest{}
 	for i := 0; i < size; i++ {
-		digestType, err := decoder.DecodeByte()
+		item, err := DecodeDigestItem(buffer)
 		if err != nil {
 			return Digest{}, err
 		}
 
-		switch digestType {
-		case DigestTypeConsensusMessage:
-			consensusDigest, err := DecodeDigestItem(buffer)
+		items = append(items, item)
+	}
+
+	return Digest{items}, nil
+}
+
+// PreRuntimes returns a sequence of DigestPreRuntime, containing only DigestItemPreRuntime items
+func (d Digest) PreRuntimes() (sc.Sequence[DigestPreRuntime], error) {
+	result := sc.Sequence[DigestPreRuntime]{}
+
+	for _, item := range d.Sequence {
+		if item.IsPreRuntime() {
+			preRuntime, err := item.AsPreRuntime()
 			if err != nil {
-				return Digest{}, err
+				return nil, err
 			}
-			result[DigestTypeConsensusMessage] = append(result[DigestTypeConsensusMessage], consensusDigest)
-		case DigestTypeSeal:
-			seal, err := DecodeDigestItem(buffer)
-			if err != nil {
-				return Digest{}, err
-			}
-			result[DigestTypeSeal] = append(result[DigestTypeSeal], seal)
-		case DigestTypePreRuntime:
-			preRuntimeDigest, err := DecodeDigestItem(buffer)
-			if err != nil {
-				return Digest{}, err
-			}
-			result[DigestTypePreRuntime] = append(result[DigestTypePreRuntime], preRuntimeDigest)
-		case DigestTypeRuntimeEnvironmentUpgraded:
-			sc.DecodeU8(buffer)
-			// TODO:
+			result = append(result, preRuntime)
 		}
 	}
 
 	return result, nil
+}
+
+// OnlyPreRuntimes returns a new Digest, containing only PreRuntime digest items
+func (d Digest) OnlyPreRuntimes() Digest {
+	items := sc.Sequence[DigestItem]{}
+	for _, item := range d.Sequence {
+		if item.IsPreRuntime() {
+			items = append(items, item)
+		}
+	}
+
+	return NewDigest(items)
 }

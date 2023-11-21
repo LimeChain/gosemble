@@ -151,16 +151,13 @@ func setup() {
 }
 
 func testDigest() primitives.Digest {
-	digest := primitives.Digest{}
-
-	digest[primitives.DigestTypePreRuntime] = sc.FixedSequence[primitives.DigestItem]{
-		primitives.DigestItem{
-			Engine:  sc.BytesToFixedSequenceU8([]byte{'a', 'u', 'r', 'a'}),
-			Payload: sc.BytesToSequenceU8(sc.U64(0).Bytes()),
-		},
+	items := sc.Sequence[primitives.DigestItem]{
+		primitives.NewDigestItemPreRuntime(
+			sc.BytesToFixedSequenceU8([]byte{'a', 'u', 'r', 'a'}),
+			sc.BytesToSequenceU8(sc.U64(0).Bytes()),
+		),
 	}
-
-	return digest
+	return primitives.NewDigest(items)
 }
 
 func Test_Executive_InitializeBlock_VersionUpgraded(t *testing.T) {

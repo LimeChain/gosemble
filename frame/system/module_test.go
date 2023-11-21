@@ -1727,14 +1727,13 @@ func Test_Module_Metadata(t *testing.T) {
 }
 
 func testDigest() primitives.Digest {
-	digest := primitives.Digest{}
-
-	digest[primitives.DigestTypeSeal] = append(digest[primitives.DigestTypeSeal], primitives.DigestItem{
-		Engine:  sc.NewFixedSequence[sc.U8](2, sc.U8(0), sc.U8(1)),
-		Payload: sc.BytesToSequenceU8(sc.U64(5).Bytes()),
-	})
-
-	return digest
+	items := sc.Sequence[primitives.DigestItem]{
+		primitives.NewDigestItemSeal(
+			sc.BytesToFixedSequenceU8([]byte{'t', 'e', 's', 't'}),
+			sc.BytesToSequenceU8(sc.U64(5).Bytes()),
+		),
+	}
+	return primitives.NewDigest(items)
 }
 
 func setupModule() module {

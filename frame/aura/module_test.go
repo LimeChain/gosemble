@@ -1,6 +1,7 @@
 package aura
 
 import (
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -151,14 +152,24 @@ func setup(minimumPeriod sc.U64) {
 	module.storage.Authorities = mockStorageAuthorities
 }
 
-func newPreRuntimeDigest(n sc.U64) *types.Digest {
-	digest := types.Digest{}
-	preRuntimeDigestItem := types.DigestItem{
-		Engine:  sc.BytesToFixedSequenceU8(EngineId[:]),
-		Payload: sc.BytesToSequenceU8(n.Bytes()),
+func newPreRuntimeDigest(n sc.U64) types.Digest {
+	items := sc.Sequence[types.DigestItem]{
+		types.NewDigestItemPreRuntime(
+			sc.BytesToFixedSequenceU8(EngineId[:]),
+			sc.BytesToSequenceU8(n.Bytes()),
+		),
 	}
-	digest[types.DigestTypePreRuntime] = append(digest[types.DigestTypePreRuntime], preRuntimeDigestItem)
-	return &digest
+	return types.NewDigest(items)
+}
+
+func invalidPreRuntimeDigest() types.Digest {
+	items := sc.Sequence[types.DigestItem]{
+		types.NewDigestItemPreRuntime(
+			sc.BytesToFixedSequenceU8(EngineId[:]),
+			sc.BytesToSequenceU8(sc.U8(1).Bytes()),
+		),
+	}
+	return types.NewDigest(items)
 }
 
 func Test_Aura_GetIndex(t *testing.T) {
@@ -225,7 +236,7 @@ func Test_Aura_OnInitialize_EmptySlot(t *testing.T) {
 
 func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)), nil)
+	mockStorageDigest.On("Get").Return(newPreRuntimeDigest(sc.U64(1)), nil)
 	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
 
 	assert.PanicsWithValue(t, errSlotMustIncrease, func() {
@@ -235,9 +246,40 @@ func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 	mockStorageCurrentSlot.AssertNotCalled(t, "Put", mock.Anything)
 }
 
+func Test_Aura_OnInitialize_Fails_StorageDigestNotFound(t *testing.T) {
+	setup(timestampMinimumPeriod)
+	expectError := errors.New("not found")
+
+	mockStorageDigest.On("Get").Return(types.Digest{}, expectError)
+
+	result, err := module.OnInitialize(blockNumber)
+
+	assert.Equal(t, expectError, err)
+	assert.Equal(t, types.Weight{}, result)
+
+	mockStorageDigest.AssertCalled(t, "Get")
+	mockStorageCurrentSlot.AssertNotCalled(t, "Get")
+}
+
+func Test_Aura_OnInitialize_Fails_CannotDecodeDigestPreRuntimeMessage(t *testing.T) {
+	setup(timestampMinimumPeriod)
+	expectError := errors.New("can not read the required number of bytes 8, only 1 available")
+
+	mockStorageDigest.On("Get").Return(invalidPreRuntimeDigest(), nil)
+	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
+
+	result, err := module.OnInitialize(blockNumber)
+
+	assert.Equal(t, expectError, err)
+	assert.Equal(t, types.Weight{}, result)
+
+	mockStorageDigest.AssertCalled(t, "Get")
+	mockStorageCurrentSlot.AssertNotCalled(t, "Get")
+}
+
 func Test_Aura_OnInitialize_CurrentSlotUpdate(t *testing.T) {
 	setup(timestampMinimumPeriod)
-	mockStorageDigest.On("Get").Return(*newPreRuntimeDigest(sc.U64(1)), nil)
+	mockStorageDigest.On("Get").Return(newPreRuntimeDigest(sc.U64(1)), nil)
 	mockStorageCurrentSlot.On("Get").Return(sc.U64(0), nil)
 	mockStorageCurrentSlot.On("Put", sc.U64(1)).Return()
 	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(3)), nil)
