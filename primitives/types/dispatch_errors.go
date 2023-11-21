@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -181,26 +182,7 @@ type CustomModuleError struct {
 }
 
 func (err CustomModuleError) Error() string {
-	switch sc.U8(err.Err) {
-	case 0: // ErrorVestingBalance
-		return "Vesting balance too high to send value"
-	case 1: // ErrorLiquidityRestrictions
-		return "Account liquidity restrictions prevent withdrawal"
-	case 2: // ErrorInsufficientBalance
-		return "Balance too low to send value"
-	case 3: // ErrorExistentialDeposit
-		return "Value too low to create account due to existential deposit"
-	case 4: // ErrorKeepAlive
-		return "Transfer/payment would kill account"
-	case 5: // ErrorExistingVestingSchedule
-		return "A vesting schedule already exists for this account"
-	case 6: // ErrorDeadAccount
-		return "Beneficiary account must pre-exist"
-	case 7: // ErrorTooManyReserves
-		return "Number of named reserves exceed MaxReserves"
-	default:
-		return newTypeError("CustomModuleError").Error()
-	}
+	return fmt.Sprintf("custom module error: index [%d], err [%v], message [%s]", err.Index, err.Err, err.Message.Value)
 }
 
 func (err CustomModuleError) Encode(buffer *bytes.Buffer) error {
