@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -25,8 +24,6 @@ func Test_DigestPreRuntime_Encode(t *testing.T) {
 	buffer := &bytes.Buffer{}
 
 	err := targetDigestPreRuntime.Encode(buffer)
-
-	fmt.Println(hex.EncodeToString(buffer.Bytes()))
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectBytesDigestPreRuntime, buffer.Bytes())
