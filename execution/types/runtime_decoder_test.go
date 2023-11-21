@@ -39,7 +39,7 @@ var (
 		Number:         5,
 		StateRoot:      primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(stateRoot)},
 		ExtrinsicsRoot: primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicsRoot)},
-		Digest:         primitives.Digest{},
+		Digest:         primitives.NewDigest(sc.Sequence[primitives.DigestItem]{}),
 	}
 
 	parentHash      = common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355c").ToBytes()

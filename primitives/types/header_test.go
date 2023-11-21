@@ -17,11 +17,11 @@ var (
 	stateRoot      = common.MustHexToHash("0xd9e8bf89bda43fb46914321c371add19b81ff92ad6923e8f189b52578074b073")
 	extrinsicsRoot = common.MustHexToHash("0x105165e71964828f2b8d1fd89904602cfb9b8930951d87eb249aa2d7c4b51ee7")
 	digest         = Digest{
-		DigestTypePreRuntime: sc.FixedSequence[DigestItem]{
-			DigestItem{
-				Engine:  sc.BytesToFixedSequenceU8([]byte{'a', 'u', 'r', 'a'}),
-				Payload: sc.BytesToSequenceU8(sc.U64(0).Bytes()),
-			},
+		Sequence: sc.Sequence[DigestItem]{
+			NewDigestItemPreRuntime(
+				sc.BytesToFixedSequenceU8([]byte{'a', 'u', 'r', 'a'}),
+				sc.BytesToSequenceU8(sc.U64(0).Bytes()),
+			),
 		},
 	}
 

@@ -52,7 +52,7 @@ func Test_Module_OffchainWorker(t *testing.T) {
 		Number:         5,
 		StateRoot:      primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(stateRoot)},
 		ExtrinsicsRoot: primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicsRoot)},
-		Digest:         primitives.Digest{},
+		Digest:         primitives.NewDigest(sc.Sequence[primitives.DigestItem]{}),
 	}
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(header.Bytes())
