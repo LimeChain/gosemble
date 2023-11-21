@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -9,62 +11,83 @@ import (
 )
 
 var (
-	engineId = [4]byte{2, 3, 4, 5}
-	n        = uint64(1)
+	engineId          = sc.BytesToFixedSequenceU8([]byte{2, 3, 4, 5})
+	digestItemMessage = sc.BytesToSequenceU8([]byte{'a', 'b', 'c'})
 
-	digestItem = DigestItem{
-		Engine:  sc.BytesToFixedSequenceU8(engineId[:]),
-		Payload: sc.BytesToSequenceU8(sc.U64(n).Bytes()),
-	}
+	digestItemPreRuntime = NewDigestItemPreRuntime(
+		engineId,
+		digestItemMessage,
+	)
+	digestItemSeal = NewDigestItemSeal(engineId, digestItemMessage)
 )
 
-func Test_Decode_DigestTypeConsensusMessage(t *testing.T) {
-	targetDigest := Digest{}
-	targetDigest[DigestTypeConsensusMessage] = append(targetDigest[DigestTypeConsensusMessage], digestItem)
+var (
+	expectDigest = NewDigest(sc.Sequence[DigestItem]{
+		digestItemPreRuntime,
+		digestItemSeal,
+	})
+	expectBytesDigest, _ = hex.DecodeString("0806020304050c61626305020304050c616263")
+)
 
-	buf := &bytes.Buffer{}
-	err := targetDigest.Encode(buf)
-	assert.NoError(t, err)
+func Test_DecodeDigest(t *testing.T) {
+	buffer := bytes.NewBuffer(expectBytesDigest)
 
-	digest, err := DecodeDigest(buf)
+	result, err := DecodeDigest(buffer)
+
 	assert.NoError(t, err)
-	assert.Equal(t, targetDigest, digest)
+	assert.Equal(t, expectDigest, result)
 }
 
-func Test_Decode_DigestTypeSeal(t *testing.T) {
-	targetDigest := Digest{}
-	targetDigest[DigestTypeSeal] = append(targetDigest[DigestTypeSeal], digestItem)
+func Test_DecodeDigest_Fails_Compact(t *testing.T) {
+	buffer := &bytes.Buffer{}
 
-	buf := &bytes.Buffer{}
-	err := targetDigest.Encode(buf)
-	assert.NoError(t, err)
+	result, err := DecodeDigest(buffer)
 
-	digest, err := DecodeDigest(buf)
-	assert.NoError(t, err)
-	assert.Equal(t, targetDigest, digest)
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, Digest{}, result)
 }
 
-func Test_Decode_DigestTypePreRuntime(t *testing.T) {
-	targetDigest := Digest{}
-	targetDigest[DigestTypePreRuntime] = append(targetDigest[DigestTypePreRuntime], digestItem)
+func Test_DecodeDigest_Fails_DigestItem(t *testing.T) {
+	buffer := &bytes.Buffer{}
+	buffer.WriteByte(4)
 
-	buf := &bytes.Buffer{}
-	err := targetDigest.Encode(buf)
-	assert.NoError(t, err)
+	result, err := DecodeDigest(buffer)
 
-	digest, err := DecodeDigest(buf)
-	assert.NoError(t, err)
-	assert.Equal(t, targetDigest, digest)
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, Digest{}, result)
 }
 
-func Test_Decode_DigestTypeRuntimeEnvironmentUpgraded(t *testing.T) {
-	targetDigest := Digest{}
+func Test_DecodeDigest_PreRuntimes(t *testing.T) {
+	expect := sc.Sequence[DigestPreRuntime]{
+		NewDigestPreRuntime(engineId, digestItemMessage),
+	}
 
-	buf := &bytes.Buffer{}
-	err := targetDigest.Encode(buf)
-	assert.NoError(t, err)
+	target := NewDigest(sc.Sequence[DigestItem]{
+		digestItemSeal,
+		NewDigestItemRuntimeEnvironmentUpgrade(),
+		NewDigestItemOther(digestItemMessage),
+		digestItemPreRuntime,
+		NewDigestItemOther(digestItemMessage),
+	})
 
-	digest, err := DecodeDigest(buf)
+	result, err := target.PreRuntimes()
+
 	assert.NoError(t, err)
-	assert.Equal(t, targetDigest, digest)
+	assert.Equal(t, expect, result)
+}
+
+func Test_DecodeDigest_OnlyPreRuntimes(t *testing.T) {
+	expect := NewDigest(sc.Sequence[DigestItem]{digestItemPreRuntime})
+
+	target := NewDigest(sc.Sequence[DigestItem]{
+		digestItemSeal,
+		NewDigestItemRuntimeEnvironmentUpgrade(),
+		NewDigestItemOther(digestItemMessage),
+		digestItemPreRuntime,
+		NewDigestItemOther(digestItemMessage),
+	})
+
+	result := target.OnlyPreRuntimes()
+
+	assert.Equal(t, expect, result)
 }

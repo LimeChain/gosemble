@@ -252,21 +252,21 @@ func (m Module) currentSlotFromDigests() (sc.Option[slot], error) {
 		return sc.Option[slot]{}, err
 	}
 
-	for keyDigest, dig := range digest {
-		if keyDigest == primitives.DigestTypePreRuntime {
-			for _, digestItem := range dig {
-				if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(digestItem.Engine), EngineId[:]) {
-					buffer := &bytes.Buffer{}
-					buffer.Write(sc.SequenceU8ToBytes(digestItem.Payload))
+	preRuntimeDigests, err := digest.PreRuntimes()
+	if err != nil {
+		return sc.Option[slot]{}, err
+	}
 
-					decodeResult, err := sc.DecodeU64(buffer)
-					if err != nil {
-						return sc.Option[slot]{}, err
-					}
+	for _, preRuntime := range preRuntimeDigests {
+		if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(preRuntime.ConsensusEngineId), EngineId[:]) {
+			buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(preRuntime.Message))
 
-					return sc.NewOption[slot](decodeResult), nil
-				}
+			currentSlot, err := sc.DecodeU64(buffer)
+			if err != nil {
+				return sc.Option[slot]{}, err
 			}
+
+			return sc.NewOption[slot](currentSlot), nil
 		}
 	}
 
