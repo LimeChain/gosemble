@@ -5,6 +5,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -26,7 +27,7 @@ func newCallTransferKeepAlive[T primitives.PublicKey](moduleId sc.U8, functionId
 }
 
 func (c callTransferKeepAlive[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := primitives.DecodeMultiAddress[T](buffer)
+	dest, err := types.DecodeMultiAddress[T](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -61,65 +62,65 @@ func (c callTransferKeepAlive[T]) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransferKeepAlive[T]) BaseWeight() primitives.Weight {
+func (c callTransferKeepAlive[T]) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
 	// Minimum execution time: 28_184 nanoseconds.
 	r := c.constants.DbWeight.Reads(1)
 	w := c.constants.DbWeight.Writes(1)
-	e := primitives.WeightFromParts(0, 3593)
-	return primitives.WeightFromParts(49_250_000, 0).
+	e := types.WeightFromParts(0, 3593)
+	return types.WeightFromParts(49_250_000, 0).
 		SaturatingAdd(e).
 		SaturatingAdd(r).
 		SaturatingAdd(w)
 }
 
-func (_ callTransferKeepAlive[T]) WeighData(baseWeight primitives.Weight) primitives.Weight {
-	return primitives.WeightFromParts(baseWeight.RefTime, 0)
+func (_ callTransferKeepAlive[T]) WeighData(baseWeight types.Weight) types.Weight {
+	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransferKeepAlive[T]) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
-	return primitives.NewDispatchClassNormal()
+func (_ callTransferKeepAlive[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+	return types.NewDispatchClassNormal()
 }
 
-func (_ callTransferKeepAlive[T]) PaysFee(baseWeight primitives.Weight) primitives.Pays {
-	return primitives.NewPaysYes()
+func (_ callTransferKeepAlive[T]) PaysFee(baseWeight types.Weight) types.Pays {
+	return types.NewPaysYes()
 }
 
-func (c callTransferKeepAlive[T]) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
-	err := c.transferKeepAlive(origin, args[0].(primitives.MultiAddress), value)
+	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
 	if err.VaryingData != nil {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,
-			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
 				Error: err,
 			},
 		}
 	}
 
-	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
+		Ok:       types.PostDispatchInfo{},
 	}
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func (c callTransferKeepAlive[T]) transferKeepAlive(origin primitives.RawOrigin, dest primitives.MultiAddress, value sc.U128) primitives.DispatchError {
+func (c callTransferKeepAlive[T]) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
-		return primitives.NewDispatchErrorBadOrigin()
+		return types.NewDispatchErrorBadOrigin()
 	}
 	transactor, originErr := origin.AsSigned()
 	if originErr != nil {
 		log.Critical(originErr.Error())
 	}
 
-	address, err := primitives.Lookup(dest)
+	address, err := types.Lookup(dest)
 	if err != nil {
-		return primitives.NewDispatchErrorCannotLookup()
+		return types.NewDispatchErrorCannotLookup()
 	}
 
-	return c.transfer.trans(transactor, address, value, primitives.ExistenceRequirementKeepAlive)
+	return c.transfer.trans(transactor, address, value, types.ExistenceRequirementKeepAlive)
 }
