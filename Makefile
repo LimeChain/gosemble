@@ -91,3 +91,7 @@ test-unit:
 
 test-integration:
 	@go test --tags="nonwasmenv" -v ./runtime/...
+
+test-coverage:
+	@set -e; \
+	./scripts/coverage.sh
