@@ -1,5 +1,7 @@
 # Gosemble
 
+[![codecov](https://codecov.io/github/LimeChain/gosemble/graph/badge.svg?token=48SIN10OBK)](https://codecov.io/github/LimeChain/gosemble)
+
 > **Warning**
 > The Gosemble is in pre-production
 

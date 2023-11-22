@@ -3,4 +3,8 @@
 # JetBrains iDEA
 .idea
 
+# MacOS
 .DS_Store
+
+# Coverage
+coverage.txt
