@@ -9,31 +9,31 @@ import (
 )
 
 func Test_NewTokenErrorNoFunds(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorNoFunds)}, NewTokenErrorNoFounds())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorNoFunds)), NewTokenErrorNoFounds())
 }
 
 func Test_NewTokenErrorWouldDie(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorWouldDie)}, NewTokenErrorWouldDie())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorWouldDie)), NewTokenErrorWouldDie())
 }
 
 func Test_NewTokenErrorBelowMinimum(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorBelowMinimum)}, NewTokenErrorBelowMinimum())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorBelowMinimum)), NewTokenErrorBelowMinimum())
 }
 
 func Test_NewTokenErrorCannotCreate(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorCannotCreate)}, NewTokenErrorCannotCreate())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorCannotCreate)), NewTokenErrorCannotCreate())
 }
 
 func Test_NewTokenErrorUnknownAsset(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorUnknownAsset)}, NewTokenErrorUnknownAsset())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorUnknownAsset)), NewTokenErrorUnknownAsset())
 }
 
 func Test_NewTokenErrorFrozen(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorFrozen)}, NewTokenErrorFrozen())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorFrozen)), NewTokenErrorFrozen())
 }
 
 func Test_NewTokenErrorUnsupported(t *testing.T) {
-	assert.Equal(t, TokenError{sc.NewVaryingData(TokenErrorUnsupported)}, NewTokenErrorUnsupported())
+	assert.Equal(t, TokenError(sc.NewVaryingData(TokenErrorUnsupported)), NewTokenErrorUnsupported())
 }
 
 func Test_DecodeTokenError_NoFunds(t *testing.T) {
@@ -110,9 +110,8 @@ func Test_DecodeTokenError_TypeError(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(7)
 
-	res, err := DecodeTokenError(buffer)
+	_, err := DecodeTokenError(buffer)
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'TokenError' type", err.Error())
-	assert.Nil(t, res.VaryingData)
 }

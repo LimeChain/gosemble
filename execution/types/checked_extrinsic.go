@@ -127,5 +127,4 @@ func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId[primi
 	}
 
 	return resWithInfo.Ok, nil
-
 }
