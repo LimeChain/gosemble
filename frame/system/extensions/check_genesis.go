@@ -4,17 +4,20 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckGenesis struct {
-	module system.Module
+	module               system.Module
+	additionalSignedData sc.VaryingData
 }
 
 func NewCheckGenesis(module system.Module) primitives.SignedExtension {
-	return &CheckGenesis{module}
+	return &CheckGenesis{module: module,
+		additionalSignedData: sc.VaryingData{
+			primitives.H256{},
+		}}
 }
 
 func (cg CheckGenesis) Encode(*bytes.Buffer) error {
@@ -58,12 +61,12 @@ func (cg CheckGenesis) PostDispatch(_pre sc.Option[primitives.Pre], info *primit
 	return nil
 }
 
-func (cg CheckGenesis) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckGenesis,
-			"CheckGenesis",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256)
-}
+//func (cg CheckGenesis) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+//	return primitives.NewMetadataTypeWithPath(
+//			metadata.CheckGenesis,
+//			"CheckGenesis",
+//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"},
+//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+//		),
+//		primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256)
+//}

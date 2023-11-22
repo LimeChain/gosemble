@@ -84,8 +84,8 @@ func (m *SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[types.Pre]], info *
 	return nil
 }
 
-func (m *SignedExtra) Metadata() (sc.Sequence[types.MetadataType], sc.Sequence[types.MetadataSignedExtension]) {
-	args := m.Called()
+func (m *SignedExtra) Metadata(constantsIdsMap map[string]int) (sc.Sequence[types.MetadataType], sc.Sequence[types.MetadataSignedExtension]) {
+	args := m.Called(constantsIdsMap)
 
 	return args.Get(0).(sc.Sequence[types.MetadataType]), args.Get(1).(sc.Sequence[types.MetadataSignedExtension])
 }

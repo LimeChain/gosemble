@@ -71,11 +71,15 @@ func (m Module) Metadata() int64 {
 }
 
 func (m Module) buildMetadata() primitives.Metadata {
+	constantIdsMap := make(map[string]int)
+
+	buildConstantsMap(constantIdsMap)
+
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic := m.runtimeExtrinsic.Metadata()
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(constantIdsMap)
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
@@ -105,13 +109,17 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
+	constantIdsMap := make(map[string]int)
+
+	buildConstantsMap(constantIdsMap)
+
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
+		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(constantIdsMap)
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
 			Types:     metadataTypes,
@@ -126,7 +134,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
+		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(constantIdsMap)
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,
@@ -208,11 +216,26 @@ func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 	}
 }
 
+func buildConstantsMap(constantIdsMap map[string]int) {
+	constantIdsMap["Bool"] = metadata.PrimitiveTypesBool
+	constantIdsMap["String"] = metadata.PrimitiveTypesString
+	constantIdsMap["U8"] = metadata.PrimitiveTypesU8
+	constantIdsMap["U16"] = metadata.PrimitiveTypesU16
+	constantIdsMap["U32"] = metadata.PrimitiveTypesU32
+	constantIdsMap["U64"] = metadata.PrimitiveTypesU64
+	constantIdsMap["U128"] = metadata.PrimitiveTypesU128
+	constantIdsMap["U256"] = metadata.PrimitiveTypesU256
+	constantIdsMap["I8"] = metadata.PrimitiveTypesI8
+	constantIdsMap["I16"] = metadata.PrimitiveTypesI16
+	constantIdsMap["I32"] = metadata.PrimitiveTypesI32
+	constantIdsMap["I64"] = metadata.PrimitiveTypesI64
+	constantIdsMap["I128"] = metadata.PrimitiveTypesI128
+}
+
 // primitiveTypes returns all primitive types
 func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.PrimitiveTypesBool, "bool", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveBoolean)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesChar, "char", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveChar)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesString, "string", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveString)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU8, "U8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU8)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU16, "U16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU16)),
@@ -225,7 +248,6 @@ func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataType(metadata.PrimitiveTypesI32, "I32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI32)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI64, "I64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI64)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI128, "I128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI256, "I256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI256)),
 	}
 }
 

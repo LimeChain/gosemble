@@ -6,6 +6,7 @@ require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.1.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.15.0
 )

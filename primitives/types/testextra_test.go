@@ -11,14 +11,16 @@ var (
 )
 
 type testExtraCheck struct {
-	hasError sc.Bool
-	value    sc.U32
+	hasError             sc.Bool
+	value                sc.U32
+	additionalSignedData sc.VaryingData
 }
 
 func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
 	return &testExtraCheck{
-		hasError: hasError,
-		value:    value,
+		hasError:             hasError,
+		value:                value,
+		additionalSignedData: sc.VaryingData{sc.U32(0)},
 	}
 }
 
@@ -88,16 +90,16 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 	return nil
 }
 
-func (e testExtraCheck) Metadata() (MetadataType, MetadataSignedExtension) {
-	id := 123456
-	typ := 789
-	docs := "TestExtraCheck"
-
-	return NewMetadataTypeWithPath(
-			id,
-			docs,
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
-			NewMetadataTypeDefinitionCompact(sc.ToCompact(id)),
-		),
-		NewMetadataSignedExtension(sc.Str(docs), id, typ)
-}
+//func (e testExtraCheck) Metadata() (MetadataType, MetadataSignedExtension) {
+//	id := 123456
+//	typ := 789
+//	docs := "TestExtraCheck"
+//
+//	return NewMetadataTypeWithPath(
+//			id,
+//			docs,
+//			sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
+//			NewMetadataTypeDefinitionCompact(sc.ToCompact(id)),
+//		),
+//		NewMetadataSignedExtension(sc.Str(docs), id, typ)
+//}

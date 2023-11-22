@@ -2,9 +2,17 @@ package types
 
 import (
 	"bytes"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/iancoleman/strcase"
+)
+
+const (
+	additionalSignedTypeName = "VaryingData"
+	moduleName               = "Module"
 )
 
 type SignedExtra interface {
@@ -19,7 +27,7 @@ type SignedExtra interface {
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
-	Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
+	Metadata(constantsIdsMap map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
 }
 
 // signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
@@ -142,14 +150,13 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e signedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
+func (e signedExtra) Metadata(constantsIdsMap map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
 	ids := sc.Sequence[sc.Compact]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		metadataType, extension := extra.Metadata()
-
+		metadataType, extension := constructExtensionMetadata(extra, constantsIdsMap)
 		ids = append(ids, metadataType.Id)
 		extraTypes = append(extraTypes, metadataType)
 		signedExtensions = append(signedExtensions, extension)
@@ -158,4 +165,69 @@ func (e signedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[Metadata
 	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
 
 	return append(extraTypes, signedExtraType), signedExtensions
+}
+
+func constructExtensionMetadata(extra SignedExtension, constantsMap map[string]int) (MetadataType, MetadataSignedExtension) {
+	extraValue := reflect.ValueOf(extra)
+	extraType := extraValue.Elem().Type()
+	extraTypeName := extraType.Name()
+
+	lastIndex := len(constantsMap)
+
+	typeConstantId, exists := constantsMap[extraTypeName]
+	if !exists {
+		typeConstantId = lastIndex + 1
+		lastIndex = lastIndex + 1
+		constantsMap[extraTypeName] = typeConstantId
+	}
+
+	var extension MetadataSignedExtension
+	var metadataTypeFields = sc.Sequence[MetadataTypeDefinitionField]{}
+
+	typeNumOfFields := extraValue.Elem().NumField()
+
+	for j := 0; j < typeNumOfFields; j++ {
+		field := extraValue.Elem().Field(j)
+		fieldName := field.Type().Name()
+		// log.Info("Name: " + fieldName)
+		switch fieldName {
+		case moduleName, "Bool":
+			continue
+		case additionalSignedTypeName: // Process additionalSigned type(s) which define the MetadataSignedExtension
+			var additionalSignedTypeId int
+			numAdditionalSignedTypes := field.Len()
+			for i := 0; i < numAdditionalSignedTypes; i++ { // Note: Making it work for only 1 item for now TODO: if varying type has more than 1 element, make a complex type
+				additionalSignedType := field.Index(i).Elem()
+				additionalSignedName := additionalSignedType.Type().Name() // e.g. Bool, U32, etc
+				additionalSignedTypeId, exists = constantsMap[additionalSignedName]
+				if !exists {
+					additionalSignedTypeId = lastIndex + 1
+					constantsMap[additionalSignedName] = additionalSignedTypeId
+					log.Info("Addine new: " + additionalSignedName)
+					lastIndex = lastIndex + 1
+				}
+			}
+			if numAdditionalSignedTypes == 0 {
+				extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, metadata.TypesEmptyTuple)
+			} else {
+				extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, additionalSignedTypeId)
+			}
+			continue // We have determined the additionalTypeId for the extension
+		}
+		fieldTypeId, exists := constantsMap[fieldName]
+		if !exists {
+			fieldTypeId = lastIndex + 1
+			constantsMap[fieldName] = fieldTypeId
+			log.Info("Adding type id new: " + fieldName)
+			lastIndex = lastIndex + 1
+		}
+		metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldName)))
+	}
+
+	return NewMetadataTypeWithPath(
+		typeConstantId,
+		extraTypeName,
+		sc.Sequence[sc.Str]{"extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)},
+		NewMetadataTypeDefinitionComposite(metadataTypeFields),
+	), extension
 }

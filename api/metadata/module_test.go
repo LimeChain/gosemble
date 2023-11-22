@@ -140,7 +140,10 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	mockRuntimeExtrinsic.On("Metadata").Return(mdTypes, mdModules14, mdExtrinsic)
+	constantsMap := make(map[string]int)
+	buildConstantsMap(constantsMap)
+
+	mockRuntimeExtrinsic.On("Metadata", constantsMap).Return(mdTypes, mdModules14, mdExtrinsic)
 
 	builtMeta := target.buildMetadata()
 
@@ -154,7 +157,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	assert.Equal(t, ptrAndSize, result)
 
-	mockRuntimeExtrinsic.AssertCalled(t, "Metadata")
+	mockRuntimeExtrinsic.AssertCalled(t, "Metadata", constantsMap)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", bMetadata.Bytes())
 }
 
@@ -177,9 +180,12 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 
 	version14 := sc.U32(primitives.MetadataVersion14)
 
+	constantsMap := make(map[string]int)
+	buildConstantsMap(constantsMap)
+
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
-	mockRuntimeExtrinsic.On("Metadata").Return(mdTypes, mdModules14, mdExtrinsic)
+	mockRuntimeExtrinsic.On("Metadata", constantsMap).Return(mdTypes, mdModules14, mdExtrinsic)
 
 	metadataV14 := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -206,6 +212,9 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	target := setup()
 
+	constantsMap := make(map[string]int)
+	buildConstantsMap(constantsMap)
+
 	metadataTypes := getAllMetadataTypes(&target)
 
 	version15 := sc.U32(primitives.MetadataVersion15)
@@ -222,7 +231,7 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version15.Bytes())
 
-	mockRuntimeExtrinsic.On("MetadataLatest").Return(mdTypes, mdModules15, mdExtrinsic15, outerEnums, custom)
+	mockRuntimeExtrinsic.On("MetadataLatest", constantsMap).Return(mdTypes, mdModules15, mdExtrinsic15, outerEnums, custom)
 
 	metadataV15 := primitives.RuntimeMetadataV15{
 		Types:      metadataTypes,

@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -15,11 +14,15 @@ const (
 )
 
 type CheckWeight struct {
-	systemModule system.Module
+	systemModule         system.Module
+	additionalSignedData sc.VaryingData
 }
 
 func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
-	return &CheckWeight{systemModule: systemModule}
+	return &CheckWeight{
+		systemModule:         systemModule,
+		additionalSignedData: sc.VaryingData{},
+	}
 }
 
 func (cw CheckWeight) Encode(*bytes.Buffer) error {
@@ -212,15 +215,31 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	return allConsumedWeight, nil
 }
 
-func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckWeight,
-			"CheckWeight",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
-}
+//func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
+//	t := reflect.TypeOf(cw)
+//	typeName := t.Name()
+//
+//	_, typePath, _ := strings.Cut(t.PkgPath(), metadata.GosembleModulePath)
+//
+//	typePathSlice := strings.Split(typePath, "/")
+//
+//	root := typePathSlice[0]
+//	module := typePathSlice[1]
+//	subPackage := typePathSlice[2]
+//
+//	_, typeFileNamePath, _, _ := runtime.Caller(0)
+//
+//	typeFileNamePathSlice := strings.Split(typeFileNamePath, "/")
+//	typeFileName := typeFileNamePathSlice[len(typeFileNamePathSlice)-1]
+//	typeFileName = strings.Trim(typeFileName, metadata.TypeFileNameTrim)
+//
+//	var templateString = `return primitives.NewMetadataTypeWithPath(metadata.)` + typeName + `,` + typeName + `
+//			sc.Sequence[sc.Str]{sc.Str(root + "_" + module), sc.Str(subPackage), sc.Str(typeFileName), sc.Str(typeName)},
+//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+//		),
+//		primitives.NewMetadataSignedExtension(sc.Str(typeName), metadata.CheckWeight, metadata.TypesEmptyTuple)
+//	`
+//}
 
 func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
 	isNormal, err := info.Class.Is(primitives.DispatchClassNormal)

@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -100,20 +99,20 @@ func Test_CheckTxVersion_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckTxVersion_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckTxVersion,
-		"CheckTxVersion",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"},
-		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32)
-
-	resultType, resultSignedExtension := setupCheckTxVersion().Metadata()
-
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
-}
+//func Test_CheckTxVersion_Metadata(t *testing.T) {
+//	expectType := primitives.NewMetadataTypeWithPath(
+//		metadata.CheckTxVersion,
+//		"CheckTxVersion",
+//		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"},
+//		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
+//	)
+//	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32)
+//
+//	resultType, resultSignedExtension := setupCheckTxVersion().Metadata()
+//
+//	assert.Equal(t, expectType, resultType)
+//	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+//}
 
 func setupCheckTxVersion() CheckTxVersion {
 	mockModule = new(mocks.SystemModule)
