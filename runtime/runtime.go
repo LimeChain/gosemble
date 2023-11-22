@@ -381,3 +381,25 @@ func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 
 	return 0
 }
+
+// todo
+
+// sp_api::decl_runtime_apis! {
+// 	/// API to interact with GenesisConfig for the runtime
+// 	pub trait GenesisBuilder {
+// 		/// Creates the default `GenesisConfig` and returns it as a JSON blob.
+// 		///
+// 		/// This function instantiates the default `GenesisConfig` struct for the runtime and serializes it into a JSON
+// 		/// blob. It returns a `Vec<u8>` containing the JSON representation of the default `GenesisConfig`.
+// 		fn create_default_config() -> sp_std::vec::Vec<u8>;
+
+// 		/// Build `GenesisConfig` from a JSON blob not using any defaults and store it in the storage.
+// 		///
+// 		/// This function deserializes the full `GenesisConfig` from the given JSON blob and puts it into the storage.
+// 		/// If the provided JSON blob is incorrect or incomplete or the deserialization fails, an error is returned.
+// 		/// It is recommended to log any errors encountered during the process.
+// 		///
+// 		/// Please note that provided json blob must contain all `GenesisConfig` fields, no defaults will be used.
+// 		fn build_config(json: sp_std::vec::Vec<u8>) -> Result;
+// 	}
+// }
