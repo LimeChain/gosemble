@@ -6,16 +6,19 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+// a check that has multiple varying signed data
 type testExtraCheckComplex struct {
 	module               Module
 	era                  Era
+	hash                 H256
+	value                sc.U64
 	additionalSignedData sc.VaryingData
 }
 
 func newtTestExtraCheckComplex() SignedExtension {
 	return &testExtraCheckComplex{
 		era:                  Era{},
-		additionalSignedData: sc.VaryingData{H256{}},
+		additionalSignedData: sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}),
 	}
 }
 
@@ -32,7 +35,7 @@ func (e *testExtraCheckComplex) Decode(buffer *bytes.Buffer) error {
 }
 
 func (e testExtraCheckComplex) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
-	return sc.NewVaryingData(H256{}), nil
+	return sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}), nil
 }
 
 func (e testExtraCheckComplex) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {

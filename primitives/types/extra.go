@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/iancoleman/strcase"
 )
 
@@ -156,9 +155,9 @@ func (e signedExtra) Metadata(constantsIdsMap map[string]int) (sc.Sequence[Metad
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		metadataType, extension := constructExtensionMetadata(extra, constantsIdsMap)
-		ids = append(ids, metadataType.Id)
-		extraTypes = append(extraTypes, metadataType)
+		extraType, extension := generateExtensionMetadata(extra, constantsIdsMap, &extraTypes)
+		ids = append(ids, extraType.Id)
+		extraTypes = append(extraTypes, extraType)
 		signedExtensions = append(signedExtensions, extension)
 	}
 
@@ -167,67 +166,91 @@ func (e signedExtra) Metadata(constantsIdsMap map[string]int) (sc.Sequence[Metad
 	return append(extraTypes, signedExtraType), signedExtensions
 }
 
-func constructExtensionMetadata(extra SignedExtension, constantsMap map[string]int) (MetadataType, MetadataSignedExtension) {
+// generateExtensionMetadata generates the metadata for a signed extension. It may generate some new metadata types in the process.
+func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType]) (MetadataType, MetadataSignedExtension) {
 	extraValue := reflect.ValueOf(extra)
 	extraType := extraValue.Elem().Type()
 	extraTypeName := extraType.Name()
 
-	lastIndex := len(constantsMap)
+	lastIndex := len(metadataIds)
 
-	typeConstantId, exists := constantsMap[extraTypeName]
+	typeConstantId, exists := metadataIds[extraTypeName]
 	if !exists {
-		typeConstantId = lastIndex + 1
-		lastIndex = lastIndex + 1
-		constantsMap[extraTypeName] = typeConstantId
+		typeConstantId = assignNewMetadataId(metadataIds, &lastIndex, &extraTypeName)
 	}
 
 	var extension MetadataSignedExtension
-	var metadataTypeFields = sc.Sequence[MetadataTypeDefinitionField]{}
+	var metadataTypeFields sc.Sequence[MetadataTypeDefinitionField]
 
-	typeNumOfFields := extraValue.Elem().NumField()
+	extraNumOfFields := extraValue.Elem().NumField()
 
-	for j := 0; j < typeNumOfFields; j++ {
+	for j := 0; j < extraNumOfFields; j++ {
 		field := extraValue.Elem().Field(j)
 		fieldName := field.Type().Name()
-		// log.Info("Name: " + fieldName)
 		switch fieldName {
-		case moduleName, "Bool":
+		case moduleName:
 			continue
-		case additionalSignedTypeName: // Process additionalSigned type(s) which define the MetadataSignedExtension
-			var additionalSignedTypeId int
+		case additionalSignedTypeName: // Process additionalSigned type(s) which define the MetadataSignedExtension // TODO: What if there's a field sc.VaryingData not representing additionalSignedTypes?
+			var resultTypeId int
+			var resultTypeName string
+			var resultTupleIds sc.Sequence[sc.Compact]
 			numAdditionalSignedTypes := field.Len()
-			for i := 0; i < numAdditionalSignedTypes; i++ { // Note: Making it work for only 1 item for now TODO: if varying type has more than 1 element, make a complex type
-				additionalSignedType := field.Index(i).Elem()
-				additionalSignedName := additionalSignedType.Type().Name() // e.g. Bool, U32, etc
-				additionalSignedTypeId, exists = constantsMap[additionalSignedName]
-				if !exists {
-					additionalSignedTypeId = lastIndex + 1
-					constantsMap[additionalSignedName] = additionalSignedTypeId
-					log.Info("Addine new: " + additionalSignedName)
-					lastIndex = lastIndex + 1
-				}
-			}
 			if numAdditionalSignedTypes == 0 {
 				extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, metadata.TypesEmptyTuple)
-			} else {
-				extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, additionalSignedTypeId)
+				continue
 			}
-			continue // We have determined the additionalTypeId for the extension
+			for i := 0; i < numAdditionalSignedTypes; i++ {
+				currentType := field.Index(i).Elem().Type()
+				currentTypeName := currentType.Name() // "H256", "U32", "U64", "H512", "Ed25519PublicKey"
+				currentTypeId, exists := metadataIds[currentTypeName]
+				if !exists {
+					currentTypeId = assignNewMetadataId(metadataIds, &lastIndex, &currentTypeName)
+					newType := generateNewType(typeConstantId, extraTypeName, currentType)
+					*metadataTypes = append(*metadataTypes, newType)
+				}
+				resultTypeName = resultTypeName + currentTypeName
+				resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
+			}
+			resultTypeId, exists = metadataIds[resultTypeName] // "H256U32U64H512Ed25519PublicKey"
+			if !exists {
+				resultTypeId = assignNewMetadataId(metadataIds, &lastIndex, &resultTypeName)
+				*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
+			}
+			extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, resultTypeId)
+		default:
+			fieldTypeId, exists := metadataIds[fieldName]
+			if !exists {
+				fieldTypeId = assignNewMetadataId(metadataIds, &lastIndex, &fieldName)
+				newType := generateNewType(fieldTypeId, fieldName, field.Type())
+				*metadataTypes = append(*metadataTypes, newType)
+			}
+			metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldName)))
 		}
-		fieldTypeId, exists := constantsMap[fieldName]
-		if !exists {
-			fieldTypeId = lastIndex + 1
-			constantsMap[fieldName] = fieldTypeId
-			log.Info("Adding type id new: " + fieldName)
-			lastIndex = lastIndex + 1
-		}
-		metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldName)))
 	}
 
 	return NewMetadataTypeWithPath(
 		typeConstantId,
 		extraTypeName,
 		sc.Sequence[sc.Str]{"extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)},
-		NewMetadataTypeDefinitionComposite(metadataTypeFields),
-	), extension
+		NewMetadataTypeDefinitionComposite(metadataTypeFields)), extension
+}
+
+// TODO: Generate the proper type based on reflect.type
+func generateNewType(extraId int, extraName string, t reflect.Type) MetadataType {
+	return NewMetadataType(
+		extraId,
+		extraName,
+		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+	)
+}
+
+func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact]) MetadataType {
+	return NewMetadataType(typeId, typeName, NewMetadataTypeDefinitionTuple(tupleIds))
+}
+
+func assignNewMetadataId(metadataIds map[string]int, lastIndex *int, name *string) int {
+	newId := *lastIndex + 1
+	*lastIndex = *lastIndex + 1
+	metadataIds[*name] = newId
+	return newId
 }
