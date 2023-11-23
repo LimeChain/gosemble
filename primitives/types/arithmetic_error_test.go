@@ -43,6 +43,7 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 			assert.NoError(t, err)
 
 			assert.Equal(t, result, testExample.expectation)
+			assert.NotEmpty(t, result.Error())
 		})
 	}
 }

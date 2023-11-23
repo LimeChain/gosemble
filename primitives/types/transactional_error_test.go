@@ -9,11 +9,15 @@ import (
 )
 
 func Test_NewTransactionalErrorLimitReached(t *testing.T) {
-	assert.Equal(t, TransactionalError(sc.NewVaryingData(TransactionalErrorLimitReached)), NewTransactionalErrorLimitReached())
+	err := NewTransactionalErrorLimitReached()
+	assert.Equal(t, TransactionalError(sc.NewVaryingData(TransactionalErrorLimitReached)), err)
+	assert.NotEmpty(t, err.Error())
 }
 
 func Test_NewTransactionalErrorNoLayer(t *testing.T) {
-	assert.Equal(t, TransactionalError(sc.NewVaryingData(TransactionalErrorNoLayer)), NewTransactionalErrorNoLayer())
+	err := NewTransactionalErrorNoLayer()
+	assert.Equal(t, TransactionalError(sc.NewVaryingData(TransactionalErrorNoLayer)), err)
+	assert.NotEmpty(t, err.Error())
 }
 
 func Test_DecodeTransactionalError_LimitReached(t *testing.T) {

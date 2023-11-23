@@ -68,12 +68,12 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 		expectation error
 	}{
 		{
-			label:       "Encode(TransactionValidityError(InvalidTransaction(PaymentError)))",
+			label:       "DecodeTransactionValidityError(TransactionValidityError(InvalidTransaction(PaymentError)))",
 			input:       []byte{0x00, 0x01},
 			expectation: invalidTransactionPayment,
 		},
 		{
-			label:       "Encode(TransactionValidityError(UnknownTransaction(0)))",
+			label:       "DecodeTransactionValidityError(TransactionValidityError(UnknownTransaction(0)))",
 			input:       []byte{0x01, 0x00},
 			expectation: unknownTransactionCannotLookup,
 		},
@@ -88,6 +88,7 @@ func Test_DecodeTransactionValidityError(t *testing.T) {
 			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
+			assert.NotEmpty(t, result.Error())
 		})
 	}
 }

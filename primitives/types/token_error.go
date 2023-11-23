@@ -18,7 +18,7 @@ const (
 
 type TokenError sc.VaryingData
 
-func NewTokenErrorNoFounds() TokenError {
+func NewTokenErrorNoFunds() TokenError {
 	return TokenError(sc.NewVaryingData(TokenErrorNoFunds))
 }
 
@@ -78,12 +78,12 @@ func (err TokenError) Error() string {
 func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return TokenError{}, err
+		return TokenError{}, newTypeError("TokenError")
 	}
 
 	switch b {
 	case TokenErrorNoFunds:
-		return NewTokenErrorNoFounds(), nil
+		return NewTokenErrorNoFunds(), nil
 	case TokenErrorWouldDie:
 		return NewTokenErrorWouldDie(), nil
 	case TokenErrorBelowMinimum:

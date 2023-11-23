@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -363,6 +364,53 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_setBalance_Drop(t *testing.T) {
+	for _, tt := range []struct {
+		name                                       string
+		newFree, newReserved, oldFree, oldReserved sc.U128
+	}{
+		{
+			name:    "newFree.Gt(oldFree)",
+			newFree: sc.NewU128(1),
+			oldFree: sc.NewU128(0),
+		},
+		{
+			name:    "newFree.Lt(oldFree)",
+			newFree: sc.NewU128(0),
+			oldFree: sc.NewU128(1),
+		},
+		{
+			name:        "newReserved.Gt(oldReserved)",
+			newReserved: sc.NewU128(1),
+			oldReserved: sc.NewU128(0),
+		},
+		{
+			name:        "newReserved.Lt(oldReserved)",
+			newReserved: sc.NewU128(0),
+			oldReserved: sc.NewU128(1),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+			assert.True(t, ok)
+
+			mockMutator.On(
+				"tryMutateAccount",
+				mock.Anything,
+				mock.Anything,
+			).Return(sc.Result[sc.Encodable]{Value: sc.NewVaryingData(tt.oldFree, tt.oldReserved)})
+
+			mockStorageTotalIssuance.On("Put", mock.Anything)
+			mockStoredMap.On("DepositEvent", mock.Anything).Return()
+			mockStorageTotalIssuance.On("Get").Return(sc.NewU128(0), errors.New("drop")).Once()
+
+			result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, tt.newFree, tt.newReserved)
+
+			assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str("drop")), result)
+		})
+	}
 }
 
 func Test_Call_SetBalance_updateAccount(t *testing.T) {

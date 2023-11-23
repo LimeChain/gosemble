@@ -117,7 +117,7 @@ func (err DispatchError) Encode(buffer *bytes.Buffer) error {
 	switch err[0] {
 	case DispatchErrorCannotLookup, DispatchErrorBadOrigin, DispatchErrorConsumerRemaining, DispatchErrorNoProviders, DispatchErrorTooManyConsumers, DispatchErrorExhausted, DispatchErrorCorruption, DispatchErrorUnavailable:
 		return err[0].Encode(buffer)
-	case DispatchErrorOther, DispatchErrorModule, DispatchErrorToken, DispatchErrorArithmetic:
+	case DispatchErrorOther, DispatchErrorModule, DispatchErrorToken, DispatchErrorArithmetic, DispatchErrorTransactional:
 		return sc.EncodeEach(buffer, err[0], err[1])
 	default:
 		return newTypeError("DispatchError")
@@ -255,6 +255,6 @@ func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[Po
 	return e, nil
 }
 
-func (err DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
-	return sc.EncodedBytes(err)
+func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
+	return sc.EncodedBytes(e)
 }
