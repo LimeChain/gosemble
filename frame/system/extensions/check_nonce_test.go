@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"bytes"
+	"errors"
 	"math"
 	"testing"
 
@@ -15,8 +16,8 @@ import (
 )
 
 var (
-	invalidTransactionStale, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	invalidTransactionFuture, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionStale  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFuture = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
 )
 
 var (
@@ -149,6 +150,24 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
 }
 
+func Test_CheckNonce_Validate_Fails_StorageAccountError(t *testing.T) {
+	nonce := sc.U32(0)
+	accountInfo := primitives.AccountInfo{
+		Nonce: 1,
+	}
+
+	target := setupCheckNonce()
+	target.nonce = nonce
+
+	expectedErr := errors.New("error")
+	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, expectedErr)
+
+	_, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
+
+	assert.Equal(t, expectedErr, err)
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+}
+
 func Test_CheckNonce_ValidateUnsigned(t *testing.T) {
 	target := setupCheckNonce()
 
@@ -220,6 +239,25 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 
 	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
 	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAddress, mock.Anything)
+}
+
+func Test_CheckNonce_PreDispatch_Fails_StorageAccountError(t *testing.T) {
+	nonce := sc.U32(2)
+	accountInfo := primitives.AccountInfo{
+		Nonce: 1,
+	}
+
+	target := setupCheckNonce()
+	target.nonce = nonce
+
+	expectedErr := errors.New("error")
+	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, expectedErr)
+
+	_, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
+
+	assert.Equal(t, expectedErr, err)
+
+	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
 }
 
 func Test_CheckNonce_PreDispatchUnsigned(t *testing.T) {

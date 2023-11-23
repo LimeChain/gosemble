@@ -13,7 +13,11 @@ type mockAccountMutator struct {
 func (m *mockAccountMutator) ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError {
 	args := m.Called(who, amount, reasons, newBalance)
 
-	return args[0].(types.DispatchError)
+	if args[0] != nil {
+		return args[0].(types.DispatchError)
+	}
+
+	return nil
 }
 
 func (m *mockAccountMutator) tryMutateAccountWithDust(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {

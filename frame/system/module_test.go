@@ -88,7 +88,7 @@ var (
 )
 
 var (
-	unknownTransactionNoUnsignedValidator, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (

@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	invalidTransactionPayment, _ = NewTransactionValidityError(NewInvalidTransactionPayment())
+	invalidTransactionPayment = NewTransactionValidityError(NewInvalidTransactionPayment())
 
-	transactionValidityResultTransactionPayment, _ = NewTransactionValidityResult(invalidTransactionPayment)
+	transactionValidityResultTransactionPayment, _ = NewTransactionValidityResult(invalidTransactionPayment.(TransactionValidityError))
 	transactionValidityResultDefaultValid, _       = NewTransactionValidityResult(DefaultValidTransaction())
 )
 
@@ -38,7 +38,7 @@ func Test_TransactionValidityResult_Encode(t *testing.T) {
 		{
 			label:  "Encode(TransactionValidityResult(TransactionValidityError))",
 			input:  transactionValidityResultTransactionPayment,
-			expect: append(TransactionValidityResultError.Bytes(), invalidTransactionPayment.Bytes()...),
+			expect: append(TransactionValidityResultError.Bytes(), invalidTransactionPayment.(TransactionValidityError).Bytes()...),
 		},
 	}
 

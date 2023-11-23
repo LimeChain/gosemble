@@ -123,8 +123,9 @@ func (c callForceFree[T]) forceFree(origin types.RawOrigin, who types.MultiAddre
 		return types.NewDispatchErrorCannotLookup()
 	}
 
-	// TODO: handle err
-	c.force(target, amount)
+	if _, err := c.force(target, amount); err != nil {
+		return types.NewDispatchErrorOther(sc.Str(err.Error()))
+	}
 
 	return nil
 }

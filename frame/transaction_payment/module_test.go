@@ -41,7 +41,7 @@ var (
 )
 
 var (
-	noUnsignedValidatorError, _ = types.NewTransactionValidityError(
+	noUnsignedValidatorError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionNoUnsignedValidator(),
 	)
 

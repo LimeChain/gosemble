@@ -32,7 +32,7 @@ func (c checkedExtrinsic) Function() primitives.Call {
 	return c.function
 }
 
-func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], primitives.TransactionValidityError) {
+func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], error) {
 	var (
 		maybeWho sc.Option[primitives.AccountId[primitives.PublicKey]]
 		maybePre sc.Option[sc.Sequence[primitives.Pre]]
@@ -100,7 +100,7 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 	return resWithInfo, c.extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
 }
 
-func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	if c.signer.HasValue {
 		id := c.signer.Value
 		return c.extra.Validate(id, c.function, info, length)

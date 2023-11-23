@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"bytes"
+	"errors"
 	"math"
 	"testing"
 
@@ -51,7 +52,7 @@ var (
 )
 
 var (
-	invalidTransactionExhaustsResources, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	invalidTransactionExhaustsResources = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 )
 
 func Test_CheckWeight_AdditionalSigned(t *testing.T) {
@@ -217,6 +218,27 @@ func Test_CheckWeight_PostDispatch_NoUnspent(t *testing.T) {
 	mockModule.AssertNotCalled(t, "StorageBlockWeight")
 }
 
+func Test_CheckWeight_PostDispatch_StorageBlockWeightError(t *testing.T) {
+	postInfo := &primitives.PostDispatchInfo{
+		ActualWeight: sc.NewOption[primitives.Weight](primitives.WeightFromParts(3, 1)),
+	}
+	expectedStorageWeight := primitives.ConsumedWeight{
+		Normal:      consumedWeight.Normal.Sub(primitives.WeightFromParts(0, 1)),
+		Operational: consumedWeight.Operational,
+		Mandatory:   consumedWeight.Mandatory,
+	}
+	target := setupCheckWeight()
+
+	expectedErr := errors.New("error")
+	mockModule.On("StorageBlockWeight").Return(consumedWeight, expectedErr)
+	mockModule.On("StorageBlockWeightSet", expectedStorageWeight).Return()
+
+	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact{}, nil)
+
+	assert.Equal(t, expectedErr, result)
+
+	mockModule.AssertCalled(t, "StorageBlockWeight")
+}
 func Test_CheckWeight_doValidate_Success(t *testing.T) {
 	target := setupCheckWeight()
 
@@ -475,6 +497,22 @@ func Test_CheckWeight_checkBlockLength_ExhaustsResources(t *testing.T) {
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
 }
 
+func Test_CheckWeight_checkBlockLength_StorageAllExtrinsicsLenError(t *testing.T) {
+	storageLen := sc.U32(10)
+	target := setupCheckWeight()
+	expectedErr := errors.New("error")
+
+	mockModule.On("BlockLength").Return(blockLength)
+	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, expectedErr)
+
+	_, err := target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
+
+	assert.Equal(t, expectedErr, err)
+
+	mockModule.AssertCalled(t, "BlockLength")
+	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
+}
+
 func Test_CheckWeight_checkBlockWeight(t *testing.T) {
 	target := setupCheckWeight()
 
@@ -491,6 +529,21 @@ func Test_CheckWeight_checkBlockWeight(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
+
+	mockModule.AssertCalled(t, "BlockWeights")
+	mockModule.AssertCalled(t, "StorageBlockWeight")
+}
+
+func Test_CheckWeight_checkBlockWeight_StorageBlockWeightError(t *testing.T) {
+	target := setupCheckWeight()
+	expectedErr := errors.New("error")
+
+	mockModule.On("BlockWeights").Return(blockWeight)
+	mockModule.On("StorageBlockWeight").Return(consumedWeight, expectedErr)
+
+	_, err := target.checkBlockWeight(dispatchInfo)
+
+	assert.Equal(t, expectedErr, err)
 
 	mockModule.AssertCalled(t, "BlockWeights")
 	mockModule.AssertCalled(t, "StorageBlockWeight")

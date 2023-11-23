@@ -22,24 +22,24 @@ func (m *Module) Functions() map[sc.U8]types.Call {
 	return args.Get(0).(map[sc.U8]types.Call)
 }
 
-func (m *Module) PreDispatch(call types.Call) (sc.Empty, types.TransactionValidityError) {
+func (m *Module) PreDispatch(call types.Call) (sc.Empty, error) {
 	args := m.Called(call)
 
 	if args.Get(1) == nil {
 		return args.Get(0).(sc.Empty), nil
 	}
 
-	return args.Get(0).(sc.Empty), args.Get(1).(types.TransactionValidityError)
+	return args.Get(0).(sc.Empty), args.Get(1).(error)
 }
 
-func (m *Module) ValidateUnsigned(txSource types.TransactionSource, call types.Call) (types.ValidTransaction, types.TransactionValidityError) {
+func (m *Module) ValidateUnsigned(txSource types.TransactionSource, call types.Call) (types.ValidTransaction, error) {
 	args := m.Called(txSource, call)
 
 	if args.Get(1) == nil {
 		return args.Get(0).(types.ValidTransaction), nil
 	}
 
-	return args.Get(0).(types.ValidTransaction), args.Get(1).(types.TransactionValidityError)
+	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
 func (m *Module) Metadata() (sc.Sequence[types.MetadataType], types.MetadataModule) {

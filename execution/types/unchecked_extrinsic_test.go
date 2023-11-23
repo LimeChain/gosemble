@@ -17,13 +17,13 @@ const (
 )
 
 var (
-	unknownTransactionCannotLookupError, _ = types.NewTransactionValidityError(
+	unknownTransactionCannotLookupError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionCannotLookup(),
 	)
-	invalidTransactionAncientBirthBlockError, _ = types.NewTransactionValidityError(
+	invalidTransactionAncientBirthBlockError = types.NewTransactionValidityError(
 		types.NewInvalidTransactionAncientBirthBlock(),
 	)
-	invalidTransactionBadProofError, _ = types.NewTransactionValidityError(
+	invalidTransactionBadProofError = types.NewTransactionValidityError(
 		types.NewInvalidTransactionBadProof(),
 	)
 
@@ -110,7 +110,7 @@ func newTestSignedExtrinsic(
 	crypto io.Crypto,
 	hashing io.Hashing) uncheckedExtrinsic {
 
-	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
+	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, error) {
 		return signedPayload, nil
 	}
 

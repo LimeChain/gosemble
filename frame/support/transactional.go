@@ -114,6 +114,7 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 		t.transactionBroker.Commit()
 		t.DecTransactionLevel()
 		return res[1].(T), nil
+
 	case types.TransactionOutcomeRollback:
 		t.transactionBroker.Rollback()
 		t.DecTransactionLevel()

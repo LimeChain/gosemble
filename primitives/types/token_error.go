@@ -16,45 +16,74 @@ const (
 	TokenErrorUnsupported
 )
 
-type TokenError = sc.VaryingData
+type TokenError sc.VaryingData
 
-func NewTokenErrorNoFounds() TokenError {
-	return sc.NewVaryingData(TokenErrorNoFunds)
+func NewTokenErrorNoFunds() TokenError {
+	return TokenError(sc.NewVaryingData(TokenErrorNoFunds))
 }
 
 func NewTokenErrorWouldDie() TokenError {
-	return sc.NewVaryingData(TokenErrorWouldDie)
+	return TokenError(sc.NewVaryingData(TokenErrorWouldDie))
 }
 
 func NewTokenErrorBelowMinimum() TokenError {
-	return sc.NewVaryingData(TokenErrorBelowMinimum)
+	return TokenError(sc.NewVaryingData(TokenErrorBelowMinimum))
 }
 
 func NewTokenErrorCannotCreate() TokenError {
-	return sc.NewVaryingData(TokenErrorCannotCreate)
+	return TokenError(sc.NewVaryingData(TokenErrorCannotCreate))
 }
 
 func NewTokenErrorUnknownAsset() TokenError {
-	return sc.NewVaryingData(TokenErrorUnknownAsset)
+	return TokenError(sc.NewVaryingData(TokenErrorUnknownAsset))
 }
 
 func NewTokenErrorFrozen() TokenError {
-	return sc.NewVaryingData(TokenErrorFrozen)
+	return TokenError(sc.NewVaryingData(TokenErrorFrozen))
 }
 
 func NewTokenErrorUnsupported() TokenError {
-	return sc.NewVaryingData(TokenErrorUnsupported)
+	return TokenError(sc.NewVaryingData(TokenErrorUnsupported))
+}
+
+func (err TokenError) Encode(buffer *bytes.Buffer) error {
+	return err[0].Encode(buffer)
+}
+
+func (err TokenError) Error() string {
+	if len(err) == 0 {
+		return newTypeError("TokenError").Error()
+	}
+
+	switch err[0] {
+	case TokenErrorNoFunds:
+		return "Funds are unavailable"
+	case TokenErrorWouldDie:
+		return "Account that must exist would die"
+	case TokenErrorBelowMinimum:
+		return "Account cannot exist with the funds that would be given"
+	case TokenErrorCannotCreate:
+		return "Account cannot be created"
+	case TokenErrorUnknownAsset:
+		return "The asset in question is unknown"
+	case TokenErrorFrozen:
+		return "Funds exist but are frozen"
+	case TokenErrorUnsupported:
+		return "Operation is not supported by the asset"
+	default:
+		return newTypeError("TokenError").Error()
+	}
 }
 
 func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return nil, err
+		return TokenError{}, newTypeError("TokenError")
 	}
 
 	switch b {
 	case TokenErrorNoFunds:
-		return NewTokenErrorNoFounds(), nil
+		return NewTokenErrorNoFunds(), nil
 	case TokenErrorWouldDie:
 		return NewTokenErrorWouldDie(), nil
 	case TokenErrorBelowMinimum:
@@ -68,6 +97,10 @@ func DecodeTokenError(buffer *bytes.Buffer) (TokenError, error) {
 	case TokenErrorUnsupported:
 		return NewTokenErrorUnsupported(), nil
 	default:
-		return nil, newTypeError("TokenError")
+		return TokenError{}, newTypeError("TokenError")
 	}
+}
+
+func (err TokenError) Bytes() []byte {
+	return sc.EncodedBytes(err)
 }

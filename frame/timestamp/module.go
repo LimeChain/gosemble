@@ -62,11 +62,11 @@ func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 

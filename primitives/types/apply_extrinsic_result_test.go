@@ -8,14 +8,14 @@ import (
 )
 
 var (
-	invalidTransactionCall, _ = NewTransactionValidityError(NewInvalidTransactionCall())
+	invalidTransactionCall = NewTransactionValidityError(NewInvalidTransactionCall())
 
 	dispatchOutcome, _             = NewDispatchOutcome(nil)
 	dispatchOutcomeBadOriginErr, _ = NewDispatchOutcome(NewDispatchErrorBadOrigin())
 
 	applyExtrinsicResultOutcome, _      = NewApplyExtrinsicResult(dispatchOutcome)
 	applyExtrinsicResultBadOriginErr, _ = NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
-	applyExtrinsicResultInvalidCall, _  = NewApplyExtrinsicResult(invalidTransactionCall)
+	applyExtrinsicResultInvalidCall, _  = NewApplyExtrinsicResult(invalidTransactionCall.(TransactionValidityError))
 )
 
 func Test_EncodeApplyExtrinsicResult(t *testing.T) {

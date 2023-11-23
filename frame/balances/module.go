@@ -69,14 +69,12 @@ func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
@@ -132,7 +130,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey]
 	if minBalance.Gt(newBalance) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   m.Index,
-			Error:   sc.U32(ErrorLiquidityRestrictions),
+			Err:     sc.U32(ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})
 	}
@@ -242,7 +240,7 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorInsufficientBalance),
+				Err:     sc.U32(ErrorInsufficientBalance),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
@@ -258,17 +256,17 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorKeepAlive),
+				Err:     sc.U32(ErrorKeepAlive),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
 	}
 
-	e := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
-	if e != nil {
+	dispatchErr := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
+	if dispatchErr != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value:    e,
+			Value:    dispatchErr,
 		}
 	}
 
@@ -287,7 +285,7 @@ func (m Module) deposit(who primitives.AccountId[primitives.PublicKey], account 
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorDeadAccount),
+				Err:     sc.U32(ErrorDeadAccount),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}

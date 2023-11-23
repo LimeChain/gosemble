@@ -2,6 +2,7 @@ package extensions
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -56,7 +57,7 @@ var (
 		},
 	}
 
-	invalidTransactionPaymentError, _ = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
+	invalidTransactionPaymentError = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
 )
 
 var (
@@ -228,6 +229,17 @@ func Test_PreDispatch_Error(t *testing.T) {
 	assert.Equal(t, types.Pre{}, res)
 }
 
+func Test_PreDispatch_CumputeFeeError(t *testing.T) {
+	setup(txFee)
+	expectedErr := errors.New("error")
+	mockTxPaymentModule.On("ComputeFee", extLen, info, txTip).Return(txFee, expectedErr)
+
+	_, err := targetChargeTxPayment.PreDispatch(whoAddr, mockCall, &info, sc.ToCompact(extLen))
+
+	mockTxPaymentModule.AssertCalled(t, "ComputeFee", extLen, info, txTip)
+	assert.Equal(t, expectedErr, err)
+}
+
 func Test_PostDispatch_None(t *testing.T) {
 	setup(txFee)
 
@@ -287,6 +299,27 @@ func Test_PostDispatch_CorrectAndDepositFeeError(t *testing.T) {
 	mockOnChargeTransaction.AssertCalled(t, "CorrectAndDepositFee", whoAddr, actualFee, txTip, txImbalance)
 	mockSystemModule.AssertNotCalled(t, "DepositEvent", mock.Anything)
 	assert.Equal(t, invalidTransactionPaymentError, err)
+}
+
+func Test_PostDispatch_ComputeActualFeeError(t *testing.T) {
+	setup(txFee)
+
+	pre := sc.NewOption[types.Pre](
+		sc.NewVaryingData(
+			txFee,
+			whoAddr,
+			txImbalance,
+		),
+	)
+	expectedErr := errors.New("error")
+
+	actualFee := sc.NewU128(1)
+	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee, expectedErr)
+
+	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), &postResult)
+
+	mockTxPaymentModule.AssertCalled(t, "ComputeActualFee", extLen, info, postInfo, txTip)
+	assert.Equal(t, expectedErr, err)
 }
 
 func Test_PreDispatchUnsigned(t *testing.T) {

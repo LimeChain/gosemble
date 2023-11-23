@@ -12,8 +12,8 @@ type Module interface {
 	DispatchModule
 	GetIndex() sc.U8
 	Functions() map[sc.U8]Call
-	PreDispatch(call Call) (sc.Empty, TransactionValidityError)
-	ValidateUnsigned(source TransactionSource, call Call) (ValidTransaction, TransactionValidityError)
+	PreDispatch(call Call) (sc.Empty, error)
+	ValidateUnsigned(source TransactionSource, call Call) (ValidTransaction, error)
 	Metadata() (sc.Sequence[MetadataType], MetadataModule)
 }
 

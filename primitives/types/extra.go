@@ -12,12 +12,12 @@ type SignedExtra interface {
 
 	Decode(buffer *bytes.Buffer)
 
-	AdditionalSigned() (AdditionalSigned, TransactionValidityError)
-	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
-	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError)
-	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError)
-	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError
-	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError
+	AdditionalSigned() (AdditionalSigned, error)
+	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
+	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
+	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error)
+	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
+	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
 	Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
 }
@@ -53,7 +53,7 @@ func (e signedExtra) Decode(buffer *bytes.Buffer) {
 	}
 }
 
-func (e signedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
+func (e signedExtra) AdditionalSigned() (AdditionalSigned, error) {
 	result := AdditionalSigned{}
 
 	for _, extra := range e.extras {
@@ -67,7 +67,7 @@ func (e signedExtra) AdditionalSigned() (AdditionalSigned, TransactionValidityEr
 	return result, nil
 }
 
-func (e signedExtra) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e signedExtra) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -81,7 +81,7 @@ func (e signedExtra) Validate(who AccountId[PublicKey], call Call, info *Dispatc
 	return valid, nil
 }
 
-func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -95,7 +95,7 @@ func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.C
 	return valid, nil
 }
 
-func (e signedExtra) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], TransactionValidityError) {
+func (e signedExtra) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error) {
 	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {
@@ -110,7 +110,7 @@ func (e signedExtra) PreDispatch(who AccountId[PublicKey], call Call, info *Disp
 	return pre, nil
 }
 
-func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
 	for _, extra := range e.extras {
 		err := extra.PreDispatchUnsigned(call, info, length)
 		if err != nil {
@@ -121,7 +121,7 @@ func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length s
 	return nil
 }
 
-func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
 	if pre.HasValue {
 		preValue := pre.Value
 		for i, extra := range e.extras {

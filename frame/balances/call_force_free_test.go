@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -223,6 +224,24 @@ func Test_Call_ForceFree_Dispatch_ZeroTotalStorageBalance(t *testing.T) {
 	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
 	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_ForceFree_Dispatch_Other(t *testing.T) {
+	target := setupCallForceFree()
+	accountInfo := primitives.AccountInfo{Data: primitives.AccountData{}}
+
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	expectedErr := errors.New("error")
+	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, expectedErr)
+
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(expectedErr.Error())), result.Err.Error)
 	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)

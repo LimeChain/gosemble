@@ -26,56 +26,62 @@ func (m *SignedExtra) Decode(buffer *bytes.Buffer) {
 	m.Called(buffer)
 }
 
-func (m *SignedExtra) AdditionalSigned() (types.AdditionalSigned, types.TransactionValidityError) {
+func (m *SignedExtra) AdditionalSigned() (types.AdditionalSigned, error) {
 	args := m.Called()
 
 	if args.Get(1) != nil {
-		return args.Get(0).(types.AdditionalSigned), args.Get(1).(types.TransactionValidityError)
+		return args.Get(0).(types.AdditionalSigned), args.Get(1).(error)
 	}
 
 	return args.Get(0).(types.AdditionalSigned), nil
 }
 
-func (m *SignedExtra) Validate(who types.AccountId[types.PublicKey], call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, types.TransactionValidityError) {
+func (m *SignedExtra) Validate(who types.AccountId[types.PublicKey], call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, error) {
 	args := m.Called(who, call, info, length)
 
 	if args.Get(1) != nil {
-		return args.Get(0).(types.ValidTransaction), args.Get(1).(types.TransactionValidityError)
+		return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 	}
 
 	return args.Get(0).(types.ValidTransaction), nil
 }
 
-func (m *SignedExtra) ValidateUnsigned(call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, types.TransactionValidityError) {
+func (m *SignedExtra) ValidateUnsigned(call types.Call, info *types.DispatchInfo, length sc.Compact) (types.ValidTransaction, error) {
 	args := m.Called(call, info, length)
 
 	if args.Get(1) != nil {
-		return args.Get(0).(types.ValidTransaction), args.Get(1).(types.TransactionValidityError)
+		return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 	}
 
 	return args.Get(0).(types.ValidTransaction), nil
 }
 
-func (m *SignedExtra) PreDispatch(who types.AccountId[types.PublicKey], call types.Call, info *types.DispatchInfo, length sc.Compact) (sc.Sequence[types.Pre], types.TransactionValidityError) {
+func (m *SignedExtra) PreDispatch(who types.AccountId[types.PublicKey], call types.Call, info *types.DispatchInfo, length sc.Compact) (sc.Sequence[types.Pre], error) {
 	args := m.Called(who, call, info, length)
 
 	if args.Get(1) != nil {
-		return args.Get(0).(sc.Sequence[types.Pre]), args.Get(1).(types.TransactionValidityError)
+		return args.Get(0).(sc.Sequence[types.Pre]), args.Get(1).(error)
 	}
 
 	return args.Get(0).(sc.Sequence[types.Pre]), nil
 }
 
-func (m *SignedExtra) PreDispatchUnsigned(call types.Call, info *types.DispatchInfo, length sc.Compact) types.TransactionValidityError {
+func (m *SignedExtra) PreDispatchUnsigned(call types.Call, info *types.DispatchInfo, length sc.Compact) error {
 	args := m.Called(call, info, length)
 
-	return args.Get(0).(types.TransactionValidityError)
+	if args.Get(0) != nil {
+		return args.Get(0).(error)
+	}
+	return nil
 }
 
-func (m *SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[types.Pre]], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) types.TransactionValidityError {
+func (m *SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[types.Pre]], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) error {
 	args := m.Called(pre, info, postInfo, length, result)
 
-	return args.Get(0).(types.TransactionValidityError)
+	if args.Get(0) != nil {
+		return args.Get(0).(error)
+	}
+	return nil
 }
 
 func (m *SignedExtra) Metadata() (sc.Sequence[types.MetadataType], sc.Sequence[types.MetadataSignedExtension]) {

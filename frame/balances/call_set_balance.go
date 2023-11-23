@@ -159,23 +159,25 @@ func (c callSetBalance[T]) setBalance(origin types.RawOrigin, who types.MultiAdd
 	oldReserved := parsedResult[1].(types.Balance)
 
 	if newFree.Gt(oldFree) {
-		// TODO: handle err
-		newPositiveImbalance(newFree.Sub(oldFree), c.issuance).
-			Drop()
+		if err := newPositiveImbalance(newFree.Sub(oldFree), c.issuance).Drop(); err != nil {
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
+		}
+
 	} else if newFree.Lt(oldFree) {
-		// TODO: handle err
-		newNegativeImbalance(oldFree.Sub(newFree), c.issuance).
-			Drop()
+		if err := newNegativeImbalance(oldFree.Sub(newFree), c.issuance).Drop(); err != nil {
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
+		}
 	}
 
 	if newReserved.Gt(oldReserved) {
-		// TODO: handle err
-		newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).
-			Drop()
+		if err := newPositiveImbalance(newReserved.Sub(oldReserved), c.issuance).Drop(); err != nil {
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
+		}
 	} else if newReserved.Lt(oldReserved) {
-		// TODO: handle err
-		newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).
-			Drop()
+		if err := newNegativeImbalance(oldReserved.Sub(newReserved), c.issuance).Drop(); err != nil {
+			return types.NewDispatchErrorOther(sc.Str(err.Error()))
+		}
+
 	}
 
 	whoAccountId, errAccId := who.AsAccountId()

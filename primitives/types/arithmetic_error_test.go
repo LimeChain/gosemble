@@ -43,6 +43,7 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 			assert.NoError(t, err)
 
 			assert.Equal(t, result, testExample.expectation)
+			assert.NotEmpty(t, result.Error())
 		})
 	}
 }
@@ -50,9 +51,8 @@ func Test_ArithmeticError_Decode(t *testing.T) {
 func Test_Decode_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{0x03})
 
-	res, err := DecodeArithmeticError(buffer)
+	_, err := DecodeArithmeticError(buffer)
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'ArithmeticError' type", err.Error())
-	assert.Nil(t, res)
 }

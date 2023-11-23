@@ -10,6 +10,6 @@ func newTypeError(msg string) error {
 	return typeError{message: msg}
 }
 
-func (e typeError) Error() string {
-	return "not a valid '" + e.message + "' type"
+func (err typeError) Error() string {
+	return "not a valid '" + err.message + "' type"
 }

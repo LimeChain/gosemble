@@ -181,7 +181,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorInsufficientBalance),
+				Err:     sc.U32(ErrorInsufficientBalance),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
@@ -202,17 +202,17 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorExistentialDeposit),
+				Err:     sc.U32(ErrorExistentialDeposit),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
 	}
 
-	e := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-	if e != nil {
+	dispatchErr := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
+	if dispatchErr != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value:    e,
+			Value:    dispatchErr,
 		}
 	}
 
@@ -231,7 +231,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 			HasError: true,
 			Value: types.NewDispatchErrorModule(types.CustomModuleError{
 				Index:   t.moduleId,
-				Error:   sc.U32(ErrorKeepAlive),
+				Err:     sc.U32(ErrorKeepAlive),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}

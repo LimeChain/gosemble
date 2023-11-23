@@ -8,111 +8,92 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewTokenErrorNoFunds(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorNoFunds), NewTokenErrorNoFounds())
-}
+func Test_TokenError(t *testing.T) {
+	for _, tt := range []struct {
+		name       string
+		newErr     TokenError
+		wantErr    error
+		wantErrMsg string
+	}{
+		{
+			name:       "TokenErrorNoFunds",
+			newErr:     NewTokenErrorNoFunds(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorNoFunds)),
+			wantErrMsg: "Funds are unavailable",
+		},
+		{
+			name:       "TokenErrorWouldDie",
+			newErr:     NewTokenErrorWouldDie(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorWouldDie)),
+			wantErrMsg: "Account that must exist would die",
+		},
+		{
+			name:       "TokenErrorBelowMinimum",
+			newErr:     NewTokenErrorBelowMinimum(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorBelowMinimum)),
+			wantErrMsg: "Account cannot exist with the funds that would be given",
+		},
+		{
+			name:       "TokenErrorCannotCreate",
+			newErr:     NewTokenErrorCannotCreate(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorCannotCreate)),
+			wantErrMsg: "Account cannot be created",
+		},
+		{
+			name:       "TokenErrorUnknownAsset",
+			newErr:     NewTokenErrorUnknownAsset(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorUnknownAsset)),
+			wantErrMsg: "The asset in question is unknown",
+		},
+		{
+			name:       "TokenErrorFrozen",
+			newErr:     NewTokenErrorFrozen(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorFrozen)),
+			wantErrMsg: "Funds exist but are frozen",
+		},
+		{
+			name:       "TokenErrorUnsupported",
+			newErr:     NewTokenErrorUnsupported(),
+			wantErr:    TokenError(sc.NewVaryingData(TokenErrorUnsupported)),
+			wantErrMsg: "Operation is not supported by the asset",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			buffer := &bytes.Buffer{}
+			err := tt.newErr.Encode(buffer)
+			assert.NoError(t, err)
 
-func Test_NewTokenErrorWouldDie(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorWouldDie), NewTokenErrorWouldDie())
-}
+			haveErr, err := DecodeTokenError(buffer)
+			assert.NoError(t, err)
 
-func Test_NewTokenErrorBelowMinimum(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorBelowMinimum), NewTokenErrorBelowMinimum())
-}
-
-func Test_NewTokenErrorCannotCreate(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorCannotCreate), NewTokenErrorCannotCreate())
-}
-
-func Test_NewTokenErrorUnknownAsset(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorUnknownAsset), NewTokenErrorUnknownAsset())
-}
-
-func Test_NewTokenErrorFrozen(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorFrozen), NewTokenErrorFrozen())
-}
-
-func Test_NewTokenErrorUnsupported(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(TokenErrorUnsupported), NewTokenErrorUnsupported())
-}
-
-func Test_DecodeTokenError_NoFunds(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(0)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorNoFounds(), result)
-}
-
-func Test_DecodeTokenError_WouldDie(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(1)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorWouldDie(), result)
-}
-
-func Test_DecodeTokenError_BelowMinimum(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(2)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorBelowMinimum(), result)
-}
-
-func Test_DecodeTokenError_CannotCreate(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(3)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorCannotCreate(), result)
-}
-
-func Test_DecodeTokenError_UnknownAsset(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(4)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorUnknownAsset(), result)
-}
-
-func Test_DecodeTokenError_Frozen(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(5)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorFrozen(), result)
-}
-
-func Test_DecodeTokenError_Unsupported(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(6)
-
-	result, err := DecodeTokenError(buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, NewTokenErrorUnsupported(), result)
+			assert.Equal(t, tt.wantErr, haveErr)
+			assert.Equal(t, tt.wantErrMsg, haveErr.Error())
+		})
+	}
 }
 
 func Test_DecodeTokenError_TypeError(t *testing.T) {
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(7)
+	for _, tt := range []struct {
+		name    string
+		errType sc.Encodable
+	}{
+		{
+			name:    "invalid type",
+			errType: sc.U8(7),
+		},
+		{
+			name:    "nil",
+			errType: sc.Empty{},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			buffer := &bytes.Buffer{}
+			err := tt.errType.Encode(buffer)
+			assert.NoError(t, err)
 
-	res, err := DecodeTokenError(buffer)
-
-	assert.Error(t, err)
-	assert.Equal(t, "not a valid 'TokenError' type", err.Error())
-	assert.Nil(t, res)
+			_, err = DecodeTokenError(buffer)
+			assert.Error(t, err)
+			assert.Equal(t, "not a valid 'TokenError' type", err.Error())
+		})
+	}
 }
