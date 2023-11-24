@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	additionalSignedTypeName = "VaryingData"
+	additionalSignedTypeName = "additionalSignedData"
 	moduleName               = "Module"
+	varyingDataType          = "VaryingData"
 )
 
 type SignedExtra interface {
@@ -182,15 +183,15 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 	var extension MetadataSignedExtension
 	var metadataTypeFields sc.Sequence[MetadataTypeDefinitionField]
 
-	extraNumOfFields := extraValue.Elem().NumField()
+	extraNumOfFields := extraType.NumField()
 
 	for j := 0; j < extraNumOfFields; j++ {
 		field := extraValue.Elem().Field(j)
-		fieldName := field.Type().Name()
-		switch fieldName {
-		case moduleName:
+		fieldTypeName := field.Type().Name()
+		fieldName := extraType.Field(j).Name
+		if fieldTypeName == moduleName {
 			continue
-		case additionalSignedTypeName: // Process additionalSigned type(s) which define the MetadataSignedExtension // TODO: What if there's a field sc.VaryingData not representing additionalSignedTypes?
+		} else if fieldTypeName == varyingDataType && fieldName == additionalSignedTypeName {
 			var resultTypeId int
 			var resultTypeName string
 			var resultTupleIds sc.Sequence[sc.Compact]
@@ -205,7 +206,7 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 				currentTypeId, exists := metadataIds[currentTypeName]
 				if !exists {
 					currentTypeId = assignNewMetadataId(metadataIds, &lastIndex, &currentTypeName)
-					newType := generateNewType(typeConstantId, extraTypeName, currentType)
+					newType := generateNewType(currentTypeId, currentType)
 					*metadataTypes = append(*metadataTypes, newType)
 				}
 				resultTypeName = resultTypeName + currentTypeName
@@ -217,14 +218,14 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 				*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
 			}
 			extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, resultTypeId)
-		default:
-			fieldTypeId, exists := metadataIds[fieldName]
+		} else {
+			fieldTypeId, exists := metadataIds[fieldTypeName]
 			if !exists {
-				fieldTypeId = assignNewMetadataId(metadataIds, &lastIndex, &fieldName)
-				newType := generateNewType(fieldTypeId, fieldName, field.Type())
+				fieldTypeId = assignNewMetadataId(metadataIds, &lastIndex, &fieldTypeName)
+				newType := generateNewType(fieldTypeId, field.Type())
 				*metadataTypes = append(*metadataTypes, newType)
 			}
-			metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldName)))
+			metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldTypeName)))
 		}
 	}
 
@@ -236,11 +237,26 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 }
 
 // TODO: Generate the proper type based on reflect.type
-func generateNewType(extraId int, extraName string, t reflect.Type) MetadataType {
+func generateNewType(id int, t reflect.Type) MetadataType {
+	typeFields := sc.Sequence[MetadataTypeDefinitionField]{}
+	//log.Info(t.String())
+	//log.Info(strconv.Itoa(t.NumField()))
+	//
+	//log.Info(t.Field(0).Name)
+
+	//typeNumFields := t.NumField()
+	//
+	//for i := 0; i < typeNumFields; i++ {
+	//	fieldName := t.Field(i).Name // TODO: This type may not exist
+	//	typeFields = append(typeFields, NewMetadataTypeDefinitionFieldWithName(id, sc.Str(fieldName)))
+	//}
+	//
+	typeName := t.Name()
+
 	return NewMetadataType(
-		extraId,
-		extraName,
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		id,
+		typeName,
+		NewMetadataTypeDefinitionComposite(typeFields),
 	)
 }
 
