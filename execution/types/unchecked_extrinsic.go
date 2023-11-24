@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"fmt"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/io"
@@ -138,28 +140,27 @@ func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc
 	if signature.IsEd25519() {
 		sigEd25519, err := signature.AsEd25519()
 		if err != nil {
+			// TODO: return err
 			log.Critical(err.Error())
 		}
 		sigBytes := sc.FixedSequenceU8ToBytes(sigEd25519.FixedSequence)
 		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsSr25519() {
-
 		sigSr25519, err := signature.AsSr25519()
 		if err != nil {
+			// TODO: return err
 			log.Critical(err.Error())
 		}
 		sigBytes := sc.FixedSequenceU8ToBytes(sigSr25519.FixedSequence)
 		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes)
 	} else if signature.IsEcdsa() {
-		return true
-		// TODO:
-		// let m = sp_io::hashing::blake2_256(msg.get());
-		// match sp_io::crypto::secp256k1_ecdsa_recover_compressed(sig.as_ref(), &m) {
-		// 	Ok(pubkey) =>
-		// 		&sp_io::hashing::blake2_256(pubkey.as_ref()) ==
-		// 			<dyn AsRef<[u8; 32]>>::as_ref(who),
-		// 	_ => false,
-		// }
+		sigEcdsa, err := signature.AsEcdsa()
+		if err != nil {
+			// TODO: return err
+			log.Critical(err.Error())
+		}
+
+		return uxt.verifyEcdsa(sigEcdsa, msgBytes, signerBytes)
 	}
 
 	log.Critical("invalid MultiSignature type in Verify")
@@ -176,4 +177,29 @@ func (uxt uncheckedExtrinsic) usingEncoded(sp primitives.SignedPayload) sc.Seque
 	} else {
 		return sc.BytesToSequenceU8(enc)
 	}
+}
+
+func (uxt uncheckedExtrinsic) verifyEcdsa(signature primitives.SignatureEcdsa, msgBytes []byte, signer []byte) bool {
+	sigBytes := sc.FixedSequenceU8ToBytes(signature.FixedSequence)
+	msg := uxt.hashing.Blake256(msgBytes)
+
+	// This returns either the 33-byte ECDSA Public Key or an error.
+	recovered := uxt.crypto.EcdsaRecoverCompressed(sigBytes, msg)
+	buffer := bytes.NewBuffer(recovered)
+
+	result, err := sc.DecodeResult(buffer, primitives.DecodeEcdsaPublicKey, primitives.DecodeEcdsaVerifyError)
+	if err != nil {
+		// TODO: return err
+		log.Critical(err.Error())
+	}
+
+	if result.HasError {
+		log.Debug(fmt.Sprintf("Failed to verify signature. Error: [%s]", result.Value.(error).Error()))
+		return false
+	}
+
+	// In order to match AccountId, ECDSA public keys are hashed to 32 bytes.
+	hashPublicKey := uxt.hashing.Blake256(result.Value.Bytes())
+
+	return reflect.DeepEqual(hashPublicKey, signer)
 }

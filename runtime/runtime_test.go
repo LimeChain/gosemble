@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	"github.com/ChainSafe/gossamer/lib/crypto/secp256k1"
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -18,6 +20,7 @@ import (
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/blake2b"
 )
 
 const POLKADOT_RUNTIME = "../build/polkadot_runtime-v9400.compact.compressed.wasm"
@@ -192,4 +195,66 @@ func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint6
 	assert.NoError(t, err)
 
 	return extEnc.Bytes()
+}
+
+func signExtrinsicSecp256k1(e *ctypes.Extrinsic, o ctypes.SignatureOptions, signer *secp256k1.Keypair) error {
+	if e.Type() != ctypes.ExtrinsicVersion4 {
+		return fmt.Errorf("unsupported extrinsic version: %v (isSigned: %v, type: %v)", e.Version, e.IsSigned(), e.Type())
+	}
+
+	mb, err := codec.Encode(e.Method)
+	if err != nil {
+		return err
+	}
+
+	era := o.Era
+	if !o.Era.IsMortalEra {
+		era = ctypes.ExtrinsicEra{IsImmortalEra: true}
+	}
+
+	payload := ctypes.ExtrinsicPayloadV4{
+		ExtrinsicPayloadV3: ctypes.ExtrinsicPayloadV3{
+			Method:      mb,
+			Era:         era,
+			Nonce:       o.Nonce,
+			Tip:         o.Tip,
+			SpecVersion: o.SpecVersion,
+			GenesisHash: o.GenesisHash,
+			BlockHash:   o.BlockHash,
+		},
+		TransactionVersion: o.TransactionVersion,
+	}
+
+	b, err := codec.Encode(payload)
+	if err != nil {
+		return err
+	}
+
+	digest := blake2b.Sum256(b)
+	sig, err := signer.Private().Sign(digest[:])
+	if err != nil {
+		return err
+	}
+
+	signerAddress := blake2b.Sum256(signer.Public().Encode())
+
+	a, err := ctypes.NewMultiAddressFromAccountID(signerAddress[:])
+	if err != nil {
+		return err
+	}
+
+	extSig := ctypes.ExtrinsicSignatureV4{
+		Signer:    a,
+		Signature: ctypes.MultiSignature{IsEcdsa: true, AsEcdsa: ctypes.NewEcdsaSignature(sig)},
+		Era:       era,
+		Nonce:     o.Nonce,
+		Tip:       o.Tip,
+	}
+
+	e.Signature = extSig
+
+	// mark the extrinsic as signed
+	e.Version |= ctypes.ExtrinsicBitSigned
+
+	return nil
 }
