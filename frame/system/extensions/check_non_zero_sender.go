@@ -15,7 +15,7 @@ type CheckNonZeroAddress struct {
 
 func NewCheckNonZeroAddress() primitives.SignedExtension {
 	return &CheckNonZeroAddress{
-		additionalSignedData: sc.VaryingData{},
+		additionalSignedData: sc.NewVaryingData(),
 	}
 }
 

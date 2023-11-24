@@ -99,21 +99,6 @@ func Test_CheckSpecVersion_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func Test_CheckSpecVersion_Metadata(t *testing.T) {
-//	expectType := primitives.NewMetadataTypeWithPath(
-//		metadata.CheckSpecVersion,
-//		"CheckSpecVersion",
-//		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"},
-//		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//	)
-//	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32)
-//
-//	resultType, resultSignedExtension := setupCheckSpecVersion().Metadata()
-//
-//	assert.Equal(t, expectType, resultType)
-//	assert.Equal(t, expectSignedExtension, resultSignedExtension)
-//}
-
 func setupCheckSpecVersion() CheckSpecVersion {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckSpecVersion(mockModule).(*CheckSpecVersion)

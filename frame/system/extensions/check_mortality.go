@@ -16,9 +16,8 @@ type CheckMortality struct {
 }
 
 func NewCheckMortality(systemModule system.Module) primitives.SignedExtension {
-	return &CheckMortality{systemModule: systemModule, additionalSignedData: sc.VaryingData{
-		primitives.H256{},
-	}}
+	return &CheckMortality{systemModule: systemModule,
+		additionalSignedData: sc.NewVaryingData(primitives.H256{})}
 }
 
 func (cm CheckMortality) Encode(buffer *bytes.Buffer) error {

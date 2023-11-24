@@ -18,7 +18,7 @@ type CheckNonce struct {
 func NewCheckNonce(systemModule system.Module) primitives.SignedExtension {
 	return &CheckNonce{
 		systemModule:         systemModule,
-		additionalSignedData: sc.VaryingData{},
+		additionalSignedData: sc.NewVaryingData(),
 	}
 }
 

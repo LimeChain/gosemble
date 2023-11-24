@@ -15,10 +15,8 @@ type CheckTxVersion struct {
 
 func NewCheckTxVersion(module system.Module) primitives.SignedExtension {
 	return &CheckTxVersion{
-		systemModule: module,
-		additionalSignedData: sc.VaryingData{
-			sc.U32(0),
-		},
+		systemModule:         module,
+		additionalSignedData: sc.NewVaryingData(sc.U32(0)),
 	}
 }
 

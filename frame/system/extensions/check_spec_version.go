@@ -15,10 +15,8 @@ type CheckSpecVersion struct {
 
 func NewCheckSpecVersion(systemModule system.Module) primitives.SignedExtension {
 	return &CheckSpecVersion{
-		systemModule: systemModule,
-		additionalSignedData: sc.VaryingData{
-			sc.U32(0),
-		},
+		systemModule:         systemModule,
+		additionalSignedData: sc.NewVaryingData(sc.U32(0)),
 	}
 }
 

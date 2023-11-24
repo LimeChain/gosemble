@@ -89,17 +89,3 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 
 	return nil
 }
-
-//func (e testExtraCheck) Metadata() (MetadataType, MetadataSignedExtension) {
-//	id := 123456
-//	typ := 789
-//	docs := "TestExtraCheck"
-//
-//	return NewMetadataTypeWithPath(
-//			id,
-//			docs,
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
-//			NewMetadataTypeDefinitionCompact(sc.ToCompact(id)),
-//		),
-//		NewMetadataSignedExtension(sc.Str(docs), id, typ)
-//}

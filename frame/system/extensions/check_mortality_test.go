@@ -218,25 +218,6 @@ func Test_CheckMortality_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func Test_CheckMortality_Metadata(t *testing.T) {
-//	expectType := primitives.NewMetadataTypeWithPath(
-//		metadata.CheckMortality,
-//		"CheckMortality",
-//		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-//		primitives.NewMetadataTypeDefinitionComposite(
-//			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-//				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
-//			},
-//		),
-//	)
-//	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
-//
-//	resultType, resultSignedExtension := setupCheckMortality().Metadata()
-//
-//	assert.Equal(t, expectType, resultType)
-//	assert.Equal(t, expectSignedExtension, resultSignedExtension)
-//}
-
 func setupCheckMortality() CheckMortality {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckMortality(mockModule).(*CheckMortality)

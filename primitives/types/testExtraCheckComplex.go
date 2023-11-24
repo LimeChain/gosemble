@@ -34,31 +34,31 @@ func (e *testExtraCheckComplex) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
-func (e testExtraCheckComplex) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
+func (e testExtraCheckComplex) AdditionalSigned() (AdditionalSigned, error) {
 	return sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}), nil
 }
 
-func (e testExtraCheckComplex) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheckComplex) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
 	return validTransaction, nil
 }
 
-func (e testExtraCheckComplex) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheckComplex) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	return e.Validate(AccountId[PublicKey]{}, call, info, length)
 }
 
-func (e testExtraCheckComplex) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
+func (e testExtraCheckComplex) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, error) {
 	_, err := e.Validate(who, call, info, length)
 	return Pre{}, err
 }
 
-func (e testExtraCheckComplex) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e testExtraCheckComplex) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
 	_, err := e.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (e testExtraCheckComplex) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+func (e testExtraCheckComplex) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
 	return nil
 }

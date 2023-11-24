@@ -12,7 +12,6 @@ import (
 const (
 	additionalSignedTypeName = "additionalSignedData"
 	moduleTypeName           = "Module"
-	varyingDataType          = "VaryingData"
 )
 
 type SignedExtra interface {
@@ -242,7 +241,11 @@ func generateNewType(id int, t reflect.Type) MetadataType {
 
 	typeName := t.Name()
 
-	typeNumFields := t.NumField()
+	typeNumFields := 0
+
+	if t.Kind() == reflect.Struct {
+		typeNumFields = t.NumField()
+	}
 
 	for i := 0; i < typeNumFields; i++ {
 		fieldName := t.Field(i).Name

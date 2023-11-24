@@ -14,10 +14,9 @@ type CheckGenesis struct {
 }
 
 func NewCheckGenesis(module system.Module) primitives.SignedExtension {
-	return &CheckGenesis{module: module,
-		additionalSignedData: sc.VaryingData{
-			primitives.H256{},
-		}}
+	return &CheckGenesis{
+		module:               module,
+		additionalSignedData: sc.NewVaryingData(primitives.H256{})}
 }
 
 func (cg CheckGenesis) Encode(*bytes.Buffer) error {

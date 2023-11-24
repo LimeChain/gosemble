@@ -275,21 +275,6 @@ func Test_CheckNonce_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func Test_CheckNonce_Metadata(t *testing.T) {
-//	expectType := primitives.NewMetadataTypeWithPath(
-//		metadata.CheckNonce,
-//		"CheckNonce",
-//		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"},
-//		primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32)),
-//	)
-//	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple)
-//
-//	resultType, resultSignedExtension := setupCheckNonce().Metadata()
-//
-//	assert.Equal(t, expectType, resultType)
-//	assert.Equal(t, expectSignedExtension, resultSignedExtension)
-//}
-
 func setupCheckNonce() CheckNonce {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckNonce(mockModule).(*CheckNonce)

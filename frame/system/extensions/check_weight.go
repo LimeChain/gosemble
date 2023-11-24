@@ -21,7 +21,7 @@ type CheckWeight struct {
 func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
 	return &CheckWeight{
 		systemModule:         systemModule,
-		additionalSignedData: sc.VaryingData{},
+		additionalSignedData: sc.NewVaryingData(),
 	}
 }
 

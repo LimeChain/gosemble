@@ -105,21 +105,6 @@ func Test_CheckNonZeroAddress_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func Test_CheckNonZeroAddress_Metadata(t *testing.T) {
-//	expectType := primitives.NewMetadataTypeWithPath(
-//		metadata.CheckNonZeroSender,
-//		"CheckNonZeroSender",
-//		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"},
-//		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//	)
-//	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple)
-//
-//	resultType, resultSignedExtension := setupCheckNonZeroSender().Metadata()
-//
-//	assert.Equal(t, expectType, resultType)
-//	assert.Equal(t, expectSignedExtension, resultSignedExtension)
-//}
-
 func setupCheckNonZeroSender() CheckNonZeroAddress {
 	extension, ok := NewCheckNonZeroAddress().(*CheckNonZeroAddress)
 	if !ok {

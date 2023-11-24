@@ -329,31 +329,6 @@ func Test_PreDispatchUnsigned(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func Test_Metadata(t *testing.T) {
-//	setup(txFee)
-//
-//	metadataType, metadataSignedExtension := targetChargeTxPayment.Metadata()
-//
-//	expectedMetadataType := types.NewMetadataTypeWithParam(
-//		metadata.ChargeTransactionPayment,
-//		"ChargeTransactionPayment",
-//		sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
-//		types.NewMetadataTypeDefinitionComposite(
-//			sc.Sequence[types.MetadataTypeDefinitionField]{
-//				types.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
-//			},
-//		),
-//		types.NewMetadataEmptyTypeParameter("T"),
-//	)
-//
-//	expectedMetadataSignedExtension := types.NewMetadataSignedExtension(
-//		"ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple,
-//	)
-//
-//	assert.Equal(t, expectedMetadataType, metadataType)
-//	assert.Equal(t, expectedMetadataSignedExtension, metadataSignedExtension)
-//}
-
 func Test_getPriority(t *testing.T) {
 	setup(txFee)
 
