@@ -199,17 +199,13 @@ var (
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
-	//weightMetadataType = NewMetadataType(metadata.TypesWeight, "Weight", NewMetadataTypeDefinitionComposite(
-	//	sc.Sequence[MetadataTypeDefinitionField]{
-	//		NewMetadataTypeDefinitionField(metadata.TypesCompactU64),
-	//		NewMetadataTypeDefinitionField(metadata.TypesCompactU64),
-	//	},
-	//))
-
 	eraMetadataType = NewMetadataType(
 		expectedEraMetadataId,
 		"Era",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "IsImmortal"),
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "EraPeriod"),
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "EraPhase")}),
 	)
 
 	testExtraCheckEmptyMetadataType = MetadataType{
@@ -312,19 +308,23 @@ var (
 	eraMetadataTypeSome = NewMetadataType(
 		expectedEraMetadataIdSome,
 		"Era",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "IsImmortal"),
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "EraPeriod"),
+			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "EraPhase"),
+		}),
 	)
 
 	h512MetadataType = NewMetadataType(
 		expectedH512Id,
 		"H512",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{NewMetadataTypeDefinitionFieldWithName(expectedH512Id, "FixedSequence")}),
 	)
 
 	ed25519PublicKeyMetadataType = NewMetadataType(
 		expectedEd25519Id,
 		"Ed25519PublicKey",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{NewMetadataTypeDefinitionFieldWithName(expectedEd25519Id, "FixedSequence")}),
 	)
 
 	tupleAdditionalSignedMetadataTypeSome = NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKey",

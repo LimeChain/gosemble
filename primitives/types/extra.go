@@ -11,7 +11,7 @@ import (
 
 const (
 	additionalSignedTypeName = "additionalSignedData"
-	moduleName               = "Module"
+	moduleTypeName           = "Module"
 	varyingDataType          = "VaryingData"
 )
 
@@ -189,36 +189,10 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 		field := extraValue.Elem().Field(j)
 		fieldTypeName := field.Type().Name()
 		fieldName := extraType.Field(j).Name
-		if fieldTypeName == moduleName {
+		if fieldTypeName == moduleTypeName {
 			continue
-		} else if fieldTypeName == varyingDataType && fieldName == additionalSignedTypeName {
-			var resultTypeId int
-			var resultTypeName string
-			var resultTupleIds sc.Sequence[sc.Compact]
-			numAdditionalSignedTypes := field.Len()
-			if numAdditionalSignedTypes == 0 {
-				extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, metadata.TypesEmptyTuple)
-				continue
-			}
-			for i := 0; i < numAdditionalSignedTypes; i++ {
-				currentType := field.Index(i).Elem().Type()
-				currentTypeName := currentType.Name() // "H256", "U32", "U64", "H512", "Ed25519PublicKey"
-				currentTypeId, exists := metadataIds[currentTypeName]
-				if !exists {
-					currentTypeId = assignNewMetadataId(metadataIds, &lastIndex, &currentTypeName)
-					newType := generateNewType(currentTypeId, currentType)
-					*metadataTypes = append(*metadataTypes, newType)
-				}
-				resultTypeName = resultTypeName + currentTypeName
-				resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
-			}
-			resultTypeId, exists = metadataIds[resultTypeName] // "H256U32U64H512Ed25519PublicKey"
-			if !exists {
-				resultTypeId = assignNewMetadataId(metadataIds, &lastIndex, &resultTypeName)
-				*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
-			}
-			extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, resultTypeId)
-		} else {
+		}
+		if fieldName != additionalSignedTypeName {
 			fieldTypeId, exists := metadataIds[fieldTypeName]
 			if !exists {
 				fieldTypeId = assignNewMetadataId(metadataIds, &lastIndex, &fieldTypeName)
@@ -226,7 +200,34 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 				*metadataTypes = append(*metadataTypes, newType)
 			}
 			metadataTypeFields = append(metadataTypeFields, NewMetadataTypeDefinitionFieldWithName(fieldTypeId, sc.Str(fieldTypeName)))
+			continue
 		}
+		var resultTypeId int
+		var resultTypeName string
+		var resultTupleIds sc.Sequence[sc.Compact]
+		numAdditionalSignedTypes := field.Len()
+		if numAdditionalSignedTypes == 0 {
+			extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, metadata.TypesEmptyTuple)
+			continue
+		}
+		for i := 0; i < numAdditionalSignedTypes; i++ {
+			currentType := field.Index(i).Elem().Type()
+			currentTypeName := currentType.Name()
+			currentTypeId, exists := metadataIds[currentTypeName]
+			if !exists {
+				currentTypeId = assignNewMetadataId(metadataIds, &lastIndex, &currentTypeName)
+				newType := generateNewType(currentTypeId, currentType)
+				*metadataTypes = append(*metadataTypes, newType)
+			}
+			resultTypeName = resultTypeName + currentTypeName
+			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
+		}
+		resultTypeId, exists = metadataIds[resultTypeName]
+		if !exists {
+			resultTypeId = assignNewMetadataId(metadataIds, &lastIndex, &resultTypeName)
+			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
+		}
+		extension = NewMetadataSignedExtension(sc.Str(extraTypeName), typeConstantId, resultTypeId)
 	}
 
 	return NewMetadataTypeWithPath(
@@ -236,22 +237,17 @@ func generateExtensionMetadata(extra SignedExtension, metadataIds map[string]int
 		NewMetadataTypeDefinitionComposite(metadataTypeFields)), extension
 }
 
-// TODO: Generate the proper type based on reflect.type
 func generateNewType(id int, t reflect.Type) MetadataType {
 	typeFields := sc.Sequence[MetadataTypeDefinitionField]{}
-	//log.Info(t.String())
-	//log.Info(strconv.Itoa(t.NumField()))
-	//
-	//log.Info(t.Field(0).Name)
 
-	//typeNumFields := t.NumField()
-	//
-	//for i := 0; i < typeNumFields; i++ {
-	//	fieldName := t.Field(i).Name // TODO: This type may not exist
-	//	typeFields = append(typeFields, NewMetadataTypeDefinitionFieldWithName(id, sc.Str(fieldName)))
-	//}
-	//
 	typeName := t.Name()
+
+	typeNumFields := t.NumField()
+
+	for i := 0; i < typeNumFields; i++ {
+		fieldName := t.Field(i).Name
+		typeFields = append(typeFields, NewMetadataTypeDefinitionFieldWithName(id, sc.Str(fieldName)))
+	}
 
 	return NewMetadataType(
 		id,
