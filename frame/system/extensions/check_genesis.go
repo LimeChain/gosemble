@@ -60,13 +60,3 @@ func (cg CheckGenesis) PreDispatchUnsigned(call primitives.Call, info *primitive
 func (cg CheckGenesis) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
-
-//func (cg CheckGenesis) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithPath(
-//			metadata.CheckGenesis,
-//			"CheckGenesis",
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"},
-//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//		),
-//		primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256)
-//}

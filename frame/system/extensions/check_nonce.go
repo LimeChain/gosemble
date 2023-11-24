@@ -109,13 +109,3 @@ func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.
 func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
-
-//func (cn CheckNonce) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithPath(
-//			metadata.CheckNonce,
-//			"CheckNonce",
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"},
-//			primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32)),
-//		),
-//		primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple)
-//}

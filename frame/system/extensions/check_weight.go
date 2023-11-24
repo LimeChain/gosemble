@@ -215,32 +215,6 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	return allConsumedWeight, nil
 }
 
-//func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	t := reflect.TypeOf(cw)
-//	typeName := t.Name()
-//
-//	_, typePath, _ := strings.Cut(t.PkgPath(), metadata.GosembleModulePath)
-//
-//	typePathSlice := strings.Split(typePath, "/")
-//
-//	root := typePathSlice[0]
-//	module := typePathSlice[1]
-//	subPackage := typePathSlice[2]
-//
-//	_, typeFileNamePath, _, _ := runtime.Caller(0)
-//
-//	typeFileNamePathSlice := strings.Split(typeFileNamePath, "/")
-//	typeFileName := typeFileNamePathSlice[len(typeFileNamePathSlice)-1]
-//	typeFileName = strings.Trim(typeFileName, metadata.TypeFileNameTrim)
-//
-//	var templateString = `return primitives.NewMetadataTypeWithPath(metadata.)` + typeName + `,` + typeName + `
-//			sc.Sequence[sc.Str]{sc.Str(root + "_" + module), sc.Str(subPackage), sc.Str(typeFileName), sc.Str(typeName)},
-//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//		),
-//		primitives.NewMetadataSignedExtension(sc.Str(typeName), metadata.CheckWeight, metadata.TypesEmptyTuple)
-//	`
-//}
-
 func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
 	isNormal, err := info.Class.Is(primitives.DispatchClassNormal)
 	if err != nil {

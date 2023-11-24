@@ -57,13 +57,3 @@ func (ctv CheckTxVersion) PreDispatchUnsigned(call primitives.Call, info *primit
 func (ctv CheckTxVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
-
-//func (ctv CheckTxVersion) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithPath(
-//			metadata.CheckTxVersion,
-//			"CheckTxVersion",
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"},
-//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//		),
-//		primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32)
-//}

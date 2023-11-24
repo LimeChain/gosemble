@@ -108,21 +108,6 @@ func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, in
 	return err
 }
 
-//func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithParam(
-//			metadata.ChargeTransactionPayment,
-//			"ChargeTransactionPayment",
-//			sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
-//			primitives.NewMetadataTypeDefinitionComposite(
-//				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-//					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
-//				},
-//			),
-//			primitives.NewMetadataEmptyTypeParameter("T"),
-//		),
-//		primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple)
-//}
-
 func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
 	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max

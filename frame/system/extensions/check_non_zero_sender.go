@@ -58,13 +58,3 @@ func (c CheckNonZeroAddress) PreDispatchUnsigned(call primitives.Call, info *pri
 func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
-
-//func (c CheckNonZeroAddress) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithPath(
-//			metadata.CheckNonZeroSender,
-//			"CheckNonZeroSender",
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"},
-//			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-//		),
-//		primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple)
-//}

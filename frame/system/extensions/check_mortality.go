@@ -91,17 +91,3 @@ func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primiti
 func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
-
-//func (cm CheckMortality) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-//	return primitives.NewMetadataTypeWithPath(
-//			metadata.CheckMortality,
-//			"CheckMortality",
-//			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-//			primitives.NewMetadataTypeDefinitionComposite(
-//				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-//					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
-//				},
-//			),
-//		),
-//		primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
-//}
