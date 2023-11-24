@@ -197,7 +197,7 @@ func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint6
 	return extEnc.Bytes()
 }
 
-func signExtrinsicSecp256k1(e *ctypes.Extrinsic, o ctypes.SignatureOptions, signer *secp256k1.Keypair) error {
+func signExtrinsicSecp256k1(e *ctypes.Extrinsic, o ctypes.SignatureOptions, keyPair *secp256k1.Keypair) error {
 	if e.Type() != ctypes.ExtrinsicVersion4 {
 		return fmt.Errorf("unsupported extrinsic version: %v (isSigned: %v, type: %v)", e.Version, e.IsSigned(), e.Type())
 	}
@@ -231,21 +231,21 @@ func signExtrinsicSecp256k1(e *ctypes.Extrinsic, o ctypes.SignatureOptions, sign
 	}
 
 	digest := blake2b.Sum256(b)
-	sig, err := signer.Private().Sign(digest[:])
+	signature, err := keyPair.Private().Sign(digest[:])
 	if err != nil {
 		return err
 	}
 
-	signerAddress := blake2b.Sum256(signer.Public().Encode())
+	signerAddress := blake2b.Sum256(keyPair.Public().Encode())
 
-	a, err := ctypes.NewMultiAddressFromAccountID(signerAddress[:])
+	signerMultiAddress, err := ctypes.NewMultiAddressFromAccountID(signerAddress[:])
 	if err != nil {
 		return err
 	}
 
 	extSig := ctypes.ExtrinsicSignatureV4{
-		Signer:    a,
-		Signature: ctypes.MultiSignature{IsEcdsa: true, AsEcdsa: ctypes.NewEcdsaSignature(sig)},
+		Signer:    signerMultiAddress,
+		Signature: ctypes.MultiSignature{IsEcdsa: true, AsEcdsa: ctypes.NewEcdsaSignature(signature)},
 		Era:       era,
 		Nonce:     o.Nonce,
 		Tip:       o.Tip,
