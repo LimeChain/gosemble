@@ -71,9 +71,7 @@ func (m Module) Metadata() int64 {
 }
 
 func (m Module) buildMetadata() primitives.Metadata {
-	constantIdsMap := make(map[string]int)
-
-	buildConstantsMap(constantIdsMap)
+	constantIdsMap := buildConstantsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -109,9 +107,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	constantIdsMap := make(map[string]int)
-
-	buildConstantsMap(constantIdsMap)
+	constantIdsMap := buildConstantsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -216,20 +212,22 @@ func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 	}
 }
 
-func buildConstantsMap(constantIdsMap map[string]int) {
-	constantIdsMap["Bool"] = metadata.PrimitiveTypesBool
-	constantIdsMap["String"] = metadata.PrimitiveTypesString
-	constantIdsMap["U8"] = metadata.PrimitiveTypesU8
-	constantIdsMap["U16"] = metadata.PrimitiveTypesU16
-	constantIdsMap["U32"] = metadata.PrimitiveTypesU32
-	constantIdsMap["U64"] = metadata.PrimitiveTypesU64
-	constantIdsMap["U128"] = metadata.PrimitiveTypesU128
-	constantIdsMap["U256"] = metadata.PrimitiveTypesU256
-	constantIdsMap["I8"] = metadata.PrimitiveTypesI8
-	constantIdsMap["I16"] = metadata.PrimitiveTypesI16
-	constantIdsMap["I32"] = metadata.PrimitiveTypesI32
-	constantIdsMap["I64"] = metadata.PrimitiveTypesI64
-	constantIdsMap["I128"] = metadata.PrimitiveTypesI128
+func buildConstantsMap() map[string]int {
+	return map[string]int{
+		"Bool":   metadata.PrimitiveTypesBool,
+		"String": metadata.PrimitiveTypesString,
+		"U8":     metadata.PrimitiveTypesU8,
+		"U16":    metadata.PrimitiveTypesU16,
+		"U32":    metadata.PrimitiveTypesU32,
+		"U64":    metadata.PrimitiveTypesU64,
+		"U128":   metadata.PrimitiveTypesU128,
+		"U256":   metadata.PrimitiveTypesU256,
+		"I8":     metadata.PrimitiveTypesI8,
+		"I16":    metadata.PrimitiveTypesI16,
+		"I32":    metadata.PrimitiveTypesI32,
+		"I64":    metadata.PrimitiveTypesI64,
+		"I128":   metadata.PrimitiveTypesI128,
+	}
 }
 
 // primitiveTypes returns all primitive types

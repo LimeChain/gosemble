@@ -140,8 +140,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	constantsMap := make(map[string]int)
-	buildConstantsMap(constantsMap)
+	constantsMap := buildConstantsMap()
 
 	mockRuntimeExtrinsic.On("Metadata", constantsMap).Return(mdTypes, mdModules14, mdExtrinsic)
 
@@ -180,8 +179,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 
 	version14 := sc.U32(primitives.MetadataVersion14)
 
-	constantsMap := make(map[string]int)
-	buildConstantsMap(constantsMap)
+	constantsMap := buildConstantsMap()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
@@ -212,8 +210,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	target := setup()
 
-	constantsMap := make(map[string]int)
-	buildConstantsMap(constantsMap)
+	constantsMap := buildConstantsMap()
 
 	metadataTypes := getAllMetadataTypes(&target)
 
