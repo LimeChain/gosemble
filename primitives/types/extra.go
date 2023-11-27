@@ -253,7 +253,7 @@ func assignNewMetadataId(metadataIds map[string]int, name string) int {
 	return newId
 }
 
-// constructExtension Iterates through the elements of the additionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it is generated.
+// constructExtension Iterates through the elements of the additionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
 func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType]) {
 	var resultTypeName string
 	var resultTupleIds sc.Sequence[sc.Compact]
