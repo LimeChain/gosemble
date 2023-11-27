@@ -117,6 +117,7 @@ var (
 var (
 	expectedH512MetadataId             = lastIndex + 1
 	expectedEd25519PublicKeyMetadataId = lastIndex + 2
+	expectedWeightId                   = lastIndex + 3
 
 	// A map that contains the ids of all additional signed complex checks
 	metadataIdsComplexAll = map[string]int{
@@ -136,6 +137,7 @@ var (
 		"H256":             metadata.TypesH256,
 		"H512":             expectedH512MetadataId,
 		"Ed25519PublicKey": expectedEd25519PublicKeyMetadataId,
+		"Weight":           expectedWeightId,
 	}
 
 	lastIndexComplexChecks = len(metadataIdsComplexAll)
@@ -183,13 +185,14 @@ var (
 		metadataSignedExtensionComplex,
 	}
 
-	tupleAdditionalSignedMetadataType = NewMetadataType(expectedTupleAdditionalSignedMetadataId, "H256U32U64H512Ed25519PublicKey",
+	tupleAdditionalSignedMetadataType = NewMetadataType(expectedTupleAdditionalSignedMetadataId, "H256U32U64H512Ed25519PublicKeyWeight",
 		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{
 			sc.ToCompact(metadata.TypesH256),
 			sc.ToCompact(metadata.PrimitiveTypesU32),
 			sc.ToCompact(metadata.PrimitiveTypesU64),
 			sc.ToCompact(expectedH512MetadataId),
-			sc.ToCompact(expectedEd25519PublicKeyMetadataId)}))
+			sc.ToCompact(expectedEd25519PublicKeyMetadataId),
+			sc.ToCompact(expectedWeightId)}))
 
 	signedExtraMdType = MetadataType{
 		Id:         sc.ToCompact(metadata.SignedExtra),
@@ -281,7 +284,8 @@ var (
 	expectedCheckEraMetadataIdSome              = lastIndexComplexChecksSome + 2
 	expectedEraMetadataIdSome                   = lastIndexComplexChecksSome + 3
 	expectedExtraCheckComplexIdSome             = lastIndexComplexChecksSome + 4
-	expectedTupleAdditionalSignedMetadataIdSome = lastIndexComplexChecksSome + 5
+	expectedWeightIdSome                        = lastIndexComplexChecksSome + 5
+	expectedTupleAdditionalSignedMetadataIdSome = lastIndexComplexChecksSome + 6
 
 	testExtraCheckEmptyMetadataTypeSome = MetadataType{
 		Id:         sc.ToCompact(expectedEmptyCheckMetadataIdSome),
@@ -313,13 +317,19 @@ var (
 		}),
 	)
 
-	tupleAdditionalSignedMetadataTypeSome = NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKey",
+	weightMetadataTypeSome = NewMetadataType(expectedWeightIdSome, "Weight", NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
+		NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "RefTime"),
+		NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "ProofSize"),
+	}))
+
+	tupleAdditionalSignedMetadataTypeSome = NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKeyWeight",
 		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{
 			sc.ToCompact(metadata.TypesH256),
 			sc.ToCompact(metadata.PrimitiveTypesU32),
 			sc.ToCompact(metadata.PrimitiveTypesU64),
 			sc.ToCompact(metadata.TypesFixedSequence64U8),
-			sc.ToCompact(metadata.TypesFixedSequence64U8)}))
+			sc.ToCompact(metadata.TypesFixedSequence64U8),
+			sc.ToCompact(expectedWeightIdSome)}))
 
 	testExtraCheckComplexMetadataTypeSome = MetadataType{
 		Id:     sc.ToCompact(expectedExtraCheckComplexIdSome),
@@ -348,6 +358,7 @@ var (
 		eraMetadataTypeSome,
 		testExtraCheckEraMetadataTypeSome,
 		testExtraCheckComplexMetadataTypeSome,
+		weightMetadataTypeSome,
 		tupleAdditionalSignedMetadataTypeSome,
 		signedExtraMdTypeSome,
 	}

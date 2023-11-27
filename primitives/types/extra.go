@@ -174,8 +174,7 @@ func generateExtraMetadata(extra SignedExtension, metadataIds map[string]int, me
 	if !ok {
 		extraMetadataId = buildMetadataTypeRecursively(extraType, metadataIds, metadataTypes, true)
 	} else {
-		extraMetadata := getExtraMetadata(extraMetadataId, metadataTypes)
-		*metadataTypes = append(*metadataTypes, extraMetadata)
+		getExtraMetadata(extraMetadataId, metadataTypes)
 	}
 
 	constructExtension(extraValue, extraMetadataId, extensions, metadataIds, metadataTypes)
@@ -183,13 +182,13 @@ func generateExtraMetadata(extra SignedExtension, metadataIds map[string]int, me
 	return extraMetadataId
 }
 
-func getExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) MetadataType {
+func getExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) {
 	for _, t := range *metadataTypes {
 		if t.Id.ToBigInt().Int64() == int64(id) {
-			return t
+			*metadataTypes = append(*metadataTypes, t)
+			break
 		}
 	}
-	return MetadataType{}
 }
 
 // buildMetadataTypeRecursively build the metadata of the type recursively.

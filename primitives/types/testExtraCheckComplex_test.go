@@ -18,7 +18,7 @@ type testExtraCheckComplex struct {
 func newtTestExtraCheckComplex() SignedExtension {
 	return &testExtraCheckComplex{
 		era:                  Era{},
-		additionalSignedData: sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}),
+		additionalSignedData: sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}, Weight{}),
 	}
 }
 
