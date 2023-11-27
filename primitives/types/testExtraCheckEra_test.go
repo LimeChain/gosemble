@@ -15,7 +15,7 @@ type testExtraCheckEra struct {
 func newtTestExtraCheckEra() SignedExtension {
 	return &testExtraCheckEra{
 		era:                  Era{},
-		additionalSignedData: sc.VaryingData{H256{}},
+		additionalSignedData: sc.NewVaryingData(H256{}),
 	}
 }
 

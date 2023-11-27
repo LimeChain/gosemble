@@ -12,7 +12,7 @@ type testExtraCheckEmpty struct {
 
 func newTestExtraCheckEmpty() SignedExtension {
 	return &testExtraCheckEmpty{
-		additionalSignedData: sc.VaryingData{},
+		additionalSignedData: sc.NewVaryingData(),
 	}
 }
 

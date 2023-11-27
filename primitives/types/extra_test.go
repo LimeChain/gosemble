@@ -51,8 +51,8 @@ var (
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "Bool"),
-				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "U32"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "hasError"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "value"),
 			},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheck"},
@@ -203,9 +203,9 @@ var (
 		expectedEraMetadataId,
 		"Era",
 		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "IsImmortal"),
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "EraPeriod"),
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "EraPhase")}),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "IsImmortal"),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "EraPeriod"),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "EraPhase")}),
 	)
 
 	testExtraCheckEmptyMetadataType = MetadataType{
@@ -213,7 +213,7 @@ var (
 		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
-			nil,
+			sc.Sequence[MetadataTypeDefinitionField]{},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheckEmpty"},
 	}
@@ -224,7 +224,7 @@ var (
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "Era"),
+				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "era"),
 			},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheckEra"},
@@ -236,9 +236,9 @@ var (
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "Era"),
-				NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "H256"),
-				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
+				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataId, "era"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "hash"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "value"),
 			},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheckComplex"},
@@ -248,8 +248,8 @@ var (
 		testExtraCheckEmptyMetadataType,
 		eraMetadataType, // during the process of generating the metadata of testExtraCheckEra that has a field "Era", this metadata type was generated so we expect it included in the sequence of metadata types
 		testExtraCheckEraMetadataType,
-		tupleAdditionalSignedMetadataType, // same here
 		testExtraCheckComplexMetadataType,
+		tupleAdditionalSignedMetadataType, // same here
 		signedExtraMdType,
 	}
 )
@@ -257,20 +257,22 @@ var (
 var (
 	// A map that does not contain the ids of types H512 and Ed25519PublicKey hence they need to be generated
 	metadataIdsComplexSome = map[string]int{
-		"Bool":   metadata.PrimitiveTypesBool,
-		"String": metadata.PrimitiveTypesString,
-		"U8":     metadata.PrimitiveTypesU8,
-		"U16":    metadata.PrimitiveTypesU16,
-		"U32":    metadata.PrimitiveTypesU32,
-		"U64":    metadata.PrimitiveTypesU64,
-		"U128":   metadata.PrimitiveTypesU128,
-		"U256":   metadata.PrimitiveTypesU256,
-		"I8":     metadata.PrimitiveTypesI8,
-		"I16":    metadata.PrimitiveTypesI16,
-		"I32":    metadata.PrimitiveTypesI32,
-		"I64":    metadata.PrimitiveTypesI64,
-		"I128":   metadata.PrimitiveTypesI128,
-		"H256":   metadata.TypesH256,
+		"Bool":             metadata.PrimitiveTypesBool,
+		"String":           metadata.PrimitiveTypesString,
+		"U8":               metadata.PrimitiveTypesU8,
+		"U16":              metadata.PrimitiveTypesU16,
+		"U32":              metadata.PrimitiveTypesU32,
+		"U64":              metadata.PrimitiveTypesU64,
+		"U128":             metadata.PrimitiveTypesU128,
+		"U256":             metadata.PrimitiveTypesU256,
+		"I8":               metadata.PrimitiveTypesI8,
+		"I16":              metadata.PrimitiveTypesI16,
+		"I32":              metadata.PrimitiveTypesI32,
+		"I64":              metadata.PrimitiveTypesI64,
+		"I128":             metadata.PrimitiveTypesI128,
+		"H256":             metadata.TypesH256,
+		"H512":             metadata.TypesFixedSequence64U8,
+		"Ed25519PublicKey": metadata.TypesFixedSequence64U8,
 	}
 
 	lastIndexComplexChecksSome = len(metadataIdsComplexSome)
@@ -279,18 +281,14 @@ var (
 	expectedCheckEraMetadataIdSome              = lastIndexComplexChecksSome + 2
 	expectedEraMetadataIdSome                   = lastIndexComplexChecksSome + 3
 	expectedExtraCheckComplexIdSome             = lastIndexComplexChecksSome + 4
-	expectedH512Id                              = lastIndexComplexChecksSome + 5
-	expectedEd25519Id                           = lastIndexComplexChecksSome + 6
-	expectedTupleAdditionalSignedMetadataIdSome = lastIndexComplexChecksSome + 7
+	expectedTupleAdditionalSignedMetadataIdSome = lastIndexComplexChecksSome + 5
 
 	testExtraCheckEmptyMetadataTypeSome = MetadataType{
-		Id:     sc.ToCompact(expectedEmptyCheckMetadataIdSome),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
-		Params: sc.Sequence[MetadataTypeParameter]{},
-		Definition: NewMetadataTypeDefinitionComposite(
-			nil,
-		),
-		Docs: sc.Sequence[sc.Str]{"testExtraCheckEmpty"},
+		Id:         sc.ToCompact(expectedEmptyCheckMetadataIdSome),
+		Path:       sc.Sequence[sc.Str]{"extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
+		Params:     sc.Sequence[MetadataTypeParameter]{},
+		Definition: NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
+		Docs:       sc.Sequence[sc.Str]{"testExtraCheckEmpty"},
 	}
 
 	testExtraCheckEraMetadataTypeSome = MetadataType{
@@ -299,7 +297,7 @@ var (
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "Era"),
+				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "era"),
 			},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheckEra"},
@@ -309,22 +307,10 @@ var (
 		expectedEraMetadataIdSome,
 		"Era",
 		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "IsImmortal"),
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "EraPeriod"),
-			NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "EraPhase"),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "IsImmortal"),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "EraPeriod"),
+			NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "EraPhase"),
 		}),
-	)
-
-	h512MetadataType = NewMetadataType(
-		expectedH512Id,
-		"H512",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{NewMetadataTypeDefinitionFieldWithName(expectedH512Id, "FixedSequence")}),
-	)
-
-	ed25519PublicKeyMetadataType = NewMetadataType(
-		expectedEd25519Id,
-		"Ed25519PublicKey",
-		NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{NewMetadataTypeDefinitionFieldWithName(expectedEd25519Id, "FixedSequence")}),
 	)
 
 	tupleAdditionalSignedMetadataTypeSome = NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKey",
@@ -332,8 +318,8 @@ var (
 			sc.ToCompact(metadata.TypesH256),
 			sc.ToCompact(metadata.PrimitiveTypesU32),
 			sc.ToCompact(metadata.PrimitiveTypesU64),
-			sc.ToCompact(expectedH512Id),
-			sc.ToCompact(expectedEd25519Id)}))
+			sc.ToCompact(metadata.TypesFixedSequence64U8),
+			sc.ToCompact(metadata.TypesFixedSequence64U8)}))
 
 	testExtraCheckComplexMetadataTypeSome = MetadataType{
 		Id:     sc.ToCompact(expectedExtraCheckComplexIdSome),
@@ -341,9 +327,9 @@ var (
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "Era"),
-				NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "H256"),
-				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
+				NewMetadataTypeDefinitionFieldWithName(expectedEraMetadataIdSome, "era"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "hash"),
+				NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "value"),
 			},
 		),
 		Docs: sc.Sequence[sc.Str]{"testExtraCheckComplex"},
@@ -361,10 +347,8 @@ var (
 		testExtraCheckEmptyMetadataTypeSome,
 		eraMetadataTypeSome,
 		testExtraCheckEraMetadataTypeSome,
-		h512MetadataType,
-		ed25519PublicKeyMetadataType,
-		tupleAdditionalSignedMetadataTypeSome,
 		testExtraCheckComplexMetadataTypeSome,
+		tupleAdditionalSignedMetadataTypeSome,
 		signedExtraMdTypeSome,
 	}
 
