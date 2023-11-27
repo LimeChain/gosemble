@@ -21,7 +21,7 @@ var (
 )
 
 var (
-	oneAddress = constants.OneAddressAccountId
+	oneAccountId = constants.OneAccountId
 )
 
 func Test_CheckNonce_Encode(t *testing.T) {
@@ -84,10 +84,10 @@ func Test_CheckNonce_Validate_WithRequires_Success(t *testing.T) {
 	expect := primitives.ValidTransaction{
 		Priority: 0,
 		Provides: sc.Sequence[sc.Sequence[sc.U8]]{
-			sc.BytesToSequenceU8(append(oneAddress.Bytes(), sc.ToCompact(nonce).Bytes()...)),
+			sc.BytesToSequenceU8(append(oneAccountId.Bytes(), sc.ToCompact(nonce).Bytes()...)),
 		},
 		Requires: sc.Sequence[sc.Sequence[sc.U8]]{
-			sc.BytesToSequenceU8(append(oneAddress.Bytes(), sc.ToCompact(nonce-1).Bytes()...)),
+			sc.BytesToSequenceU8(append(oneAccountId.Bytes(), sc.ToCompact(nonce-1).Bytes()...)),
 		},
 		Longevity: math.MaxUint64,
 		Propagate: true,
@@ -96,13 +96,13 @@ func Test_CheckNonce_Validate_WithRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
 
-	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
 }
 
 func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
@@ -113,7 +113,7 @@ func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
 	expect := primitives.ValidTransaction{
 		Priority: 0,
 		Provides: sc.Sequence[sc.Sequence[sc.U8]]{
-			sc.BytesToSequenceU8(append(oneAddress.Bytes(), sc.ToCompact(nonce).Bytes()...)),
+			sc.BytesToSequenceU8(append(oneAccountId.Bytes(), sc.ToCompact(nonce).Bytes()...)),
 		},
 		Requires:  sc.Sequence[sc.Sequence[sc.U8]]{},
 		Longevity: math.MaxUint64,
@@ -123,13 +123,13 @@ func Test_CheckNonce_Validate_NoRequires_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
 
-	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
 }
 
 func Test_CheckNonce_Validate_Fails(t *testing.T) {
@@ -141,13 +141,13 @@ func Test_CheckNonce_Validate_Fails(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
 
-	result, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.Validate(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionStale, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
 }
 
 func Test_CheckNonce_Validate_Fails_StorageAccountError(t *testing.T) {
@@ -160,12 +160,12 @@ func Test_CheckNonce_Validate_Fails_StorageAccountError(t *testing.T) {
 	target.nonce = nonce
 
 	expectedErr := errors.New("error")
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, expectedErr)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, expectedErr)
 
-	_, err := target.Validate(oneAddress, nil, nil, sc.Compact{})
+	_, err := target.Validate(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expectedErr, err)
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
 }
 
 func Test_CheckNonce_ValidateUnsigned(t *testing.T) {
@@ -189,16 +189,16 @@ func Test_CheckNonce_PreDispatch_Success(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
-	mockModule.On("StorageAccountSet", oneAddress, expectAccountInfo).Return()
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
+	mockModule.On("StorageAccountSet", oneAccountId, expectAccountInfo).Return()
 
-	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
-	mockModule.AssertCalled(t, "StorageAccountSet", oneAddress, expectAccountInfo)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
+	mockModule.AssertCalled(t, "StorageAccountSet", oneAccountId, expectAccountInfo)
 }
 
 func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
@@ -210,15 +210,15 @@ func Test_CheckNonce_PreDispatch_Fails_Stale(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
 
-	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionStale, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
-	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAddress, mock.Anything)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
+	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAccountId, mock.Anything)
 }
 
 func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
@@ -230,15 +230,15 @@ func Test_CheckNonce_PreDispatch_Fails_Future(t *testing.T) {
 	target := setupCheckNonce()
 	target.nonce = nonce
 
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, nil)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, nil)
 
-	result, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionFuture, err)
 	assert.Equal(t, primitives.Pre{}, result)
 
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
-	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAddress, mock.Anything)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
+	mockModule.AssertNotCalled(t, "StorageAccountSet", oneAccountId, mock.Anything)
 }
 
 func Test_CheckNonce_PreDispatch_Fails_StorageAccountError(t *testing.T) {
@@ -251,13 +251,13 @@ func Test_CheckNonce_PreDispatch_Fails_StorageAccountError(t *testing.T) {
 	target.nonce = nonce
 
 	expectedErr := errors.New("error")
-	mockModule.On("StorageAccount", oneAddress).Return(accountInfo, expectedErr)
+	mockModule.On("StorageAccount", oneAccountId).Return(accountInfo, expectedErr)
 
-	_, err := target.PreDispatch(oneAddress, nil, nil, sc.Compact{})
+	_, err := target.PreDispatch(oneAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, expectedErr, err)
 
-	mockModule.AssertCalled(t, "StorageAccount", oneAddress)
+	mockModule.AssertCalled(t, "StorageAccount", oneAccountId)
 }
 
 func Test_CheckNonce_PreDispatchUnsigned(t *testing.T) {

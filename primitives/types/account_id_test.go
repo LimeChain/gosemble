@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -9,72 +11,64 @@ import (
 )
 
 var (
-	pubKeyEd25519 = []byte{1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
-	pubKeySr25519 = []byte{1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
-	pubKeyEcdsa   = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
-
-	ed25519Signer, _ = NewEd25519PublicKey(sc.BytesToSequenceU8(pubKeyEd25519)...)
-	sr25519Signer, _ = NewSr25519PublicKey(sc.BytesToSequenceU8(pubKeySr25519)...)
-	ecdsaSigner, _   = NewEcdsaPublicKey(sc.BytesToFixedSequenceU8(addr33Bytes)...)
-
-	targetAccountIdEd25519 = NewAccountId[PublicKey](ed25519Signer)
-	targetAccountIdSr25519 = NewAccountId[PublicKey](sr25519Signer)
-	targetAccountIdEcdsa   = NewAccountId[PublicKey](ecdsaSigner)
+	bytesAddress32 = []byte{1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0}
 )
 
-func Test_AccountId_Encode_Ed25519_PublicKey(t *testing.T) {
-	buffer := &bytes.Buffer{}
+func Test_NewAccountId(t *testing.T) {
+	target := sc.BytesToFixedSequenceU8(bytesAddress32)
+	expect := AccountId{
+		FixedSequence: target,
+	}
 
-	targetAccountIdEd25519.Encode(buffer)
+	result, err := NewAccountId(target...)
 
-	assert.Equal(t, pubKeyEd25519, buffer.Bytes())
+	assert.Nil(t, err)
+	assert.Equal(t, expect, result)
 }
 
-func Test_AccountId_Encode_Sr25519_PublicKey(t *testing.T) {
-	buffer := &bytes.Buffer{}
+func Test_NewAccountId_Fails(t *testing.T) {
+	result, err := NewAccountId(5, 6)
 
-	targetAccountIdSr25519.Encode(buffer)
-
-	assert.Equal(t, pubKeySr25519, buffer.Bytes())
+	assert.Equal(t, errors.New("Address32 should be of size 32"), err)
+	assert.Equal(t, AccountId{}, result)
 }
 
-func Test_AccountId_Encode_Ecdsa_PublicKey(t *testing.T) {
+func Test_AccountId_Encode(t *testing.T) {
+	target, err := NewAccountId(sc.BytesToSequenceU8(bytesAddress32)...)
+	assert.Nil(t, err)
 	buffer := &bytes.Buffer{}
 
-	targetAccountIdEcdsa.Encode(buffer)
+	err = target.Encode(buffer)
+	assert.Nil(t, err)
 
-	assert.Equal(t, pubKeyEcdsa, buffer.Bytes())
+	assert.Equal(t, bytesAddress32, buffer.Bytes())
 }
 
 func Test_AccountId_Bytes(t *testing.T) {
-	assert.Equal(t, pubKeyEd25519, targetAccountIdEd25519.Bytes())
-	assert.Equal(t, pubKeySr25519, targetAccountIdSr25519.Bytes())
-	assert.Equal(t, pubKeyEcdsa, targetAccountIdEcdsa.Bytes())
+	target, err := NewAccountId(sc.BytesToSequenceU8(bytesAddress32)...)
+	assert.Nil(t, err)
+
+	result := target.Bytes()
+
+	assert.Equal(t, bytesAddress32, result)
 }
 
-func Test_DecodeAccountId_Ed25519_PublicKey(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeyEd25519)
+func Test_DecodeAccountId(t *testing.T) {
+	expect, err := NewAccountId(sc.BytesToSequenceU8(bytesAddress32)...)
+	assert.Nil(t, err)
+	buffer := bytes.NewBuffer(bytesAddress32)
 
-	result, err := DecodeAccountId[testPublicKeyType](buffer)
-	assert.NoError(t, err)
+	result, err := DecodeAccountId(buffer)
 
-	assert.Equal(t, targetAccountIdEd25519, result)
+	assert.Nil(t, err)
+	assert.Equal(t, expect, result)
 }
 
-func Test_DecodeAccountId_Sr25519_PublicKey(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeySr25519)
+func Test_DecodeAccountId_Fails(t *testing.T) {
+	buffer := bytes.NewBuffer([]byte{5, 6})
 
-	result, err := DecodeAccountId[Sr25519PublicKey](buffer)
-	assert.NoError(t, err)
+	result, err := DecodeAccountId(buffer)
 
-	assert.Equal(t, targetAccountIdSr25519, result)
-}
-
-func Test_DecodeAccountId_Ecdsa_PublicKey(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeyEcdsa)
-
-	result, err := DecodeAccountId[EcdsaPublicKey](buffer)
-	assert.NoError(t, err)
-
-	assert.Equal(t, targetAccountIdEcdsa, result)
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, AccountId{}, result)
 }

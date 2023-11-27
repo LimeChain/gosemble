@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	dustCleanerAccount  = constants.ZeroAddressAccountId
+	dustCleanerAccount  = constants.ZeroAccountId
 	expectedDustCleaner = dustCleaner{
 		accountId: dustCleanerAccount,
 		negativeImbalance: sc.NewOption[negativeImbalance](negativeImbalance{
@@ -63,7 +63,7 @@ func Test_DustCleanerValue_New(t *testing.T) {
 	target := setupDustCleanerValue()
 	expected := dustCleaner{
 		moduleIndex: moduleId,
-		accountId:   constants.ZeroAddressAccountId,
+		accountId:   constants.ZeroAccountId,
 		negativeImbalance: sc.NewOption[negativeImbalance](negativeImbalance{
 			Balance:       issuanceBalance,
 			totalIssuance: mockStorageTotalIssuance,

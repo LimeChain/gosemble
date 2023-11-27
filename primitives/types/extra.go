@@ -13,9 +13,9 @@ type SignedExtra interface {
 	Decode(buffer *bytes.Buffer)
 
 	AdditionalSigned() (AdditionalSigned, error)
-	Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
+	Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
 	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
-	PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error)
+	PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error)
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
@@ -67,7 +67,7 @@ func (e signedExtra) AdditionalSigned() (AdditionalSigned, error) {
 	return result, nil
 }
 
-func (e signedExtra) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
+func (e signedExtra) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -95,7 +95,7 @@ func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.C
 	return valid, nil
 }
 
-func (e signedExtra) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error) {
+func (e signedExtra) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error) {
 	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {

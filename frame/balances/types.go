@@ -9,9 +9,9 @@ import (
 )
 
 type accountMutator interface {
-	ensureCanWithdraw(who types.AccountId[types.PublicKey], amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
-	tryMutateAccountWithDust(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	tryMutateAccount(who types.AccountId[types.PublicKey], f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	ensureCanWithdraw(who types.AccountId, amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
+	tryMutateAccountWithDust(who types.AccountId, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	tryMutateAccount(who types.AccountId, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
 }
 
 type negativeImbalance struct {
@@ -56,12 +56,12 @@ func (pi positiveImbalance) Drop() error {
 
 type dustCleaner struct {
 	moduleIndex       sc.U8
-	accountId         types.AccountId[types.PublicKey]
+	accountId         types.AccountId
 	negativeImbalance sc.Option[negativeImbalance]
 	eventDepositor    types.EventDepositor
 }
 
-func newDustCleaner(moduleId sc.U8, accountId types.AccountId[types.PublicKey], negativeImbalance sc.Option[negativeImbalance], eventDepositor types.EventDepositor) dustCleaner {
+func newDustCleaner(moduleId sc.U8, accountId types.AccountId, negativeImbalance sc.Option[negativeImbalance], eventDepositor types.EventDepositor) dustCleaner {
 	return dustCleaner{
 		moduleIndex:       moduleId,
 		accountId:         accountId,

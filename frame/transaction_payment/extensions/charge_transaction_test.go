@@ -14,7 +14,7 @@ var (
 	mockCurrencyAdapter *mocks.CurrencyAdapter
 	target              chargeTransaction
 
-	who               = constants.ZeroAddressAccountId
+	who               = constants.ZeroAccountId
 	fee               = sc.NewU128(5)
 	imbalance         = sc.NewU128(1)
 	expectedImbalance = sc.NewOption[sc.U128](imbalance)

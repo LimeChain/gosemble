@@ -13,7 +13,7 @@ import (
 
 func Test_Call_ForceTransfer_new(t *testing.T) {
 	target := setupCallForceTransfer()
-	expected := callForceTransfer[testPublicKeyType]{
+	expected := callForceTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceTransferIndex,
@@ -196,5 +196,5 @@ func setupCallForceTransfer() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceTransfer[testPublicKeyType](moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallForceTransfer(moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator)
 }

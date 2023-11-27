@@ -33,8 +33,6 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type PublicKeyType = primitives.Ed25519PublicKey
-
 const (
 	AuraMaxAuthorites = 100
 )
@@ -112,9 +110,9 @@ func initializeModules() []primitives.Module {
 		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
 	)
 
-	grandpaModule := grandpa.New[PublicKeyType](GrandpaIndex)
+	grandpaModule := grandpa.New(GrandpaIndex)
 
-	balancesModule := balances.New[PublicKeyType](
+	balancesModule := balances.New(
 		BalancesIndex,
 		balances.NewConfig(DbWeight, BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
 	)
@@ -158,11 +156,11 @@ func newSignedExtra() primitives.SignedExtra {
 
 func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
-	decoder := types.NewRuntimeDecoder[PublicKeyType](modules, extra)
+	decoder := types.NewRuntimeDecoder(modules, extra)
 	runtimeExtrinsic := extrinsic.New(modules, extra)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
-	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[PublicKeyType])
+	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
 	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
 
 	executiveModule := executive.New(
@@ -181,10 +179,10 @@ func runtimeApi() types.RuntimeApi {
 	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder)
 	auraApi := apiAura.New(auraModule)
 	grandpaApi := apiGrandpa.New(grandpaModule)
-	accountNonceApi := account_nonce.New[PublicKeyType](systemModule)
+	accountNonceApi := account_nonce.New(systemModule)
 	txPaymentsApi := apiTxPayments.New(decoder, txPaymentsModule)
 	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
-	sessionKeysApi := session_keys.New[PublicKeyType](sessions)
+	sessionKeysApi := session_keys.New(sessions)
 	offchainWorkerApi := offchain_worker.New(executiveModule)
 
 	metadataApi := metadata.New(
@@ -299,7 +297,7 @@ func AuraApiAuthorities(_, _ int32) int64 {
 //go:export AccountNonceApi_account_nonce
 func AccountNonceApiAccountNonce(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(account_nonce.ApiModuleName).(account_nonce.Module[PublicKeyType]).
+		Module(account_nonce.ApiModuleName).(account_nonce.Module).
 		AccountNonce(dataPtr, dataLen)
 }
 
@@ -355,14 +353,14 @@ func MetadataVersions(_, _ int32) int64 {
 //go:export SessionKeys_generate_session_keys
 func SessionKeysGenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module[PublicKeyType]).
+		Module(session_keys.ApiModuleName).(session_keys.Module).
 		GenerateSessionKeys(dataPtr, dataLen)
 }
 
 //go:export SessionKeys_decode_session_keys
 func SessionKeysDecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
-		Module(session_keys.ApiModuleName).(session_keys.Module[PublicKeyType]).
+		Module(session_keys.ApiModuleName).(session_keys.Module).
 		DecodeSessionKeys(dataPtr, dataLen)
 }
 

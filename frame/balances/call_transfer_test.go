@@ -23,14 +23,14 @@ var (
 	toAccountData   *primitives.AccountData
 
 	fromAddress = primitives.
-			NewMultiAddressId(constants.OneAddressAccountId)
+			NewMultiAddressId(constants.OneAccountId)
 	toAddress = primitives.
-			NewMultiAddressId(constants.TwoAddressAccountId)
+			NewMultiAddressId(constants.TwoAccountId)
 )
 
 func Test_Call_Transfer_New(t *testing.T) {
 	target := setupCallTransfer()
-	expected := callTransfer[testPublicKeyType]{
+	expected := callTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferIndex,
@@ -476,7 +476,7 @@ func setupCallTransfer() primitives.Call {
 		Free: sc.NewU128(1),
 	}
 
-	return newCallTransfer[testPublicKeyType](moduleId, functionTransferIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallTransfer(moduleId, functionTransferIndex, mockStoredMap, testConstants, mockMutator)
 }
 
 func setupTransfer() transfer {

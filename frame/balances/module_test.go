@@ -885,5 +885,5 @@ func setupModule() Module {
 		Free: sc.NewU128(1),
 	}
 
-	return New[testPublicKeyType](moduleId, config)
+	return New(moduleId, config)
 }

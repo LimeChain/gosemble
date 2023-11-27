@@ -13,11 +13,11 @@ const (
 	EventTransactionFeePaid sc.U8 = iota
 )
 
-func NewEventTransactionFeePaid(moduleIndex sc.U8, account types.AccountId[types.PublicKey], actualFee types.Balance, tip types.Balance) types.Event {
+func NewEventTransactionFeePaid(moduleIndex sc.U8, account types.AccountId, actualFee types.Balance, tip types.Balance) types.Event {
 	return types.NewEvent(moduleIndex, EventTransactionFeePaid, account, actualFee, tip)
 }
 
-func DecodeEvent[T types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
+func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 	decodedModuleIndex, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return types.Event{}, err
@@ -33,7 +33,7 @@ func DecodeEvent[T types.PublicKey](moduleIndex sc.U8, buffer *bytes.Buffer) (ty
 
 	switch b {
 	case EventTransactionFeePaid:
-		account, err := types.DecodeAccountId[T](buffer)
+		account, err := types.DecodeAccountId(buffer)
 		if err != nil {
 			return types.Event{}, err
 		}

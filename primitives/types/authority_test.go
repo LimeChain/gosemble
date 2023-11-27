@@ -13,17 +13,19 @@ var (
 	expectedAuthorityBytes, _ = hex.DecodeString(
 		"01010101010101010101010101010101010101010101010101010101010101010300000000000000",
 	)
-
-	publicKey, _ = NewEd25519PublicKey(sc.NewFixedSequence[sc.U8](32,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1,
-	)...)
 )
 var (
 	targetAuthority = Authority{
-		Id:     NewAccountId[PublicKey](publicKey),
+		Id: NewAccountIdFromAddress32(
+			Address32{
+				FixedSequence: sc.
+					NewFixedSequence[sc.U8](32,
+					1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+					1, 1),
+			},
+		),
 		Weight: 3,
 	}
 )
@@ -44,7 +46,7 @@ func Test_Authority_Bytes(t *testing.T) {
 func Test_DecodeAuthority(t *testing.T) {
 	buffer := bytes.NewBuffer(expectedAuthorityBytes)
 
-	result, err := DecodeAuthority[testPublicKeyType](buffer)
+	result, err := DecodeAuthority(buffer)
 	assert.NoError(t, err)
 	assert.Equal(t, targetAuthority, result)
 }

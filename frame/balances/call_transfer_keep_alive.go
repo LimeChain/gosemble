@@ -9,13 +9,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type callTransferKeepAlive[T primitives.PublicKey] struct {
+type callTransferKeepAlive struct {
 	primitives.Callable
 	transfer
 }
 
-func newCallTransferKeepAlive[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := callTransferKeepAlive[T]{
+func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -26,8 +26,8 @@ func newCallTransferKeepAlive[T primitives.PublicKey](moduleId sc.U8, functionId
 	return call
 }
 
-func (c callTransferKeepAlive[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[T](buffer)
+func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	dest, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -42,27 +42,27 @@ func (c callTransferKeepAlive[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.C
 	return c, nil
 }
 
-func (c callTransferKeepAlive[T]) Encode(buffer *bytes.Buffer) error {
+func (c callTransferKeepAlive) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callTransferKeepAlive[T]) Bytes() []byte {
+func (c callTransferKeepAlive) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callTransferKeepAlive[T]) ModuleIndex() sc.U8 {
+func (c callTransferKeepAlive) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callTransferKeepAlive[T]) FunctionIndex() sc.U8 {
+func (c callTransferKeepAlive) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callTransferKeepAlive[T]) Args() sc.VaryingData {
+func (c callTransferKeepAlive) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransferKeepAlive[T]) BaseWeight() types.Weight {
+func (c callTransferKeepAlive) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -76,19 +76,19 @@ func (c callTransferKeepAlive[T]) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callTransferKeepAlive[T]) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callTransferKeepAlive) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransferKeepAlive[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callTransferKeepAlive) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callTransferKeepAlive[T]) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
@@ -108,7 +108,7 @@ func (c callTransferKeepAlive[T]) Dispatch(origin types.RuntimeOrigin, args sc.V
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func (c callTransferKeepAlive[T]) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

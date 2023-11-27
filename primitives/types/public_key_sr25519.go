@@ -6,8 +6,19 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+const (
+	publicKeySr25519Length = 32
+)
+
 type Sr25519PublicKey struct {
 	sc.FixedSequence[sc.U8] // size 32
+}
+
+func NewSr25519PublicKey(values ...sc.U8) (Sr25519PublicKey, error) {
+	if len(values) != publicKeySr25519Length {
+		return Sr25519PublicKey{}, newTypeError("Sr25519PublicKey")
+	}
+	return Sr25519PublicKey{sc.NewFixedSequence(publicKeySr25519Length, values...)}, nil
 }
 
 func (s Sr25519PublicKey) SignatureType() sc.U8 {
@@ -23,16 +34,9 @@ func (s Sr25519PublicKey) Bytes() []byte {
 }
 
 func DecodeSr25519PublicKey(buffer *bytes.Buffer) (Sr25519PublicKey, error) {
-	seq, err := sc.DecodeFixedSequence[sc.U8](32, buffer)
+	seq, err := sc.DecodeFixedSequence[sc.U8](publicKeySr25519Length, buffer)
 	if err != nil {
 		return Sr25519PublicKey{}, err
 	}
 	return Sr25519PublicKey{seq}, nil
-}
-
-func NewSr25519PublicKey(values ...sc.U8) (Sr25519PublicKey, error) {
-	if len(values) != 32 {
-		return Sr25519PublicKey{}, newTypeError("Sr25519PublicKey")
-	}
-	return Sr25519PublicKey{sc.NewFixedSequence(32, values...)}, nil
 }

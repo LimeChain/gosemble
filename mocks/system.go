@@ -121,7 +121,7 @@ func (m *SystemModule) ResetEvents() {
 	m.Called()
 }
 
-func (m *SystemModule) Get(key primitives.AccountId[types.PublicKey]) (primitives.AccountInfo, error) {
+func (m *SystemModule) Get(key primitives.AccountId) (primitives.AccountInfo, error) {
 	args := m.Called(key)
 	if args.Get(1) == nil {
 		return args.Get(0).(primitives.AccountInfo), nil
@@ -129,7 +129,7 @@ func (m *SystemModule) Get(key primitives.AccountId[types.PublicKey]) (primitive
 	return args.Get(0).(primitives.AccountInfo), args.Get(1).(error)
 }
 
-func (m *SystemModule) CanDecProviders(who primitives.AccountId[types.PublicKey]) (bool, error) {
+func (m *SystemModule) CanDecProviders(who primitives.AccountId) (bool, error) {
 	args := m.Called(who)
 	if args.Get(1) == nil {
 		return args.Get(0).(bool), nil
@@ -141,12 +141,12 @@ func (m *SystemModule) DepositEvent(event primitives.Event) {
 	m.Called(event)
 }
 
-func (m *SystemModule) Mutate(who primitives.AccountId[types.PublicKey], f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m *SystemModule) Mutate(who primitives.AccountId, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	args := m.Called(who, f)
 	return args.Get(0).(sc.Result[sc.Encodable])
 }
 
-func (m *SystemModule) TryMutateExists(who primitives.AccountId[types.PublicKey], f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *SystemModule) TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	args := m.Called(who, f)
 	if args.Get(1) == nil {
 		return args.Get(0).(sc.Result[sc.Encodable]), nil
@@ -154,7 +154,7 @@ func (m *SystemModule) TryMutateExists(who primitives.AccountId[types.PublicKey]
 	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
 }
 
-func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId[types.PublicKey], f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	args := m.Called(who, f)
 	return args.Get(0).(sc.Result[sc.Encodable])
 }
@@ -253,7 +253,7 @@ func (m *SystemModule) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgrad
 	m.Called(lrui)
 }
 
-func (m *SystemModule) StorageAccount(key types.AccountId[types.PublicKey]) (types.AccountInfo, error) {
+func (m *SystemModule) StorageAccount(key types.AccountId) (types.AccountInfo, error) {
 	args := m.Called(key)
 	if args.Get(1) == nil {
 		return args.Get(0).(types.AccountInfo), nil
@@ -261,7 +261,7 @@ func (m *SystemModule) StorageAccount(key types.AccountId[types.PublicKey]) (typ
 	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
-func (m *SystemModule) StorageAccountSet(key types.AccountId[types.PublicKey], value types.AccountInfo) {
+func (m *SystemModule) StorageAccountSet(key types.AccountId, value types.AccountInfo) {
 	m.Called(key, value)
 }
 
