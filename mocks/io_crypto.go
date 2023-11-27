@@ -11,6 +11,11 @@ func (m *IoCrypto) EcdsaGenerate(keyTypeId []byte, seed []byte) []byte {
 	return args.Get(0).([]byte)
 }
 
+func (m *IoCrypto) EcdsaRecoverCompressed(signature []byte, msg []byte) []byte {
+	args := m.Called(signature, msg)
+	return args.Get(0).([]byte)
+}
+
 func (m *IoCrypto) Ed25519Generate(keyTypeId []byte, seed []byte) []byte {
 	args := m.Called(keyTypeId, seed)
 
