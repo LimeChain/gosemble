@@ -10,14 +10,14 @@ import (
 )
 
 var (
-	pubKeySr25519          = []byte{1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
+	bytesPublicKeySr25519  = []byte{1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	targetSr25519PublicKey = Sr25519PublicKey{
-		FixedSequence: sc.BytesToFixedSequenceU8(pubKeySr25519),
+		FixedSequence: sc.BytesToFixedSequenceU8(bytesPublicKeySr25519),
 	}
 )
 
 func Test_NewSr25519PublicKey(t *testing.T) {
-	newSr25519PublicKey, err := NewSr25519PublicKey(sc.BytesToSequenceU8(pubKeySr25519)...)
+	newSr25519PublicKey, err := NewSr25519PublicKey(sc.BytesToSequenceU8(bytesPublicKeySr25519)...)
 	assert.Nil(t, err)
 	assert.Equal(t, newSr25519PublicKey, targetSr25519PublicKey)
 }
@@ -36,15 +36,15 @@ func Test_Sr25519PublicKey_Encode(t *testing.T) {
 	err := targetSr25519PublicKey.Encode(buffer)
 	assert.Nil(t, err)
 
-	assert.Equal(t, pubKeySr25519, buffer.Bytes())
+	assert.Equal(t, bytesPublicKeySr25519, buffer.Bytes())
 }
 
 func Test_Sr25519PublicKey_Bytes(t *testing.T) {
-	assert.Equal(t, pubKeySr25519, targetSr25519PublicKey.Bytes())
+	assert.Equal(t, bytesPublicKeySr25519, targetSr25519PublicKey.Bytes())
 }
 
 func Test_DecodeSr25519PublicKey(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeySr25519)
+	buffer := bytes.NewBuffer(bytesPublicKeySr25519)
 
 	result, err := DecodeSr25519PublicKey(buffer)
 	assert.NoError(t, err)

@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	AuraMaxAuthorites = 100
+	AuraMaxAuthorities = 100
 )
 
 const (
@@ -99,7 +99,7 @@ func initializeModules() []primitives.Module {
 			primitives.PublicKeySr25519,
 			DbWeight,
 			TimestampMinimumPeriod,
-			AuraMaxAuthorites,
+			AuraMaxAuthorities,
 			false,
 			systemModule.StorageDigest,
 		),

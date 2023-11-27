@@ -10,14 +10,14 @@ import (
 )
 
 var (
-	pubKeyEcdsa          = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
+	bytesPublicKeyEcdsa  = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 	targetEcdsaPublicKey = EcdsaPublicKey{
-		FixedSequence: sc.BytesToFixedSequenceU8(pubKeyEcdsa),
+		FixedSequence: sc.BytesToFixedSequenceU8(bytesPublicKeyEcdsa),
 	}
 )
 
 func Test_NewEcdsaPublicKey(t *testing.T) {
-	newEcdsaPublicKey, err := NewEcdsaPublicKey(sc.BytesToSequenceU8(pubKeyEcdsa)...)
+	newEcdsaPublicKey, err := NewEcdsaPublicKey(sc.BytesToSequenceU8(bytesPublicKeyEcdsa)...)
 	assert.Nil(t, err)
 	assert.Equal(t, newEcdsaPublicKey, targetEcdsaPublicKey)
 }
@@ -36,15 +36,15 @@ func Test_EcdsaPublicKey_Encode(t *testing.T) {
 	err := targetEcdsaPublicKey.Encode(buffer)
 	assert.Nil(t, err)
 
-	assert.Equal(t, pubKeyEcdsa, buffer.Bytes())
+	assert.Equal(t, bytesPublicKeyEcdsa, buffer.Bytes())
 }
 
 func Test_EcdsaPublicKey_Bytes(t *testing.T) {
-	assert.Equal(t, pubKeyEcdsa, targetEcdsaPublicKey.Bytes())
+	assert.Equal(t, bytesPublicKeyEcdsa, targetEcdsaPublicKey.Bytes())
 }
 
 func Test_DecodeEcdsaPublicKey(t *testing.T) {
-	buffer := bytes.NewBuffer(pubKeyEcdsa)
+	buffer := bytes.NewBuffer(bytesPublicKeyEcdsa)
 
 	result, err := DecodeEcdsaPublicKey(buffer)
 	assert.NoError(t, err)

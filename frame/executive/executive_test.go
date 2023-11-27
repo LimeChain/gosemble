@@ -46,9 +46,8 @@ var (
 
 	baseWeight = primitives.WeightFromParts(1, 1)
 
-	dispatchClassNormal      = primitives.NewDispatchClassNormal()
-	dispatchClassOperational = primitives.NewDispatchClassOperational()
-	dispatchClassMandatory   = primitives.NewDispatchClassMandatory()
+	dispatchClassNormal    = primitives.NewDispatchClassNormal()
+	dispatchClassMandatory = primitives.NewDispatchClassMandatory()
 
 	dispatchInfo = primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(2, 2),
