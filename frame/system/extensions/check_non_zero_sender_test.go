@@ -105,6 +105,15 @@ func Test_CheckNonZeroAddress_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckNonZeroAddress_ModulePath(t *testing.T) {
+	target := setupCheckNonZeroSender()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckNonZeroSender() CheckNonZeroAddress {
 	extension, ok := NewCheckNonZeroAddress().(*CheckNonZeroAddress)
 	if !ok {

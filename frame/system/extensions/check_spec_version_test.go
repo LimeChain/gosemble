@@ -99,6 +99,15 @@ func Test_CheckSpecVersion_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckSpecVersion_ModulePath(t *testing.T) {
+	target := setupCheckNonce()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckSpecVersion() CheckSpecVersion {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckSpecVersion(mockModule).(*CheckSpecVersion)

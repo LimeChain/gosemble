@@ -218,6 +218,15 @@ func Test_CheckMortality_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckMortality_ModulePath(t *testing.T) {
+	target := setupCheckMortality()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckMortality() CheckMortality {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckMortality(mockModule).(*CheckMortality)

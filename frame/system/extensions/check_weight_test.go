@@ -701,6 +701,15 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_Success(t *testing.T) {
 	assert.Equal(t, expect, result)
 }
 
+func Test_CheckWeight_ModulePath(t *testing.T) {
+	target := setupCheckWeight()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckWeight() CheckWeight {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckWeight(mockModule).(*CheckWeight)

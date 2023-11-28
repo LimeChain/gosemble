@@ -329,6 +329,15 @@ func Test_PreDispatchUnsigned(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckWeight_ModulePath(t *testing.T) {
+	setup(txFee)
+
+	expectedModulePath := "frame_transaction_payment"
+	actualModulePath := targetChargeTxPayment.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func Test_getPriority(t *testing.T) {
 	setup(txFee)
 

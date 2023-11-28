@@ -275,6 +275,15 @@ func Test_CheckNonce_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckNonce_ModulePath(t *testing.T) {
+	target := setupCheckNonce()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckNonce() CheckNonce {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckNonce(mockModule).(*CheckNonce)

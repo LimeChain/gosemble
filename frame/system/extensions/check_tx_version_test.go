@@ -99,6 +99,15 @@ func Test_CheckTxVersion_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckTxVersion_ModulePath(t *testing.T) {
+	target := setupCheckTxVersion()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckTxVersion() CheckTxVersion {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckTxVersion(mockModule).(*CheckTxVersion)

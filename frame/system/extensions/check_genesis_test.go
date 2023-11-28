@@ -123,6 +123,15 @@ func Test_CheckGenesis_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_CheckGenesis_ModulePath(t *testing.T) {
+	target := setupCheckGenesis()
+
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
+
+	assert.Equal(t, expectedModulePath, actualModulePath)
+}
+
 func setupCheckGenesis() CheckGenesis {
 	mockModule = new(mocks.SystemModule)
 	extension, ok := NewCheckGenesis(mockModule).(*CheckGenesis)
