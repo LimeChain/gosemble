@@ -2,28 +2,41 @@ package types
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 )
 
+const (
+	basePath = "github.com/LimeChain/gosemble/"
+)
+
 // a check that has multiple varying signed data
 type testExtraCheckComplex struct {
-	module               Module
-	era                  Era
-	hash                 H256
-	value                sc.U64
-	additionalSignedData sc.VaryingData
+	module                        Module
+	era                           Era
+	hash                          H256
+	value                         sc.U64
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func newtTestExtraCheckComplex() SignedExtension {
 	return &testExtraCheckComplex{
-		era:                  Era{},
-		additionalSignedData: sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}, Weight{}),
+		era:                           Era{},
+		typesInfoAdditionalSignedData: sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}, Weight{}),
 	}
 }
 
 func (e testExtraCheckComplex) Encode(buffer *bytes.Buffer) error {
 	return nil
+}
+
+func (e testExtraCheckComplex) ModulePath() string {
+	pkgPath := reflect.TypeOf(e).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }
 
 func (e testExtraCheckComplex) Bytes() []byte {

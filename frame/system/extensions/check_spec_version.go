@@ -2,6 +2,8 @@ package extensions
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -9,14 +11,14 @@ import (
 )
 
 type CheckSpecVersion struct {
-	systemModule         system.Module
-	additionalSignedData sc.VaryingData
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckSpecVersion(systemModule system.Module) primitives.SignedExtension {
 	return &CheckSpecVersion{
-		systemModule:         systemModule,
-		additionalSignedData: sc.NewVaryingData(sc.U32(0)),
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(sc.U32(0)),
 	}
 }
 
@@ -54,4 +56,11 @@ func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *prim
 
 func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
+}
+
+func (csv CheckSpecVersion) ModulePath() string {
+	pkgPath := reflect.TypeOf(csv).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

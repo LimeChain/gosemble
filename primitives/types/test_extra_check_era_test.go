@@ -2,20 +2,22 @@ package types
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 )
 
 type testExtraCheckEra struct {
-	module               Module
-	era                  Era
-	additionalSignedData sc.VaryingData
+	module                        Module
+	era                           Era
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func newtTestExtraCheckEra() SignedExtension {
 	return &testExtraCheckEra{
-		era:                  Era{},
-		additionalSignedData: sc.NewVaryingData(H256{}),
+		era:                           Era{},
+		typesInfoAdditionalSignedData: sc.NewVaryingData(H256{}),
 	}
 }
 
@@ -25,6 +27,13 @@ func (e testExtraCheckEra) Encode(buffer *bytes.Buffer) error {
 
 func (e testExtraCheckEra) Bytes() []byte {
 	return sc.EncodedBytes(e)
+}
+
+func (e testExtraCheckEra) ModulePath() string {
+	pkgPath := reflect.TypeOf(e).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }
 
 func (e *testExtraCheckEra) Decode(buffer *bytes.Buffer) error {

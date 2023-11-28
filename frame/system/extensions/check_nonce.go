@@ -3,6 +3,8 @@ package extensions
 import (
 	"bytes"
 	"math"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -10,15 +12,15 @@ import (
 )
 
 type CheckNonce struct {
-	nonce                sc.U32
-	systemModule         system.Module
-	additionalSignedData sc.VaryingData
+	nonce                         sc.U32
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckNonce(systemModule system.Module) primitives.SignedExtension {
 	return &CheckNonce{
-		systemModule:         systemModule,
-		additionalSignedData: sc.NewVaryingData(),
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
 	}
 }
 
@@ -108,4 +110,11 @@ func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.
 
 func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
+}
+
+func (cn CheckNonce) ModulePath() string {
+	pkgPath := reflect.TypeOf(cn).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

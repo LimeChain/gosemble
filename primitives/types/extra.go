@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	additionalSignedTypeName = "additionalSignedData"
+	additionalSignedTypeName = "typesInfoAdditionalSignedData"
 	moduleTypeName           = "Module"
+	hookOnChargeTypeName     = "OnChargeTransaction"
 )
 
 type SignedExtra interface {
@@ -172,17 +173,17 @@ func generateExtraMetadata(extra SignedExtension, metadataIds map[string]int, me
 
 	extraMetadataId, ok := metadataIds[extraTypeName]
 	if !ok {
-		extraMetadataId = buildMetadataTypeRecursively(extraType, metadataIds, metadataTypes, true)
+		extraMetadataId = buildMetadataTypeRecursively(extraType, metadataIds, metadataTypes, true, extra.ModulePath())
 	} else {
-		getExtraMetadata(extraMetadataId, metadataTypes)
+		appendExtraMetadata(extraMetadataId, metadataTypes)
 	}
 
-	constructExtension(extraValue, extraMetadataId, extensions, metadataIds, metadataTypes)
+	constructExtension(extraValue, extraMetadataId, extensions, metadataIds, metadataTypes, extra.ModulePath())
 
 	return extraMetadataId
 }
 
-func getExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) {
+func appendExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) {
 	for _, t := range *metadataTypes {
 		if t.Id.ToBigInt().Int64() == int64(id) {
 			*metadataTypes = append(*metadataTypes, t)
@@ -192,7 +193,7 @@ func getExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) {
 }
 
 // buildMetadataTypeRecursively build the metadata of the type recursively.
-func buildMetadataTypeRecursively(t reflect.Type, metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], isExtra bool) int {
+func buildMetadataTypeRecursively(t reflect.Type, metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], isExtra bool, modulePath string) int {
 	typeId := assignNewMetadataId(metadataIds, t.Name())
 
 	typeName := t.Name()
@@ -213,13 +214,13 @@ func buildMetadataTypeRecursively(t reflect.Type, metadataIds map[string]int, me
 		}
 		fieldId, ok := metadataIds[fieldTypeName]
 		if !ok {
-			fieldId = buildMetadataTypeRecursively(t.Field(i).Type, metadataIds, metadataTypes, false)
+			fieldId = buildMetadataTypeRecursively(t.Field(i).Type, metadataIds, metadataTypes, false, modulePath)
 		}
 		metadataFields = append(metadataFields, NewMetadataTypeDefinitionFieldWithName(fieldId, sc.Str(fieldName)))
 	}
 
 	if isExtra {
-		metadataType := NewMetadataTypeWithPath(typeId, typeName, sc.Sequence[sc.Str]{"extensions", sc.Str(strcase.ToSnake(typeName)), sc.Str(typeName)}, NewMetadataTypeDefinitionComposite(metadataFields))
+		metadataType := NewMetadataTypeWithPath(typeId, typeName, sc.Sequence[sc.Str]{sc.Str(modulePath), "extensions", sc.Str(strcase.ToSnake(typeName)), sc.Str(typeName)}, NewMetadataTypeDefinitionComposite(metadataFields))
 		*metadataTypes = append(*metadataTypes, metadataType)
 		return typeId
 	}
@@ -238,7 +239,7 @@ func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.
 }
 
 func isIgnoredType(t string) bool {
-	return t == moduleTypeName
+	return t == moduleTypeName || t == hookOnChargeTypeName
 }
 
 func isIgnoredName(name string) bool {
@@ -252,8 +253,8 @@ func assignNewMetadataId(metadataIds map[string]int, name string) int {
 	return newId
 }
 
-// constructExtension Iterates through the elements of the additionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
-func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType]) {
+// constructExtension Iterates through the elements of the typesInfoAdditionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
+func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], modulePath string) {
 	var resultTypeName string
 	var resultTupleIds sc.Sequence[sc.Compact]
 
@@ -273,7 +274,7 @@ func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc
 			currentTypeName := currentType.Name()
 			currentTypeId, ok := metadataIds[currentTypeName]
 			if !ok {
-				currentTypeId = buildMetadataTypeRecursively(currentType, metadataIds, metadataTypes, false)
+				currentTypeId = buildMetadataTypeRecursively(currentType, metadataIds, metadataTypes, false, modulePath)
 			}
 			resultTypeName = resultTypeName + currentTypeName
 			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))

@@ -2,6 +2,8 @@ package extensions
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -10,14 +12,14 @@ import (
 )
 
 type CheckMortality struct {
-	era                  primitives.Era
-	systemModule         system.Module
-	additionalSignedData sc.VaryingData
+	era                           primitives.Era
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckMortality(systemModule system.Module) primitives.SignedExtension {
 	return &CheckMortality{systemModule: systemModule,
-		additionalSignedData: sc.NewVaryingData(primitives.H256{})}
+		typesInfoAdditionalSignedData: sc.NewVaryingData(primitives.H256{})}
 }
 
 func (cm CheckMortality) Encode(buffer *bytes.Buffer) error {
@@ -89,4 +91,11 @@ func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primiti
 
 func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
+}
+
+func (cm CheckMortality) ModulePath() string {
+	pkgPath := reflect.TypeOf(cm).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

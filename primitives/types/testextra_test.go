@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -11,16 +13,16 @@ var (
 )
 
 type testExtraCheck struct {
-	hasError             sc.Bool
-	value                sc.U32
-	additionalSignedData sc.VaryingData
+	hasError                      sc.Bool
+	value                         sc.U32
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
 	return &testExtraCheck{
-		hasError:             hasError,
-		value:                value,
-		additionalSignedData: sc.VaryingData{sc.U32(0)},
+		hasError:                      hasError,
+		value:                         value,
+		typesInfoAdditionalSignedData: sc.VaryingData{sc.U32(0)},
 	}
 }
 
@@ -88,4 +90,11 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 	}
 
 	return nil
+}
+
+func (e testExtraCheck) ModulePath() string {
+	pkgPath := reflect.TypeOf(e).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

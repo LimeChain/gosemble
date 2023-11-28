@@ -3,6 +3,7 @@ package extensions
 import (
 	"bytes"
 	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -10,12 +11,12 @@ import (
 )
 
 type CheckNonZeroAddress struct {
-	additionalSignedData sc.VaryingData
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckNonZeroAddress() primitives.SignedExtension {
 	return &CheckNonZeroAddress{
-		additionalSignedData: sc.NewVaryingData(),
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
 	}
 }
 
@@ -57,4 +58,11 @@ func (c CheckNonZeroAddress) PreDispatchUnsigned(call primitives.Call, info *pri
 
 func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
+}
+
+func (c CheckNonZeroAddress) ModulePath() string {
+	pkgPath := reflect.TypeOf(c).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

@@ -2,6 +2,8 @@ package extensions
 
 import (
 	"bytes"
+	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -11,17 +13,18 @@ import (
 
 const (
 	errInvalidDispatchClass = "invalid DispatchClass type in CheckBlockLength()"
+	basePath                = "github.com/LimeChain/gosemble/"
 )
 
 type CheckWeight struct {
-	systemModule         system.Module
-	additionalSignedData sc.VaryingData
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
 	return &CheckWeight{
-		systemModule:         systemModule,
-		additionalSignedData: sc.NewVaryingData(),
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
 	}
 }
 
@@ -243,4 +246,11 @@ func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo)
 	log.Critical(errInvalidDispatchClass)
 
 	panic("unreachable")
+}
+
+func (cw CheckWeight) ModulePath() string {
+	pkgPath := reflect.TypeOf(cw).PkgPath()
+	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
+	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
+	return strings.Replace(pkgPath, "/", "_", 1)
 }

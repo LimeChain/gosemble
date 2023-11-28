@@ -89,4 +89,7 @@ type SignedExtension interface {
 	// introduced by the current block author; generally this implies that it is an inherent and
 	// will come from either an offchain-worker or via `InherentData`.(
 	PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
+
+	// ModulePath Returns the path of the module where the extension is located in. E.g. frame_system, frame_transaction_payment
+	ModulePath() string
 }

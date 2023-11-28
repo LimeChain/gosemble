@@ -47,7 +47,7 @@ var (
 
 	testExtraCheckMetadataType = MetadataType{
 		Id:     sc.ToCompact(expectedExtraCheckMetadataId),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check", "testExtraCheck"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check", "testExtraCheck"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
@@ -213,7 +213,7 @@ var (
 
 	testExtraCheckEmptyMetadataType = MetadataType{
 		Id:     sc.ToCompact(expectedEmptyCheckMetadataId),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{},
@@ -223,7 +223,7 @@ var (
 
 	testExtraCheckEraMetadataType = MetadataType{
 		Id:     sc.ToCompact(expectedCheckEraMetadataId),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_era", "testExtraCheckEra"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_era", "testExtraCheckEra"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
@@ -235,7 +235,7 @@ var (
 
 	testExtraCheckComplexMetadataType = MetadataType{
 		Id:     sc.ToCompact(expectedCheckComplexMetadataId),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_complex", "testExtraCheckComplex"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_complex", "testExtraCheckComplex"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
@@ -289,7 +289,7 @@ var (
 
 	testExtraCheckEmptyMetadataTypeSome = MetadataType{
 		Id:         sc.ToCompact(expectedEmptyCheckMetadataIdSome),
-		Path:       sc.Sequence[sc.Str]{"extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
+		Path:       sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_empty", "testExtraCheckEmpty"},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{}),
 		Docs:       sc.Sequence[sc.Str]{"testExtraCheckEmpty"},
@@ -297,7 +297,7 @@ var (
 
 	testExtraCheckEraMetadataTypeSome = MetadataType{
 		Id:     sc.ToCompact(expectedCheckEraMetadataIdSome),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_era", "testExtraCheckEra"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_era", "testExtraCheckEra"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
@@ -333,7 +333,7 @@ var (
 
 	testExtraCheckComplexMetadataTypeSome = MetadataType{
 		Id:     sc.ToCompact(expectedExtraCheckComplexIdSome),
-		Path:   sc.Sequence[sc.Str]{"extensions", "test_extra_check_complex", "testExtraCheckComplex"},
+		Path:   sc.Sequence[sc.Str]{"primitives_types", "extensions", "test_extra_check_complex", "testExtraCheckComplex"},
 		Params: sc.Sequence[MetadataTypeParameter]{},
 		Definition: NewMetadataTypeDefinitionComposite(
 			sc.Sequence[MetadataTypeDefinitionField]{
