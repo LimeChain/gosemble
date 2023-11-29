@@ -18,13 +18,12 @@ var (
 	addr32Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0}
 	addr33Bytes = []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0}
 
-	ed25519SignerFromAddr32, _ = NewEd25519PublicKey(sc.BytesToFixedSequenceU8(addr32Bytes)...)
-
-	accountId    = NewAccountId[PublicKey](ed25519SignerFromAddr32)
-	accountIndex = sc.U32(2)
-	accountRaw   = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
-	address32    = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
-	address20    = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
+	accountIdAddress, _ = NewAddress32(sc.BytesToFixedSequenceU8(addr32Bytes)...)
+	accountId           = NewAccountIdFromAddress32(accountIdAddress)
+	accountIndex        = sc.U32(2)
+	accountRaw          = AccountRaw{sc.BytesToSequenceU8(addr33Bytes)}
+	address32           = Address32{sc.BytesToFixedSequenceU8(addr32Bytes)}
+	address20           = Address20{sc.BytesToFixedSequenceU8(addr20Bytes)}
 )
 
 func Test_AccountRaw_Encode(t *testing.T) {
@@ -46,7 +45,7 @@ func Test_DecodeAccountRaw(t *testing.T) {
 }
 
 func Test_NewAddress32(t *testing.T) {
-	expect := Address32{sc.NewFixedSequence(32, sc.BytesToSequenceU8(addr32Bytes)...)}
+	expect := Address32{FixedSequence: sc.BytesToFixedSequenceU8(addr32Bytes)}
 
 	result, err := NewAddress32(sc.BytesToSequenceU8(addr32Bytes)...)
 
@@ -72,7 +71,7 @@ func Test_DecodeAddress32(t *testing.T) {
 }
 
 func Test_NewAddress20(t *testing.T) {
-	expect := Address20{sc.NewFixedSequence(20, sc.BytesToSequenceU8(addr20Bytes)...)}
+	expect := Address20{FixedSequence: sc.BytesToFixedSequenceU8(addr20Bytes)}
 
 	result, err := NewAddress20(sc.BytesToSequenceU8(addr20Bytes)...)
 
@@ -156,7 +155,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 		t.Run(testExample.label, func(t *testing.T) {
 			buffer := bytes.NewBuffer(testExample.input)
 
-			result, err := DecodeMultiAddress[testPublicKeyType](buffer)
+			result, err := DecodeMultiAddress(buffer)
 			assert.NoError(t, err)
 
 			assert.Equal(t, testExample.expectation, result)
@@ -167,7 +166,7 @@ func Test_DecodeMultiAddress(t *testing.T) {
 func Test_DecodeMultiAddress_TypeError(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0})
 
-	result, err := DecodeMultiAddress[testPublicKeyType](buffer)
+	result, err := DecodeMultiAddress(buffer)
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'MultiAddress' type", err.Error())
@@ -211,7 +210,7 @@ func Test_AsAccountId_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'AccountId' type", err.Error())
-	assert.Equal(t, AccountId[PublicKey]{}, result)
+	assert.Equal(t, AccountId{}, result)
 }
 
 func Test_IsAccountIndex(t *testing.T) {

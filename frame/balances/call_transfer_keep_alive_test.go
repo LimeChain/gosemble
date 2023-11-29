@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expected := callTransferKeepAlive[testPublicKeyType]{
+	expected := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
@@ -187,5 +187,5 @@ func setupCallTransferKeepAlive() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferKeepAlive[testPublicKeyType](moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallTransferKeepAlive(moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
 }

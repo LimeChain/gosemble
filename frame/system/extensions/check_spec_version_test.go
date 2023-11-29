@@ -60,7 +60,7 @@ func Test_CheckSpecVersion_Bytes(t *testing.T) {
 func Test_CheckSpecVersion_Validate(t *testing.T) {
 	target := setupCheckSpecVersion()
 
-	result, err := target.Validate(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -78,7 +78,7 @@ func Test_CheckSpecVersion_ValidateUnsigned(t *testing.T) {
 func Test_CheckSpecVersion_PreDispatch(t *testing.T) {
 	target := setupCheckSpecVersion()
 
-	result, err := target.PreDispatch(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

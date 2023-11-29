@@ -7,11 +7,18 @@ import (
 )
 
 const (
-	publicKeySerializedSize = 33
+	publicKeyEcdsaLength = 33
 )
 
 type EcdsaPublicKey struct {
 	sc.FixedSequence[sc.U8] // size 33
+}
+
+func NewEcdsaPublicKey(values ...sc.U8) (EcdsaPublicKey, error) {
+	if len(values) != publicKeyEcdsaLength {
+		return EcdsaPublicKey{}, newTypeError("EcdsaPublicKey")
+	}
+	return EcdsaPublicKey{sc.NewFixedSequence(publicKeyEcdsaLength, values...)}, nil
 }
 
 func (s EcdsaPublicKey) SignatureType() sc.U8 {
@@ -27,16 +34,9 @@ func (s EcdsaPublicKey) Bytes() []byte {
 }
 
 func DecodeEcdsaPublicKey(buffer *bytes.Buffer) (EcdsaPublicKey, error) {
-	seq, err := sc.DecodeFixedSequence[sc.U8](publicKeySerializedSize, buffer)
+	seq, err := sc.DecodeFixedSequence[sc.U8](publicKeyEcdsaLength, buffer)
 	if err != nil {
 		return EcdsaPublicKey{}, err
 	}
 	return EcdsaPublicKey{seq}, nil
-}
-
-func NewEcdsaPublicKey(values ...sc.U8) (EcdsaPublicKey, error) {
-	if len(values) != publicKeySerializedSize {
-		return EcdsaPublicKey{}, newTypeError("EcdsaPublicKey")
-	}
-	return EcdsaPublicKey{sc.NewFixedSequence(publicKeySerializedSize, values...)}, nil
 }

@@ -101,7 +101,7 @@ func Test_CheckWeight_Validate(t *testing.T) {
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 	mockModule.On("BlockWeights").Return(blockWeight)
 
-	result, err := target.Validate(oneAddress, nil, dispatchInfo, sc.ToCompact(length))
+	result, err := target.Validate(oneAccountId, nil, dispatchInfo, sc.ToCompact(length))
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -143,7 +143,7 @@ func Test_CheckWeight_PreDispatch(t *testing.T) {
 	mockModule.On("StorageAllExtrinsicsLenSet", length+storageLen).Return()
 	mockModule.On("StorageBlockWeightSet", expectNewStorageWeight).Return()
 
-	result, err := target.PreDispatch(oneAddress, nil, dispatchInfo, sc.ToCompact(length))
+	result, err := target.PreDispatch(oneAccountId, nil, dispatchInfo, sc.ToCompact(length))
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

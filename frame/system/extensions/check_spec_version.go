@@ -31,7 +31,7 @@ func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, err
 	return sc.NewVaryingData(csv.systemModule.Version().SpecVersion), nil
 }
 
-func (_ CheckSpecVersion) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (_ CheckSpecVersion) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
@@ -39,7 +39,7 @@ func (csv CheckSpecVersion) ValidateUnsigned(_call primitives.Call, info *primit
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := csv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

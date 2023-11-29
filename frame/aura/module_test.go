@@ -16,7 +16,7 @@ const (
 	moduleId                          = 13
 	weightRefTimePerNanos      sc.U64 = 1_000
 	timestampMinimumPeriod            = 2_000
-	maxAuthorites                     = 10
+	maxAuthorities                    = 10
 	allowMultipleBlocksPerSlot        = false
 	keyType                           = types.PublicKeySr25519
 	blockNumber                sc.U64 = 0
@@ -143,7 +143,7 @@ func setup(minimumPeriod sc.U64) {
 		keyType,
 		dbWeight,
 		minimumPeriod,
-		maxAuthorites,
+		maxAuthorities,
 		allowMultipleBlocksPerSlot,
 		mockStorageDigest.Get,
 	)

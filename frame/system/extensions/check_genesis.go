@@ -36,7 +36,7 @@ func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(primitives.H256(hash)), nil
 }
 
-func (_ CheckGenesis) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (_ CheckGenesis) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
@@ -44,7 +44,7 @@ func (cg CheckGenesis) ValidateUnsigned(_call primitives.Call, info *primitives.
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cg CheckGenesis) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (cg CheckGenesis) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := cg.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

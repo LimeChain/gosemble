@@ -84,7 +84,7 @@ func Test_CheckGenesis_Bytes(t *testing.T) {
 func Test_CheckGenesis_Validate(t *testing.T) {
 	target := setupCheckGenesis()
 
-	result, err := target.Validate(constants.ZeroAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.ZeroAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -102,7 +102,7 @@ func Test_CheckGenesis_ValidateUnsigned(t *testing.T) {
 func Test_CheckGenesis_PreDispatch(t *testing.T) {
 	target := setupCheckGenesis()
 
-	result, err := target.PreDispatch(constants.ZeroAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.ZeroAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)

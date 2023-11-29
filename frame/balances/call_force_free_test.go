@@ -31,7 +31,7 @@ var (
 		Write: 2,
 	}
 	baseWeight                    = primitives.WeightFromParts(124, 123)
-	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAddressAccountId)
+	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAccountId)
 	targetValue                   = sc.NewU128(5)
 	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 	mockStoredMap                 *mocks.StoredMap
@@ -39,7 +39,7 @@ var (
 
 func Test_Call_ForceFree_new(t *testing.T) {
 	target := setupCallForceFree()
-	expected := callForceFree[testPublicKeyType]{
+	expected := callForceFree{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
@@ -290,5 +290,5 @@ func setupCallForceFree() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceFree[testPublicKeyType](moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
+	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
 }

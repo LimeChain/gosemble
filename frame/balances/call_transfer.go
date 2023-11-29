@@ -11,14 +11,14 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type callTransfer[T primitives.PublicKey] struct {
+type callTransfer struct {
 	primitives.Callable
 	transfer
 }
 
-func newCallTransfer[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts,
+func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts,
 	mutator accountMutator) primitives.Call {
-	call := callTransfer[T]{
+	call := callTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -29,8 +29,8 @@ func newCallTransfer[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, s
 	return call
 }
 
-func (c callTransfer[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	dest, err := types.DecodeMultiAddress[testPublicKeyType](buffer)
+func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	dest, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -45,27 +45,27 @@ func (c callTransfer[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, erro
 	return c, nil
 }
 
-func (c callTransfer[T]) Encode(buffer *bytes.Buffer) error {
+func (c callTransfer) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callTransfer[T]) Bytes() []byte {
+func (c callTransfer) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callTransfer[T]) ModuleIndex() sc.U8 {
+func (c callTransfer) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callTransfer[T]) FunctionIndex() sc.U8 {
+func (c callTransfer) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callTransfer[T]) Args() sc.VaryingData {
+func (c callTransfer) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callTransfer[T]) BaseWeight() types.Weight {
+func (c callTransfer) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `0`
 	//  Estimated: `3593`
@@ -79,19 +79,19 @@ func (c callTransfer[T]) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callTransfer[T]) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callTransfer) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callTransfer[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callTransfer[T]) PaysFee(baseWeight types.Weight) types.Pays {
+func (_ callTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.NewPaysYes()
 }
 
-func (c callTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[1].(sc.Compact))
 
 	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
@@ -149,7 +149,7 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountId[types.PublicKey], value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
+func (t transfer) trans(from types.AccountId, to types.AccountId, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
 		return nil
 	}
@@ -174,7 +174,7 @@ func (t transfer) trans(from types.AccountId[types.PublicKey], to types.AccountI
 // `fromAccount` can withdraw `value`
 // the existence requirements for `fromAccount`
 // Updates the balances of `fromAccount` and `toAccount`.
-func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (t transfer) sanityChecks(from types.AccountId, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
 	fromFree, err := sc.CheckedSubU128(fromAccount.Free, value)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
@@ -240,7 +240,7 @@ func (t transfer) sanityChecks(from types.AccountId[types.PublicKey], fromAccoun
 	return sc.Result[sc.Encodable]{}
 }
 
-func (t transfer) reducibleBalance(who types.AccountId[types.PublicKey], keepAlive bool) (types.Balance, error) {
+func (t transfer) reducibleBalance(who types.AccountId, keepAlive bool) (types.Balance, error) {
 	account, err := t.storedMap.Get(who)
 	if err != nil {
 		return types.Balance{}, err

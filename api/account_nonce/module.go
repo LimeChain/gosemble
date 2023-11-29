@@ -17,23 +17,23 @@ const (
 	apiVersion    = 1
 )
 
-type Module[T types.PublicKey] struct {
+type Module struct {
 	systemModule system.Module
 	memUtils     utils.WasmMemoryTranslator
 }
 
-func New[T types.PublicKey](systemModule system.Module) Module[T] {
-	return Module[T]{
+func New(systemModule system.Module) Module {
+	return Module{
 		systemModule: systemModule,
 		memUtils:     utils.NewMemoryTranslator(),
 	}
 }
 
-func (m Module[T]) Name() string {
+func (m Module) Name() string {
 	return ApiModuleName
 }
 
-func (m Module[T]) Item() types.ApiItem {
+func (m Module) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
 }
@@ -45,15 +45,16 @@ func (m Module[T]) Item() types.ApiItem {
 // which represent the SCALE-encoded AccountId.
 // Returns a pointer-size of the SCALE-encoded nonce of the AccountId.
 // [Specification](https://spec.polkadot.network/chap-runtime-api#sect-accountnonceapi-account-nonce)
-func (m Module[T]) AccountNonce(dataPtr int32, dataLen int32) int64 {
+func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
 
-	publicKey, err := types.DecodeAccountId[T](buffer)
+	accountId, err := types.DecodeAccountId(buffer)
 	if err != nil {
 		log.Critical(err.Error())
 	}
-	account, err := m.systemModule.Get(publicKey)
+
+	account, err := m.systemModule.Get(accountId)
 	if err != nil {
 		log.Critical(err.Error())
 	}
@@ -62,7 +63,7 @@ func (m Module[T]) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
 }
 
-func (m Module[T]) Metadata() types.RuntimeApiMetadata {
+func (m Module) Metadata() types.RuntimeApiMetadata {
 	methods := sc.Sequence[types.RuntimeApiMethodMetadata]{
 		types.RuntimeApiMethodMetadata{
 			Name: "account_nonce",

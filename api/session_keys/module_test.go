@@ -194,7 +194,7 @@ func Test_Module_Metadata(t *testing.T) {
 	assert.Equal(t, expect, target.Metadata())
 }
 
-func setup() Module[primitives.Ed25519PublicKey] {
+func setup() Module {
 	mockCrypto = new(mocks.IoCrypto)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockSessionKey = new(mocks.AuraModule)
@@ -203,7 +203,7 @@ func setup() Module[primitives.Ed25519PublicKey] {
 		mockSessionKey,
 	}
 
-	target := New[primitives.Ed25519PublicKey](sessions)
+	target := New(sessions)
 	target.crypto = mockCrypto
 	target.memUtils = mockMemoryUtils
 

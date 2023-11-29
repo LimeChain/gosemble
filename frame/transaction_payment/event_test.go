@@ -9,15 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testPublicKeyType = types.Ed25519PublicKey
-
 func Test_DecodeEvent(t *testing.T) {
 	buffer := bytes.NewBuffer([]byte{})
 	expectedEvent := NewEventTransactionFeePaid(moduleId, who, sc.NewU128(7), sc.NewU128(1))
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
-	result, err := DecodeEvent[testPublicKeyType](moduleId, buffer)
+	result, err := DecodeEvent(moduleId, buffer)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEvent, result)
 }
@@ -29,7 +27,7 @@ func Test_DecodeEvent_ModuleIndexError(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.PanicsWithValue(t, "invalid transaction_payment.Event module", func() {
-		DecodeEvent[testPublicKeyType](sc.U8(123), buffer)
+		DecodeEvent(sc.U8(123), buffer)
 	})
 }
 
@@ -41,6 +39,6 @@ func Test_DecodeEvent_TypeError(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.PanicsWithValue(t, "invalid transaction_payment.Event type", func() {
-		DecodeEvent[testPublicKeyType](moduleId, buffer)
+		DecodeEvent(moduleId, buffer)
 	})
 }

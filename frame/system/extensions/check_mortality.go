@@ -58,7 +58,7 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, error)
 	return sc.NewVaryingData(hash), nil
 }
 
-func (cm CheckMortality) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	currentBlockNum, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
 		log.Critical(err.Error())
@@ -76,7 +76,7 @@ func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitive
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cm CheckMortality) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (cm CheckMortality) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := cm.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }

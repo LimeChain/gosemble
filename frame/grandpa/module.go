@@ -38,49 +38,49 @@ type GrandpaModule interface {
 	Authorities() (sc.Sequence[primitives.Authority], error)
 }
 
-type Module[T primitives.PublicKey] struct {
+type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
 }
 
-func New[T primitives.PublicKey](index sc.U8) Module[T] {
-	return Module[T]{
+func New(index sc.U8) Module {
+	return Module{
 		Index:   index,
-		storage: newStorage[T](),
+		storage: newStorage(),
 	}
 }
 
-func (m Module[T]) KeyType() primitives.PublicKeyType {
+func (m Module) KeyType() primitives.PublicKeyType {
 	return primitives.PublicKeyEd25519
 }
 
-func (m Module[T]) KeyTypeId() [4]byte {
+func (m Module) KeyTypeId() [4]byte {
 	return KeyTypeId
 }
 
-func (m Module[T]) GetIndex() sc.U8 {
+func (m Module) GetIndex() sc.U8 {
 	return m.Index
 }
 
-func (m Module[T]) name() sc.Str {
+func (m Module) name() sc.Str {
 	return name
 }
 
-func (m Module[T]) Functions() map[sc.U8]primitives.Call {
+func (m Module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m Module[T]) PreDispatch(_ primitives.Call) (sc.Empty, error) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m Module[T]) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module[T]) Authorities() (sc.Sequence[primitives.Authority], error) {
+func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 	versionedAuthorityList, err := m.storage.Authorities.Get()
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (m Module[T]) Authorities() (sc.Sequence[primitives.Authority], error) {
 	return authorities, nil
 }
 
-func (m Module[T]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -123,7 +123,7 @@ func (m Module[T]) Metadata() (sc.Sequence[primitives.MetadataType], primitives.
 	}
 }
 
-func (m Module[T]) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{}),

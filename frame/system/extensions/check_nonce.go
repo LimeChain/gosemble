@@ -40,7 +40,7 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -76,7 +76,7 @@ func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.Di
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		return primitives.Pre{}, err

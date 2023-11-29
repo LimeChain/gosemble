@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferAll_new(t *testing.T) {
 	target := setupCallTransferAll()
-	expected := callTransferAll[testPublicKeyType]{
+	expected := callTransferAll{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferAllIndex,
@@ -252,5 +252,5 @@ func setupCallTransferAll() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferAll[testPublicKeyType](moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallTransferAll(moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator)
 }

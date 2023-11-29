@@ -30,8 +30,8 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)
 }
 
-func (c CheckNonZeroAddress) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
-	if reflect.DeepEqual(who, constants.ZeroAddressAccountId) {
+func (c CheckNonZeroAddress) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+	if reflect.DeepEqual(who, constants.ZeroAccountId) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
 
@@ -42,7 +42,7 @@ func (c CheckNonZeroAddress) ValidateUnsigned(_call primitives.Call, info *primi
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := c.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
