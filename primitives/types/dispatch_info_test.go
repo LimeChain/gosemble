@@ -14,7 +14,7 @@ var (
 	targetDispatchInfo = DispatchInfo{
 		Weight:  WeightFromParts(1, 2),
 		Class:   NewDispatchClassMandatory(),
-		PaysFee: NewPaysNo(),
+		PaysFee: PaysNo,
 	}
 )
 
@@ -49,6 +49,6 @@ func Test_GetDispatchInfo(t *testing.T) {
 	assert.Equal(t, DispatchInfo{
 		Weight:  WeightFromParts(3, 4),
 		Class:   NewDispatchClassNormal(),
-		PaysFee: NewPaysYes(),
+		PaysFee: PaysYes,
 	}, result)
 }

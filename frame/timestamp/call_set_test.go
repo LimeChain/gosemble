@@ -158,7 +158,7 @@ func Test_Call_Set_ClassifyDispatch(t *testing.T) {
 func Test_Call_Set_PaysFee(t *testing.T) {
 	target := setUpCallSet()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_Set_Dispatch_Success(t *testing.T) {

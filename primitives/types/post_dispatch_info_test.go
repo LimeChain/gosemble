@@ -17,7 +17,7 @@ var (
 	dispatchInfo = &DispatchInfo{
 		Weight:  WeightFromParts(3, 4),
 		Class:   NewDispatchClassMandatory(),
-		PaysFee: NewPaysNo(),
+		PaysFee: PaysNo,
 	}
 	postDispatchInfo = PostDispatchInfo{
 		ActualWeight: sc.NewOption[Weight](WeightFromParts(1, 2)),
@@ -83,15 +83,15 @@ func Test_PostDispatchInfo_CalcActualWeight_NoWeight(t *testing.T) {
 
 func Test_PostDispatchInfo_Pays_Yes(t *testing.T) {
 	dispatchInfo := &DispatchInfo{
-		PaysFee: NewPaysYes(),
+		PaysFee: PaysYes,
 	}
 	result := postDispatchInfo.Pays(dispatchInfo)
 
-	assert.Equal(t, NewPaysYes(), result)
+	assert.Equal(t, PaysYes, result)
 }
 
 func Test_PostDispatchInfo_Pays_No(t *testing.T) {
 	result := postDispatchInfo.Pays(dispatchInfo)
 
-	assert.Equal(t, NewPaysNo(), result)
+	assert.Equal(t, PaysNo, result)
 }

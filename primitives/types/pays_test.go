@@ -2,18 +2,25 @@ package types
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
-	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewPaysYes(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(PaysYes), NewPaysYes())
+func Test_Pays_Encode(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	err := PaysYes.Encode(buffer)
+
+	assert.Nil(t, err)
+	assert.Equal(t, []byte{0}, buffer.Bytes())
 }
 
-func Test_NewPaysNo(t *testing.T) {
-	assert.Equal(t, sc.NewVaryingData(PaysNo), NewPaysNo())
+func Test_Pays_Bytes(t *testing.T) {
+	result := PaysNo.Bytes()
+
+	assert.Equal(t, []byte{1}, result)
 }
 
 func Test_DecodePays_Yes(t *testing.T) {
@@ -23,7 +30,7 @@ func Test_DecodePays_Yes(t *testing.T) {
 	result, err := DecodePays(buffer)
 	assert.NoError(t, err)
 
-	assert.Equal(t, NewPaysYes(), result)
+	assert.Equal(t, PaysYes, result)
 }
 
 func Test_DecodePays_No(t *testing.T) {
@@ -33,7 +40,7 @@ func Test_DecodePays_No(t *testing.T) {
 	result, err := DecodePays(buffer)
 	assert.NoError(t, err)
 
-	assert.Equal(t, NewPaysNo(), result)
+	assert.Equal(t, PaysNo, result)
 }
 
 func Test_DecodePays_TypeError(t *testing.T) {
@@ -44,5 +51,14 @@ func Test_DecodePays_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'Pays' type", err.Error())
-	assert.Nil(t, res)
+	assert.Equal(t, Pays(0), res)
+}
+
+func Test_DecodePays_Empty(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	res, err := DecodePays(buffer)
+
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, Pays(0), res)
 }

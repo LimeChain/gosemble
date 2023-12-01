@@ -6,9 +6,11 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+type DispatchClassType sc.U8
+
 const (
 	// DispatchClassNormal A normal dispatch.
-	DispatchClassNormal sc.U8 = iota
+	DispatchClassNormal DispatchClassType = iota
 
 	// DispatchClassOperational An operational dispatch.
 	DispatchClassOperational
@@ -28,6 +30,14 @@ const (
 	// allow an overweight block to be created than to not allow any block at all to be created.
 	DispatchClassMandatory
 )
+
+func (dct DispatchClassType) Encode(buffer *bytes.Buffer) error {
+	return sc.U8(dct).Encode(buffer)
+}
+
+func (dct DispatchClassType) Bytes() []byte {
+	return sc.EncodedBytes(dct)
+}
 
 // A generalized group of dispatch types.
 type DispatchClass struct {
@@ -52,7 +62,7 @@ func DecodeDispatchClass(buffer *bytes.Buffer) (DispatchClass, error) {
 		return DispatchClass{}, err
 	}
 
-	switch b {
+	switch DispatchClassType(b) {
 	case DispatchClassNormal:
 		return NewDispatchClassNormal(), nil
 	case DispatchClassOperational:
@@ -64,17 +74,20 @@ func DecodeDispatchClass(buffer *bytes.Buffer) (DispatchClass, error) {
 	}
 }
 
-func (dc DispatchClass) Is(value sc.U8) (sc.Bool, error) {
-	// TODO: type safety
+func (dc DispatchClass) Is(value DispatchClassType) (sc.Bool, error) {
+	if len(dc.VaryingData) == 0 {
+		return false, newTypeError("DispatchClass")
+	}
+
 	switch value {
 	case DispatchClassNormal, DispatchClassOperational, DispatchClassMandatory:
-		return (dc.VaryingData[0] == value), nil
+		return dc.VaryingData[0] == value, nil
 	default:
 		return false, newTypeError("DispatchClass")
 	}
 }
 
-// Returns an array containing all dispatch classes.
+// DispatchClassAll Returns a slice, containing all dispatch classes.
 func DispatchClassAll() []DispatchClass {
 	return []DispatchClass{NewDispatchClassNormal(), NewDispatchClassOperational(), NewDispatchClassMandatory()}
 }

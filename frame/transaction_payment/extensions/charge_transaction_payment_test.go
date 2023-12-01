@@ -25,7 +25,7 @@ var (
 	info = types.DispatchInfo{
 		Weight:  types.WeightFromParts(0, 0),
 		Class:   types.NewDispatchClassOperational(),
-		PaysFee: types.NewPaysNo(),
+		PaysFee: types.PaysNo,
 	}
 
 	postInfo = types.PostDispatchInfo{
@@ -144,7 +144,7 @@ func Test_Validate_Mandatory(t *testing.T) {
 	info := types.DispatchInfo{
 		Weight:  types.WeightFromParts(0, 0),
 		Class:   types.NewDispatchClassMandatory(),
-		PaysFee: types.NewPaysNo(),
+		PaysFee: types.PaysNo,
 	}
 	expectedValidTransaction := types.DefaultValidTransaction()
 	expectedValidTransaction.Priority = sc.U64(33)
@@ -361,7 +361,7 @@ func Test_getPriority(t *testing.T) {
 	info := types.DispatchInfo{
 		Weight:  types.WeightFromParts(7, 0),
 		Class:   types.NewDispatchClassNormal(),
-		PaysFee: types.NewPaysYes(),
+		PaysFee: types.PaysYes,
 	}
 
 	extLen = sc.U32(5)

@@ -202,7 +202,7 @@ func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo
 }
 
 func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) (types.FeeDetails, error) {
-	if paysFee[0] == primitives.PaysYes { // TODO: type safety
+	if paysFee == primitives.PaysYes {
 		unadjustedWeightFee := m.weightToFee(weight)
 		multiplier, err := m.storage.NextFeeMultiplier.Get()
 		if err != nil {

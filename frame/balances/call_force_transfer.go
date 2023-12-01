@@ -89,7 +89,7 @@ func (_ callForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.Dispa
 }
 
 func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+	return types.PaysYes
 }
 
 func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {

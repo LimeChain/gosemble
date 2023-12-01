@@ -91,7 +91,7 @@ func Test_Call_TransferKeepAlive_ClassifyDispatch(t *testing.T) {
 func Test_Call_TransferKeepAlive_PaysFee(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {

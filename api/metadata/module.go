@@ -442,17 +442,17 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Normal",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassNormal,
+					sc.U8(primitives.DispatchClassNormal),
 					"DispatchClass.Normal"),
 				primitives.NewMetadataDefinitionVariant(
 					"Operational",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassOperational,
+					sc.U8(primitives.DispatchClassOperational),
 					"DispatchClass.Operational"),
 				primitives.NewMetadataDefinitionVariant(
 					"Mandatory",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassMandatory,
+					sc.U8(primitives.DispatchClassMandatory),
 					"DispatchClass.Mandatory"),
 			})),
 		primitives.NewMetadataTypeWithPath(metadata.TypesPays, "Pays", sc.Sequence[sc.Str]{"frame_support", "dispatch", "Pays"}, primitives.NewMetadataTypeDefinitionVariant(
@@ -460,12 +460,12 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Yes",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.PaysYes,
+					sc.U8(primitives.PaysYes),
 					"Pays.Yes"),
 				primitives.NewMetadataDefinitionVariant(
 					"No",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.PaysNo,
+					sc.U8(primitives.PaysNo),
 					"Pays.No"),
 			})),
 

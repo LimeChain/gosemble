@@ -429,12 +429,12 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicSuccess(t *testing.T) {
 	}
 	dispatchInfo := primitives.DispatchInfo{
 		Class:   primitives.NewDispatchClassNormal(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	expectDispatchInfo := primitives.DispatchInfo{
 		Weight:  blockWeights.PerClass.Normal.BaseExtrinsic,
 		Class:   primitives.NewDispatchClassNormal(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	expectEventRecord := primitives.EventRecord{
 		Phase:  primitives.NewExtrinsicPhaseInitialization(),
@@ -481,12 +481,12 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 	}
 	dispatchInfo := primitives.DispatchInfo{
 		Class:   primitives.NewDispatchClassNormal(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	expectDispatchInfo := primitives.DispatchInfo{
 		Weight:  blockWeights.PerClass.Normal.BaseExtrinsic,
 		Class:   primitives.NewDispatchClassNormal(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	expectEventRecord := primitives.EventRecord{
 		Phase:  primitives.NewExtrinsicPhaseInitialization(),

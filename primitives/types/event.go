@@ -6,12 +6,14 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
-type Event = sc.VaryingData
+type Event struct {
+	sc.VaryingData
+}
 
 func NewEvent(module sc.U8, event sc.U8, values ...sc.Encodable) Event {
 	args := []sc.Encodable{module, event}
 	args = append(args, values...)
-	return sc.NewVaryingData(args...)
+	return Event{sc.NewVaryingData(args...)}
 }
 
 type EventRecord struct {
@@ -43,7 +45,7 @@ func DecodeEventRecord(buffer *bytes.Buffer) (EventRecord, error) {
 	}
 	return EventRecord{
 		Phase:  phase,
-		Event:  nil, // TODO:
+		Event:  Event{}, // TODO:
 		Topics: topics,
 	}, nil
 }

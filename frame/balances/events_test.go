@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/balances/types"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +24,7 @@ func Test_Balances_DecodeEvent_Endowed(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventEndowed, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventEndowed, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -41,7 +42,7 @@ func Test_Balances_DecodeEvent_DustLost(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventDustLost, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventDustLost, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -63,7 +64,7 @@ func Test_Balances_DecodeEvent_Transfer(t *testing.T) {
 	result, _ := DecodeEvent(moduleId, buffer)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventTransfer, fromAddressId, toAddressAccountId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventTransfer, fromAddressId, toAddressAccountId, targetValue)},
 		result,
 	)
 }
@@ -83,7 +84,7 @@ func Test_Balances_DecodeEvent_BalanceSet(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventBalanceSet, targetAddressId, newFree, newReserved),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventBalanceSet, targetAddressId, newFree, newReserved)},
 		result,
 	)
 }
@@ -102,7 +103,7 @@ func Test_Balances_DecodeEvent_Reserved(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventReserved, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventReserved, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -121,7 +122,7 @@ func Test_Balances_DecodeEvent_Unreserved(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventUnreserved, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventUnreserved, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -143,12 +144,12 @@ func Test_Balances_DecodeEvent_ReserveRepatriated(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(
+		primitives.Event{sc.NewVaryingData(
 			sc.U8(moduleId),
 			EventReserveRepatriated,
 			fromAddressId,
 			toAddressAccountId,
-			targetValue, types.BalanceStatusFree),
+			targetValue, types.BalanceStatusFree)},
 		result,
 	)
 }
@@ -167,7 +168,7 @@ func Test_Balances_DecodeEvent_Deposit(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventDeposit, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventDeposit, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -186,7 +187,7 @@ func Test_Balances_DecodeEvent_Withdraw(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventWithdraw, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventWithdraw, targetAddressId, targetValue)},
 		result,
 	)
 }
@@ -205,7 +206,7 @@ func Test_Balances_DecodeEvent_Slashed(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		sc.NewVaryingData(sc.U8(moduleId), EventSlashed, targetAddressId, targetValue),
+		primitives.Event{sc.NewVaryingData(sc.U8(moduleId), EventSlashed, targetAddressId, targetValue)},
 		result,
 	)
 }

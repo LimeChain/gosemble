@@ -9,10 +9,10 @@ import (
 
 func Test_NewTransactionOutcomeCommit(t *testing.T) {
 	value := sc.U8(5)
-	assert.Equal(t, sc.NewVaryingData(TransactionOutcomeCommit, value), NewTransactionOutcomeCommit(value))
+	assert.Equal(t, TransactionOutcome(sc.NewVaryingData(TransactionOutcomeCommit, value)), NewTransactionOutcomeCommit(value))
 }
 
 func Test_NewTransactionOutcomeRollback(t *testing.T) {
 	value := sc.U8(5)
-	assert.Equal(t, sc.NewVaryingData(TransactionOutcomeRollback, value), NewTransactionOutcomeRollback(value))
+	assert.Equal(t, TransactionOutcome(sc.NewVaryingData(TransactionOutcomeRollback, value)), NewTransactionOutcomeRollback(value))
 }
