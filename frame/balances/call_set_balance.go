@@ -100,7 +100,7 @@ func (_ callSetBalance) ClassifyDispatch(baseWeight types.Weight) types.Dispatch
 }
 
 func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+	return types.PaysYes
 }
 
 func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {

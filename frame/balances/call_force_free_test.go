@@ -134,7 +134,7 @@ func Test_Call_ForceFree_ClassifyDispatch(t *testing.T) {
 func Test_Call_ForceFree_PaysFee(t *testing.T) {
 	target := setupCallForceFree()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {

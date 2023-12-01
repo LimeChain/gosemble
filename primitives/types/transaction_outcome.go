@@ -12,12 +12,12 @@ const (
 )
 
 // TransactionOutcome Describes on what should happen with a storage transaction.
-type TransactionOutcome = sc.VaryingData
+type TransactionOutcome sc.VaryingData
 
 func NewTransactionOutcomeCommit(res sc.Encodable) TransactionOutcome {
-	return sc.NewVaryingData(TransactionOutcomeCommit, res)
+	return TransactionOutcome(sc.NewVaryingData(TransactionOutcomeCommit, res))
 }
 
 func NewTransactionOutcomeRollback(res sc.Encodable) TransactionOutcome {
-	return sc.NewVaryingData(TransactionOutcomeRollback, res)
+	return TransactionOutcome(sc.NewVaryingData(TransactionOutcomeRollback, res))
 }

@@ -52,7 +52,7 @@ var (
 	dispatchInfo = primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(2, 2),
 		Class:   dispatchClassNormal,
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	dispatchResultWithPostInfo = &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
@@ -348,7 +348,7 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testin
 	dispatchInfo := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(2, 2),
 		Class:   dispatchClassMandatory,
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
@@ -478,7 +478,7 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	dispatchInfo := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(2, 2),
 		Class:   dispatchClassMandatory,
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)

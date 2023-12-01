@@ -270,12 +270,16 @@ func (mmse MetadataModuleStorageEntry) Bytes() []byte {
 	return sc.EncodedBytes(mmse)
 }
 
+type MetadataModuleStorageEntryModifier sc.U8
+
 const (
 	MetadataModuleStorageEntryModifierOptional MetadataModuleStorageEntryModifier = iota
 	MetadataModuleStorageEntryModifierDefault                                     = 1
 )
 
-type MetadataModuleStorageEntryModifier = sc.U8
+func (mmsem MetadataModuleStorageEntryModifier) Encode(buffer *bytes.Buffer) error {
+	return sc.U8(mmsem).Encode(buffer)
+}
 
 func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataModuleStorageEntryModifier, error) {
 	b, err := sc.DecodeU8(buffer)
@@ -283,7 +287,7 @@ func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataMod
 		return MetadataModuleStorageEntryModifier(0), err
 	}
 
-	switch b {
+	switch MetadataModuleStorageEntryModifier(b) {
 	case MetadataModuleStorageEntryModifierOptional:
 		return MetadataModuleStorageEntryModifierOptional, nil
 	case MetadataModuleStorageEntryModifierDefault:
@@ -293,19 +297,25 @@ func DecodeMetadataModuleStorageEntryModifier(buffer *bytes.Buffer) (MetadataMod
 	}
 }
 
+func (mmsem MetadataModuleStorageEntryModifier) Bytes() []byte {
+	return sc.EncodedBytes(mmsem)
+}
+
 const (
 	MetadataModuleStorageEntryDefinitionPlain sc.U8 = iota
 	MetadataModuleStorageEntryDefinitionMap
 )
 
-type MetadataModuleStorageEntryDefinition = sc.VaryingData
+type MetadataModuleStorageEntryDefinition struct {
+	sc.VaryingData
+}
 
 func NewMetadataModuleStorageEntryDefinitionPlain(key sc.Compact) MetadataModuleStorageEntryDefinition {
-	return sc.NewVaryingData(MetadataModuleStorageEntryDefinitionPlain, key)
+	return MetadataModuleStorageEntryDefinition{sc.NewVaryingData(MetadataModuleStorageEntryDefinitionPlain, key)}
 }
 
 func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[MetadataModuleStorageHashFunc], key, value sc.Compact) MetadataModuleStorageEntryDefinition {
-	return sc.NewVaryingData(MetadataModuleStorageEntryDefinitionMap, storageHashFuncs, key, value)
+	return MetadataModuleStorageEntryDefinition{sc.NewVaryingData(MetadataModuleStorageEntryDefinitionMap, storageHashFuncs, key, value)}
 }
 
 func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataModuleStorageEntryDefinition, error) {
@@ -394,6 +404,8 @@ func (mmc MetadataModuleConstant) Bytes() []byte {
 	return sc.EncodedBytes(mmc)
 }
 
+type MetadataModuleStorageHashFunc sc.U8
+
 const (
 	MetadataModuleStorageHashFuncBlake128 MetadataModuleStorageHashFunc = iota
 	MetadataModuleStorageHashFuncBlake256
@@ -404,7 +416,9 @@ const (
 	MetadataModuleStorageHashFuncIdentity
 )
 
-type MetadataModuleStorageHashFunc = sc.U8
+func (mmshf MetadataModuleStorageHashFunc) Encode(buffer *bytes.Buffer) error {
+	return sc.U8(mmshf).Encode(buffer)
+}
 
 func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleStorageHashFunc, error) {
 	b, err := sc.DecodeU8(buffer)
@@ -412,7 +426,7 @@ func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleSt
 		return MetadataModuleStorageHashFunc(0), err
 	}
 
-	switch b {
+	switch MetadataModuleStorageHashFunc(b) {
 	case MetadataModuleStorageHashFuncBlake128:
 		return MetadataModuleStorageHashFuncBlake128, nil
 	case MetadataModuleStorageHashFuncBlake256:
@@ -430,4 +444,8 @@ func DecodeMetadataModuleStorageHashFunc(buffer *bytes.Buffer) (MetadataModuleSt
 	default:
 		return MetadataModuleStorageHashFunc(0), newTypeError("MetadataModuleStorageHashFunc")
 	}
+}
+
+func (mmshf MetadataModuleStorageHashFunc) Bytes() []byte {
+	return sc.EncodedBytes(mmshf)
 }

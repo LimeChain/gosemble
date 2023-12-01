@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -78,6 +79,22 @@ func Test_DecodeDispatchClass_TypeError(t *testing.T) {
 	assert.Equal(t, DispatchClass{}, result)
 }
 
+func Test_DecodeDispatchClass_Empty(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	dispatchClass, err := DecodeDispatchClass(buffer)
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, DispatchClass{}, dispatchClass)
+}
+
+func Test_DispatchClass_Is_Empty_TypeError(t *testing.T) {
+	result, err := DispatchClass{}.Is(DispatchClassNormal)
+
+	assert.Error(t, err)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+	assert.Equal(t, sc.Bool(false), result)
+}
+
 func Test_DispatchClass_Is(t *testing.T) {
 	result, err := NewDispatchClassNormal().Is(DispatchClassNormal)
 
@@ -86,7 +103,7 @@ func Test_DispatchClass_Is(t *testing.T) {
 }
 
 func Test_DispatchClass_Is_TypeError(t *testing.T) {
-	unknownDispatchClass := sc.U8(3)
+	unknownDispatchClass := DispatchClassType(3)
 
 	result, err := NewDispatchClassNormal().Is(unknownDispatchClass)
 
@@ -100,4 +117,10 @@ func Test_DispatchClassAll(t *testing.T) {
 		[]DispatchClass{NewDispatchClassNormal(), NewDispatchClassOperational(), NewDispatchClassMandatory()},
 		DispatchClassAll(),
 	)
+}
+
+func Test_DispatchClassType_Bytes(t *testing.T) {
+	result := DispatchClassNormal.Bytes()
+
+	assert.Equal(t, []byte{0}, result)
 }

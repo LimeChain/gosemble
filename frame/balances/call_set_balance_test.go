@@ -107,7 +107,7 @@ func Test_Call_SetBalance_ClassifyDispatch(t *testing.T) {
 func Test_Call_SetBalance_PaysFee(t *testing.T) {
 	target := setupCallSetBalance()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {

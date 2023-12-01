@@ -13,7 +13,7 @@ type PostDispatchInfo struct {
 	ActualWeight sc.Option[Weight]
 
 	// Whether this transaction should pay fees when all is said and done.
-	PaysFee sc.U8
+	PaysFee Pays
 }
 
 func (pdi PostDispatchInfo) Encode(buffer *bytes.Buffer) error {
@@ -28,7 +28,7 @@ func DecodePostDispatchInfo(buffer *bytes.Buffer) (PostDispatchInfo, error) {
 	if err != nil {
 		return PostDispatchInfo{}, err
 	}
-	paysFee, err := sc.DecodeU8(buffer)
+	paysFee, err := DecodePays(buffer)
 	if err != nil {
 		return PostDispatchInfo{}, err
 	}
@@ -64,10 +64,10 @@ func (pdi PostDispatchInfo) Pays(info *DispatchInfo) Pays {
 	// This is because the pre dispatch information must contain the
 	// worst case for weight and fees paid.
 
-	if info.PaysFee[0] == PaysNo || pdi.PaysFee == PaysNo {
-		return NewPaysNo()
+	if info.PaysFee == PaysNo || pdi.PaysFee == PaysNo {
+		return PaysNo
 	} else {
 		// Otherwise they pay.
-		return NewPaysYes()
+		return PaysYes
 	}
 }

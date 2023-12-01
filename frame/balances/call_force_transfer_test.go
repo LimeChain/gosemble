@@ -94,7 +94,7 @@ func Test_Call_ForceTransfer_ClassifyDispatch(t *testing.T) {
 func Test_Call_ForceTransfer_PaysFee(t *testing.T) {
 	target := setupCallForceTransfer()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {

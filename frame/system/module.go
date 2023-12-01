@@ -517,7 +517,7 @@ func (m module) decProviders(who primitives.AccountId) (primitives.DecRefStatus,
 	}
 
 	if result.HasError {
-		return sc.U8(0), result.Value.(primitives.DispatchError)
+		return primitives.DecRefStatus(0), result.Value.(primitives.DispatchError)
 	}
 
 	return result.Value.(primitives.DecRefStatus), nil

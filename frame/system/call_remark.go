@@ -82,7 +82,7 @@ func (_ callRemark) ClassifyDispatch(baseWeight primitives.Weight) primitives.Di
 }
 
 func (_ callRemark) PaysFee(baseWeight primitives.Weight) primitives.Pays {
-	return primitives.NewPaysYes()
+	return primitives.PaysYes
 }
 
 func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {

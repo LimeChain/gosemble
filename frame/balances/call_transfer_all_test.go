@@ -91,7 +91,7 @@ func Test_Call_TransferAll_ClassifyDispatch(t *testing.T) {
 func Test_Call_TransferAll_PaysFee(t *testing.T) {
 	target := setupCallTransferAll()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {

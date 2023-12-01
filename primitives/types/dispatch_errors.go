@@ -54,17 +54,14 @@ func NewDispatchErrorTooManyConsumers() DispatchError {
 }
 
 func NewDispatchErrorToken(tokenError TokenError) DispatchError {
-	// TODO: type safety
 	return DispatchError(sc.NewVaryingData(DispatchErrorToken, tokenError))
 }
 
 func NewDispatchErrorArithmetic(arithmeticError ArithmeticError) DispatchError {
-	// TODO: type safety
 	return DispatchError(sc.NewVaryingData(DispatchErrorArithmetic, arithmeticError))
 }
 
 func NewDispatchErrorTransactional(transactionalError TransactionalError) DispatchError {
-	// TODO: type safety
 	return DispatchError(sc.NewVaryingData(DispatchErrorTransactional, transactionalError))
 }
 

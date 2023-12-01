@@ -27,7 +27,7 @@ var (
 		Id:         sc.ToCompact(123456),
 		Path:       sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: sc.VaryingData{sc.U8(6), sc.ToCompact(123456)},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(6), sc.ToCompact(123456)}},
 		Docs:       sc.Sequence[sc.Str]{"TestExtraCheck"},
 	}
 
@@ -35,7 +35,7 @@ var (
 		Id:         sc.ToCompact(97),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(123456), sc.ToCompact(123456)}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(123456), sc.ToCompact(123456)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 

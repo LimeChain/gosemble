@@ -14,11 +14,11 @@ var (
 )
 
 var (
-	event1 = Event{
+	event1 = Event{sc.VaryingData{
 		sc.U8(1),
 		sc.U32(2),
 		sc.Sequence[sc.U8]{3, 4},
-	}
+	}}
 
 	eventRecord1 = EventRecord{
 		Phase:  NewExtrinsicPhaseInitialization(),
@@ -28,7 +28,7 @@ var (
 )
 
 func Test_NewEvent(t *testing.T) {
-	expectedEvent := sc.NewVaryingData(sc.U8(1), sc.U8(2), sc.FixedSequence[sc.U8]{3, 4})
+	expectedEvent := Event{sc.NewVaryingData(sc.U8(1), sc.U8(2), sc.FixedSequence[sc.U8]{3, 4})}
 
 	assert.Equal(t, expectedEvent, NewEvent(1, 2, sc.FixedSequence[sc.U8]{3, 4}))
 }

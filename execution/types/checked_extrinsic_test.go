@@ -19,7 +19,7 @@ var (
 	dispatchInfo = &types.DispatchInfo{
 		Weight:  types.WeightFromParts(4, 5),
 		Class:   types.NewDispatchClassMandatory(),
-		PaysFee: types.NewPaysNo(),
+		PaysFee: types.PaysNo,
 	}
 	length           = sc.ToCompact(5)
 	postDispatchInfo = types.PostDispatchInfo{

@@ -11,7 +11,7 @@ var (
 	dispatchInfoWithFee = DispatchInfo{
 		Weight:  WeightFromParts(6, 7),
 		Class:   NewDispatchClassNormal(),
-		PaysFee: NewPaysYes(),
+		PaysFee: PaysYes,
 	}
 
 	postDispatchInfoOk = PostDispatchInfo{
@@ -67,7 +67,7 @@ func Test_ExtractActualPaysFee_DispatchResultOk(t *testing.T) {
 
 	result := ExtractActualPaysFee(&dispatchResultWithPostInfo, &dispatchInfoWithFee)
 
-	assert.Equal(t, NewPaysYes(), result)
+	assert.Equal(t, PaysYes, result)
 }
 
 func Test_ExtractActualPaysFee_DispatchResultErr(t *testing.T) {
@@ -82,5 +82,5 @@ func Test_ExtractActualPaysFee_DispatchResultErr(t *testing.T) {
 
 	result := ExtractActualPaysFee(&dispatchResultWithPostInfo, &dispatchInfoWithFee)
 
-	assert.Equal(t, NewPaysNo(), result)
+	assert.Equal(t, PaysNo, result)
 }

@@ -139,7 +139,7 @@ func Test_Call_Remark_ClassifyDispatch(t *testing.T) {
 func Test_Call_Remark_PaysFee(t *testing.T) {
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	assert.Equal(t, primitives.NewPaysYes(), call.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, call.PaysFee(baseWeight))
 }
 
 func Test_Call_Remark_Dispatch_Success(t *testing.T) {

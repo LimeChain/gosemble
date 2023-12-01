@@ -185,7 +185,7 @@ func Test_Transactional_WithTransaction_InvalidTransactionOutcome(t *testing.T) 
 
 	assert.PanicsWithValue(t, errInvalidTransactionOutcome, func() {
 		target.WithTransaction(func() primitives.TransactionOutcome {
-			return sc.NewVaryingData(sc.U32(3))
+			return primitives.TransactionOutcome(sc.NewVaryingData(sc.U32(3)))
 		})
 	})
 

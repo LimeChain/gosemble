@@ -18,7 +18,7 @@ var (
 	dispatchInfo = &primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(1, 2),
 		Class:   primitives.NewDispatchClassNormal(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	blockWeight = primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),

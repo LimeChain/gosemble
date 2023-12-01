@@ -27,7 +27,7 @@ func (c testCall) ClassifyDispatch(baseWeight Weight) DispatchClass {
 }
 
 func (c testCall) PaysFee(baseWeight Weight) Pays {
-	return NewPaysYes()
+	return PaysYes
 }
 
 func (c testCall) WeighData(baseWeight Weight) Weight {
