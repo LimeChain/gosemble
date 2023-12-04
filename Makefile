@@ -2,17 +2,17 @@ CURRENT_DIR = $(shell pwd)
 SRC_DIR = /src/examples/wasm/gosemble
 BUILD_PATH = build/runtime.wasm
 TARGET = polkawasm
-GC = custom-extalloc-leak
-VERSION = 0.30.0
+GC = extalloc # (extalloc, extalloc_leaking)
+VERSION = 0.31.0-dev
 IMAGE = tinygo/${TARGET}
 
-WASMOPT_PATH = /tinygo/lib/binaryen/bin/wasm-opt
+WASMOPT_PATH = tinygo/lib/binaryen/bin/wasm-opt
 
 DOCKER_BUILD_TINYGO = docker build --tag $(IMAGE):$(VERSION)-$(GC) -f tinygo/Dockerfile.$(TARGET) tinygo
 DOCKER_RUN_TINYGO = docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(VERSION)-$(GC) /bin/bash -c
 
-TINYGO_BUILD_COMMAND_NODEBUG = tinygo build --no-debug -target=$(TARGET)
-TINYGO_BUILD_COMMAND = tinygo build -target=$(TARGET)
+TINYGO_BUILD_COMMAND_NODEBUG = tinygo build --no-debug -gc=$(GC) -target=$(TARGET)
+TINYGO_BUILD_COMMAND = tinygo build -gc=$(GC) -target=$(TARGET)
 
 RUNTIME_BUILD_NODEBUG = "WASMOPT="$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
 RUNTIME_BUILD = "WASMOPT="$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
