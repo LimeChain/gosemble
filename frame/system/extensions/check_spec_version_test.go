@@ -100,7 +100,7 @@ func Test_CheckSpecVersion_PostDispatch(t *testing.T) {
 }
 
 func Test_CheckSpecVersion_ModulePath(t *testing.T) {
-	target := setupCheckNonce()
+	target := setupCheckSpecVersion()
 
 	expectedModulePath := "frame_system"
 	actualModulePath := target.ModulePath()

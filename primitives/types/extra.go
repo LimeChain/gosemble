@@ -27,7 +27,7 @@ type SignedExtra interface {
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
-	Metadata(constantsIdsMap map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
+	Metadata(metadataIds map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
 }
 
 // signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
@@ -150,13 +150,13 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e signedExtra) Metadata(constantsIdsMap map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
+func (e signedExtra) Metadata(metadataIds map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
 	ids := sc.Sequence[sc.Compact]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		extraMetadataId := generateExtraMetadata(extra, constantsIdsMap, &extraTypes, &signedExtensions)
+		extraMetadataId := generateExtraMetadata(extra, metadataIds, &extraTypes, &signedExtensions)
 		ids = append(ids, sc.ToCompact(extraMetadataId))
 	}
 

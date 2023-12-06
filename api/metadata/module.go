@@ -71,13 +71,13 @@ func (m Module) Metadata() int64 {
 }
 
 func (m Module) buildMetadata() primitives.Metadata {
-	constantIdsMap := buildConstantsMap()
+	metadataTypesIds := buildMetadataTypesIdsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(constantIdsMap)
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(metadataTypesIds)
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
@@ -107,7 +107,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	constantIdsMap := buildConstantsMap()
+	metadataTypesIds := buildMetadataTypesIdsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -115,7 +115,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(constantIdsMap)
+		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(metadataTypesIds)
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
 			Types:     metadataTypes,
@@ -130,7 +130,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(constantIdsMap)
+		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(metadataTypesIds)
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,
@@ -212,7 +212,7 @@ func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 	}
 }
 
-func buildConstantsMap() map[string]int {
+func buildMetadataTypesIdsMap() map[string]int {
 	return map[string]int{
 		"Bool":   metadata.PrimitiveTypesBool,
 		"String": metadata.PrimitiveTypesString,
@@ -227,6 +227,7 @@ func buildConstantsMap() map[string]int {
 		"I32":    metadata.PrimitiveTypesI32,
 		"I64":    metadata.PrimitiveTypesI64,
 		"I128":   metadata.PrimitiveTypesI128,
+		"H256":   metadata.TypesH256,
 	}
 }
 

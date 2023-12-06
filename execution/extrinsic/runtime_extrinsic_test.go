@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	constantIdsMap = map[string]int{
+	metadataTypesIds = map[string]int{
 		"Bool":   metadata.PrimitiveTypesBool,
 		"String": metadata.PrimitiveTypesString,
 		"U8":     metadata.PrimitiveTypesU8,
@@ -474,16 +474,16 @@ func Test_RuntimeExtrinsic_Metadata(t *testing.T) {
 
 	mockModuleOne.On("Metadata").Return(metadataTypes, metadataOne)
 	mockModuleTwo.On("Metadata").Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", constantIdsMap).Return(metadataTypes, signedExtensions)
+	mockSignedExtra.On("Metadata", metadataTypesIds).Return(metadataTypes, signedExtensions)
 
-	resultTypes, resultModules, resultExtrinsic := target.Metadata(constantIdsMap)
+	resultTypes, resultModules, resultExtrinsic := target.Metadata(metadataTypesIds)
 
 	assert.Equal(t, expectTypes, resultTypes)
 	assert.Equal(t, expectModules, resultModules)
 	assert.Equal(t, expectExtrinsic, resultExtrinsic)
 	mockModuleOne.AssertCalled(t, "Metadata")
 	mockModuleTwo.AssertCalled(t, "Metadata")
-	mockSignedExtra.AssertCalled(t, "Metadata", constantIdsMap)
+	mockSignedExtra.AssertCalled(t, "Metadata", metadataTypesIds)
 }
 
 func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
@@ -547,9 +547,9 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 
 	mockModuleOne.On("Metadata").Return(metadataTypes, metadataOne)
 	mockModuleTwo.On("Metadata").Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", constantIdsMap).Return(metadataTypes, signedExtensions)
+	mockSignedExtra.On("Metadata", metadataTypesIds).Return(metadataTypes, signedExtensions)
 
-	resultTypes, resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest(constantIdsMap)
+	resultTypes, resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest(metadataTypesIds)
 
 	assert.Equal(t, expectTypes, resultTypes)
 	assert.Equal(t, expectModules, resultModules)
@@ -558,7 +558,7 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 	assert.Equal(t, expectCustom, resultCustom)
 	mockModuleOne.AssertCalled(t, "Metadata")
 	mockModuleTwo.AssertCalled(t, "Metadata")
-	mockSignedExtra.AssertCalled(t, "Metadata", constantIdsMap)
+	mockSignedExtra.AssertCalled(t, "Metadata", metadataTypesIds)
 }
 
 func setupRuntimeExtrinsic() RuntimeExtrinsic {
