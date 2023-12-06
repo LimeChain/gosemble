@@ -198,7 +198,7 @@ var (
 		Id:         sc.ToCompact(metadata.SignedExtra),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataId), sc.ToCompact(expectedCheckEraMetadataId), sc.ToCompact(expectedCheckComplexMetadataId)}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataId), sc.ToCompact(expectedCheckEraMetadataId), sc.ToCompact(expectedCheckComplexMetadataId)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
@@ -349,7 +349,7 @@ var (
 		Id:         sc.ToCompact(metadata.SignedExtra),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataIdSome), sc.ToCompact(expectedCheckEraMetadataIdSome), sc.ToCompact(expectedExtraCheckComplexIdSome)}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataIdSome), sc.ToCompact(expectedCheckEraMetadataIdSome), sc.ToCompact(expectedExtraCheckComplexIdSome)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 

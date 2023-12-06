@@ -2,10 +2,12 @@ package types
 
 import (
 	"bytes"
-	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
+)
+
+const (
+	testChecksModulePath = "primitives_types"
 )
 
 var (
@@ -93,8 +95,5 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 }
 
 func (e testExtraCheck) ModulePath() string {
-	pkgPath := reflect.TypeOf(e).PkgPath()
-	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
-	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
-	return strings.Replace(pkgPath, "/", "_", 1)
+	return testChecksModulePath
 }

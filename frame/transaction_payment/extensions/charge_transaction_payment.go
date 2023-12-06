@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	txPaymentModulePath = "transaction_payment"
+	txPaymentModulePath = "frame_transaction_payment"
 )
 
 type ChargeTransactionPayment struct {
