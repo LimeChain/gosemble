@@ -2,8 +2,6 @@ package extensions
 
 import (
 	"bytes"
-	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -94,8 +92,5 @@ func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *prim
 }
 
 func (cm CheckMortality) ModulePath() string {
-	pkgPath := reflect.TypeOf(cm).PkgPath()
-	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
-	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
-	return strings.Replace(pkgPath, "/", "_", 1)
+	return systemModulePath
 }

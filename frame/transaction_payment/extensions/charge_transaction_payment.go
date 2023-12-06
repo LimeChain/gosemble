@@ -2,8 +2,6 @@ package extensions
 
 import (
 	"bytes"
-	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
@@ -14,7 +12,7 @@ import (
 )
 
 const (
-	basePath = "github.com/LimeChain/gosemble/"
+	txPaymentModulePath = "transaction_payment"
 )
 
 type ChargeTransactionPayment struct {
@@ -203,8 +201,5 @@ func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call p
 }
 
 func (ctp ChargeTransactionPayment) ModulePath() string {
-	pkgPath := reflect.TypeOf(ctp).PkgPath()
-	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
-	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
-	return strings.Replace(pkgPath, "/", "_", 1)
+	return txPaymentModulePath
 }

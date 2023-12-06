@@ -2,12 +2,14 @@ package extensions
 
 import (
 	"bytes"
-	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+const (
+	systemModulePath = "frame_system"
 )
 
 type CheckGenesis struct {
@@ -62,10 +64,6 @@ func (cg CheckGenesis) PostDispatch(_pre sc.Option[primitives.Pre], info *primit
 	return nil
 }
 
-// ModulePath Returns the path of the module where the extension is located in. E.g. frame_system, frame_transaction_payment
 func (cg CheckGenesis) ModulePath() string {
-	pkgPath := reflect.TypeOf(cg).PkgPath()
-	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
-	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
-	return strings.Replace(pkgPath, "/", "_", 1)
+	return systemModulePath
 }

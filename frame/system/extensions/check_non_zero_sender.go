@@ -3,7 +3,6 @@ package extensions
 import (
 	"bytes"
 	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -61,8 +60,5 @@ func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *
 }
 
 func (c CheckNonZeroAddress) ModulePath() string {
-	pkgPath := reflect.TypeOf(c).PkgPath()
-	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
-	pkgPath, _, _ = strings.Cut(pkgPath, "/extensions")
-	return strings.Replace(pkgPath, "/", "_", 1)
+	return systemModulePath
 }
