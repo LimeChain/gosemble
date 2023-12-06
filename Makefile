@@ -6,7 +6,7 @@ GC = extalloc # (extalloc, extalloc_leaking)
 VERSION = 0.31.0-dev
 IMAGE = tinygo/${TARGET}
 
-WASMOPT_PATH = tinygo/lib/binaryen/bin/wasm-opt
+WASMOPT_PATH = /tinygo/lib/binaryen/bin/wasm-opt
 
 DOCKER_BUILD_TINYGO = docker build --tag $(IMAGE):$(VERSION)-$(GC) -f tinygo/Dockerfile.$(TARGET) tinygo
 DOCKER_RUN_TINYGO = docker run --rm -v $(CURRENT_DIR):$(SRC_DIR) -w $(SRC_DIR) $(IMAGE):$(VERSION)-$(GC) /bin/bash -c
