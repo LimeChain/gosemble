@@ -9,6 +9,7 @@ import (
 	apiAura "github.com/LimeChain/gosemble/api/aura"
 	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
 	"github.com/LimeChain/gosemble/api/core"
+	genesisbuilder "github.com/LimeChain/gosemble/api/genesis_builder"
 	apiGrandpa "github.com/LimeChain/gosemble/api/grandpa"
 	"github.com/LimeChain/gosemble/api/metadata"
 	"github.com/LimeChain/gosemble/api/offchain_worker"
@@ -164,6 +165,7 @@ func runtimeApi() types.RuntimeApi {
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
 	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[PublicKeyType])
 	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
+	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
 
 	executiveModule := executive.New(
 		systemModule,
@@ -186,6 +188,7 @@ func runtimeApi() types.RuntimeApi {
 	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
 	sessionKeysApi := session_keys.New[PublicKeyType](sessions)
 	offchainWorkerApi := offchain_worker.New(executiveModule)
+	genesisBuilderApi := genesisbuilder.New([]primitives.GenesisBuilder{auraModule, balancesModule, grandpaModule, systemModule})
 
 	metadataApi := metadata.New(
 		runtimeExtrinsic,
@@ -214,6 +217,7 @@ func runtimeApi() types.RuntimeApi {
 		txPaymentsCallApi,
 		sessionKeysApi,
 		offchainWorkerApi,
+		genesisBuilderApi,
 	}
 
 	runtimeApi := types.NewRuntimeApi(apis)
@@ -382,24 +386,16 @@ func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 	return 0
 }
 
-// todo
+//go:export GenesisBuilder_create_default_config
+func GenesisBuilderCreateDefaultConfig(_, _ int32) int64 {
+	return runtimeApi().
+		Module(genesisbuilder.ApiModuleName).(genesisbuilder.Module).
+		CreateDefaultConfig()
+}
 
-// sp_api::decl_runtime_apis! {
-// 	/// API to interact with GenesisConfig for the runtime
-// 	pub trait GenesisBuilder {
-// 		/// Creates the default `GenesisConfig` and returns it as a JSON blob.
-// 		///
-// 		/// This function instantiates the default `GenesisConfig` struct for the runtime and serializes it into a JSON
-// 		/// blob. It returns a `Vec<u8>` containing the JSON representation of the default `GenesisConfig`.
-// 		fn create_default_config() -> sp_std::vec::Vec<u8>;
-
-// 		/// Build `GenesisConfig` from a JSON blob not using any defaults and store it in the storage.
-// 		///
-// 		/// This function deserializes the full `GenesisConfig` from the given JSON blob and puts it into the storage.
-// 		/// If the provided JSON blob is incorrect or incomplete or the deserialization fails, an error is returned.
-// 		/// It is recommended to log any errors encountered during the process.
-// 		///
-// 		/// Please note that provided json blob must contain all `GenesisConfig` fields, no defaults will be used.
-// 		fn build_config(json: sp_std::vec::Vec<u8>) -> Result;
-// 	}
-// }
+//go:export GenesisBuilder_build_config
+func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
+	return runtimeApi().
+		Module(genesisbuilder.ApiModuleName).(genesisbuilder.Module).
+		BuildConfig(dataPtr, dataLen)
+}

@@ -1,5 +1,11 @@
 package types
 
+type GenesisBuilder interface {
+	CreateDefaultConfig() ([]byte, error)
+	BuildConfig(config []byte) error
+	ConfigModuleKey() string
+}
+
 // todo
 
 //! Substrate genesis config builder
@@ -31,6 +37,8 @@ package types
 // 	}
 
 // todo Hooks and will be implemented by all frames (see other hooks)
+//
+// TODO check every place BuildGenesisConfig is implemented in polkadot-sdk. VERY IMPORTANT TO NOT MISS A THING!
 //
 // /// A trait to define the build function of a genesis config for both runtime and pallets.
 // ///

@@ -78,11 +78,11 @@ build-dev: build-tinygo
 	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND) -o=$(BUILD_PATH) runtime/runtime.go
 
 start-network:
-	cp build/runtime.wasm substrate/bin/node-template/runtime.wasm; \
-	cd substrate/bin/node-template; \
+	cp build/runtime.wasm polkadot-sdk/substrate/bin/node-template/runtime.wasm; \
+	cd polkadot-sdk/substrate/bin/node-template/node; \
 	cargo build --release; \
-	cd ../..; \
-	WASMTIME_BACKTRACE_DETAILS=1 RUST_LOG=runtime=trace ./target/release/node-template --dev --execution Wasm
+	cd ../../../..; \
+	WASMTIME_BACKTRACE_DETAILS=1 RUST_LOG=runtime=trace ./target/release/node-template --dev --execution=wasm
 
 test: test-unit test-integration
 

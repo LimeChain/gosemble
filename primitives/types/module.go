@@ -10,6 +10,7 @@ import (
 type Module interface {
 	InherentProvider
 	DispatchModule
+	// todo primitives.GenesisBuilder
 	GetIndex() sc.U8
 	Functions() map[sc.U8]Call
 	PreDispatch(call Call) (sc.Empty, TransactionValidityError)
