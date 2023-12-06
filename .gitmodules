@@ -9,4 +9,4 @@
 	url = git@github.com:LimeChain/goscale.git
 [submodule "polkadot-sdk"]
 	path = polkadot-sdk
-	url = git@github.com:paritytech/polkadot-sdk.git
+	url = git@github.com:LimeChain/polkadot-sdk.git
