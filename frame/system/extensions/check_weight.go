@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -15,11 +14,15 @@ const (
 )
 
 type CheckWeight struct {
-	systemModule system.Module
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
-	return &CheckWeight{systemModule: systemModule}
+	return &CheckWeight{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
 }
 
 func (cw CheckWeight) Encode(*bytes.Buffer) error {
@@ -212,16 +215,6 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	return allConsumedWeight, nil
 }
 
-func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckWeight,
-			"CheckWeight",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
-}
-
 func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
 	isNormal, err := info.Class.Is(primitives.DispatchClassNormal)
 	if err != nil {
@@ -250,4 +243,8 @@ func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo)
 	log.Critical(errInvalidDispatchClass)
 
 	panic("unreachable")
+}
+
+func (cw CheckWeight) ModulePath() string {
+	return systemModulePath
 }

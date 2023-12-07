@@ -4,12 +4,15 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+const (
+	txPaymentModulePath = "frame_transaction_payment"
 )
 
 type ChargeTransactionPayment struct {
@@ -109,21 +112,6 @@ func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, in
 	return err
 }
 
-func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithParam(
-			metadata.ChargeTransactionPayment,
-			"ChargeTransactionPayment",
-			sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
-				},
-			),
-			primitives.NewMetadataEmptyTypeParameter("T"),
-		),
-		primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple)
-}
-
 func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
 	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max
@@ -210,4 +198,8 @@ func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call p
 	}
 
 	return fee, imbalance, nil
+}
+
+func (ctp ChargeTransactionPayment) ModulePath() string {
+	return txPaymentModulePath
 }

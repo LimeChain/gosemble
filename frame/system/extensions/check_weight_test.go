@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -702,19 +701,13 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_Success(t *testing.T) {
 	assert.Equal(t, expect, result)
 }
 
-func Test_CheckWeight_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckWeight,
-		"CheckWeight",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"},
-		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
+func Test_CheckWeight_ModulePath(t *testing.T) {
+	target := setupCheckWeight()
 
-	resultType, resultSignedExtension := setupCheckWeight().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckWeight() CheckWeight {

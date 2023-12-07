@@ -8,7 +8,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -124,19 +123,13 @@ func Test_CheckGenesis_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckGenesis_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckGenesis,
-		"CheckGenesis",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_genesis", "CheckGenesis"},
-		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckGenesis", metadata.CheckGenesis, metadata.TypesH256)
+func Test_CheckGenesis_ModulePath(t *testing.T) {
+	target := setupCheckGenesis()
 
-	resultType, resultSignedExtension := setupCheckGenesis().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckGenesis() CheckGenesis {

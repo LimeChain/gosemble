@@ -5,18 +5,21 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckNonce struct {
-	nonce        sc.U32
-	systemModule system.Module
+	nonce                         sc.U32
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckNonce(systemModule system.Module) primitives.SignedExtension {
-	return &CheckNonce{systemModule: systemModule}
+	return &CheckNonce{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
 }
 
 func (cn CheckNonce) Encode(buffer *bytes.Buffer) error {
@@ -107,12 +110,6 @@ func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitiv
 	return nil
 }
 
-func (cn CheckNonce) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckNonce,
-			"CheckNonce",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"},
-			primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32)),
-		),
-		primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple)
+func (cn CheckNonce) ModulePath() string {
+	return systemModulePath
 }

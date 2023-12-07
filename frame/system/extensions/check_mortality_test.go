@@ -9,7 +9,6 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -219,23 +218,13 @@ func Test_CheckMortality_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckMortality_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckMortality,
-		"CheckMortality",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-		primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
-			},
-		),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
+func Test_CheckMortality_ModulePath(t *testing.T) {
+	target := setupCheckMortality()
 
-	resultType, resultSignedExtension := setupCheckMortality().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckMortality() CheckMortality {

@@ -4,17 +4,20 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckTxVersion struct {
-	systemModule system.Module
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckTxVersion(module system.Module) primitives.SignedExtension {
-	return &CheckTxVersion{systemModule: module}
+	return &CheckTxVersion{
+		systemModule:                  module,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(sc.U32(0)),
+	}
 }
 
 func (ctv CheckTxVersion) Encode(*bytes.Buffer) error {
@@ -53,12 +56,6 @@ func (ctv CheckTxVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *pri
 	return nil
 }
 
-func (ctv CheckTxVersion) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckTxVersion,
-			"CheckTxVersion",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_tx_version", "CheckTxVersion"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckTxVersion", metadata.CheckTxVersion, metadata.PrimitiveTypesU32)
+func (ctv CheckTxVersion) ModulePath() string {
+	return systemModulePath
 }

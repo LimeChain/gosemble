@@ -2,9 +2,17 @@ package types
 
 import (
 	"bytes"
+	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/iancoleman/strcase"
+)
+
+const (
+	additionalSignedTypeName = "typesInfoAdditionalSignedData"
+	moduleTypeName           = "Module"
+	hookOnChargeTypeName     = "OnChargeTransaction"
 )
 
 type SignedExtra interface {
@@ -19,7 +27,7 @@ type SignedExtra interface {
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
-	Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
+	Metadata(metadataIds map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension])
 }
 
 // signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
@@ -142,20 +150,140 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e signedExtra) Metadata() (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
+func (e signedExtra) Metadata(metadataIds map[string]int) (sc.Sequence[MetadataType], sc.Sequence[MetadataSignedExtension]) {
 	ids := sc.Sequence[sc.Compact]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		metadataType, extension := extra.Metadata()
-
-		ids = append(ids, metadataType.Id)
-		extraTypes = append(extraTypes, metadataType)
-		signedExtensions = append(signedExtensions, extension)
+		extraMetadataId := generateExtraMetadata(extra, metadataIds, &extraTypes, &signedExtensions)
+		ids = append(ids, sc.ToCompact(extraMetadataId))
 	}
 
 	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
 
 	return append(extraTypes, signedExtraType), signedExtensions
+}
+
+// generateExtraMetadata generates the metadata for a signed extension. It may generate some new metadata types in the process. Returns the metadata id for the extra
+func generateExtraMetadata(extra SignedExtension, metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], extensions *sc.Sequence[MetadataSignedExtension]) int {
+	extraValue := reflect.ValueOf(extra)
+	extraType := extraValue.Elem().Type()
+	extraTypeName := extraType.Name()
+
+	extraMetadataId, ok := metadataIds[extraTypeName]
+	if !ok {
+		extraMetadataId = buildMetadataTypeRecursively(extraType, metadataIds, metadataTypes, true, extra.ModulePath())
+	} else {
+		appendExtraMetadata(extraMetadataId, metadataTypes)
+	}
+
+	constructExtension(extraValue, extraMetadataId, extensions, metadataIds, metadataTypes, extra.ModulePath())
+
+	return extraMetadataId
+}
+
+func appendExtraMetadata(id int, metadataTypes *sc.Sequence[MetadataType]) {
+	for _, t := range *metadataTypes {
+		if t.Id.ToBigInt().Int64() == int64(id) {
+			*metadataTypes = append(*metadataTypes, t)
+			break
+		}
+	}
+}
+
+// buildMetadataTypeRecursively build the metadata of the type recursively.
+func buildMetadataTypeRecursively(t reflect.Type, metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], isExtra bool, modulePath string) int {
+	typeId := assignNewMetadataId(metadataIds, t.Name())
+
+	typeName := t.Name()
+
+	metadataFields := sc.Sequence[MetadataTypeDefinitionField]{}
+
+	typeNumFields := 0
+
+	if t.Kind() == reflect.Struct {
+		typeNumFields = t.NumField()
+	}
+
+	for i := 0; i < typeNumFields; i++ {
+		fieldName := t.Field(i).Name
+		fieldTypeName := t.Field(i).Type.Name()
+		if isIgnoredName(fieldName) || isIgnoredType(fieldTypeName) {
+			continue
+		}
+		fieldId, ok := metadataIds[fieldTypeName]
+		if !ok {
+			fieldId = buildMetadataTypeRecursively(t.Field(i).Type, metadataIds, metadataTypes, false, modulePath)
+		}
+		metadataFields = append(metadataFields, NewMetadataTypeDefinitionFieldWithName(fieldId, sc.Str(fieldName)))
+	}
+
+	if isExtra {
+		metadataType := NewMetadataTypeWithPath(typeId, typeName, sc.Sequence[sc.Str]{sc.Str(modulePath), "extensions", sc.Str(strcase.ToSnake(typeName)), sc.Str(typeName)}, NewMetadataTypeDefinitionComposite(metadataFields))
+		*metadataTypes = append(*metadataTypes, metadataType)
+		return typeId
+	}
+
+	*metadataTypes = append(*metadataTypes,
+		NewMetadataType(
+			typeId,
+			typeName,
+			NewMetadataTypeDefinitionComposite(metadataFields)))
+
+	return typeId
+}
+
+func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact]) MetadataType {
+	return NewMetadataType(typeId, typeName, NewMetadataTypeDefinitionTuple(tupleIds))
+}
+
+func isIgnoredType(t string) bool {
+	return t == moduleTypeName || t == hookOnChargeTypeName
+}
+
+func isIgnoredName(name string) bool {
+	return name == additionalSignedTypeName
+}
+
+func assignNewMetadataId(metadataIds map[string]int, name string) int {
+	lastIndex := len(metadataIds)
+	newId := lastIndex + 1
+	metadataIds[name] = newId
+	return newId
+}
+
+// constructExtension Iterates through the elements of the typesInfoAdditionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
+func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataIds map[string]int, metadataTypes *sc.Sequence[MetadataType], modulePath string) {
+	var resultTypeName string
+	var resultTupleIds sc.Sequence[sc.Compact]
+
+	extraType := extra.Elem().Type
+	extraName := extraType().Name()
+
+	additionalSignedField := extra.Elem().FieldByName(additionalSignedTypeName)
+
+	if additionalSignedField.IsValid() {
+		numAdditionalSignedTypes := additionalSignedField.Len()
+		if numAdditionalSignedTypes == 0 {
+			*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, metadata.TypesEmptyTuple))
+			return
+		}
+		for i := 0; i < numAdditionalSignedTypes; i++ {
+			currentType := additionalSignedField.Index(i).Elem().Type()
+			currentTypeName := currentType.Name()
+			currentTypeId, ok := metadataIds[currentTypeName]
+			if !ok {
+				currentTypeId = buildMetadataTypeRecursively(currentType, metadataIds, metadataTypes, false, modulePath)
+			}
+			resultTypeName = resultTypeName + currentTypeName
+			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
+		}
+		resultTypeId, ok := metadataIds[resultTypeName]
+		if !ok {
+			resultTypeId = assignNewMetadataId(metadataIds, resultTypeName)
+			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
+		}
+		*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, resultTypeId))
+	}
 }

@@ -4,17 +4,20 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckSpecVersion struct {
-	systemModule system.Module
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckSpecVersion(systemModule system.Module) primitives.SignedExtension {
-	return &CheckSpecVersion{systemModule: systemModule}
+	return &CheckSpecVersion{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(sc.U32(0)),
+	}
 }
 
 func (csv CheckSpecVersion) Encode(*bytes.Buffer) error {
@@ -53,12 +56,6 @@ func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *p
 	return nil
 }
 
-func (csv CheckSpecVersion) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckSpecVersion,
-			"CheckSpecVersion",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32)
+func (csv CheckSpecVersion) ModulePath() string {
+	return systemModulePath
 }
