@@ -72,7 +72,7 @@ func (m Module) Metadata() int64 {
 
 // TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
-	metadataTypesIds := buildMetadataTypesIdsMap()
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -108,7 +108,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	metadataTypesIds := buildMetadataTypesIdsMap()
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -210,24 +210,6 @@ func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 		Name:    ApiModuleName,
 		Methods: modules,
 		Docs:    sc.Sequence[sc.Str]{" The `Metadata` api trait that returns metadata for the runtime."},
-	}
-}
-
-func buildMetadataTypesIdsMap() map[string]int {
-	return map[string]int{
-		"Bool":   metadata.PrimitiveTypesBool,
-		"String": metadata.PrimitiveTypesString,
-		"U8":     metadata.PrimitiveTypesU8,
-		"U16":    metadata.PrimitiveTypesU16,
-		"U32":    metadata.PrimitiveTypesU32,
-		"U64":    metadata.PrimitiveTypesU64,
-		"U128":   metadata.PrimitiveTypesU128,
-		"I8":     metadata.PrimitiveTypesI8,
-		"I16":    metadata.PrimitiveTypesI16,
-		"I32":    metadata.PrimitiveTypesI32,
-		"I64":    metadata.PrimitiveTypesI64,
-		"I128":   metadata.PrimitiveTypesI128,
-		"H256":   metadata.TypesH256,
 	}
 }
 

@@ -140,7 +140,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	metadataTypesIds := buildMetadataTypesIdsMap()
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
 
 	mockRuntimeExtrinsic.On("Metadata", metadataTypesIds).Return(mdTypes, mdModules14, mdExtrinsic)
 
@@ -179,7 +179,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 
 	version14 := sc.U32(primitives.MetadataVersion14)
 
-	metadataTypesIds := buildMetadataTypesIdsMap()
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
@@ -210,7 +210,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	target := setup()
 
-	metadataTypesIds := buildMetadataTypesIdsMap()
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
 
 	metadataTypes := getAllMetadataTypes(&target)
 
