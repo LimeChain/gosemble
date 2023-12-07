@@ -22,7 +22,6 @@ var (
 		"U32":    metadata.PrimitiveTypesU32,
 		"U64":    metadata.PrimitiveTypesU64,
 		"U128":   metadata.PrimitiveTypesU128,
-		"U256":   metadata.PrimitiveTypesU256,
 		"I8":     metadata.PrimitiveTypesI8,
 		"I16":    metadata.PrimitiveTypesI16,
 		"I32":    metadata.PrimitiveTypesI32,

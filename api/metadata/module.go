@@ -70,6 +70,7 @@ func (m Module) Metadata() int64 {
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
+// TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
 	metadataTypesIds := buildMetadataTypesIdsMap()
 
@@ -221,7 +222,6 @@ func buildMetadataTypesIdsMap() map[string]int {
 		"U32":    metadata.PrimitiveTypesU32,
 		"U64":    metadata.PrimitiveTypesU64,
 		"U128":   metadata.PrimitiveTypesU128,
-		"U256":   metadata.PrimitiveTypesU256,
 		"I8":     metadata.PrimitiveTypesI8,
 		"I16":    metadata.PrimitiveTypesI16,
 		"I32":    metadata.PrimitiveTypesI32,
@@ -241,7 +241,6 @@ func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataType(metadata.PrimitiveTypesU32, "U32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU32)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU64, "U64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU64)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU128, "U128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU256, "U256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU256)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI8, "I8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI8)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI16, "I16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI16)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI32, "I32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI32)),
