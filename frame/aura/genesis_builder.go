@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/itering/subscan/util/ss58"
 )
 
 var (
@@ -46,7 +47,7 @@ func (m Module) BuildConfig(config []byte) error {
 	}
 
 	for _, a := range gc.Authorities {
-		m.storage.Authorities.Append(sc.StrToSliceU8(sc.Str(a))) // todo ensure handled properly
+		m.storage.Authorities.Append(sc.BytesToSequenceU8([]byte(ss58.Decode(a, 42)))) // todo ensure handled properly
 	}
 
 	return nil
