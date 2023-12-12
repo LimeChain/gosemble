@@ -188,7 +188,7 @@ func runtimeApi() types.RuntimeApi {
 	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
 	sessionKeysApi := session_keys.New[PublicKeyType](sessions)
 	offchainWorkerApi := offchain_worker.New(executiveModule)
-	genesisBuilderApi := genesisbuilder.New([]primitives.GenesisBuilder{auraModule, balancesModule, grandpaModule, systemModule})
+	genesisBuilderApi := genesisbuilder.New([]primitives.GenesisBuilder{systemModule, auraModule, grandpaModule, balancesModule})
 
 	metadataApi := metadata.New(
 		runtimeExtrinsic,

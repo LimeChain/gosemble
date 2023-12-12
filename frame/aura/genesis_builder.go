@@ -5,7 +5,8 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/itering/subscan/util/ss58"
+	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 var (
@@ -46,9 +47,19 @@ func (m Module) BuildConfig(config []byte) error {
 		return errAuthoritiesExceedMaxAuthorities
 	}
 
+	authorities := sc.Sequence[types.Sr25519PublicKey]{}
 	for _, a := range gc.Authorities {
-		m.storage.Authorities.Append(sc.BytesToSequenceU8([]byte(ss58.Decode(a, 42)))) // todo ensure handled properly
+		_, publicKey, err := utils.SS58Decode(a)
+		if err != nil {
+			return err
+		}
+		key, err := types.NewSr25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
+		if err != nil {
+			return err
+		}
+		authorities = append(authorities, key)
 	}
+	m.storage.Authorities.Put(authorities)
 
 	return nil
 }

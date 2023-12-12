@@ -65,3 +65,12 @@ func DecodeAccountId[T PublicKey](buffer *bytes.Buffer) (AccountId[PublicKey], e
 	}
 	return AccountId[PublicKey]{}, errorPubKeyNotSupported
 }
+
+func DecodeSequenceSr25519PublicKey(buffer *bytes.Buffer) (sc.Sequence[Sr25519PublicKey], error) {
+	// decode length
+	// for each decode Sr25519PublicKey
+	// return the slice
+	// TODO:
+	DecodeSr25519PublicKey(buffer)
+	return sc.Sequence[Sr25519PublicKey]{}, nil
+}

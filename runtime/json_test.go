@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	// "github.com/ChainSafe/gossamer/pkg/scale"
@@ -48,4 +49,19 @@ func Test_Encode_Decode(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, gcSeqU8.Bytes(), gcDec.Bytes())
+}
+
+func Test_BuildConfig_Success(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+
+	config := []byte("{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]},\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1152921504606846976],[\"5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty\",1152921504606846976],[\"5GNJqTPyNqANBkUVMN1LPPrxXnFouWXoe2wNSmmEoLctxiZY\",1152921504606846976],[\"5HpG9w8EBLe5XCrbczpwq5TSXvedjrBGCwqxK1iQ7qUsSWFc\",1152921504606846976]]},\"grandpa\":{\"authorities\":[[\"5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu\",1]]},\"sudo\":{\"key\":\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"},\"system\":{},\"transactionPayment\":{\"multiplier\":\"1000000000000000000\"}}")
+
+	result, err := rt.Exec("GenesisBuilder_build_config", sc.BytesToSequenceU8(config).Bytes())
+	assert.Nil(t, err)
+
+	if result[0] == 1 {
+		fmt.Println(string(result[1:]))
+	}
+
+	fmt.Println(result)
 }

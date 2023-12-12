@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/utils"
 )
 
 var (
@@ -51,8 +52,12 @@ func (m Module[T]) BuildConfig(config []byte) error {
 			return errInvalidAddrValue
 		}
 
-		addrBytes := []byte(addrString)[:32]
-		ed25519Signer, err := primitives.NewEd25519PublicKey(sc.BytesToSequenceU8(addrBytes)...)
+		_, publicKey, err := utils.SS58Decode(addrString)
+		if err != nil {
+			return err
+		}
+
+		ed25519Signer, err := primitives.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
 		if err != nil {
 			return err
 		}
@@ -74,6 +79,7 @@ func (m Module[T]) BuildConfig(config []byte) error {
 		totalAuthorities.AuthorityList = append(totalAuthorities.AuthorityList, primitives.Authority{Id: who, Weight: weight})
 	}
 
+	// TODO: VersionedList not encoded as expected
 	totalAuthorities.Version = AuthorityVersion
 	m.storage.Authorities.Put(totalAuthorities)
 
