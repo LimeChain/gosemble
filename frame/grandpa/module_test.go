@@ -16,6 +16,10 @@ import (
 const moduleId = sc.U8(3)
 
 var (
+	mdGenerator = primitives.NewMetadataTypeGenerator()
+)
+
+var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 )
 
@@ -178,7 +182,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	metadataTypes, metadataModule := target.Metadata()
+	metadataTypes, metadataModule := target.Metadata(&mdGenerator)
 
 	assert.Equal(t, expectMetadataTypes, metadataTypes)
 	assert.Equal(t, expectMetadataModule, metadataModule)

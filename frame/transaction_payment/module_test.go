@@ -41,6 +41,8 @@ var (
 )
 
 var (
+	mdGenerator = primitives.NewMetadataTypeGenerator()
+
 	noUnsignedValidatorError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionNoUnsignedValidator(),
 	)
@@ -215,7 +217,7 @@ func Test_ValidateUnsigned(t *testing.T) {
 func Test_Metadata(t *testing.T) {
 	setup()
 
-	metadataTypes, metadataModule := target.Metadata()
+	metadataTypes, metadataModule := target.Metadata(&mdGenerator)
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataModule, metadataModule)

@@ -14,6 +14,10 @@ import (
 )
 
 var (
+	mdGenerator = primitives.NewMetadataTypeGenerator()
+)
+
+var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	mockTypeMutateAccountData             = mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 	logger                                = log.NewLogger()
@@ -866,7 +870,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	resultTypes, resultMetadataModule := target.Metadata()
+	resultTypes, resultMetadataModule := target.Metadata(&mdGenerator)
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)

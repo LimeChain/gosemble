@@ -74,13 +74,13 @@ func (m Module) Metadata() int64 {
 
 // TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
-	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
+	metadataGenerator := primitives.NewMetadataTypeGenerator()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(metadataTypesIds)
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(&metadataGenerator)
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
@@ -110,7 +110,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		m.logger.Critical(err.Error())
 	}
 
-	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
+	metadataGenerator := primitives.NewMetadataTypeGenerator()
 
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
@@ -118,7 +118,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(metadataTypesIds)
+		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(&metadataGenerator)
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
 			Types:     metadataTypes,
@@ -133,7 +133,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(metadataTypesIds)
+		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(&metadataGenerator)
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,

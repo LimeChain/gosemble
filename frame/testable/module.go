@@ -48,7 +48,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},

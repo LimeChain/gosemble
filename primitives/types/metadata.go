@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 const (
@@ -257,22 +256,4 @@ func DecodeMetadataTypeParameter(buffer *bytes.Buffer) (MetadataTypeParameter, e
 
 func (mtp MetadataTypeParameter) Bytes() []byte {
 	return sc.EncodedBytes(mtp)
-}
-
-func BuildMetadataTypesIdsMap() map[string]int {
-	return map[string]int{
-		"Bool":   metadata.PrimitiveTypesBool,
-		"String": metadata.PrimitiveTypesString,
-		"U8":     metadata.PrimitiveTypesU8,
-		"U16":    metadata.PrimitiveTypesU16,
-		"U32":    metadata.PrimitiveTypesU32,
-		"U64":    metadata.PrimitiveTypesU64,
-		"U128":   metadata.PrimitiveTypesU128,
-		"I8":     metadata.PrimitiveTypesI8,
-		"I16":    metadata.PrimitiveTypesI16,
-		"I32":    metadata.PrimitiveTypesI32,
-		"I64":    metadata.PrimitiveTypesI64,
-		"I128":   metadata.PrimitiveTypesI128,
-		"H256":   metadata.TypesH256,
-	}
 }

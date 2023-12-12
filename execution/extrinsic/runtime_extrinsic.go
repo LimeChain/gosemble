@@ -18,8 +18,8 @@ type RuntimeExtrinsic interface {
 	OnFinalize(n sc.U64) error
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
-	Metadata(metadataTypesIds map[string]int) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
-	MetadataLatest(metadataTypesIds map[string]int) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
+	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
+	MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
 }
 
 type runtimeExtrinsic struct {
@@ -193,7 +193,7 @@ func (re runtimeExtrinsic) OffchainWorker(n sc.U64) {
 	}
 }
 
-func (re runtimeExtrinsic) Metadata(metadataTypesIds map[string]int) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
+func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
 	metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModuleV14]{}
 
@@ -201,9 +201,12 @@ func (re runtimeExtrinsic) Metadata(metadataTypesIds map[string]int) (sc.Sequenc
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	errorVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
+	v := (*mdGenerator).(*primitives.MetadataTypeGenerator)
+
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
-		mTypes, mModule := module.Metadata()
+
+		mTypes, mModule := module.Metadata(mdGenerator)
 
 		metadataTypes = append(metadataTypes, mTypes...)
 		mModuleV14 := mModule.ModuleV14
@@ -218,7 +221,7 @@ func (re runtimeExtrinsic) Metadata(metadataTypesIds map[string]int) (sc.Sequenc
 	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata(metadataTypesIds)
+	signedExtraTypes, signedExtensions := re.extra.Metadata(v.MetadataIds)
 	// append to signed extra types to all types
 	metadataTypes = append(metadataTypes, signedExtraTypes...)
 
@@ -247,7 +250,7 @@ func (re runtimeExtrinsic) Metadata(metadataTypesIds map[string]int) (sc.Sequenc
 	return metadataTypes, modules, extrinsic
 }
 
-func (re runtimeExtrinsic) MetadataLatest(metadataTypesIds map[string]int) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
+func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
 	metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModuleV15]{}
 
@@ -265,9 +268,11 @@ func (re runtimeExtrinsic) MetadataLatest(metadataTypesIds map[string]int) (sc.S
 		Map: sc.Dictionary[sc.Str, primitives.CustomValueMetadata]{},
 	}
 
+	v := (*mdGenerator).(*primitives.MetadataTypeGenerator)
+
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
-		mTypes, mModule := module.Metadata()
+		mTypes, mModule := module.Metadata(mdGenerator)
 
 		moduleV15 := mModule.ModuleV15
 
@@ -283,7 +288,7 @@ func (re runtimeExtrinsic) MetadataLatest(metadataTypesIds map[string]int) (sc.S
 	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata(metadataTypesIds)
+	signedExtraTypes, signedExtensions := re.extra.Metadata(v.MetadataIds)
 	// append to signed extra types to all types
 	metadataTypes = append(metadataTypes, signedExtraTypes...)
 

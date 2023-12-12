@@ -15,6 +15,7 @@ const (
 
 var (
 	baseWeight = primitives.WeightFromParts(567, 123)
+	argsBytes  = sc.NewVaryingData(sc.Sequence[sc.U8]{}).Bytes()
 )
 
 func Test_Call_Remark_New(t *testing.T) {
@@ -22,6 +23,7 @@ func Test_Call_Remark_New(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionRemarkIndex,
+			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
 	}
 
@@ -42,7 +44,7 @@ func Test_Call_Remark_DecodeArgs_Success(t *testing.T) {
 }
 
 func Test_Call_Remark_Encode(t *testing.T) {
-	expectedBuf := bytes.NewBuffer([]byte{moduleId, functionRemarkIndex})
+	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionRemarkIndex}, argsBytes...))
 	buf := &bytes.Buffer{}
 
 	call := newCallRemark(moduleId, functionRemarkIndex)
@@ -72,7 +74,7 @@ func Test_Call_Remark_EncodeWithArgs(t *testing.T) {
 }
 
 func Test_Call_Remark_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionRemarkIndex}
+	expected := append([]byte{moduleId, functionRemarkIndex}, argsBytes...)
 
 	call := newCallRemark(moduleId, functionRemarkIndex)
 

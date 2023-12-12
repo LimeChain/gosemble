@@ -23,6 +23,7 @@ var (
 
 var (
 	errorCannotGetStorageValue = errors.New("cannot get storage value")
+	mdGenerator                = primitives.NewMetadataTypeGenerator()
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -376,7 +377,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	target := setupModule()
 
-	resultTypes, resultMetadataModule := target.Metadata()
+	resultTypes, resultMetadataModule := target.Metadata(&mdGenerator)
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)

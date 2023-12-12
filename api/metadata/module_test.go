@@ -16,6 +16,10 @@ import (
 )
 
 var (
+	mdGenerator = primitives.NewMetadataTypeGenerator()
+)
+
+var (
 	dataPtr    = int32(0)
 	dataLen    = int32(1)
 	ptrAndSize = int64(5)
@@ -143,9 +147,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
-
-	mockRuntimeExtrinsic.On("Metadata", metadataTypesIds).Return(mdTypes, mdModules14, mdExtrinsic)
+	mockRuntimeExtrinsic.On("Metadata", &mdGenerator).Return(mdTypes, mdModules14, mdExtrinsic)
 
 	builtMeta := target.buildMetadata()
 
@@ -159,7 +161,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	assert.Equal(t, ptrAndSize, result)
 
-	mockRuntimeExtrinsic.AssertCalled(t, "Metadata", metadataTypesIds)
+	mockRuntimeExtrinsic.AssertCalled(t, "Metadata", &mdGenerator)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", bMetadata.Bytes())
 }
 
@@ -182,11 +184,9 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 
 	version14 := sc.U32(primitives.MetadataVersion14)
 
-	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
-
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
-	mockRuntimeExtrinsic.On("Metadata", metadataTypesIds).Return(mdTypes, mdModules14, mdExtrinsic)
+	mockRuntimeExtrinsic.On("Metadata", &mdGenerator).Return(mdTypes, mdModules14, mdExtrinsic)
 
 	metadataV14 := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -213,8 +213,6 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	target := setup()
 
-	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
-
 	metadataTypes := getAllMetadataTypes(&target)
 
 	version15 := sc.U32(primitives.MetadataVersion15)
@@ -231,7 +229,7 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version15.Bytes())
 
-	mockRuntimeExtrinsic.On("MetadataLatest", metadataTypesIds).Return(mdTypes, mdModules15, mdExtrinsic15, outerEnums, custom)
+	mockRuntimeExtrinsic.On("MetadataLatest", &mdGenerator).Return(mdTypes, mdModules15, mdExtrinsic15, outerEnums, custom)
 
 	metadataV15 := primitives.RuntimeMetadataV15{
 		Types:      metadataTypes,

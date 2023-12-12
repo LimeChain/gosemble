@@ -37,7 +37,7 @@ type Module interface {
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
+	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength
@@ -578,16 +578,22 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
-func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	metadataTypes := sc.Sequence[primitives.MetadataType]{}
+
+	metadataTypeSystemCalls, metadataIdSystemCalls := m.systemCallMetadata(mdGenerator)
+
+	metadataTypes = append(metadataTypes, metadataTypeSystemCalls)
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdSystemCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadataIdSystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
 				},
 				m.Index,
 				"Call.System"),
@@ -616,7 +622,9 @@ func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Index: m.Index,
 	}
 
-	return m.metadataTypes(), primitives.MetadataModule{
+	metadataTypes = append(metadataTypes, m.metadataTypes()...)
+
+	return metadataTypes, primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
@@ -803,21 +811,6 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						ErrorCallFiltered,
 						"The origin filter prevent the call to be dispatched."),
 				})),
-
-		primitives.NewMetadataTypeWithParam(metadata.SystemCalls,
-			"System calls",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"remark",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-						},
-						functionRemarkIndex,
-						"Make some on-chain remark."),
-				}),
-			primitives.NewMetadataEmptyTypeParameter("T")),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
 
@@ -1124,6 +1117,52 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 			"Get the chain's current version.",
 		),
 	}
+}
+
+func (m module) systemCallMetadata(mdGenerator *primitives.MetadataGenerator) (primitives.MetadataType, int) {
+	systemCallsMetadataId := (*mdGenerator).AssignNewMetadataId("SystemCalls")
+
+	functionVariants := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+
+	lenFunctions := len(m.functions)
+	for i := 0; i < lenFunctions; i++ {
+		f := m.functions[sc.U8(i)]
+
+		functionValue := reflect.ValueOf(f)
+		functionType := functionValue.Type()
+
+		switch functionType.Kind() {
+		case reflect.Struct:
+			functionName := functionType.Name()
+
+			args := functionValue.FieldByName("Arguments")
+
+			fields := sc.Sequence[primitives.MetadataTypeDefinitionField]{}
+
+			if args.IsValid() {
+				argsLen := args.Len()
+				for j := 0; j < argsLen; j++ {
+					currentArg := args.Index(i).Elem().Type()
+					currentArgId := (*mdGenerator).BuildMetadataTypeRecursively(currentArg)
+					fields = append(fields, primitives.NewMetadataTypeDefinitionField(currentArgId))
+				}
+			}
+
+			remarkName, _ := strings.CutPrefix(functionName, "call")
+
+			functionVariant := primitives.NewMetadataDefinitionVariant(
+				strings.ToLower(remarkName),
+				fields,
+				sc.U8(i),
+				"Make some on-chain remark.")
+			functionVariants = append(functionVariants, functionVariant)
+		}
+	}
+
+	variant := primitives.NewMetadataTypeDefinitionVariant(functionVariants)
+
+	return primitives.NewMetadataTypeWithParam(systemCallsMetadataId, "System calls", sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"}, variant, primitives.NewMetadataEmptyTypeParameter("T")),
+		systemCallsMetadataId
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {

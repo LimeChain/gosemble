@@ -311,7 +311,7 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),

@@ -91,6 +91,7 @@ var (
 
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	mdGenerator                           = primitives.NewMetadataTypeGenerator()
 	errPanic                              = errors.New("panic")
 )
 
@@ -1215,7 +1216,23 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
+	expectedSystemCallId := len(mdGenerator.GetMap()) + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
+			"System calls",
+			sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"remark",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionRemarkIndex,
+						"Make some on-chain remark."),
+				}),
+			primitives.NewMetadataEmptyTypeParameter("T")),
 		primitives.NewMetadataTypeWithPath(metadata.TypesPhase,
 			"frame_system Phase",
 			sc.Sequence[sc.Str]{"frame_system", "Phase"},
@@ -1395,21 +1412,6 @@ func Test_Module_Metadata(t *testing.T) {
 						ErrorCallFiltered,
 						"The origin filter prevent the call to be dispatched."),
 				})),
-
-		primitives.NewMetadataTypeWithParam(metadata.SystemCalls,
-			"System calls",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"remark",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-						},
-						functionRemarkIndex,
-						"Make some on-chain remark."),
-				}),
-			primitives.NewMetadataEmptyTypeParameter("T")),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
 
@@ -1681,12 +1683,12 @@ func Test_Module_Metadata(t *testing.T) {
 					"The execution phase of the block."),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedSystemCallId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(expectedSystemCallId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
 				},
 				moduleId,
 				"Call.System"),
@@ -1751,7 +1753,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	resultTypes, resultMetadataModule := target.Metadata()
+	resultTypes, resultMetadataModule := target.Metadata(&mdGenerator)
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)
