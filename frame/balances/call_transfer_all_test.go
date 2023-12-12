@@ -11,12 +11,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	transferAllArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Bool(true)).Bytes()
+)
+
 func Test_Call_TransferAll_new(t *testing.T) {
 	target := setupCallTransferAll()
 	expected := callTransferAll{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferAllIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Bool(true)),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -43,7 +48,7 @@ func Test_Call_TransferAll_DecodeArgs(t *testing.T) {
 
 func Test_Call_TransferAll_Encode(t *testing.T) {
 	target := setupCallTransferAll()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferAllIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionTransferAllIndex}, transferAllArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -53,7 +58,7 @@ func Test_Call_TransferAll_Encode(t *testing.T) {
 }
 
 func Test_Call_TransferAll_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionTransferAllIndex}
+	expected := append([]byte{moduleId, functionTransferAllIndex}, transferAllArgsBytes...)
 
 	target := setupCallTransferAll()
 

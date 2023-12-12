@@ -121,3 +121,7 @@ func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.Accou
 
 	return sc.Option[primitives.AccountId]{}, primitives.NewDispatchErrorBadOrigin()
 }
+
+func (_ callRemark) Docs() string {
+	return "Make some on-chain remark."
+}

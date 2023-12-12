@@ -18,6 +18,7 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -109,6 +110,10 @@ func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingD
 		HasError: false,
 		Ok:       types.PostDispatchInfo{},
 	}
+}
+
+func (_ callForceTransfer) Docs() string {
+	return "Exactly as `transfer`, except the origin must be root and the source account may be specified."
 }
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.

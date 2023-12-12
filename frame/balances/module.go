@@ -2,6 +2,7 @@ package balances
 
 import (
 	"reflect"
+	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -312,15 +313,17 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	metadataTypeBalancesCalls, metadataIdBalancesCalls := m.balancesCallsMetadata(mdGenerator)
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.BalancesCalls)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdBalancesCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.BalancesCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadataIdBalancesCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Balances, Runtime>"),
 				},
 				m.Index,
 				"Call.Balances"),
@@ -348,7 +351,10 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		),
 		Index: m.Index,
 	}
-	return m.metadataTypes(), primitives.MetadataModule{
+
+	mdTypes := append(sc.Sequence[primitives.MetadataType]{metadataTypeBalancesCalls}, m.metadataTypes()...)
+
+	return mdTypes, primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
@@ -510,65 +516,67 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("T"),
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
-
-		primitives.NewMetadataTypeWithParams(metadata.BalancesCalls, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
-			sc.Sequence[primitives.MetadataDefinitionVariant]{
-				primitives.NewMetadataDefinitionVariant(
-					"transfer",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
-					},
-					functionTransferIndex,
-					"Transfer some liquid free balance to another account."),
-				primitives.NewMetadataDefinitionVariant(
-					"set_balance",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "who", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_free", "T::Balance"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "new_reserved", "T::Balance"),
-					},
-					functionSetBalanceIndex,
-					"Set the balances of a given account."),
-				primitives.NewMetadataDefinitionVariant(
-					"force_transfer",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "source", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
-					},
-					functionForceTransferIndex,
-					"Exactly as `transfer`, except the origin must be root and the source account may be specified."),
-				primitives.NewMetadataDefinitionVariant(
-					"transfer_keep_alive",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU128, "value", "T::Balance"),
-					},
-					functionTransferKeepAliveIndex,
-					"Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."),
-				primitives.NewMetadataDefinitionVariant(
-					"transfer_all",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "dest", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "keep_alive", "bool"),
-					},
-					functionTransferAllIndex,
-					"Transfer the entire transferable balance from the caller account."),
-				primitives.NewMetadataDefinitionVariant(
-					"force_unreserve",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesMultiAddress, "who", "AccountIdLookupOf<T>"),
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU128, "amount", "T::Balance"),
-					},
-					functionForceFreeIndex,
-					"Unreserve some balance from a user by force."),
-			}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataEmptyTypeParameter("T"),
-				primitives.NewMetadataEmptyTypeParameter("I"),
-			}),
 	}
+}
+
+func (m Module) balancesCallsMetadata(mdGenerator *primitives.MetadataGenerator) (primitives.MetadataType, int) {
+	balancesCallsMetadataId := (*mdGenerator).AssignNewMetadataId("BalancesCalls")
+
+	functionVariants := sc.Sequence[primitives.MetadataDefinitionVariant]{}
+
+	lenFunctions := len(m.functions)
+	for i := 0; i < lenFunctions; i++ {
+		f := m.functions[sc.U8(i)]
+
+		functionValue := reflect.ValueOf(f)
+		functionType := functionValue.Type()
+
+		functionName := functionType.Name()
+
+		args := functionValue.FieldByName("Arguments")
+
+		fields := sc.Sequence[primitives.MetadataTypeDefinitionField]{}
+
+		if args.IsValid() {
+			argsLen := args.Len()
+			for j := 0; j < argsLen; j++ {
+				currentArg := args.Index(j).Elem().Type()
+				currentArgId := (*mdGenerator).BuildMetadataTypeRecursively(currentArg)
+				fields = append(fields, primitives.NewMetadataTypeDefinitionField(currentArgId))
+			}
+		}
+
+		functionVariant := primitives.NewMetadataDefinitionVariant(
+			constructFunctionName(functionName),
+			fields,
+			sc.U8(i),
+			f.Docs())
+		functionVariants = append(functionVariants, functionVariant)
+	}
+
+	variant := primitives.NewMetadataTypeDefinitionVariant(functionVariants)
+
+	params := sc.Sequence[primitives.MetadataTypeParameter]{
+		primitives.NewMetadataEmptyTypeParameter("T"),
+		primitives.NewMetadataEmptyTypeParameter("I"),
+	}
+
+	return primitives.NewMetadataTypeWithParams(balancesCallsMetadataId, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, variant, params), balancesCallsMetadataId
+}
+
+// constructFunctionName constructs the formal name of the function given its struct name as an input (e.g. callTransferAll -> transfer_all)
+func constructFunctionName(input string) string {
+	input, _ = strings.CutPrefix(input, "call")
+	var result strings.Builder
+
+	for i, char := range input {
+		if i > 0 && 'A' <= char && char <= 'Z' {
+			result.WriteRune('_')
+		}
+		result.WriteRune(char)
+	}
+
+	return strings.ToLower(result.String())
 }
 
 func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {

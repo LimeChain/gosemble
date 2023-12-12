@@ -107,6 +107,10 @@ func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 	return c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }
 
+func (c callSet) Docs() string {
+	return "Set the current time."
+}
+
 // set sets the current time.
 //
 // This call should be invoked exactly once per block. It will panic at the finalization

@@ -21,6 +21,7 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{}, sc.Compact{}),
 		},
 		constants:      constants,
 		storedMap:      storedMap,
@@ -101,6 +102,10 @@ func (_ callSetBalance) ClassifyDispatch(baseWeight types.Weight) types.Dispatch
 
 func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
+}
+
+func (_ callSetBalance) Docs() string {
+	return "Set the balances of a given account."
 }
 
 func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {

@@ -26,6 +26,9 @@ var (
 			NewMultiAddressId(constants.OneAccountId)
 	toAddress = primitives.
 			NewMultiAddressId(constants.TwoAccountId)
+	argsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}).Bytes()
+
+	callTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}).Bytes()
 )
 
 func Test_Call_Transfer_New(t *testing.T) {
@@ -34,6 +37,7 @@ func Test_Call_Transfer_New(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -59,7 +63,7 @@ func Test_Call_Transfer_DecodeArgs(t *testing.T) {
 
 func Test_Call_Transfer_Encode(t *testing.T) {
 	target := setupCallTransfer()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionTransferIndex}, callTransferArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -69,7 +73,7 @@ func Test_Call_Transfer_Encode(t *testing.T) {
 }
 
 func Test_Call_Transfer_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionTransferIndex}
+	expected := append([]byte{moduleId, functionTransferIndex}, callTransferArgsBytes...)
 
 	target := setupCallTransfer()
 

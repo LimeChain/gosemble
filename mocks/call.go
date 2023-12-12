@@ -79,3 +79,8 @@ func (m *Call) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 
 	return args.Get(0).(types.Call), args.Get(1).(error)
 }
+
+func (m *Call) Docs() string {
+	args := m.Called()
+	return args.Get(0).(string)
+}

@@ -33,6 +33,7 @@ var (
 	baseWeight                    = primitives.WeightFromParts(124, 123)
 	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAccountId)
 	targetValue                   = sc.NewU128(5)
+	argsBytesCallForceFree        = sc.NewVaryingData(primitives.MultiAddress{}, sc.U128{}).Bytes()
 	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 	mockStoredMap                 *mocks.StoredMap
 )
@@ -43,6 +44,7 @@ func Test_Call_ForceFree_new(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.U128{}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -69,7 +71,7 @@ func Test_Call_ForceFree_DecodeArgs(t *testing.T) {
 
 func Test_Call_ForceFree_Encode(t *testing.T) {
 	target := setupCallForceFree()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionForceFreeIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionForceFreeIndex}, argsBytesCallForceFree...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -79,7 +81,7 @@ func Test_Call_ForceFree_Encode(t *testing.T) {
 }
 
 func Test_Call_ForceFree_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionForceFreeIndex}
+	expected := append([]byte{moduleId, functionForceFreeIndex}, argsBytesCallForceFree...)
 
 	target := setupCallForceFree()
 

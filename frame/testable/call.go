@@ -84,3 +84,7 @@ func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) pr
 
 	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{Ok: primitives.PostDispatchInfo{}}
 }
+
+func (_ callTest) Docs() string {
+	return "Make test"
+}

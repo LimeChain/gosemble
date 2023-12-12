@@ -27,20 +27,22 @@ func NewMetadataTypeGenerator() MetadataGenerator {
 
 func BuildMetadataTypesIdsMap() map[string]int {
 	return map[string]int{
-		"Bool":       metadata.PrimitiveTypesBool,
-		"String":     metadata.PrimitiveTypesString,
-		"U8":         metadata.PrimitiveTypesU8,
-		"U16":        metadata.PrimitiveTypesU16,
-		"U32":        metadata.PrimitiveTypesU32,
-		"U64":        metadata.PrimitiveTypesU64,
-		"U128":       metadata.PrimitiveTypesU128,
-		"I8":         metadata.PrimitiveTypesI8,
-		"I16":        metadata.PrimitiveTypesI16,
-		"I32":        metadata.PrimitiveTypesI32,
-		"I64":        metadata.PrimitiveTypesI64,
-		"I128":       metadata.PrimitiveTypesI128,
-		"H256":       metadata.TypesH256,
-		"SequenceU8": metadata.TypesSequenceU8,
+		"Bool":         metadata.PrimitiveTypesBool,
+		"String":       metadata.PrimitiveTypesString,
+		"U8":           metadata.PrimitiveTypesU8,
+		"U16":          metadata.PrimitiveTypesU16,
+		"U32":          metadata.PrimitiveTypesU32,
+		"U64":          metadata.PrimitiveTypesU64,
+		"U128":         metadata.PrimitiveTypesU128,
+		"I8":           metadata.PrimitiveTypesI8,
+		"I16":          metadata.PrimitiveTypesI16,
+		"I32":          metadata.PrimitiveTypesI32,
+		"I64":          metadata.PrimitiveTypesI64,
+		"I128":         metadata.PrimitiveTypesI128,
+		"H256":         metadata.TypesH256,
+		"SequenceU8":   metadata.TypesSequenceU8,
+		"MultiAddress": metadata.TypesMultiAddress,
+		"CompactU128":  metadata.TypesCompactU128,
 	}
 }
 
@@ -92,6 +94,20 @@ func (g MetadataTypeGenerator) BuildMetadataTypeRecursively(t reflect.Type) int 
 			sequenceTypeId = g.BuildMetadataTypeRecursively(t.Elem())
 		}
 		typeId = sequenceTypeId
+	case reflect.Array: // Compact type
+		compactLen := t.Len()
+		switch compactLen {
+		case 2: // CompactU128
+			if t.Name() == "Compact" {
+				compactU128Id, ok := g.MetadataIds["CompactU128"]
+				if !ok {
+					compactU128Id = g.BuildMetadataTypeRecursively(t.Elem()) // u64
+				}
+				typeId = compactU128Id
+			} else {
+				typeId = g.MetadataIds[typeName]
+			}
+		}
 	}
 	return typeId
 }

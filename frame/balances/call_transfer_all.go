@@ -20,6 +20,7 @@ func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.S
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Bool(true)),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 		logger:   logger,
@@ -105,6 +106,10 @@ func (c callTransferAll) Dispatch(origin types.RuntimeOrigin, args sc.VaryingDat
 		HasError: false,
 		Ok:       types.PostDispatchInfo{},
 	}
+}
+
+func (_ callTransferAll) Docs() string {
+	return "Transfer the entire transferable balance from the caller account."
 }
 
 // transferAll transfers the entire transferable balance from `origin` to `dest`.

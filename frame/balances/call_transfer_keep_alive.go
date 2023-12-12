@@ -18,6 +18,7 @@ func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primit
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -104,6 +105,10 @@ func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.Vary
 		HasError: false,
 		Ok:       types.PostDispatchInfo{},
 	}
+}
+
+func (_ callTransferKeepAlive) Docs() string {
+	return "Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."
 }
 
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".

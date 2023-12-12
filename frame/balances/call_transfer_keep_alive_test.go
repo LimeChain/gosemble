@@ -11,12 +11,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	transferKeepAliveArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}).Bytes()
+)
+
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 	expected := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -42,7 +47,7 @@ func Test_Call_TransferKeepAlive_DecodeArgs(t *testing.T) {
 
 func Test_Call_TransferKeepAlive_Encode(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferKeepAliveIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionTransferKeepAliveIndex}, transferKeepAliveArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -52,7 +57,7 @@ func Test_Call_TransferKeepAlive_Encode(t *testing.T) {
 }
 
 func Test_Call_TransferKeepAlive_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionTransferKeepAliveIndex}
+	expected := append([]byte{moduleId, functionTransferKeepAliveIndex}, transferKeepAliveArgsBytes...)
 
 	target := setupCallTransferKeepAlive()
 

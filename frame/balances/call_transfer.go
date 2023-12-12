@@ -21,6 +21,7 @@ func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -257,4 +258,8 @@ func (t transfer) reducibleBalance(who types.AccountId, keepAlive bool) (types.B
 
 	mustRemainToExist := sc.SaturatingSubU128(t.constants.ExistentialDeposit, accountData.Total().Sub(liquid))
 	return sc.SaturatingSubU128(liquid, mustRemainToExist), nil
+}
+
+func (_ transfer) Docs() string {
+	return "Transfer some liquid free balance to another account."
 }

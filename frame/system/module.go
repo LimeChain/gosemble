@@ -1148,13 +1148,13 @@ func (m module) systemCallMetadata(mdGenerator *primitives.MetadataGenerator) (p
 				}
 			}
 
-			remarkName, _ := strings.CutPrefix(functionName, "call")
+			functionName, _ = strings.CutPrefix(functionName, "call")
 
 			functionVariant := primitives.NewMetadataDefinitionVariant(
-				strings.ToLower(remarkName),
+				strings.ToLower(functionName),
 				fields,
 				sc.U8(i),
-				"Make some on-chain remark.")
+				f.Docs())
 			functionVariants = append(functionVariants, functionVariant)
 		}
 	}
