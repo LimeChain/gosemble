@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	gcJson = []byte("{\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}")
-	// pubKey, _              = types.NewEd25519PublicKey(sc.BytesToSequenceU8([]byte{212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125})...)
+	gcJson                 = []byte("{\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}")
 	accId, _               = types.NewAccountId(sc.BytesToSequenceU8([]byte{212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125})...)
 	authorities            = sc.Sequence[types.Authority]{{Id: accId, Weight: sc.U64(1)}}
 	versionedAuthorityList = types.VersionedAuthorityList{AuthorityList: authorities, Version: AuthorityVersion}

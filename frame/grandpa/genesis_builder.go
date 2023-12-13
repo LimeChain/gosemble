@@ -46,12 +46,10 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		// ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
-		// if err != nil {
-		// 	return err
-		// }
-
 		who, err := types.NewAccountId(sc.BytesToSequenceU8(publicKey)...)
+		if err != nil {
+			return err
+		}
 
 		weightFloat, ok := a[1].(float64)
 		if !ok {

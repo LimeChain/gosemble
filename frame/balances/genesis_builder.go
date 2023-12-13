@@ -57,11 +57,6 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		// ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
-		// if err != nil {
-		// 	return err
-		// }
-
 		accId, err := types.NewAccountId(sc.BytesToSequenceU8(publicKey)...)
 		if err != nil {
 			return err
