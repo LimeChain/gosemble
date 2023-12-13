@@ -12,7 +12,6 @@ import (
 var (
 	errAuthoritiesAlreadyInitialized   = errors.New("Authorities are already initialized!")
 	errAuthoritiesExceedMaxAuthorities = errors.New("Initial authority set must be less than MaxAuthorities")
-	errInvalidGenesisConfig            = errors.New("Invalid aura genesis config")
 )
 
 type GenesisConfig struct {
@@ -32,7 +31,12 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	addrExists := map[string]bool{}
 	for _, a := range gcJson.AuraGc.Authorities {
+		if addrExists[a] {
+			continue
+		}
+
 		_, pubKeyBytes, err := subkey.SS58Decode(a)
 		if err != nil {
 			return err
@@ -44,6 +48,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		}
 
 		gc.Authorities = append(gc.Authorities, pubKey)
+		addrExists[a] = true
 	}
 
 	return nil

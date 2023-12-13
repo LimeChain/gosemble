@@ -31,10 +31,15 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	addrExists := map[string]bool{}
 	for _, a := range gcJson.GrandpaGc.Authorities {
 		addrString, ok := a[0].(string)
 		if !ok {
 			return errInvalidAddrValue
+		}
+
+		if addrExists[addrString] {
+			continue
 		}
 
 		_, publicKey, err := subkey.SS58Decode(addrString)
@@ -55,6 +60,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		weight := sc.U64(uint64(weightFloat))
 
 		gc.Authorities = append(gc.Authorities, types.Authority{Id: who, Weight: weight})
+		addrExists[addrString] = true
 	}
 
 	return nil

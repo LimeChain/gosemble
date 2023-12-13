@@ -31,6 +31,11 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			shouldAssertCalled: true,
 		},
 		{
+			name:               "duplicate genesis address",
+			gcJson:             "{\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1],[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}",
+			shouldAssertCalled: true,
+		},
+		{
 			name:    "invalid genesis address",
 			gcJson:  "{\"grandpa\":{\"authorities\":[[1,1]]}}",
 			wantErr: errInvalidAddrValue,

@@ -32,6 +32,12 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			decodeLen:          sc.NewOption[sc.U64](nil),
 		},
 		{
+			name:               "duplicate genesis address",
+			gcJson:             "{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\", \"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]}}",
+			shouldAssertCalled: true,
+			decodeLen:          sc.NewOption[sc.U64](nil),
+		},
+		{
 			name:    "invalid ss58 address",
 			gcJson:  "{\"aura\":{\"authorities\":[\"invalid\"]}}",
 			wantErr: errors.New("expected at least 2 bytes in base58 decoded address"),
