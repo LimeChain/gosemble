@@ -2,7 +2,6 @@ package testable
 
 import (
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -49,15 +48,17 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	testableCallsMetadataType, testableCallsMetadataId := (*mdGenerator).CallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TestableCalls)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(testableCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TestableCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Testable, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(testableCallsMetadataId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Testable, Runtime>"),
 				},
 				m.Index,
 				"Call.Testable"),
@@ -70,27 +71,14 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		Index:     m.Index,
 	}
 
-	return m.metadataTypes(), primitives.MetadataModule{
+	metadataTypes := append(m.metadataTypes(), testableCallsMetadataType)
+
+	return metadataTypes, primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParam(metadata.TestableCalls,
-			"Testable calls",
-			sc.Sequence[sc.Str]{"frame_system", "testable", "Call"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"test",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-						},
-						functionTestIndex,
-						"Make test"),
-				}),
-			primitives.NewMetadataEmptyTypeParameter("T")),
-	}
+	return sc.Sequence[primitives.MetadataType]{}
 }

@@ -571,7 +571,7 @@ func Test_RuntimeExtrinsic_Metadata(t *testing.T) {
 
 	mockModuleOne.On("Metadata", &mdGenerator).Return(metadataTypes, metadataOne)
 	mockModuleTwo.On("Metadata", &mdGenerator).Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", mdGenerator.GetMap()).Return(metadataTypes, signedExtensions)
+	mockSignedExtra.On("Metadata", mdGenerator.IdsMap()).Return(metadataTypes, signedExtensions)
 
 	resultTypes, resultModules, resultExtrinsic := target.Metadata(&mdGenerator)
 
@@ -580,7 +580,7 @@ func Test_RuntimeExtrinsic_Metadata(t *testing.T) {
 	assert.Equal(t, expectExtrinsic, resultExtrinsic)
 	mockModuleOne.AssertCalled(t, "Metadata", &mdGenerator)
 	mockModuleTwo.AssertCalled(t, "Metadata", &mdGenerator)
-	mockSignedExtra.AssertCalled(t, "Metadata", mdGenerator.GetMap())
+	mockSignedExtra.AssertCalled(t, "Metadata", mdGenerator.IdsMap())
 }
 
 func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
@@ -644,7 +644,7 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 
 	mockModuleOne.On("Metadata", &mdGenerator).Return(metadataTypes, metadataOne)
 	mockModuleTwo.On("Metadata", &mdGenerator).Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", mdGenerator.GetMap()).Return(metadataTypes, signedExtensions)
+	mockSignedExtra.On("Metadata", mdGenerator.IdsMap()).Return(metadataTypes, signedExtensions)
 
 	resultTypes, resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest(&mdGenerator)
 
@@ -655,7 +655,7 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 	assert.Equal(t, expectCustom, resultCustom)
 	mockModuleOne.AssertCalled(t, "Metadata", &mdGenerator)
 	mockModuleTwo.AssertCalled(t, "Metadata", &mdGenerator)
-	mockSignedExtra.AssertCalled(t, "Metadata", mdGenerator.GetMap())
+	mockSignedExtra.AssertCalled(t, "Metadata", mdGenerator.IdsMap())
 }
 
 func setupRuntimeExtrinsic() RuntimeExtrinsic {

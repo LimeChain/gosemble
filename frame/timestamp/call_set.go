@@ -28,6 +28,7 @@ func newCallSet(moduleId sc.U8, functionId sc.U8, storage *storage, constants *c
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(sc.ToCompact(sc.U64(0))),
 		},
 		onTimestampSet: onTimestampSet,
 	}

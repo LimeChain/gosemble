@@ -151,15 +151,17 @@ func (m Module) IsInherent(call primitives.Call) bool {
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+
+	timestampCallsMetadata, timestampCallsMetadataId := (*mdGenerator).CallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(timestampCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(timestampCallsMetadataId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
 				},
 				m.Index,
 				"Call.Timestamp"),
@@ -179,25 +181,16 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		Index:    m.Index,
 	}
 
-	return m.metadataTypes(), primitives.MetadataModule{
+	metadataTypes := append(sc.Sequence[primitives.MetadataType]{timestampCallsMetadata}, m.metadataTypes()...)
+
+	return metadataTypes, primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
 }
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParam(metadata.TimestampCalls, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
-			sc.Sequence[primitives.MetadataDefinitionVariant]{
-				primitives.NewMetadataDefinitionVariant(
-					"set",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "now", "T::Moment"),
-					},
-					functionSetIndex,
-					"Set the current time."),
-			}), primitives.NewMetadataEmptyTypeParameter("T")),
-	}
+	return sc.Sequence[primitives.MetadataType]{}
 }
 
 func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {

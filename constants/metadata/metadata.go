@@ -3,20 +3,17 @@ package metadata
 // Metadata types and their corresponding type id.
 const (
 	PrimitiveTypesBool = iota
-	PrimitiveTypesChar
 	PrimitiveTypesString
 	PrimitiveTypesU8
 	PrimitiveTypesU16
 	PrimitiveTypesU32
 	PrimitiveTypesU64
 	PrimitiveTypesU128
-	PrimitiveTypesU256
 	PrimitiveTypesI8
 	PrimitiveTypesI16
 	PrimitiveTypesI32
 	PrimitiveTypesI64
 	PrimitiveTypesI128
-	PrimitiveTypesI256
 
 	TypesFixedSequence4U8
 	TypesFixedSequence8U8
@@ -113,22 +110,8 @@ const (
 	RuntimeCall
 	TypesRuntimeError
 
-	SystemCalls
-	TimestampCalls
-	GrandpaCalls
-	BalancesCalls
-	TestableCalls
-
 	UncheckedExtrinsic
 	SignedExtra
-
-	CheckNonZeroSender
-	CheckSpecVersion
-	CheckTxVersion
-	CheckGenesis
-	CheckMortality
-	CheckNonce
-	CheckWeight
 	ChargeTransactionPayment
 
 	Runtime

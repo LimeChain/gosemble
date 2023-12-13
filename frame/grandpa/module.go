@@ -41,13 +41,17 @@ type Module struct {
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
+	functions map[sc.U8]primitives.Call
 	logger  log.WarnLogger
 }
 
 func New(index sc.U8, logger log.WarnLogger) Module {
+	functions := make(map[sc.U8]primitives.Call)
+
 	return Module{
 		Index:   index,
 		storage: newStorage(),
+		functions: functions,
 		logger:  logger,
 	}
 }
@@ -96,6 +100,11 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+	grandpaMetadataCallsType, _ := (*mdGenerator).CallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+		primitives.NewMetadataEmptyTypeParameter("T"),
+		primitives.NewMetadataEmptyTypeParameter("I"),
+	})
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -117,7 +126,9 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		Index: m.Index,
 	}
 
-	return m.metadataTypes(), primitives.MetadataModule{
+	metadataTypes := append(sc.Sequence[primitives.MetadataType]{grandpaMetadataCallsType}, m.metadataTypes()...)
+
+	return metadataTypes, primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
@@ -125,12 +136,6 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 
 func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
-			sc.Sequence[primitives.MetadataDefinitionVariant]{}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataEmptyTypeParameter("T"),
-				primitives.NewMetadataEmptyTypeParameter("I"),
-			}),
 		primitives.NewMetadataTypeWithParams(metadata.TypesGrandpaErrors, "The `Error` enum of this pallet.", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant("PauseFailed", sc.Sequence[primitives.MetadataTypeDefinitionField]{}, PauseFailedError, ""),

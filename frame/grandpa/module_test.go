@@ -17,6 +17,7 @@ const moduleId = sc.U8(3)
 
 var (
 	mdGenerator = primitives.NewMetadataTypeGenerator()
+	functions   = make(map[sc.U8]primitives.Call)
 )
 
 var (
@@ -40,6 +41,7 @@ func Test_Module_New(t *testing.T) {
 			mockStorageAuthorities,
 		},
 		logger: logger,
+		functions: functions,
 	}, target)
 }
 
@@ -128,8 +130,10 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	setup()
 
+	expectedGrandpaCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParams(expectedGrandpaCallsMetadataId, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataEmptyTypeParameter("T"),

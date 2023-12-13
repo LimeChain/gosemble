@@ -14,7 +14,7 @@ import (
 var (
 	mdGenerator = NewMetadataTypeGenerator()
 
-	metadataIds = mdGenerator.GetMap()
+	metadataIds = mdGenerator.IdsMap()
 	lastIndex   = len(metadataIds)
 
 	expectedExtraCheckMetadataId = lastIndex + 1
@@ -246,7 +246,7 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 	mdGeneratorAll := NewMetadataTypeGenerator()
 
 	// A map that contains the ids of all additional signed complex checks
-	metadataIdsComplexAll := mdGeneratorAll.GetMap()
+	metadataIdsComplexAll := mdGeneratorAll.IdsMap()
 
 	metadataIdsComplexAll["H512"] = expectedH512MetadataId
 	metadataIdsComplexAll["Ed25519PublicKey"] = expectedEd25519PublicKeyMetadataId
@@ -365,7 +365,7 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 	// A map that does not contain the ids of types H512 and Ed25519PublicKey hence they need to be generated
 	mdGeneratorSome := NewMetadataTypeGenerator()
-	metadataIdsComplexSome := mdGeneratorSome.GetMap()
+	metadataIdsComplexSome := mdGeneratorSome.IdsMap()
 
 	metadataIdsComplexSome["H512"] = metadata.TypesFixedSequence64U8
 	metadataIdsComplexSome["Ed25519PublicKey"] = metadata.TypesFixedSequence64U8

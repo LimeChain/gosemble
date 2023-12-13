@@ -22,6 +22,8 @@ var (
 	origin     = primitives.NewRawOriginNone()
 	now        = sc.U64(time.Unix(1, 0).UnixMilli())
 
+	argsBytesCallSet = sc.NewVaryingData(sc.ToCompact(sc.U64(0))).Bytes()
+
 	mockOnTimestampSet   *mocks.OnTimestampSet
 	mockStorageNow       *mocks.StorageValue[sc.U64]
 	mockStorageDidUpdate *mocks.StorageValue[sc.Bool]
@@ -37,7 +39,7 @@ func Test_Call_Set_NewSetCall(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetIndex,
-			Arguments:  nil,
+			Arguments:  sc.NewVaryingData(sc.ToCompact(sc.U64(0))),
 		},
 	}
 
@@ -74,7 +76,7 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 
 func Test_Call_Set_Encode(t *testing.T) {
 	target := setUpCallSet()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionSetIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -85,11 +87,10 @@ func Test_Call_Set_Encode(t *testing.T) {
 
 func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 	target := setUpCallSet()
-	compact := sc.ToCompact(sc.U8(5))
 
-	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, compact.Bytes()...))
+	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...))
 
-	buf := bytes.NewBuffer(compact.Bytes())
+	buf := bytes.NewBuffer(argsBytesCallSet)
 
 	call, err := target.DecodeArgs(buf)
 	assert.Nil(t, err)
@@ -103,7 +104,7 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 
 func Test_Call_Set_Bytes(t *testing.T) {
 	target := setUpCallSet()
-	expected := []byte{moduleId, functionSetIndex}
+	expected := append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...)
 
 	assert.Equal(t, expected, target.Bytes())
 }

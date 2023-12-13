@@ -316,13 +316,15 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 }
 
 func Test_Module_Metadata(t *testing.T) {
+	expectedTimestampCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParam(metadata.TimestampCalls, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParam(expectedTimestampCallsMetadataId, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"set",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "now", "T::Moment"),
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128), // TODO: Is CompactU128 used as CompactU64 ?
 					},
 					functionSetIndex,
 					"Set the current time."),
@@ -345,12 +347,12 @@ func Test_Module_Metadata(t *testing.T) {
 					"Did the timestamp get updated in this block?"),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedTimestampCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(expectedTimestampCallsMetadataId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
 				},
 				moduleId,
 				"Call.Timestamp"),

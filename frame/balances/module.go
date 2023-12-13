@@ -2,7 +2,6 @@ package balances
 
 import (
 	"reflect"
-	"strings"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -313,7 +312,9 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	metadataTypeBalancesCalls, metadataIdBalancesCalls := m.balancesCallsMetadata(mdGenerator)
+	metadataTypeBalancesCalls, metadataIdBalancesCalls := (*mdGenerator).CallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+		primitives.NewMetadataEmptyTypeParameter("T"),
+		primitives.NewMetadataEmptyTypeParameter("I")})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -517,66 +518,6 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataEmptyTypeParameter("I"),
 			}),
 	}
-}
-
-func (m Module) balancesCallsMetadata(mdGenerator *primitives.MetadataGenerator) (primitives.MetadataType, int) {
-	balancesCallsMetadataId := (*mdGenerator).AssignNewMetadataId("BalancesCalls")
-
-	functionVariants := sc.Sequence[primitives.MetadataDefinitionVariant]{}
-
-	lenFunctions := len(m.functions)
-	for i := 0; i < lenFunctions; i++ {
-		f := m.functions[sc.U8(i)]
-
-		functionValue := reflect.ValueOf(f)
-		functionType := functionValue.Type()
-
-		functionName := functionType.Name()
-
-		args := functionValue.FieldByName("Arguments")
-
-		fields := sc.Sequence[primitives.MetadataTypeDefinitionField]{}
-
-		if args.IsValid() {
-			argsLen := args.Len()
-			for j := 0; j < argsLen; j++ {
-				currentArg := args.Index(j).Elem().Type()
-				currentArgId := (*mdGenerator).BuildMetadataTypeRecursively(currentArg)
-				fields = append(fields, primitives.NewMetadataTypeDefinitionField(currentArgId))
-			}
-		}
-
-		functionVariant := primitives.NewMetadataDefinitionVariant(
-			constructFunctionName(functionName),
-			fields,
-			sc.U8(i),
-			f.Docs())
-		functionVariants = append(functionVariants, functionVariant)
-	}
-
-	variant := primitives.NewMetadataTypeDefinitionVariant(functionVariants)
-
-	params := sc.Sequence[primitives.MetadataTypeParameter]{
-		primitives.NewMetadataEmptyTypeParameter("T"),
-		primitives.NewMetadataEmptyTypeParameter("I"),
-	}
-
-	return primitives.NewMetadataTypeWithParams(balancesCallsMetadataId, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, variant, params), balancesCallsMetadataId
-}
-
-// constructFunctionName constructs the formal name of the function given its struct name as an input (e.g. callTransferAll -> transfer_all)
-func constructFunctionName(input string) string {
-	input, _ = strings.CutPrefix(input, "call")
-	var result strings.Builder
-
-	for i, char := range input {
-		if i > 0 && 'A' <= char && char <= 'Z' {
-			result.WriteRune('_')
-		}
-		result.WriteRune(char)
-	}
-
-	return strings.ToLower(result.String())
 }
 
 func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {

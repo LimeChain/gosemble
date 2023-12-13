@@ -1216,12 +1216,12 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedSystemCallId := len(mdGenerator.GetMap()) + 1
+	expectedSystemCallId := len(mdGenerator.IdsMap()) + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
 			"System calls",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"},
+			sc.Sequence[sc.Str]{"pallet_system", "pallet", "Call"},
 			primitives.NewMetadataTypeDefinitionVariant(
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
 					primitives.NewMetadataDefinitionVariant(

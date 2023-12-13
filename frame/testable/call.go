@@ -19,6 +19,7 @@ func newCallTest(moduleId, functionId sc.U8) primitives.Call {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
 	}
 

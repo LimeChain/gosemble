@@ -586,7 +586,7 @@ func Test_Module_deposit_ArithmeticOverflow(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedBalancesCallsMetadataId := len(mdGenerator.GetMap()) + 1
+	expectedBalancesCallsMetadataId := len(mdGenerator.IdsMap()) + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(expectedBalancesCallsMetadataId, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
