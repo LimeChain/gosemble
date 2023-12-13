@@ -41,6 +41,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	if len(gcJson.BalancesGc.Balances) == 0 {
 		return nil
 	}
+
 	addrExists := map[string]bool{}
 	for _, b := range gcJson.BalancesGc.Balances {
 		addrString, ok := b[0].(string)

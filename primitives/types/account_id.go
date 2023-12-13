@@ -37,12 +37,3 @@ func DecodeAccountId(buffer *bytes.Buffer) (AccountId, error) {
 func (a AccountId) Bytes() []byte {
 	return sc.EncodedBytes(a.FixedSequence)
 }
-
-func DecodeSequenceSr25519PublicKey(buffer *bytes.Buffer) (sc.Sequence[Sr25519PublicKey], error) {
-	// decode length
-	// for each decode Sr25519PublicKey
-	// return the slice
-	// TODO:
-	DecodeSr25519PublicKey(buffer)
-	return sc.Sequence[Sr25519PublicKey]{}, nil
-}

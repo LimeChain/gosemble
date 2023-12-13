@@ -73,13 +73,15 @@ func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
+	gcDecodedBytes := sc.SequenceU8ToBytes(gcDecoded)
+
 	for _, m := range m.modules {
 		genesisBuilder, ok := m.(GenesisBuilder)
 		if !ok {
 			continue
 		}
 
-		if err := genesisBuilder.BuildConfig(sc.SequenceU8ToBytes(gcDecoded)); err != nil {
+		if err := genesisBuilder.BuildConfig(gcDecodedBytes); err != nil {
 			log.Critical(err.Error())
 		}
 	}
