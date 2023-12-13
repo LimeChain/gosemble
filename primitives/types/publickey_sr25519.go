@@ -36,11 +36,3 @@ func NewSr25519PublicKey(values ...sc.U8) (Sr25519PublicKey, error) {
 	}
 	return Sr25519PublicKey{sc.NewFixedSequence(32, values...)}, nil
 }
-
-//func Ss58AddressToByteArray(add common.Address) []byte {
-//	if add == "" {
-//		return nil
-//	}
-//	k := base58.Decode(string(add))
-//	return k[1:33]
-//}

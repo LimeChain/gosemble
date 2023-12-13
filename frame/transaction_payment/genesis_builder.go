@@ -6,11 +6,35 @@ import (
 )
 
 type GenesisConfig struct {
-	Multiplier uint64 `json:"multiplier,string"` // todo test if can unmarshal from string
+	Multiplier sc.U128
+}
+
+type gcJsonStruct struct {
+	TransactionPaymentGc struct {
+		Multiplier string `json:"multiplier"`
+	} `json:"transactionPayment"`
+}
+
+func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
+	gcJson := gcJsonStruct{}
+
+	if err := json.Unmarshal(data, &gcJson); err != nil {
+		return err
+	}
+
+	multiplier, err := sc.NewU128FromString(gcJson.TransactionPaymentGc.Multiplier)
+	if err != nil {
+		return err
+	}
+
+	gc.Multiplier = multiplier
+	return nil
 }
 
 func (m module) CreateDefaultConfig() ([]byte, error) {
-	gc := &GenesisConfig{Multiplier: defaultMultiplierValue.ToBigInt().Uint64()}
+	gc := &gcJsonStruct{}
+	gc.TransactionPaymentGc.Multiplier = defaultMultiplierValue.ToBigInt().String()
+
 	return json.Marshal(gc)
 }
 
@@ -26,8 +50,4 @@ func (m module) BuildConfig(config []byte) error {
 	m.storage.NextFeeMultiplier.Put(sc.NewU128(gc.Multiplier))
 
 	return nil
-}
-
-func (m module) ConfigModuleKey() string {
-	return "transactionPayment"
 }

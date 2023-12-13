@@ -165,7 +165,6 @@ func runtimeApi() types.RuntimeApi {
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
 	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module[PublicKeyType])
 	txPaymentsModule := primitives.MustGetModule(TxPaymentsIndex, modules).(transaction_payment.Module)
-	balancesModule := primitives.MustGetModule(BalancesIndex, modules).(balances.Module)
 
 	executiveModule := executive.New(
 		systemModule,
@@ -188,7 +187,7 @@ func runtimeApi() types.RuntimeApi {
 	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
 	sessionKeysApi := session_keys.New[PublicKeyType](sessions)
 	offchainWorkerApi := offchain_worker.New(executiveModule)
-	genesisBuilderApi := genesisbuilder.New([]primitives.GenesisBuilder{systemModule, auraModule, grandpaModule, balancesModule})
+	genesisBuilderApi := genesisbuilder.New(modules)
 
 	metadataApi := metadata.New(
 		runtimeExtrinsic,

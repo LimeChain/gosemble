@@ -27,7 +27,6 @@ const (
 
 type Module interface {
 	primitives.Module
-	primitives.GenesisBuilder
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()
@@ -37,6 +36,7 @@ type Module interface {
 	NoteFinishedExtrinsics() error
 	ResetEvents()
 	Get(key primitives.AccountId[primitives.PublicKey]) (primitives.AccountInfo, error)
+	Put(key primitives.AccountId[primitives.PublicKey], accInfo primitives.AccountInfo)
 	CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
@@ -67,6 +67,7 @@ type Module interface {
 
 	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
+	IncProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error)
 }
 
 type module struct {
@@ -376,6 +377,10 @@ func (m module) Get(key primitives.AccountId[primitives.PublicKey]) (primitives.
 	return m.storage.Account.Get(key)
 }
 
+func (m module) Put(key primitives.AccountId[primitives.PublicKey], accInfo primitives.AccountInfo) {
+	m.storage.Account.Put(key, accInfo)
+}
+
 func (m module) CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error) {
 	acc, err := m.Get(who)
 	if err != nil {
@@ -413,7 +418,7 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 	isProviding := !reflect.DeepEqual(*someData, primitives.AccountData{})
 
 	if !wasProviding && isProviding {
-		_, err := m.incProviders(who)
+		_, err := m.IncProviders(who)
 		if err != nil {
 			return sc.Result[sc.Encodable]{}, err
 		}
@@ -442,7 +447,7 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 	return result, nil
 }
 
-func (m module) incProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error) {
+func (m module) IncProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error) {
 	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return m.incrementProviders(who, account)
 	})

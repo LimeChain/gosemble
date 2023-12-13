@@ -5,10 +5,10 @@ go 1.21
 require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.1.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.15.0
-	github.com/itering/subscan v0.1.0
 )
 
 require (
@@ -18,7 +18,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
-	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/errors v1.9.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
@@ -77,9 +76,6 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
-	github.com/go-kratos/kratos v0.5.0 // indirect
-	github.com/huandu/xstrings v1.3.2 // indirect
-	github.com/shopspring/decimal v1.2.0 // indirect
 )
 
 replace github.com/ChainSafe/gossamer => ./gossamer

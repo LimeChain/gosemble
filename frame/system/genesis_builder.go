@@ -3,19 +3,21 @@ package system
 import (
 	"encoding/json"
 	sc "github.com/LimeChain/goscale"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 type GenesisConfig struct{}
 
 func (m module) CreateDefaultConfig() ([]byte, error) {
-	gc := &GenesisConfig{}
+	gc := struct {
+		SystemGc GenesisConfig `json:"system"`
+	}{SystemGc: GenesisConfig{}}
 	return json.Marshal(gc)
 }
 
 func (m module) BuildConfig(_ []byte) error {
 	bytes69 := []byte{69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69}
-	hash69, err := primitives.NewBlake2bHash(sc.BytesToFixedSequenceU8(bytes69)...)
+	hash69, err := types.NewBlake2bHash(sc.BytesToFixedSequenceU8(bytes69)...)
 	if err != nil {
 		return err
 	}
@@ -23,7 +25,7 @@ func (m module) BuildConfig(_ []byte) error {
 	m.StorageBlockHashSet(sc.U64(0), hash69)
 	m.storage.ParentHash.Put(hash69)
 
-	m.StorageLastRuntimeUpgradeSet(primitives.LastRuntimeUpgradeInfo{
+	m.StorageLastRuntimeUpgradeSet(types.LastRuntimeUpgradeInfo{
 		SpecVersion: m.Version().SpecVersion,
 		SpecName:    m.Version().SpecName,
 	})
@@ -35,8 +37,4 @@ func (m module) BuildConfig(_ []byte) error {
 	// <UpgradedToTripleRefCount<T>>::put(true);
 
 	return nil
-}
-
-func (m module) ConfigModuleKey() string {
-	return "system"
 }

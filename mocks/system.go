@@ -129,6 +129,10 @@ func (m *SystemModule) Get(key primitives.AccountId[types.PublicKey]) (primitive
 	return args.Get(0).(primitives.AccountInfo), args.Get(1).(error)
 }
 
+func (m *SystemModule) Put(key primitives.AccountId[primitives.PublicKey], accInfo primitives.AccountInfo) {
+	m.Called(key, accInfo)
+}
+
 func (m *SystemModule) CanDecProviders(who primitives.AccountId[types.PublicKey]) (bool, error) {
 	args := m.Called(who)
 	if args.Get(1) == nil {
@@ -275,4 +279,12 @@ func (m *SystemModule) StorageAllExtrinsicsLen() (sc.U32, error) {
 
 func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {
 	m.Called(value)
+}
+
+func (m *SystemModule) IncProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error) {
+	args := m.Called()
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.IncRefStatus), nil
+	}
+	return args.Get(0).(primitives.IncRefStatus), args.Get(1).(error)
 }

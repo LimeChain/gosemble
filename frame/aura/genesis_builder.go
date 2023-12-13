@@ -10,17 +10,52 @@ import (
 )
 
 var (
-	errAuthoritiesAlreadyInitialized   = errors.New("Authorities are already initialized!") // todo the same with other errors in module.go and return them instead log.Critical
+	errAuthoritiesAlreadyInitialized   = errors.New("Authorities are already initialized!")
 	errAuthoritiesExceedMaxAuthorities = errors.New("Initial authority set must be less than MaxAuthorities")
 	errInvalidGenesisConfig            = errors.New("Invalid aura genesis config")
 )
 
 type GenesisConfig struct {
-	Authorities []string `json:"authorities"`
+	Authorities sc.Sequence[types.Sr25519PublicKey]
+}
+
+type gcJsonStruct struct {
+	AuraGc struct {
+		Authorities []string `json:"authorities"`
+	} `json:"aura"`
+}
+
+func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
+	gcJson := gcJsonStruct{}
+
+	if err := json.Unmarshal(data, &gcJson); err != nil {
+		return err
+	}
+
+	if len(gcJson.AuraGc.Authorities) == 0 {
+		return nil
+	}
+
+	for _, a := range gcJson.AuraGc.Authorities {
+		_, pubKeyBytes, err := utils.SS58Decode(a)
+		if err != nil {
+			return err
+		}
+		pubKey, err := types.NewSr25519PublicKey(sc.BytesToSequenceU8(pubKeyBytes)...)
+		if err != nil {
+			return err
+		}
+
+		gc.Authorities = append(gc.Authorities, pubKey)
+	}
+
+	return nil
 }
 
 func (m Module) CreateDefaultConfig() ([]byte, error) {
-	gc := &GenesisConfig{Authorities: []string{}}
+	gc := gcJsonStruct{}
+	gc.AuraGc.Authorities = []string{}
+
 	return json.Marshal(gc)
 }
 
@@ -47,23 +82,7 @@ func (m Module) BuildConfig(config []byte) error {
 		return errAuthoritiesExceedMaxAuthorities
 	}
 
-	authorities := sc.Sequence[types.Sr25519PublicKey]{}
-	for _, a := range gc.Authorities {
-		_, publicKey, err := utils.SS58Decode(a)
-		if err != nil {
-			return err
-		}
-		key, err := types.NewSr25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
-		if err != nil {
-			return err
-		}
-		authorities = append(authorities, key)
-	}
-	m.storage.Authorities.Put(authorities)
+	m.storage.Authorities.Put(gc.Authorities)
 
 	return nil
-}
-
-func (m Module) ConfigModuleKey() string {
-	return "aura"
 }

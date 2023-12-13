@@ -24,6 +24,10 @@ func (m *StoredMap) Get(key types.AccountId[types.PublicKey]) (types.AccountInfo
 	return args.Get(0).(types.AccountInfo), args.Get(1).(error)
 }
 
+func (m *StoredMap) Put(key types.AccountId[types.PublicKey], accInfo types.AccountInfo) {
+	m.Called(key, accInfo)
+}
+
 func (m *StoredMap) CanDecProviders(who types.AccountId[types.PublicKey]) (bool, error) {
 	args := m.Called(who)
 
@@ -42,4 +46,12 @@ func (m *StoredMap) TryMutateExists(who types.AccountId[types.PublicKey], f func
 	}
 
 	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
+}
+
+func (m *StoredMap) IncProviders(who types.AccountId[types.PublicKey]) (types.IncRefStatus, error) {
+	args := m.Called(who)
+	if args.Get(1) == nil {
+		return args.Get(0).(types.IncRefStatus), nil
+	}
+	return args.Get(0).(types.IncRefStatus), args.Get(1).(error)
 }

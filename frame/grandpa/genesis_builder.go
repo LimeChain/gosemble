@@ -5,22 +5,71 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
 )
 
 var (
-	errAuthoritiesAlreadyInitialized = errors.New("Authorities are already initialized!") // todo the same with other errors in module.go and return them instead log.Critical
+	errAuthoritiesAlreadyInitialized = errors.New("Authorities are already initialized!")
 	errInvalidAddrValue              = errors.New("todo invalid address value")
 	errInvalidWeightValue            = errors.New("todo invalid weight value")
 )
 
 type GenesisConfig struct {
-	Authorities [][2]interface{} `json:"authorities"`
+	Authorities sc.Sequence[types.Authority]
+}
+type gcJsonStruct struct {
+	GrandpaGc struct {
+		Authorities [][2]interface{} `json:"authorities"`
+	} `json:"grandpa"`
+}
+
+func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
+	gcJson := gcJsonStruct{}
+
+	if err := json.Unmarshal(data, &gcJson); err != nil {
+		return err
+	}
+
+	if len(gcJson.GrandpaGc.Authorities) == 0 {
+		return nil
+	}
+
+	for _, a := range gcJson.GrandpaGc.Authorities {
+		addrString, ok := a[0].(string)
+		if !ok {
+			return errInvalidAddrValue
+		}
+
+		_, publicKey, err := utils.SS58Decode(addrString)
+		if err != nil {
+			return err
+		}
+
+		ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
+		if err != nil {
+			return err
+		}
+
+		who := types.NewAccountId[types.PublicKey](ed25519Signer)
+
+		weightFloat, ok := a[1].(float64)
+		if !ok {
+			return errInvalidWeightValue
+		}
+
+		weight := sc.U64(uint64(weightFloat))
+
+		gc.Authorities = append(gc.Authorities, types.Authority{Id: who, Weight: weight})
+	}
+
+	return nil
 }
 
 func (m Module[T]) CreateDefaultConfig() ([]byte, error) {
-	gc := &GenesisConfig{Authorities: [][2]interface{}{}}
+	gc := &gcJsonStruct{}
+	gc.GrandpaGc.Authorities = [][2]interface{}{}
+
 	return json.Marshal(gc)
 }
 
@@ -46,42 +95,15 @@ func (m Module[T]) BuildConfig(config []byte) error {
 		return errAuthoritiesAlreadyInitialized
 	}
 
-	for _, a := range gc.Authorities {
-		addrString, ok := a[0].(string)
-		if !ok {
-			return errInvalidAddrValue
-		}
+	// todo missing
+	// &BoundedAuthorityList::<T::MaxAuthorities>::try_from(authorities).expect(
+	// 	"Grandpa: `Config::MaxAuthorities` is smaller than the number of genesis authorities!",
+	// ),
 
-		_, publicKey, err := utils.SS58Decode(addrString)
-		if err != nil {
-			return err
-		}
-
-		ed25519Signer, err := primitives.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
-		if err != nil {
-			return err
-		}
-
-		who := primitives.NewAccountId[primitives.PublicKey](ed25519Signer)
-
-		weightFloat, ok := a[1].(float64)
-		if !ok {
-			return errInvalidWeightValue
-		}
-
-		// todo missing
-		// &BoundedAuthorityList::<T::MaxAuthorities>::try_from(authorities).expect(
-		// 	"Grandpa: `Config::MaxAuthorities` is smaller than the number of genesis authorities!",
-		// ),
-
-		weight := sc.U64(uint64(weightFloat))
-
-		totalAuthorities.AuthorityList = append(totalAuthorities.AuthorityList, primitives.Authority{Id: who, Weight: weight})
-	}
-
-	// TODO: VersionedList not encoded as expected
-	totalAuthorities.Version = AuthorityVersion
-	m.storage.Authorities.Put(totalAuthorities)
+	m.storage.Authorities.Put(types.VersionedAuthorityList{
+		AuthorityList: gc.Authorities,
+		Version:       AuthorityVersion,
+	})
 
 	// todo missing
 	//// NOTE: initialize first session of first set. this is necessary for
@@ -90,8 +112,4 @@ func (m Module[T]) BuildConfig(config []byte) error {
 	// SetIdSession::<T>::insert(0, 0);
 
 	return nil
-}
-
-func (m Module[T]) ConfigModuleKey() string {
-	return "grandpa"
 }
