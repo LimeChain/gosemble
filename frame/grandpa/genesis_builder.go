@@ -11,8 +11,8 @@ import (
 
 var (
 	errAuthoritiesAlreadyInitialized = errors.New("Authorities are already initialized!")
-	errInvalidAddrValue              = errors.New("todo invalid address value")
-	errInvalidWeightValue            = errors.New("todo invalid weight value")
+	errInvalidAddrValue              = errors.New("invalid address in genesis config json")
+	errInvalidWeightValue            = errors.New("invalid weight in genesis config json")
 )
 
 type GenesisConfig struct {
@@ -29,10 +29,6 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 
 	if err := json.Unmarshal(data, &gcJson); err != nil {
 		return err
-	}
-
-	if len(gcJson.GrandpaGc.Authorities) == 0 {
-		return nil
 	}
 
 	for _, a := range gcJson.GrandpaGc.Authorities {

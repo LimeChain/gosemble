@@ -89,7 +89,7 @@ func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize([]byte{0})
 }
 
-func (m Module) Metadata() primitives.RuntimeApiMetadata {
-	// todo metadata
-	return primitives.RuntimeApiMetadata{}
-}
+// todo metadata
+// func (m Module) Metadata() primitives.RuntimeApiMetadata {
+// 	return primitives.RuntimeApiMetadata{}
+// }

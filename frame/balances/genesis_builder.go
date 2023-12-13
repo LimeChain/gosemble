@@ -12,9 +12,8 @@ import (
 var (
 	errBalanceBelowExistentialDeposit = errors.New("the balance of any account should always be at least the existential deposit.")
 	errDuplicateBalancesInGenesis     = errors.New("duplicate balances in genesis.")
-	errInvalidGenesisConfig           = errors.New("Invalid balances genesis config")
-	errInvalidBalanceValue            = errors.New("todo invalid balance value")
-	errInvalidAddrValue               = errors.New("todo invalid address value")
+	errInvalidBalanceValue            = errors.New("invalid balance in genesis config json")
+	errInvalidAddrValue               = errors.New("invalid address in genesis config json")
 )
 
 type gcAccountBalance struct {
@@ -36,10 +35,6 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 
 	if err := json.Unmarshal(data, &gcJson); err != nil {
 		return err
-	}
-
-	if len(gcJson.BalancesGc.Balances) == 0 {
-		return nil
 	}
 
 	addrExists := map[string]bool{}

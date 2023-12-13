@@ -32,15 +32,12 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if len(gcJson.AuraGc.Authorities) == 0 {
-		return nil
-	}
-
 	for _, a := range gcJson.AuraGc.Authorities {
 		_, pubKeyBytes, err := subkey.SS58Decode(a)
 		if err != nil {
 			return err
 		}
+
 		pubKey, err := types.NewSr25519PublicKey(sc.BytesToSequenceU8(pubKeyBytes)...)
 		if err != nil {
 			return err

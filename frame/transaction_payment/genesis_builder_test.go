@@ -2,6 +2,7 @@ package transaction_payment
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -17,6 +18,12 @@ func Test_GenesisConfig_UnmarshalJSON(t *testing.T) {
 	err := json.Unmarshal(gcJson, &transactionPaymentGc)
 	assert.NoError(t, err)
 	assert.Equal(t, sc.NewU128(1), transactionPaymentGc.Multiplier)
+}
+
+func Test_GenesisConfig_UnmarshalJSON_InvalidGenesisMultiplier(t *testing.T) {
+	transactionPaymentGc := GenesisConfig{}
+	err := json.Unmarshal([]byte("{\"transactionPayment\":{\"multiplier\":\"invalid\"}}"), &transactionPaymentGc)
+	assert.Equal(t, errors.New("can not convert string to big.Int"), err)
 }
 
 func Test_CreateDefaultConfig(t *testing.T) {

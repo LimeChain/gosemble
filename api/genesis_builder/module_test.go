@@ -1,6 +1,7 @@
 package genesisbuilder
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -25,8 +26,7 @@ func setup() {
 	mockModule = new(mocks.Module)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target = Module{}
-	target.modules = []types.Module{mockModule}
+	target = New([]types.Module{mockModule})
 	target.memUtils = mockMemoryUtils
 }
 
@@ -55,6 +55,17 @@ func Test_CreateDefaultConfig(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", genesisSequence)
 }
 
+func Test_CreateDefaultConfig_Error(t *testing.T) {
+	setup()
+	mockModule.On("CreateDefaultConfig").Return(genesis, errors.New("err"))
+	mockMemoryUtils.On("BytesToOffsetAndSize", genesisSequence).Return(int64(0))
+
+	assert.PanicsWithValue(t,
+		errors.New("err").Error(),
+		func() { target.CreateDefaultConfig() },
+	)
+}
+
 func Test_BuildConfig(t *testing.T) {
 	setup()
 	mockModule.On("BuildConfig", genesis).Return(nil)
@@ -66,4 +77,16 @@ func Test_BuildConfig(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(0))
 	mockModule.AssertCalled(t, "BuildConfig", genesis)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", []byte{0})
+}
+
+func Test_BuildConfig_Error(t *testing.T) {
+	setup()
+	mockModule.On("BuildConfig", genesis).Return(errors.New("err"))
+	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(0)).Return(genesisSequence)
+	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{0}).Return(int64(0))
+
+	assert.PanicsWithValue(t,
+		errors.New("err").Error(),
+		func() { target.BuildConfig(0, 0) },
+	)
 }
