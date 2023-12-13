@@ -6,13 +6,12 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	invalidTransactionBadSigner, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
+	invalidTransactionBadSigner = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 )
 
 func Test_CheckNonZeroAddress_AdditionalSigned(t *testing.T) {
@@ -57,7 +56,7 @@ func Test_CheckNonZeroAddress_Bytes(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -66,7 +65,7 @@ func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Fails(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.ZeroAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.ZeroAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionBadSigner, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
@@ -84,7 +83,7 @@ func Test_CheckNonZeroAddress_ValidateUnsigned(t *testing.T) {
 func Test_CheckNonZeroAddress_PreDispatch(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.PreDispatch(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -106,19 +105,13 @@ func Test_CheckNonZeroAddress_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckNonZeroAddress_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckNonZeroSender,
-		"CheckNonZeroSender",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_non_zero_sender", "CheckNonZeroSender"},
-		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckNonZeroSender", metadata.CheckNonZeroSender, metadata.TypesEmptyTuple)
+func Test_CheckNonZeroAddress_ModulePath(t *testing.T) {
+	target := setupCheckNonZeroSender()
 
-	resultType, resultSignedExtension := setupCheckNonZeroSender().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckNonZeroSender() CheckNonZeroAddress {

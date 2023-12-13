@@ -29,7 +29,7 @@ type signedPayload struct {
 
 // NewSignedPayload creates a new `SignedPayload`.
 // It may fail if `additional_signed` of `Extra` is not available.
-func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, TransactionValidityError) {
+func NewSignedPayload(call Call, extra SignedExtra) (SignedPayload, error) {
 	additionalSigned, err := extra.AdditionalSigned()
 	if err != nil {
 		return signedPayload{}, err

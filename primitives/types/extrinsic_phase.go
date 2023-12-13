@@ -17,18 +17,20 @@ const (
 	PhaseInitialization
 )
 
-type ExtrinsicPhase = sc.VaryingData
+type ExtrinsicPhase struct {
+	sc.VaryingData
+}
 
 func NewExtrinsicPhaseApply(index sc.U32) ExtrinsicPhase {
-	return sc.NewVaryingData(PhaseApplyExtrinsic, index)
+	return ExtrinsicPhase{sc.NewVaryingData(PhaseApplyExtrinsic, index)}
 }
 
 func NewExtrinsicPhaseFinalization() ExtrinsicPhase {
-	return sc.NewVaryingData(PhaseFinalization)
+	return ExtrinsicPhase{sc.NewVaryingData(PhaseFinalization)}
 }
 
 func NewExtrinsicPhaseInitialization() ExtrinsicPhase {
-	return sc.NewVaryingData(PhaseInitialization)
+	return ExtrinsicPhase{sc.NewVaryingData(PhaseInitialization)}
 }
 
 func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {

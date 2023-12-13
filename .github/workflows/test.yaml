@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Build and Run Tests
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - develop
 
 jobs:
-  unit-tests:
+  build-and-run-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

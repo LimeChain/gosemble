@@ -5,18 +5,21 @@ import (
 	"math"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckNonce struct {
-	nonce        sc.U32
-	systemModule system.Module
+	nonce                         sc.U32
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckNonce(systemModule system.Module) primitives.SignedExtension {
-	return &CheckNonce{systemModule: systemModule}
+	return &CheckNonce{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
 }
 
 func (cn CheckNonce) Encode(buffer *bytes.Buffer) error {
@@ -36,22 +39,18 @@ func (cn CheckNonce) Bytes() []byte {
 	return sc.EncodedBytes(cn)
 }
 
-func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.ValidTransaction{}, transactionValidityError
+		return primitives.ValidTransaction{}, err
 	}
 
 	if cn.nonce < account.Nonce {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionStale, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-		return primitives.ValidTransaction{}, invalidTransactionStale
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 	}
 
 	encoded := who.Bytes()
@@ -76,27 +75,24 @@ func (cn CheckNonce) Validate(who primitives.AccountId[primitives.PublicKey], _c
 	}, nil
 }
 
-func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.Pre{}, transactionValidityError
+		return primitives.Pre{}, err
 	}
 
 	if cn.nonce != account.Nonce {
-		var transactionValidityError primitives.TransactionValidityError
+		var txErr sc.Encodable
 		if cn.nonce < account.Nonce {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			transactionValidityError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+			txErr = primitives.NewInvalidTransactionStale()
 		} else {
-			transactionValidityError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+			txErr = primitives.NewInvalidTransactionFuture()
 		}
-		return primitives.Pre{}, transactionValidityError
+		return primitives.Pre{}, primitives.NewTransactionValidityError(txErr)
 	}
 
 	account.Nonce = account.Nonce + 1
@@ -105,21 +101,15 @@ func (cn CheckNonce) PreDispatch(who primitives.AccountId[primitives.PublicKey],
 	return primitives.Pre{}, nil
 }
 
-func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := cn.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
 
-func (cn CheckNonce) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckNonce,
-			"CheckNonce",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_nonce", "CheckNonce"},
-			primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32)),
-		),
-		primitives.NewMetadataSignedExtension("CheckNonce", metadata.CheckNonce, metadata.TypesEmptyTuple)
+func (cn CheckNonce) ModulePath() string {
+	return systemModulePath
 }

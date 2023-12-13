@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
+	"github.com/ChainSafe/gossamer/lib/crypto/secp256k1"
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -18,13 +20,11 @@ import (
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/blake2b"
 )
 
 const POLKADOT_RUNTIME = "../build/polkadot_runtime-v9400.compact.compressed.wasm"
 const NODE_TEMPLATE_RUNTIME = "../build/node_template_runtime.wasm"
-
-// const WASM_RUNTIME = "../build/node_template_runtime.wasm"
-// const WASM_RUNTIME = "../build/runtime-optimized.wasm" // min memory: 257
 const WASM_RUNTIME = "../build/runtime.wasm"
 
 var (
@@ -69,20 +69,20 @@ var (
 )
 
 var (
-	invalidTransactionStaleErr, _             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
-	invalidTransactionFutureErr, _            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
-	invalidTransactionBadProofErr, _          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
-	invalidTransactionExhaustsResourcesErr, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-	unknownTransactionNoUnsignedValidator, _  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	invalidTransactionMandatoryValidation, _  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
+	invalidTransactionStaleErr             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
+	invalidTransactionFutureErr            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
+	invalidTransactionBadProofErr          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
+	invalidTransactionExhaustsResourcesErr = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
+	unknownTransactionNoUnsignedValidator  = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	invalidTransactionMandatoryValidation  = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 )
 
 var (
-	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr)
-	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr)
-	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr)
-	transactionValidityResultNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityResult(unknownTransactionNoUnsignedValidator)
-	transactionValidityResultMandatoryValidationErr, _ = primitives.NewTransactionValidityResult(invalidTransactionMandatoryValidation)
+	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr.(primitives.TransactionValidityError))
+	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr.(primitives.TransactionValidityError))
+	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
+	transactionValidityResultNoUnsignedValidatorErr, _ = primitives.NewTransactionValidityResult(unknownTransactionNoUnsignedValidator.(primitives.TransactionValidityError))
+	transactionValidityResultMandatoryValidationErr, _ = primitives.NewTransactionValidityResult(invalidTransactionMandatoryValidation.(primitives.TransactionValidityError))
 
 	dispatchOutcome, _             = primitives.NewDispatchOutcome(nil)
 	dispatchOutcomeBadOriginErr, _ = primitives.NewDispatchOutcome(primitives.NewDispatchErrorBadOrigin())
@@ -91,27 +91,27 @@ var (
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorInsufficientBalance),
+				Err:   sc.U32(balances.ErrorInsufficientBalance),
 			}))
 
 	dispatchOutcomeExistentialDepositErr, _ = primitives.NewDispatchOutcome(
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorExistentialDeposit),
+				Err:   sc.U32(balances.ErrorExistentialDeposit),
 			}))
 
 	dispatchOutcomeKeepAliveErr, _ = primitives.NewDispatchOutcome(
 		primitives.NewDispatchErrorModule(
 			primitives.CustomModuleError{
 				Index: BalancesIndex,
-				Error: sc.U32(balances.ErrorKeepAlive),
+				Err:   sc.U32(balances.ErrorKeepAlive),
 			}))
 
 	applyExtrinsicResultOutcome, _              = primitives.NewApplyExtrinsicResult(dispatchOutcome)
-	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr)
+	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
 	applyExtrinsicResultBadOriginErr, _         = primitives.NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
-	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr)
+	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr.(primitives.TransactionValidityError))
 
 	applyExtrinsicResultCustomModuleErr, _       = primitives.NewApplyExtrinsicResult(dispatchOutcomeCustomModuleErr)
 	applyExtrinsicResultExistentialDepositErr, _ = primitives.NewApplyExtrinsicResult(dispatchOutcomeExistentialDepositErr)
@@ -197,4 +197,66 @@ func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint6
 	assert.NoError(t, err)
 
 	return extEnc.Bytes()
+}
+
+func signExtrinsicSecp256k1(e *ctypes.Extrinsic, o ctypes.SignatureOptions, keyPair *secp256k1.Keypair) error {
+	if e.Type() != ctypes.ExtrinsicVersion4 {
+		return fmt.Errorf("unsupported extrinsic version: %v (isSigned: %v, type: %v)", e.Version, e.IsSigned(), e.Type())
+	}
+
+	mb, err := codec.Encode(e.Method)
+	if err != nil {
+		return err
+	}
+
+	era := o.Era
+	if !o.Era.IsMortalEra {
+		era = ctypes.ExtrinsicEra{IsImmortalEra: true}
+	}
+
+	payload := ctypes.ExtrinsicPayloadV4{
+		ExtrinsicPayloadV3: ctypes.ExtrinsicPayloadV3{
+			Method:      mb,
+			Era:         era,
+			Nonce:       o.Nonce,
+			Tip:         o.Tip,
+			SpecVersion: o.SpecVersion,
+			GenesisHash: o.GenesisHash,
+			BlockHash:   o.BlockHash,
+		},
+		TransactionVersion: o.TransactionVersion,
+	}
+
+	b, err := codec.Encode(payload)
+	if err != nil {
+		return err
+	}
+
+	digest := blake2b.Sum256(b)
+	signature, err := keyPair.Private().Sign(digest[:])
+	if err != nil {
+		return err
+	}
+
+	signerAddress := blake2b.Sum256(keyPair.Public().Encode())
+
+	signerMultiAddress, err := ctypes.NewMultiAddressFromAccountID(signerAddress[:])
+	if err != nil {
+		return err
+	}
+
+	extSig := ctypes.ExtrinsicSignatureV4{
+		Signer:    signerMultiAddress,
+		Signature: ctypes.MultiSignature{IsEcdsa: true, AsEcdsa: ctypes.NewEcdsaSignature(signature)},
+		Era:       era,
+		Nonce:     o.Nonce,
+		Tip:       o.Tip,
+	}
+
+	e.Signature = extSig
+
+	// mark the extrinsic as signed
+	e.Version |= ctypes.ExtrinsicBitSigned
+
+	return nil
 }

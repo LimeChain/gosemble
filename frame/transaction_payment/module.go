@@ -47,14 +47,12 @@ func (m module) Functions() map[sc.U8]primitives.Call {
 	return map[sc.U8]primitives.Call{}
 }
 
-func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -204,7 +202,7 @@ func (m module) computeActualFeeDetails(len sc.U32, info primitives.DispatchInfo
 }
 
 func (m module) computeFeeRaw(len sc.U32, weight primitives.Weight, tip primitives.Balance, paysFee primitives.Pays, class primitives.DispatchClass) (types.FeeDetails, error) {
-	if paysFee[0] == primitives.PaysYes { // TODO: type safety
+	if paysFee == primitives.PaysYes {
 		unadjustedWeightFee := m.weightToFee(weight)
 		multiplier, err := m.storage.NextFeeMultiplier.Get()
 		if err != nil {

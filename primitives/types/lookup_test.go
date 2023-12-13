@@ -8,14 +8,12 @@ import (
 )
 
 var (
-	multiAddressId = NewMultiAddressId(
-		NewAccountId[PublicKey](ed25519SignerOnesAddress),
-	)
-	multiAddressIndex   = NewMultiAddressIndex(accountIndex)
-	expectedAccountId   = NewAccountId[PublicKey](ed25519SignerOnesAddress)
-	invalidMultiAddress = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
+	multiAddressId       = NewMultiAddressId(accId)
+	multiAddressIndex    = NewMultiAddressIndex(accountIndex)
+	expectedAccountId, _ = NewAccountId(sc.BytesToSequenceU8(signerAddressBytes)...)
+	invalidMultiAddress  = MultiAddress{sc.NewVaryingData(sc.U8(5), sc.ToCompact(accountIndex))}
 
-	expectedTransactionCannotLookupErr, _ = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
+	expectedTransactionCannotLookupErr = NewTransactionValidityError(NewUnknownTransactionCannotLookup())
 )
 
 func Test_Lookup_AccountId(t *testing.T) {
@@ -27,11 +25,11 @@ func Test_Lookup_AccountId(t *testing.T) {
 func Test_Lookup_AccountIndex(t *testing.T) {
 	result, err := Lookup(multiAddressIndex)
 	assert.Equal(t, expectedTransactionCannotLookupErr, err)
-	assert.Equal(t, AccountId[PublicKey]{}, result)
+	assert.Equal(t, AccountId{}, result)
 }
 
 func Test_Lookup_MultiAddress_NotValid(t *testing.T) {
 	result, err := Lookup(invalidMultiAddress)
 	assert.Equal(t, expectedTransactionCannotLookupErr, err)
-	assert.Equal(t, AccountId[PublicKey]{}, result)
+	assert.Equal(t, AccountId{}, result)
 }

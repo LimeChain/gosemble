@@ -70,12 +70,15 @@ func (m Module) Metadata() int64 {
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
 }
 
+// TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
+
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	types, modules, extrinsic := m.runtimeExtrinsic.Metadata()
+	types, modules, extrinsic := m.runtimeExtrinsic.Metadata(metadataTypesIds)
 
 	// append types to all
 	metadataTypes = append(metadataTypes, types...)
@@ -105,13 +108,15 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
+	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()
+
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
+		types, modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(metadataTypesIds)
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
 			Types:     metadataTypes,
@@ -126,7 +131,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
+		typesV15, modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(metadataTypesIds)
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,
@@ -212,20 +217,17 @@ func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.PrimitiveTypesBool, "bool", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveBoolean)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesChar, "char", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveChar)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesString, "string", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveString)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU8, "U8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU8)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU16, "U16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU16)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU32, "U32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU32)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU64, "U64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU64)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesU128, "U128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesU256, "U256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveU256)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI8, "I8", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI8)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI16, "I16", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI16)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI32, "I32", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI32)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI64, "I64", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI64)),
 		primitives.NewMetadataType(metadata.PrimitiveTypesI128, "I128", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI128)),
-		primitives.NewMetadataType(metadata.PrimitiveTypesI256, "I256", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveI256)),
 	}
 }
 
@@ -442,17 +444,17 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Normal",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassNormal,
+					sc.U8(primitives.DispatchClassNormal),
 					"DispatchClass.Normal"),
 				primitives.NewMetadataDefinitionVariant(
 					"Operational",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassOperational,
+					sc.U8(primitives.DispatchClassOperational),
 					"DispatchClass.Operational"),
 				primitives.NewMetadataDefinitionVariant(
 					"Mandatory",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.DispatchClassMandatory,
+					sc.U8(primitives.DispatchClassMandatory),
 					"DispatchClass.Mandatory"),
 			})),
 		primitives.NewMetadataTypeWithPath(metadata.TypesPays, "Pays", sc.Sequence[sc.Str]{"frame_support", "dispatch", "Pays"}, primitives.NewMetadataTypeDefinitionVariant(
@@ -460,12 +462,12 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Yes",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.PaysYes,
+					sc.U8(primitives.PaysYes),
 					"Pays.Yes"),
 				primitives.NewMetadataDefinitionVariant(
 					"No",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					primitives.PaysNo,
+					sc.U8(primitives.PaysNo),
 					"Pays.No"),
 			})),
 

@@ -18,8 +18,6 @@ import (
 // changes are going to be preserved even if the call dispatched failed.
 type DispatchOutcome sc.VaryingData //  = sc.Result[sc.Empty, DispatchError]
 
-var errDispatchOutcomeInvalid = "invalid DispatchOutcome type"
-
 func NewDispatchOutcome(value sc.Encodable) (DispatchOutcome, error) {
 	// None 			   = 0 - Extrinsic is valid and was submitted successfully.
 	// DispatchError = 1 - Possible errors while dispatching the extrinsic.

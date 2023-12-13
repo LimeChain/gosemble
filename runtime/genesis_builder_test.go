@@ -65,8 +65,8 @@ func Test_BuildConfig(t *testing.T) {
 
 	// assert grandpa authorities
 	grandpaAuthorities := (*storage).Get(keyGrandpaAuthorities)
-	wantGrandpaAuthorityPubKey, _ := types.NewEd25519PublicKey(wantPubKey...)
-	accId := types.NewAccountId[types.PublicKey](wantGrandpaAuthorityPubKey)
+	// wantGrandpaAuthorityPubKey, _ := types.NewEd25519PublicKey(wantPubKey...)
+	accId, _ := types.NewAccountId(wantPubKey...)
 	authorities := sc.Sequence[types.Authority]{{Id: accId, Weight: sc.U64(1)}}
 	wantGrandpaAuthorities := types.VersionedAuthorityList{AuthorityList: authorities, Version: grandpa.AuthorityVersion}
 	assert.Equal(t, wantGrandpaAuthorities.Bytes(), grandpaAuthorities)

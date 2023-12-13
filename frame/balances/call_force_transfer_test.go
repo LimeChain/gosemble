@@ -13,7 +13,7 @@ import (
 
 func Test_Call_ForceTransfer_new(t *testing.T) {
 	target := setupCallForceTransfer()
-	expected := callForceTransfer[testPublicKeyType]{
+	expected := callForceTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceTransferIndex,
@@ -94,7 +94,7 @@ func Test_Call_ForceTransfer_ClassifyDispatch(t *testing.T) {
 func Test_Call_ForceTransfer_PaysFee(t *testing.T) {
 	target := setupCallForceTransfer()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
@@ -196,5 +196,5 @@ func setupCallForceTransfer() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceTransfer[testPublicKeyType](moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallForceTransfer(moduleId, functionForceTransferIndex, mockStoredMap, testConstants, mockMutator)
 }

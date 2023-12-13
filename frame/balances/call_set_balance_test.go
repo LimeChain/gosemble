@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -20,7 +21,7 @@ var (
 
 func Test_Call_SetBalance_new(t *testing.T) {
 	target := setupCallSetBalance()
-	expected := callSetBalance[testPublicKeyType]{
+	expected := callSetBalance{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetBalanceIndex,
@@ -87,7 +88,7 @@ func Test_Call_SetBalance_BaseWeight(t *testing.T) {
 }
 
 func Test_Call_SetBalance_IsInherent(t *testing.T) {
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 	assert.Equal(t, false, target.IsInherent())
 }
@@ -106,7 +107,7 @@ func Test_Call_SetBalance_ClassifyDispatch(t *testing.T) {
 func Test_Call_SetBalance_PaysFee(t *testing.T) {
 	target := setupCallSetBalance()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
@@ -190,7 +191,7 @@ func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(oldFree, oldReserved),
@@ -215,7 +216,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Nil(t, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,
@@ -234,7 +235,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testing.T) {
 	newFree := sc.NewU128(0)
 	newReserved := sc.NewU128(0)
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
@@ -254,7 +255,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Nil(t, result)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
@@ -271,7 +272,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	newFree := sc.NewU128(1)
 	newReserved := sc.NewU128(1)
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 	mockResult := sc.Result[sc.Encodable]{
 		Value: sc.NewVaryingData(oldFree, oldReserved),
@@ -292,7 +293,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, newFree, newReserved)
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Nil(t, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,
@@ -309,7 +310,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_InvalidOrigin(t *testing.T) {
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 
 	result := target.setBalance(primitives.NewRawOriginNone(), targetAddress, targetValue, targetValue)
@@ -322,7 +323,7 @@ func Test_Call_SetBalance_setBalance_InvalidOrigin(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_Lookup(t *testing.T) {
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), primitives.NewMultiAddress20(primitives.Address20{}), targetValue, targetValue)
@@ -335,7 +336,7 @@ func Test_Call_SetBalance_setBalance_Lookup(t *testing.T) {
 }
 
 func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
-	target, ok := setupCallSetBalance().(callSetBalance[testPublicKeyType])
+	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
 	err := primitives.NewDispatchErrorBadOrigin()
 	mockResult := sc.Result[sc.Encodable]{
@@ -363,6 +364,53 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_setBalance_Drop(t *testing.T) {
+	for _, tt := range []struct {
+		name                                       string
+		newFree, newReserved, oldFree, oldReserved sc.U128
+	}{
+		{
+			name:    "newFree.Gt(oldFree)",
+			newFree: sc.NewU128(1),
+			oldFree: sc.NewU128(0),
+		},
+		{
+			name:    "newFree.Lt(oldFree)",
+			newFree: sc.NewU128(0),
+			oldFree: sc.NewU128(1),
+		},
+		{
+			name:        "newReserved.Gt(oldReserved)",
+			newReserved: sc.NewU128(1),
+			oldReserved: sc.NewU128(0),
+		},
+		{
+			name:        "newReserved.Lt(oldReserved)",
+			newReserved: sc.NewU128(0),
+			oldReserved: sc.NewU128(1),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			target, ok := setupCallSetBalance().(callSetBalance)
+			assert.True(t, ok)
+
+			mockMutator.On(
+				"tryMutateAccount",
+				mock.Anything,
+				mock.Anything,
+			).Return(sc.Result[sc.Encodable]{Value: sc.NewVaryingData(tt.oldFree, tt.oldReserved)})
+
+			mockStorageTotalIssuance.On("Put", mock.Anything)
+			mockStoredMap.On("DepositEvent", mock.Anything).Return()
+			mockStorageTotalIssuance.On("Get").Return(sc.NewU128(0), errors.New("drop")).Once()
+
+			result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, tt.newFree, tt.newReserved)
+
+			assert.Equal(t, primitives.NewDispatchErrorOther("drop"), result)
+		})
+	}
 }
 
 func Test_Call_SetBalance_updateAccount(t *testing.T) {
@@ -395,5 +443,5 @@ func setupCallSetBalance() primitives.Call {
 	mockMutator = new(mockAccountMutator)
 	mockStorageTotalIssuance = new(mocks.StorageValue[sc.U128])
 
-	return newCallSetBalance[testPublicKeyType](moduleId, functionSetBalanceIndex, mockStoredMap, testConstants, mockMutator, mockStorageTotalIssuance).(callSetBalance[testPublicKeyType])
+	return newCallSetBalance(moduleId, functionSetBalanceIndex, mockStoredMap, testConstants, mockMutator, mockStorageTotalIssuance).(callSetBalance)
 }

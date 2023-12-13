@@ -4,17 +4,20 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckSpecVersion struct {
-	systemModule system.Module
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckSpecVersion(systemModule system.Module) primitives.SignedExtension {
-	return &CheckSpecVersion{systemModule: systemModule}
+	return &CheckSpecVersion{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(sc.U32(0)),
+	}
 }
 
 func (csv CheckSpecVersion) Encode(*bytes.Buffer) error {
@@ -27,38 +30,32 @@ func (csv CheckSpecVersion) Bytes() []byte {
 	return sc.EncodedBytes(csv)
 }
 
-func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(csv.systemModule.Version().SpecVersion), nil
 }
 
-func (_ CheckSpecVersion) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (_ CheckSpecVersion) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := csv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := csv.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
 
-func (csv CheckSpecVersion) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckSpecVersion,
-			"CheckSpecVersion",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32)
+func (csv CheckSpecVersion) ModulePath() string {
+	return systemModulePath
 }

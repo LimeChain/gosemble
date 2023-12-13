@@ -33,6 +33,23 @@ func NewUnknownTransactionCustomUnknownTransaction(unknown sc.U8) UnknownTransac
 	return UnknownTransaction{sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)}
 }
 
+func (err UnknownTransaction) Error() string {
+	if len(err.VaryingData) == 0 {
+		return newTypeError("UnknownError").Error()
+	}
+
+	switch err.VaryingData[0] {
+	case UnknownTransactionCannotLookup:
+		return "Could not lookup information required to validate the transaction"
+	case UnknownTransactionNoUnsignedValidator:
+		return "Could not find an unsigned validator for the unsigned transaction"
+	case UnknownTransactionCustomUnknownTransaction:
+		return "UnknownTransaction custom error"
+	default:
+		return newTypeError("TransactionalError").Error()
+	}
+}
+
 func DecodeUnknownTransaction(buffer *bytes.Buffer) (UnknownTransaction, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {

@@ -6,36 +6,36 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+type Pays sc.U8
+
 const (
 	// PaysYes Transactor will pay related fees.
-	PaysYes sc.U8 = iota
+	PaysYes Pays = iota
 
 	// PaysNo Transactor will NOT pay related fees.
 	PaysNo
 )
 
-type Pays = sc.VaryingData
-
-func NewPaysYes() Pays {
-	return sc.NewVaryingData(PaysYes)
-}
-
-func NewPaysNo() Pays {
-	return sc.NewVaryingData(PaysNo)
+func (p Pays) Encode(buffer *bytes.Buffer) error {
+	return sc.U8(p).Encode(buffer)
 }
 
 func DecodePays(buffer *bytes.Buffer) (Pays, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
-		return Pays{}, err
+		return 0, err
 	}
 
-	switch b {
+	switch Pays(b) {
 	case PaysYes:
-		return NewPaysYes(), nil
+		return PaysYes, nil
 	case PaysNo:
-		return NewPaysNo(), nil
+		return PaysNo, nil
 	default:
-		return nil, newTypeError("Pays")
+		return 0, newTypeError("Pays")
 	}
+}
+
+func (p Pays) Bytes() []byte {
+	return sc.EncodedBytes(p)
 }

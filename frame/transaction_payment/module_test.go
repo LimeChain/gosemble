@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	who = constants.ZeroAddressAccountId
+	who = constants.ZeroAccountId
 
 	weightToFee types.WeightToFee = types.IdentityFee{}
 	lengthToFee types.WeightToFee = types.IdentityFee{}
@@ -41,7 +41,7 @@ var (
 )
 
 var (
-	noUnsignedValidatorError, _ = types.NewTransactionValidityError(
+	noUnsignedValidatorError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionNoUnsignedValidator(),
 	)
 
@@ -227,7 +227,7 @@ func Test_ComputeFee_TipOnlyNoFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysNo(),
+		PaysFee: primitives.PaysNo,
 	}
 
 	fee, err := target.ComputeFee(0, info, sc.NewU128(15))
@@ -243,7 +243,7 @@ func Test_ComputeFee_NoTipOnlyBaseFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
@@ -261,7 +261,7 @@ func Test_ComputeFee_TipPlusBaseFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(2), nil)
@@ -279,7 +279,7 @@ func Test_ComputeFee_ByteFeePlusBaseFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
@@ -297,7 +297,7 @@ func Test_ComputeFee_WeightFeePlusBaseFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(1000, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
@@ -315,7 +315,7 @@ func Test_ComputeFeeDetails(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 
 	mockNextFeeMultiplier.On("Get").Return(sc.NewU128(0), nil)
@@ -337,7 +337,7 @@ func Test_ComputeActualFee(t *testing.T) {
 	info := primitives.DispatchInfo{
 		Weight:  primitives.WeightFromParts(0, 0),
 		Class:   primitives.NewDispatchClassOperational(),
-		PaysFee: primitives.NewPaysYes(),
+		PaysFee: primitives.PaysYes,
 	}
 	postInfo := primitives.PostDispatchInfo{
 		ActualWeight: sc.NewOption[types.Weight](primitives.WeightFromParts(0, 0)),

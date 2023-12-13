@@ -7,6 +7,7 @@ import (
 
 type Crypto interface {
 	EcdsaGenerate(keyTypeId []byte, seed []byte) []byte
+	EcdsaRecoverCompressed(signature []byte, msg []byte) []byte
 
 	Ed25519Generate(keyTypeId []byte, seed []byte) []byte
 	Ed25519Verify(signature []byte, message []byte, pubKey []byte) bool
@@ -30,6 +31,19 @@ func (c crypto) EcdsaGenerate(keyTypeId []byte, seed []byte) []byte {
 	panic("not exported by Gossamer")
 	//r := env.ExtCryptoEcdsaGenerateVersion1(c.memoryTranslator.Offset32(keyTypeId), c.memoryTranslator.BytesToOffsetAndSize(seed))
 	//return c.memoryTranslator.ToWasmMemorySlice(r, 32)
+}
+
+func (c crypto) EcdsaRecoverCompressed(signature []byte, msg []byte) []byte {
+	sigOffsetSize := c.memoryTranslator.BytesToOffsetAndSize(signature)
+	sigOffset, _ := c.memoryTranslator.Int64ToOffsetAndSize(sigOffsetSize) // signature: 65-byte
+
+	msgOffsetSize := c.memoryTranslator.BytesToOffsetAndSize(msg)
+	msgOffset, _ := c.memoryTranslator.Int64ToOffsetAndSize(msgOffsetSize) // message: 32-byte
+
+	r := env.ExtCryptoSecp256k1EcdsaRecoverCompressedVersion2(sigOffset, msgOffset)
+	offset, size := c.memoryTranslator.Int64ToOffsetAndSize(r)
+
+	return c.memoryTranslator.GetWasmMemorySlice(offset, size)
 }
 
 func (c crypto) Ed25519Generate(keyTypeId []byte, seed []byte) []byte {

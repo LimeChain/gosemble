@@ -35,11 +35,11 @@ type Module interface {
 	Finalize() (primitives.Header, error)
 	NoteFinishedExtrinsics() error
 	ResetEvents()
-	Get(key primitives.AccountId[primitives.PublicKey]) (primitives.AccountInfo, error)
-	Put(key primitives.AccountId[primitives.PublicKey], accInfo primitives.AccountInfo)
-	CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error)
+	Get(key primitives.AccountId) (primitives.AccountInfo, error)
+	Put(key primitives.AccountId, accInfo primitives.AccountInfo)
+	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
-	TryMutateExists(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
 	Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
 
 	BlockHashCount() sc.U64
@@ -62,12 +62,12 @@ type Module interface {
 	StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error)
 	StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo)
 
-	StorageAccount(key types.AccountId[types.PublicKey]) (types.AccountInfo, error)
-	StorageAccountSet(key types.AccountId[types.PublicKey], value types.AccountInfo)
+	StorageAccount(key types.AccountId) (types.AccountInfo, error)
+	StorageAccountSet(key types.AccountId, value types.AccountInfo)
 
 	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
-	IncProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error)
+	IncProviders(who primitives.AccountId) (primitives.IncRefStatus, error)
 }
 
 type module struct {
@@ -111,14 +111,12 @@ func (m module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 func (m module) BlockHashCount() sc.U64 {
@@ -181,11 +179,11 @@ func (m module) StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo) 
 	m.storage.LastRuntimeUpgrade.Put(lrui)
 }
 
-func (m module) StorageAccount(key types.AccountId[types.PublicKey]) (types.AccountInfo, error) {
+func (m module) StorageAccount(key types.AccountId) (types.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
-func (m module) StorageAccountSet(key types.AccountId[types.PublicKey], value types.AccountInfo) {
+func (m module) StorageAccountSet(key types.AccountId, value types.AccountInfo) {
 	m.storage.Account.Put(key, value)
 }
 
@@ -373,15 +371,15 @@ func (m module) ResetEvents() {
 	m.storage.EventTopics.Clear(sc.U32(math.MaxUint32))
 }
 
-func (m module) Get(key primitives.AccountId[primitives.PublicKey]) (primitives.AccountInfo, error) {
+func (m module) Get(key primitives.AccountId) (primitives.AccountInfo, error) {
 	return m.storage.Account.Get(key)
 }
 
-func (m module) Put(key primitives.AccountId[primitives.PublicKey], accInfo primitives.AccountInfo) {
+func (m module) Put(key primitives.AccountId, accInfo primitives.AccountInfo) {
 	m.storage.Account.Put(key, accInfo)
 }
 
-func (m module) CanDecProviders(who primitives.AccountId[primitives.PublicKey]) (bool, error) {
+func (m module) CanDecProviders(who primitives.AccountId) (bool, error) {
 	acc, err := m.Get(who)
 	if err != nil {
 		return false, err
@@ -395,7 +393,7 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
 	account, err := m.Get(who)
 	if err != nil {
 		return sc.Result[sc.Encodable]{}, err
@@ -447,7 +445,7 @@ func (m module) TryMutateExists(who primitives.AccountId[primitives.PublicKey], 
 	return result, nil
 }
 
-func (m module) IncProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.IncRefStatus, error) {
+func (m module) IncProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
 	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return m.incrementProviders(who, account)
 	})
@@ -455,7 +453,7 @@ func (m module) IncProviders(who primitives.AccountId[primitives.PublicKey]) (pr
 	return result.Value.(primitives.IncRefStatus), err
 }
 
-func (m module) decrementProviders(who primitives.AccountId[primitives.PublicKey], maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 	if maybeAccount.HasValue {
 		account := &maybeAccount.Value
 
@@ -495,7 +493,7 @@ func (m module) decrementProviders(who primitives.AccountId[primitives.PublicKey
 	}
 }
 
-func (m module) incrementProviders(who primitives.AccountId[primitives.PublicKey], account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+func (m module) incrementProviders(who primitives.AccountId, account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 	if account.Providers == 0 && account.Sufficients == 0 {
 		account.Providers = 1
 		m.onCreatedAccount(who)
@@ -514,7 +512,7 @@ func (m module) incrementProviders(who primitives.AccountId[primitives.PublicKey
 	}
 }
 
-func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (primitives.DecRefStatus, primitives.DispatchError) {
+func (m module) decProviders(who primitives.AccountId) (primitives.DecRefStatus, primitives.DispatchError) {
 	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
 		return m.decrementProviders(who, maybeAccount)
 	})
@@ -524,7 +522,7 @@ func (m module) decProviders(who primitives.AccountId[primitives.PublicKey]) (pr
 	}
 
 	if result.HasError {
-		return sc.U8(0), result.Value.(primitives.DispatchError)
+		return primitives.DecRefStatus(0), result.Value.(primitives.DispatchError)
 	}
 
 	return result.Value.(primitives.DecRefStatus), nil
@@ -576,13 +574,13 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	return nil
 }
 
-func (m module) onCreatedAccount(who primitives.AccountId[primitives.PublicKey]) {
+func (m module) onCreatedAccount(who primitives.AccountId) {
 	// hook on creating new account, currently not used in Substrate
 	//T::OnNewAccount::on_new_account(&who);
 	m.DepositEvent(newEventNewAccount(m.Index, who))
 }
 
-func (m module) onKilledAccount(who primitives.AccountId[primitives.PublicKey]) {
+func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 

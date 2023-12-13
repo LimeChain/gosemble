@@ -17,22 +17,23 @@ const (
 )
 
 var (
-	unknownTransactionCannotLookupError, _ = types.NewTransactionValidityError(
+	unknownTransactionCannotLookupError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionCannotLookup(),
 	)
-	invalidTransactionAncientBirthBlockError, _ = types.NewTransactionValidityError(
+	invalidTransactionAncientBirthBlockError = types.NewTransactionValidityError(
 		types.NewInvalidTransactionAncientBirthBlock(),
 	)
-	invalidTransactionBadProofError, _ = types.NewTransactionValidityError(
+	invalidTransactionBadProofError = types.NewTransactionValidityError(
 		types.NewInvalidTransactionBadProof(),
 	)
 
-	signerAddressBytes = []byte{
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	}
-	signer25519Address, _ = types.NewEd25519PublicKey(sc.BytesToSequenceU8(signerAddressBytes)...)
-	signerAccountId       = types.NewAccountId[types.PublicKey](signer25519Address)
+	signerAddressBytes    = make([]byte, 32)
+	signer25519Address, _ = types.NewAddress32(sc.BytesToSequenceU8(signerAddressBytes)...)
+	signerAccountId       = types.NewAccountIdFromAddress32(signer25519Address)
 	signer                = types.NewMultiAddressId(signerAccountId)
+
+	ecdsaAddressBytes = make([]byte, 33)
+	ecdsaPublicKey, _ = types.NewEcdsaPublicKey(sc.BytesToSequenceU8(ecdsaAddressBytes)...)
 
 	signatureBytes = []byte{
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -40,6 +41,13 @@ var (
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1,
 	}
+	ecdsaSignatureBytes = []byte{
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1,
+	}
+
 	signatureEd25519 = types.NewMultiSignatureEd25519(
 		types.NewSignatureEd25519(
 			sc.BytesToFixedSequenceU8(signatureBytes)...,
@@ -48,6 +56,12 @@ var (
 	signatureSr25519 = types.NewMultiSignatureSr25519(
 		types.NewSignatureSr25519(
 			sc.BytesToFixedSequenceU8(signatureBytes)...,
+		),
+	)
+
+	signatureEcdsa = types.NewMultiSignatureEcdsa(
+		types.NewSignatureEcdsa(
+			sc.BytesToFixedSequenceU8(ecdsaSignatureBytes)...,
 		),
 	)
 
@@ -110,7 +124,7 @@ func newTestSignedExtrinsic(
 	crypto io.Crypto,
 	hashing io.Hashing) uncheckedExtrinsic {
 
-	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, types.TransactionValidityError) {
+	initializer := func(call types.Call, extra types.SignedExtra) (types.SignedPayload, error) {
 		return signedPayload, nil
 	}
 
@@ -220,7 +234,7 @@ func Test_IsSigned(t *testing.T) {
 
 func Test_Check_UnsignedUncheckedExtrinsic(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId[types.PublicKey]](nil), mockCall, types.SignedExtra(nil)).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](nil), mockCall, types.SignedExtra(nil)).(checkedExtrinsic)
 
 	result, err := targetUnsigned.Check()
 
@@ -296,7 +310,7 @@ func Test_Check_SignedUncheckedExtrinsic_LongEncoding_BadProofError(t *testing.T
 
 func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId[types.PublicKey]](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -316,7 +330,7 @@ func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 
 func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	setup(signatureSr25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId[types.PublicKey]](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -332,6 +346,94 @@ func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	mocksSignedPayload.AssertCalled(t, "Bytes")
 	mockHashing.AssertNotCalled(t, "Blake256", mock.Anything)
 	mockCrypto.AssertCalled(t, "Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes)
+}
+
+func Test_SignedUncheckedExtrinsic_Check_Ecdsa_Success(t *testing.T) {
+	setup(signatureEcdsa)
+	recoverResult := sc.Result[sc.Encodable]{
+		HasError: false,
+		Value:    ecdsaPublicKey,
+	}
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+
+	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
+	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
+	mockCrypto.On("EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes).Return(recoverResult.Bytes())
+	mockHashing.On("Blake256", ecdsaAddressBytes).Return(signerAddressBytes)
+
+	result, err := targetSigned.Check()
+
+	assert.Nil(t, err)
+	checked := result.(checkedExtrinsic)
+	assert.Equal(t, expect.extra, checked.extra)
+	assert.Equal(t, expect.signer, checked.signer)
+	assert.Equal(t, expect.function, checked.function)
+
+	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mockHashing.AssertCalled(t, "Blake256", encodedPayloadBytes)
+	mockCrypto.AssertCalled(t, "EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes)
+	mockHashing.AssertCalled(t, "Blake256", ecdsaAddressBytes)
+}
+
+func Test_SignedUncheckedExtrinsic_Check_Ecdsa_BadProof_MismatchingAddresses(t *testing.T) {
+	setup(signatureEcdsa)
+	recoverResult := sc.Result[sc.Encodable]{
+		HasError: false,
+		Value:    ecdsaPublicKey,
+	}
+
+	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
+	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
+	mockCrypto.On("EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes).Return(recoverResult.Bytes())
+	mockHashing.On("Blake256", ecdsaAddressBytes).Return(ecdsaAddressBytes) // Set invalid address
+
+	result, err := targetSigned.Check()
+
+	assert.Nil(t, result)
+	assert.Equal(t, invalidTransactionBadProofError, err)
+
+	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mockHashing.AssertCalled(t, "Blake256", encodedPayloadBytes)
+	mockCrypto.AssertCalled(t, "EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes)
+	mockHashing.AssertCalled(t, "Blake256", ecdsaAddressBytes)
+}
+
+func Test_SignedUncheckedExtrinsic_Check_Ecdsa_BadProof_BadSignature(t *testing.T) {
+	setup(signatureEcdsa)
+	recoverResult := sc.Result[sc.Encodable]{
+		HasError: true,
+		Value:    types.NewEcdsaVerifyErrorBadSignature(),
+	}
+
+	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
+	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
+	mockCrypto.On("EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes).Return(recoverResult.Bytes())
+
+	result, err := targetSigned.Check()
+
+	assert.Nil(t, result)
+	assert.Equal(t, invalidTransactionBadProofError, err)
+
+	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mockHashing.AssertCalled(t, "Blake256", encodedPayloadBytes)
+	mockCrypto.AssertCalled(t, "EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes)
+}
+
+func Test_SignedUncheckedExtrinsic_Check_Ecdsa_Panics_InvalidResultBytes(t *testing.T) {
+	setup(signatureEcdsa)
+	recoverResult := sc.U8(5)
+
+	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
+	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
+	mockCrypto.On("EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes).Return(recoverResult.Bytes())
+
+	assert.PanicsWithValue(t, "invalid bool representation", func() {
+		targetSigned.Check()
+	})
+
+	mocksSignedPayload.AssertCalled(t, "Bytes")
+	mockHashing.AssertCalled(t, "Blake256", encodedPayloadBytes)
+	mockCrypto.AssertCalled(t, "EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes)
 }
 
 func Test_Check_SignedUncheckedExtrinsic_UnknownSignatureType(t *testing.T) {

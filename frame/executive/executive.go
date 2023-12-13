@@ -16,9 +16,9 @@ import (
 type Module interface {
 	InitializeBlock(header primitives.Header) error
 	ExecuteBlock(block primitives.Block) error
-	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError)
+	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, error)
 	FinalizeBlock() (primitives.Header, error)
-	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError)
+	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, error)
 	OffchainWorker(header primitives.Header) error
 }
 
@@ -99,7 +99,7 @@ func (m module) ExecuteBlock(block primitives.Block) error {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, primitives.TransactionValidityError) {
+func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, error) {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -133,9 +133,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
 	if res.HasError && isMandatoryDispatch(dispatchInfo) {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionBadMandatory, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
-		return primitives.DispatchOutcome{}, invalidTransactionBadMandatory
+		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
 	}
 
 	noteErr := m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
@@ -144,14 +142,10 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	}
 
 	if res.HasError {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		dispatchOutcome, _ := primitives.NewDispatchOutcome(res.Err.Error)
-		return dispatchOutcome, nil
+		return primitives.NewDispatchOutcome(res.Err.Error)
 	}
 
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	dispatchOutcome, _ := primitives.NewDispatchOutcome(nil)
-	return dispatchOutcome, nil
+	return primitives.NewDispatchOutcome(nil)
 }
 
 func (m module) FinalizeBlock() (primitives.Header, error) {
@@ -178,13 +172,11 @@ func (m module) FinalizeBlock() (primitives.Header, error) {
 // not.
 //
 // Changes made to storage should be discarded.
-func (m module) ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (m module) ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, error) {
 	log.Trace("validate_transaction")
 	currentBlockNumber, err := m.system.StorageBlockNumber()
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.ValidTransaction{}, transactionValidityError
+		return primitives.ValidTransaction{}, err
 	}
 
 	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
@@ -200,11 +192,8 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 
 	log.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
-
 	if isMandatoryDispatch(dispatchInfo) {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionMandatoryValidation, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
-		return primitives.ValidTransaction{}, invalidTransactionMandatoryValidation
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
 	log.Trace("validate")
@@ -261,7 +250,7 @@ func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) {
 	for _, ext := range block.Extrinsics() {
 		_, err := m.ApplyExtrinsic(ext)
 		if err != nil {
-			log.Critical(string(err[0].Bytes()))
+			log.Critical(err.Error())
 		}
 	}
 

@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -60,7 +59,7 @@ func Test_CheckSpecVersion_Bytes(t *testing.T) {
 func Test_CheckSpecVersion_Validate(t *testing.T) {
 	target := setupCheckSpecVersion()
 
-	result, err := target.Validate(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -78,7 +77,7 @@ func Test_CheckSpecVersion_ValidateUnsigned(t *testing.T) {
 func Test_CheckSpecVersion_PreDispatch(t *testing.T) {
 	target := setupCheckSpecVersion()
 
-	result, err := target.PreDispatch(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -100,19 +99,13 @@ func Test_CheckSpecVersion_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckSpecVersion_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckSpecVersion,
-		"CheckSpecVersion",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_spec_version", "CheckSpecVersion"},
-		primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckSpecVersion", metadata.CheckSpecVersion, metadata.PrimitiveTypesU32)
+func Test_CheckSpecVersion_ModulePath(t *testing.T) {
+	target := setupCheckSpecVersion()
 
-	resultType, resultSignedExtension := setupCheckSpecVersion().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckSpecVersion() CheckSpecVersion {

@@ -6,7 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
+	"github.com/vedhavyas/go-subkey"
 )
 
 var (
@@ -37,7 +37,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, a := range gcJson.AuraGc.Authorities {
-		_, pubKeyBytes, err := utils.SS58Decode(a)
+		_, pubKeyBytes, err := subkey.SS58Decode(a)
 		if err != nil {
 			return err
 		}

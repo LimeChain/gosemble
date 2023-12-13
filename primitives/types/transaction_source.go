@@ -34,18 +34,26 @@ const (
 	TransactionSourceExternal
 )
 
-type TransactionSource = sc.VaryingData
+type TransactionSource sc.VaryingData
 
 func NewTransactionSourceInBlock() TransactionSource {
-	return sc.NewVaryingData(TransactionSourceInBlock)
+	return TransactionSource(sc.NewVaryingData(TransactionSourceInBlock))
 }
 
 func NewTransactionSourceLocal() TransactionSource {
-	return sc.NewVaryingData(TransactionSourceLocal)
+	return TransactionSource(sc.NewVaryingData(TransactionSourceLocal))
 }
 
 func NewTransactionSourceExternal() TransactionSource {
-	return sc.NewVaryingData(TransactionSourceExternal)
+	return TransactionSource(sc.NewVaryingData(TransactionSourceExternal))
+}
+
+func (ts TransactionSource) Encode(buffer *bytes.Buffer) error {
+	if len(ts) == 0 {
+		return newTypeError("TransactionSource")
+	}
+
+	return ts[0].Encode(buffer)
 }
 
 func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
@@ -64,4 +72,8 @@ func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
 	default:
 		return TransactionSource{}, newTypeError("TransactionSource")
 	}
+}
+
+func (ts TransactionSource) Bytes() []byte {
+	return sc.EncodedBytes(ts)
 }

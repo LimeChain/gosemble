@@ -79,7 +79,7 @@ type MultiAddress struct {
 	sc.VaryingData
 }
 
-func NewMultiAddressId(id AccountId[PublicKey]) MultiAddress {
+func NewMultiAddressId(id AccountId) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddressId, id)}
 }
 
@@ -99,7 +99,7 @@ func NewMultiAddress20(address Address20) MultiAddress {
 	return MultiAddress{sc.NewVaryingData(MultiAddress20, address)}
 }
 
-func DecodeMultiAddress[T PublicKey](buffer *bytes.Buffer) (MultiAddress, error) {
+func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 	b, err := sc.DecodeU8(buffer)
 	if err != nil {
 		return MultiAddress{}, err
@@ -107,11 +107,11 @@ func DecodeMultiAddress[T PublicKey](buffer *bytes.Buffer) (MultiAddress, error)
 
 	switch b {
 	case MultiAddressId:
-		accId, err := DecodeAccountId[T](buffer)
+		accountId, err := DecodeAccountId(buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}
-		return NewMultiAddressId(accId), nil
+		return NewMultiAddressId(accountId), nil
 	case MultiAddressIndex:
 		compact, err := sc.DecodeCompact(buffer)
 		if err != nil {
@@ -120,23 +120,23 @@ func DecodeMultiAddress[T PublicKey](buffer *bytes.Buffer) (MultiAddress, error)
 		index := sc.U32(compact.ToBigInt().Uint64())
 		return NewMultiAddressIndex(index), nil
 	case MultiAddressRaw:
-		accRaw, err := DecodeAccountRaw(buffer)
+		accountRaw, err := DecodeAccountRaw(buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}
-		return NewMultiAddressRaw(accRaw), nil
+		return NewMultiAddressRaw(accountRaw), nil
 	case MultiAddress32:
-		addr32, err := DecodeAddress32(buffer)
+		address32, err := DecodeAddress32(buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}
-		return NewMultiAddress32(addr32), nil
+		return NewMultiAddress32(address32), nil
 	case MultiAddress20:
-		addr20, err := DecodeAddress20(buffer)
+		address20, err := DecodeAddress20(buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}
-		return NewMultiAddress20(addr20), nil
+		return NewMultiAddress20(address20), nil
 	default:
 		return MultiAddress{}, newTypeError("MultiAddress")
 	}
@@ -151,11 +151,11 @@ func (a MultiAddress) IsAccountId() bool {
 	}
 }
 
-func (a MultiAddress) AsAccountId() (AccountId[PublicKey], error) {
+func (a MultiAddress) AsAccountId() (AccountId, error) {
 	if a.IsAccountId() {
-		return a.VaryingData[1].(AccountId[PublicKey]), nil
+		return a.VaryingData[1].(AccountId), nil
 	} else {
-		return AccountId[PublicKey]{}, newTypeError("AccountId")
+		return AccountId{}, newTypeError("AccountId")
 	}
 }
 

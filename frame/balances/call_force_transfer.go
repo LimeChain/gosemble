@@ -8,15 +8,13 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-type testPublicKeyType = primitives.Ed25519PublicKey
-
-type callForceTransfer[T primitives.PublicKey] struct {
+type callForceTransfer struct {
 	primitives.Callable
 	transfer
 }
 
-func newCallForceTransfer[T primitives.PublicKey](moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
-	call := callForceTransfer[T]{
+func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+	call := callForceTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
@@ -27,12 +25,12 @@ func newCallForceTransfer[T primitives.PublicKey](moduleId sc.U8, functionId sc.
 	return call
 }
 
-func (c callForceTransfer[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	source, err := types.DecodeMultiAddress[T](buffer)
+func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	source, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
-	dest, err := types.DecodeMultiAddress[T](buffer)
+	dest, err := types.DecodeMultiAddress(buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -48,27 +46,27 @@ func (c callForceTransfer[T]) DecodeArgs(buffer *bytes.Buffer) (primitives.Call,
 	return c, nil
 }
 
-func (c callForceTransfer[T]) Encode(buffer *bytes.Buffer) error {
+func (c callForceTransfer) Encode(buffer *bytes.Buffer) error {
 	return c.Callable.Encode(buffer)
 }
 
-func (c callForceTransfer[T]) Bytes() []byte {
+func (c callForceTransfer) Bytes() []byte {
 	return c.Callable.Bytes()
 }
 
-func (c callForceTransfer[T]) ModuleIndex() sc.U8 {
+func (c callForceTransfer) ModuleIndex() sc.U8 {
 	return c.Callable.ModuleIndex()
 }
 
-func (c callForceTransfer[T]) FunctionIndex() sc.U8 {
+func (c callForceTransfer) FunctionIndex() sc.U8 {
 	return c.Callable.FunctionIndex()
 }
 
-func (c callForceTransfer[T]) Args() sc.VaryingData {
+func (c callForceTransfer) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-func (c callForceTransfer[T]) BaseWeight() types.Weight {
+func (c callForceTransfer) BaseWeight() types.Weight {
 	// Proof Size summary in bytes:
 	//  Measured:  `135`
 	//  Estimated: `6196`
@@ -82,19 +80,19 @@ func (c callForceTransfer[T]) BaseWeight() types.Weight {
 		SaturatingAdd(w)
 }
 
-func (_ callForceTransfer[T]) WeighData(baseWeight types.Weight) types.Weight {
+func (_ callForceTransfer) WeighData(baseWeight types.Weight) types.Weight {
 	return types.WeightFromParts(baseWeight.RefTime, 0)
 }
 
-func (_ callForceTransfer[T]) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
+func (_ callForceTransfer) ClassifyDispatch(baseWeight types.Weight) types.DispatchClass {
 	return types.NewDispatchClassNormal()
 }
 
-func (_ callForceTransfer[T]) PaysFee(baseWeight types.Weight) types.Pays {
-	return types.NewPaysYes()
+func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
+	return types.PaysYes
 }
 
-func (c callForceTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
 	value := sc.U128(args[2].(sc.Compact))
 
 	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
@@ -115,7 +113,7 @@ func (c callForceTransfer[T]) Dispatch(origin types.RuntimeOrigin, args sc.Varyi
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func (c callForceTransfer[T]) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

@@ -34,7 +34,7 @@ type Module struct {
 	functions map[sc.U8]primitives.Call
 }
 
-func New[T primitives.PublicKey](index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config) Module {
 	constants := newConstants(config.DbWeight, config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 	storage := newStorage()
 
@@ -45,12 +45,12 @@ func New[T primitives.PublicKey](index sc.U8, config *Config) Module {
 		storage:   storage,
 	}
 	functions := make(map[sc.U8]primitives.Call)
-	functions[functionTransferIndex] = newCallTransfer[T](index, functionTransferIndex, config.StoredMap, constants, module)
-	functions[functionSetBalanceIndex] = newCallSetBalance[T](index, functionSetBalanceIndex, config.StoredMap, constants, module, storage.TotalIssuance)
-	functions[functionForceTransferIndex] = newCallForceTransfer[T](index, functionForceTransferIndex, config.StoredMap, constants, module)
-	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive[T](index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
-	functions[functionTransferAllIndex] = newCallTransferAll[T](index, functionTransferAllIndex, config.StoredMap, constants, module)
-	functions[functionForceFreeIndex] = newCallForceFree[T](index, functionForceFreeIndex, config.StoredMap, constants, module)
+	functions[functionTransferIndex] = newCallTransfer(index, functionTransferIndex, config.StoredMap, constants, module)
+	functions[functionSetBalanceIndex] = newCallSetBalance(index, functionSetBalanceIndex, config.StoredMap, constants, module, storage.TotalIssuance)
+	functions[functionForceTransferIndex] = newCallForceTransfer(index, functionForceTransferIndex, config.StoredMap, constants, module)
+	functions[functionTransferKeepAliveIndex] = newCallTransferKeepAlive(index, functionTransferKeepAliveIndex, config.StoredMap, constants, module)
+	functions[functionTransferAllIndex] = newCallTransferAll(index, functionTransferAllIndex, config.StoredMap, constants, module)
+	functions[functionForceFreeIndex] = newCallForceFree(index, functionForceFreeIndex, config.StoredMap, constants, module)
 
 	module.functions = functions
 
@@ -69,19 +69,17 @@ func (m Module) Functions() map[sc.U8]primitives.Call {
 	return m.functions
 }
 
-func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, primitives.TransactionValidityError) {
+func (m Module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, primitives.TransactionValidityError) {
-	// TODO https://github.com/LimeChain/gosemble/issues/271
-	unknownTransactionNoUnsignedValidator, _ := primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	return primitives.ValidTransaction{}, unknownTransactionNoUnsignedValidator
+func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
+	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
 // If `value` is 0, it does nothing.
-func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.PublicKey], value sc.U128) (primitives.Balance, primitives.DispatchError) {
+func (m Module) DepositIntoExisting(who primitives.AccountId, value sc.U128) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
@@ -102,7 +100,7 @@ func (m Module) DepositIntoExisting(who primitives.AccountId[primitives.PublicKe
 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
-func (m Module) Withdraw(who primitives.AccountId[primitives.PublicKey], value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
+func (m Module) Withdraw(who primitives.AccountId, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
@@ -119,7 +117,7 @@ func (m Module) Withdraw(who primitives.AccountId[primitives.PublicKey], value s
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey], amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
+func (m Module) ensureCanWithdraw(who primitives.AccountId, amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
 	if amount.Eq(constants.Zero) {
 		return nil
 	}
@@ -132,7 +130,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey]
 	if minBalance.Gt(newBalance) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   m.Index,
-			Error:   sc.U32(ErrorLiquidityRestrictions),
+			Err:     sc.U32(ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		})
 	}
@@ -142,7 +140,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId[primitives.PublicKey]
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func (m Module) tryMutateAccount(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) tryMutateAccount(who primitives.AccountId, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result := m.tryMutateAccountWithDust(who, f)
 	if result.HasError {
 		return result
@@ -156,7 +154,7 @@ func (m Module) tryMutateAccount(who primitives.AccountId[primitives.PublicKey],
 	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Result[sc.Encodable]).Value}
 }
 
-func (m Module) tryMutateAccountWithDust(who primitives.AccountId[primitives.PublicKey], f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) tryMutateAccountWithDust(who primitives.AccountId, f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
 	result, err := m.Config.StoredMap.TryMutateExists(
 		who,
 		func(maybeAccount *primitives.AccountData) sc.Result[sc.Encodable] {
@@ -235,14 +233,14 @@ func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.A
 	return sc.NewOption[primitives.AccountData](new), sc.NewOption[negativeImbalance](nil)
 }
 
-func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (m Module) withdraw(who primitives.AccountId, value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
 	newFreeAccount, err := sc.CheckedSubU128(account.Free, value)
 	if err != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorInsufficientBalance),
+				Err:     sc.U32(ErrorInsufficientBalance),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
@@ -258,17 +256,17 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorKeepAlive),
+				Err:     sc.U32(ErrorKeepAlive),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}
 	}
 
-	e := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
-	if e != nil {
+	dispatchErr := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
+	if dispatchErr != nil {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
-			Value:    e,
+			Value:    dispatchErr,
 		}
 	}
 
@@ -281,13 +279,13 @@ func (m Module) withdraw(who primitives.AccountId[primitives.PublicKey], value s
 	}
 }
 
-func (m Module) deposit(who primitives.AccountId[primitives.PublicKey], account *primitives.AccountData, isNew bool, value sc.U128) sc.Result[sc.Encodable] {
+func (m Module) deposit(who primitives.AccountId, account *primitives.AccountData, isNew bool, value sc.U128) sc.Result[sc.Encodable] {
 	if isNew {
 		return sc.Result[sc.Encodable]{
 			HasError: true,
 			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 				Index:   m.Index,
-				Error:   sc.U32(ErrorDeadAccount),
+				Err:     sc.U32(ErrorDeadAccount),
 				Message: sc.NewOption[sc.Str](nil),
 			}),
 		}

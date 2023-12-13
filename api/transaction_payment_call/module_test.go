@@ -24,7 +24,7 @@ var (
 	baseWeight         = primitives.WeightFromParts(1, 2)
 	dispatchInfoWeight = primitives.WeightFromParts(2, 3)
 	dispatchInfoClass  = primitives.NewDispatchClassNormal()
-	dispatchInfoPays   = primitives.NewPaysYes()
+	dispatchInfoPays   = primitives.PaysYes
 
 	dispatchInfo = primitives.DispatchInfo{
 		Weight:  dispatchInfoWeight,

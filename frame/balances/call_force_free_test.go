@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -30,7 +31,7 @@ var (
 		Write: 2,
 	}
 	baseWeight                    = primitives.WeightFromParts(124, 123)
-	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAddressAccountId)
+	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAccountId)
 	targetValue                   = sc.NewU128(5)
 	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")
 	mockStoredMap                 *mocks.StoredMap
@@ -38,7 +39,7 @@ var (
 
 func Test_Call_ForceFree_new(t *testing.T) {
 	target := setupCallForceFree()
-	expected := callForceFree[testPublicKeyType]{
+	expected := callForceFree{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
@@ -133,7 +134,7 @@ func Test_Call_ForceFree_ClassifyDispatch(t *testing.T) {
 func Test_Call_ForceFree_PaysFee(t *testing.T) {
 	target := setupCallForceFree()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
@@ -228,6 +229,24 @@ func Test_Call_ForceFree_Dispatch_ZeroTotalStorageBalance(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
+func Test_Call_ForceFree_Dispatch_Other(t *testing.T) {
+	target := setupCallForceFree()
+	accountInfo := primitives.AccountInfo{Data: primitives.AccountData{}}
+
+	targetAddressAccId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	expectedErr := errors.New("error")
+	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, expectedErr)
+
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(expectedErr.Error())), result.Err.Error)
+	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
 func Test_Call_ForceFree_Dispatch_Mutation_Fails(t *testing.T) {
 	target := setupCallForceFree()
 	mutateResult := sc.Result[sc.Encodable]{HasError: true}
@@ -271,5 +290,5 @@ func setupCallForceFree() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceFree[testPublicKeyType](moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
+	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
 }

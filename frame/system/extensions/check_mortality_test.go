@@ -2,20 +2,20 @@ package extensions
 
 import (
 	"bytes"
+	"errors"
 	"math"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	invalidTransactionAncientBirthBlock, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
+	invalidTransactionAncientBirthBlock = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 )
 
 func Test_CheckMortality_Encode(t *testing.T) {
@@ -105,6 +105,63 @@ func Test_CheckMortality_AdditionalSigned_Failed(t *testing.T) {
 	mockModule.AssertCalled(t, "StorageBlockHashExists", sc.U64(0))
 }
 
+func Test_CheckMortality_AdditionalSigned_StorageBlockNumberError(t *testing.T) {
+	target := setupCheckMortality()
+	target.era = primitives.NewImmortalEra()
+
+	blockNumber := sc.U64(1)
+
+	expectedErr := errors.New("error")
+	mockModule.On("StorageBlockNumber").Return(blockNumber, expectedErr)
+
+	_, err := target.AdditionalSigned()
+
+	assert.Equal(t, expectedErr, err)
+
+	mockModule.AssertCalled(t, "StorageBlockNumber")
+}
+
+func Test_CheckMortality_AdditionalSigned_StorageBlockHashError(t *testing.T) {
+	hash := primitives.Blake2bHash{
+		FixedSequence: sc.BytesToFixedSequenceU8(
+			common.MustHexToHash("0x88dc3417d5058ec4b4503e0c12ea1a0a89be200fe98922423d4334014fa6b0ff").ToBytes(),
+		)}
+
+	target := setupCheckMortality()
+	target.era = primitives.NewImmortalEra()
+
+	blockNumber := sc.U64(1)
+
+	expectedErr := errors.New("error")
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
+	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(true)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash, expectedErr)
+
+	_, err := target.AdditionalSigned()
+
+	assert.Equal(t, expectedErr, err)
+}
+
+func Test_CheckMortality_AdditionalSigned_NewH256Error(t *testing.T) {
+	hash := primitives.Blake2bHash{
+		FixedSequence: sc.BytesToFixedSequenceU8(
+			[]byte{},
+		)}
+	target := setupCheckMortality()
+	target.era = primitives.NewImmortalEra()
+
+	blockNumber := sc.U64(1)
+
+	expectedErr := errors.New("H256 should be of size 32")
+	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
+	mockModule.On("StorageBlockHashExists", sc.U64(0)).Return(true)
+	mockModule.On("StorageBlockHash", sc.U64(0)).Return(hash, nil)
+
+	_, err := target.AdditionalSigned()
+
+	assert.Equal(t, expectedErr, err)
+}
+
 func Test_CheckMortality_Validate_Success(t *testing.T) {
 	target := setupCheckMortality()
 	target.era = primitives.NewImmortalEra()
@@ -116,7 +173,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 
 	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
-	result, err := target.Validate(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
@@ -139,7 +196,7 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 
 	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
-	result, err := target.PreDispatch(constants.OneAddressAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -161,23 +218,13 @@ func Test_CheckMortality_PostDispatch(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_CheckMortality_Metadata(t *testing.T) {
-	expectType := primitives.NewMetadataTypeWithPath(
-		metadata.CheckMortality,
-		"CheckMortality",
-		sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-		primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
-			},
-		),
-	)
-	expectSignedExtension := primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
+func Test_CheckMortality_ModulePath(t *testing.T) {
+	target := setupCheckMortality()
 
-	resultType, resultSignedExtension := setupCheckMortality().Metadata()
+	expectedModulePath := "frame_system"
+	actualModulePath := target.ModulePath()
 
-	assert.Equal(t, expectType, resultType)
-	assert.Equal(t, expectSignedExtension, resultSignedExtension)
+	assert.Equal(t, expectedModulePath, actualModulePath)
 }
 
 func setupCheckMortality() CheckMortality {

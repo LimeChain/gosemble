@@ -4,12 +4,15 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+const (
+	txPaymentModulePath = "frame_transaction_payment"
 )
 
 type ChargeTransactionPayment struct {
@@ -45,11 +48,11 @@ func (ctp ChargeTransactionPayment) Bytes() []byte {
 	return sc.EncodedBytes(ctp)
 }
 
-func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(), nil
 }
 
-func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	finalFee, _, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -62,11 +65,11 @@ func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId[primitives
 	return validTransaction, nil
 }
 
-func (ctp ChargeTransactionPayment) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, imbalance, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.Pre{}, err
@@ -74,19 +77,17 @@ func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId[primiti
 	return sc.NewVaryingData(ctp.fee, who, imbalance), nil
 }
 
-func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) error {
 	if pre.HasValue {
 		preValue := pre.Value
 
 		tip := preValue[0].(primitives.Balance)
-		who := preValue[1].(primitives.AccountId[primitives.PublicKey])
+		who := preValue[1].(primitives.AccountId)
 		imbalance := preValue[2].(sc.Option[primitives.Balance])
 
 		actualFee, err := ctp.txPaymentModule.ComputeActualFee(sc.U32(length.ToBigInt().Uint64()), *info, *postInfo, tip)
 		if err != nil {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-			return transactionValidityError
+			return err
 		}
 
 		errFee := ctp.onChargeTransaction.CorrectAndDepositFee(who, actualFee, tip, imbalance)
@@ -106,24 +107,9 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 	return nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := ctp.ValidateUnsigned(call, info, length)
 	return err
-}
-
-func (ctp ChargeTransactionPayment) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithParam(
-			metadata.ChargeTransactionPayment,
-			"ChargeTransactionPayment",
-			sc.Sequence[sc.Str]{"pallet_transaction_payment", "ChargeTransactionPayment"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU128, "BalanceOf<T>"),
-				},
-			),
-			primitives.NewMetadataEmptyTypeParameter("T"),
-		),
-		primitives.NewMetadataSignedExtension("ChargeTransactionPayment", metadata.ChargeTransactionPayment, metadata.TypesEmptyTuple)
 }
 
 func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
@@ -199,13 +185,11 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	return 0
 }
 
-func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], primitives.TransactionValidityError) {
+func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], error) {
 	tip := ctp.fee
 	fee, err := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), transactionValidityError
+		return primitives.Balance{}, sc.NewOption[primitives.Balance](nil), err
 	}
 
 	imbalance, errWithdraw := ctp.onChargeTransaction.WithdrawFee(who, call, info, fee, tip)
@@ -214,4 +198,8 @@ func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId[primiti
 	}
 
 	return fee, imbalance, nil
+}
+
+func (ctp ChargeTransactionPayment) ModulePath() string {
+	return txPaymentModulePath
 }

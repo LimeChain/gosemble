@@ -4,19 +4,20 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
 type CheckMortality struct {
-	era          primitives.Era
-	systemModule system.Module
+	era                           primitives.Era
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckMortality(systemModule system.Module) primitives.SignedExtension {
-	return &CheckMortality{systemModule: systemModule}
+	return &CheckMortality{systemModule: systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(primitives.H256{})}
 }
 
 func (cm CheckMortality) Encode(buffer *bytes.Buffer) error {
@@ -36,37 +37,29 @@ func (cm CheckMortality) Bytes() []byte {
 	return sc.EncodedBytes(cm)
 }
 
-func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	current, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		return nil, err
 	}
 	n := cm.era.Birth(current)
 
 	if !cm.systemModule.StorageBlockHashExists(n) {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionAncientBirthBlock, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
-		return nil, invalidTransactionAncientBirthBlock
+		return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionAncientBirthBlock())
 	}
 
 	blockHash, err := cm.systemModule.StorageBlockHash(n)
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		return nil, err
 	}
 	hash, err := primitives.NewH256(blockHash.FixedSequence...)
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return nil, transactionValidityError
+		return nil, err
 	}
 	return sc.NewVaryingData(hash), nil
 }
 
-func (cm CheckMortality) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	currentBlockNum, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
 		log.Critical(err.Error())
@@ -80,34 +73,24 @@ func (cm CheckMortality) Validate(_who primitives.AccountId[primitives.PublicKey
 	return ok, nil
 }
 
-func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cm CheckMortality) PreDispatch(who primitives.AccountId[primitives.PublicKey], call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cm CheckMortality) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := cm.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := cm.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
 
-func (cm CheckMortality) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckMortality,
-			"CheckMortality",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_mortality", "CheckMortality"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesEra, "Era"),
-				},
-			),
-		),
-		primitives.NewMetadataSignedExtension("CheckMortality", metadata.CheckMortality, metadata.TypesH256)
+func (cm CheckMortality) ModulePath() string {
+	return systemModulePath
 }

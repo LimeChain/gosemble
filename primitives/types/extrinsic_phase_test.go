@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -10,19 +11,19 @@ import (
 
 func Test_NewExtrinsicPhaseApply(t *testing.T) {
 	index := sc.U32(2)
-	expect := sc.NewVaryingData(PhaseApplyExtrinsic, index)
+	expect := ExtrinsicPhase{sc.NewVaryingData(PhaseApplyExtrinsic, index)}
 
 	assert.Equal(t, expect, NewExtrinsicPhaseApply(index))
 }
 
 func Test_NewExtrinsicPhaseFinalization(t *testing.T) {
-	expect := sc.NewVaryingData(PhaseFinalization)
+	expect := ExtrinsicPhase{sc.NewVaryingData(PhaseFinalization)}
 
 	assert.Equal(t, expect, NewExtrinsicPhaseFinalization())
 }
 
 func Test_NewExtrinsicPhaseInitialization(t *testing.T) {
-	expect := sc.NewVaryingData(PhaseInitialization)
+	expect := ExtrinsicPhase{sc.NewVaryingData(PhaseInitialization)}
 
 	assert.Equal(t, expect, NewExtrinsicPhaseInitialization())
 }
@@ -68,5 +69,14 @@ func Test_DecodeExtrinsicPhase_TypeError(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Equal(t, "not a valid 'ExtrinsicPhase' type", err.Error())
+	assert.Equal(t, ExtrinsicPhase{}, res)
+}
+
+func Test_DecodeExtrinsicPhase_Empty(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	res, err := DecodeExtrinsicPhase(buffer)
+
+	assert.Equal(t, io.EOF, err)
 	assert.Equal(t, ExtrinsicPhase{}, res)
 }

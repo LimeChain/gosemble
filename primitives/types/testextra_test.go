@@ -6,19 +6,25 @@ import (
 	sc "github.com/LimeChain/goscale"
 )
 
+const (
+	testChecksModulePath = "primitives_types"
+)
+
 var (
-	unknownTransactionCustomUnknownTransaction, _ = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
+	unknownTransactionCustomUnknownTransaction = NewTransactionValidityError(NewUnknownTransactionCustomUnknownTransaction(sc.U8(0)))
 )
 
 type testExtraCheck struct {
-	hasError sc.Bool
-	value    sc.U32
+	hasError                      sc.Bool
+	value                         sc.U32
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func newTestExtraCheck(hasError sc.Bool, value sc.U32) SignedExtension {
 	return &testExtraCheck{
-		hasError: hasError,
-		value:    value,
+		hasError:                      hasError,
+		value:                         value,
+		typesInfoAdditionalSignedData: sc.VaryingData{sc.U32(0)},
 	}
 }
 
@@ -47,7 +53,7 @@ func (e *testExtraCheck) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
-func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidityError) {
+func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, error) {
 	if e.hasError {
 		return nil, unknownTransactionCustomUnknownTransaction
 	}
@@ -55,7 +61,7 @@ func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, TransactionValidit
 	return sc.NewVaryingData(e.value), nil
 }
 
-func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
+func (e testExtraCheck) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
@@ -66,21 +72,21 @@ func (e testExtraCheck) Validate(who AccountId[PublicKey], call Call, info *Disp
 	return validTransaction, nil
 }
 
-func (e testExtraCheck) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, TransactionValidityError) {
-	return e.Validate(AccountId[PublicKey]{}, call, info, length)
+func (e testExtraCheck) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
+	return e.Validate(AccountId{}, call, info, length)
 }
 
-func (e testExtraCheck) PreDispatch(who AccountId[PublicKey], call Call, info *DispatchInfo, length sc.Compact) (Pre, TransactionValidityError) {
+func (e testExtraCheck) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (Pre, error) {
 	_, err := e.Validate(who, call, info, length)
 	return Pre{}, err
 }
 
-func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) TransactionValidityError {
+func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
 	_, err := e.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) TransactionValidityError {
+func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
 	if e.hasError {
 		return unknownTransactionCustomUnknownTransaction
 	}
@@ -88,16 +94,6 @@ func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, pos
 	return nil
 }
 
-func (e testExtraCheck) Metadata() (MetadataType, MetadataSignedExtension) {
-	id := 123456
-	typ := 789
-	docs := "TestExtraCheck"
-
-	return NewMetadataTypeWithPath(
-			id,
-			docs,
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "test_extra_check", "TestExtraCheck"},
-			NewMetadataTypeDefinitionCompact(sc.ToCompact(id)),
-		),
-		NewMetadataSignedExtension(sc.Str(docs), id, typ)
+func (e testExtraCheck) ModulePath() string {
+	return testChecksModulePath
 }

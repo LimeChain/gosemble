@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	unknownTransactionNoUnsignedValidator, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (
@@ -178,7 +178,7 @@ func Test_Module_ensureCanWithdraw_Success(t *testing.T) {
 
 	result := target.ensureCanWithdraw(fromAddressId, targetValue, primitives.ReasonsFee, sc.NewU128(5))
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Nil(t, result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 }
 
@@ -190,7 +190,7 @@ func Test_Module_ensureCanWithdraw_ZeroAmount(t *testing.T) {
 
 	result := target.ensureCanWithdraw(fromAddressId, sc.NewU128(0), primitives.ReasonsFee, sc.NewU128(5))
 
-	assert.Equal(t, sc.VaryingData(nil), result)
+	assert.Nil(t, result)
 	mockStoredMap.AssertNotCalled(t, "Get", fromAddressId)
 }
 
@@ -198,7 +198,7 @@ func Test_Module_ensureCanWithdraw_LiquidityRestrictions(t *testing.T) {
 	target := setupModule()
 	expected := primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 		Index:   moduleId,
-		Error:   sc.U32(ErrorLiquidityRestrictions),
+		Err:     sc.U32(ErrorLiquidityRestrictions),
 		Message: sc.NewOption[sc.Str](nil),
 	})
 	frozenAccountInfo := primitives.AccountInfo{
@@ -452,7 +452,7 @@ func Test_Module_withdraw_InsufficientBalance(t *testing.T) {
 		HasError: true,
 		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   moduleId,
-			Error:   sc.U32(ErrorInsufficientBalance),
+			Err:     sc.U32(ErrorInsufficientBalance),
 			Message: sc.NewOption[sc.Str](nil),
 		}),
 	}
@@ -475,7 +475,7 @@ func Test_Module_withdraw_KeepAlive(t *testing.T) {
 		HasError: true,
 		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   moduleId,
-			Error:   sc.U32(ErrorKeepAlive),
+			Err:     sc.U32(ErrorKeepAlive),
 			Message: sc.NewOption[sc.Str](nil),
 		}),
 	}
@@ -497,7 +497,7 @@ func Test_Module_withdraw_CannotWithdraw(t *testing.T) {
 		HasError: true,
 		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   moduleId,
-			Error:   sc.U32(ErrorLiquidityRestrictions),
+			Err:     sc.U32(ErrorLiquidityRestrictions),
 			Message: sc.NewOption[sc.Str](nil),
 		}),
 	}
@@ -547,7 +547,7 @@ func Test_Module_deposit_DeadAccount(t *testing.T) {
 		HasError: true,
 		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 			Index:   moduleId,
-			Error:   sc.U32(ErrorDeadAccount),
+			Err:     sc.U32(ErrorDeadAccount),
 			Message: sc.NewOption[sc.Str](nil),
 		}),
 	}
@@ -885,5 +885,5 @@ func setupModule() Module {
 		Free: sc.NewU128(1),
 	}
 
-	return New[testPublicKeyType](moduleId, config)
+	return New(moduleId, config)
 }

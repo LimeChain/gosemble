@@ -6,7 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
+	"github.com/vedhavyas/go-subkey"
 )
 
 var (
@@ -41,17 +41,17 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 			return errInvalidAddrValue
 		}
 
-		_, publicKey, err := utils.SS58Decode(addrString)
+		_, publicKey, err := subkey.SS58Decode(addrString)
 		if err != nil {
 			return err
 		}
 
-		ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
-		if err != nil {
-			return err
-		}
+		// ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
+		// if err != nil {
+		// 	return err
+		// }
 
-		who := types.NewAccountId[types.PublicKey](ed25519Signer)
+		who, err := types.NewAccountId(sc.BytesToSequenceU8(publicKey)...)
 
 		weightFloat, ok := a[1].(float64)
 		if !ok {
@@ -66,14 +66,14 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m Module[T]) CreateDefaultConfig() ([]byte, error) {
+func (m Module) CreateDefaultConfig() ([]byte, error) {
 	gc := &gcJsonStruct{}
 	gc.GrandpaGc.Authorities = [][2]interface{}{}
 
 	return json.Marshal(gc)
 }
 
-func (m Module[T]) BuildConfig(config []byte) error {
+func (m Module) BuildConfig(config []byte) error {
 	gc := GenesisConfig{}
 	if err := json.Unmarshal(config, &gc); err != nil {
 		return err

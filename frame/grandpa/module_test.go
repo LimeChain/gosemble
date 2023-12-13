@@ -15,18 +15,18 @@ import (
 const moduleId = sc.U8(3)
 
 var (
-	unknownTransactionNoUnsignedValidator, _ = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (
 	mockStorageAuthorities *mocks.StorageValue[primitives.VersionedAuthorityList]
-	target                 Module[primitives.Ed25519PublicKey]
+	target                 Module
 )
 
 func Test_Module_New(t *testing.T) {
 	setup()
 
-	assert.Equal(t, Module[primitives.Ed25519PublicKey]{
+	assert.Equal(t, Module{
 		DefaultInherentProvider: primitives.DefaultInherentProvider{},
 		DefaultDispatchModule:   hooks.DefaultDispatchModule{},
 		Index:                   moduleId,
@@ -79,7 +79,7 @@ func Test_Module_Authorities_Success(t *testing.T) {
 	setup()
 	expectAuthorites := sc.Sequence[primitives.Authority]{
 		{
-			Id:     constants.ZeroAddressAccountId,
+			Id:     constants.ZeroAccountId,
 			Weight: 5,
 		},
 	}
@@ -103,7 +103,7 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 		Version: sc.U8(255),
 		AuthorityList: sc.Sequence[primitives.Authority]{
 			{
-				Id:     constants.ZeroAddressAccountId,
+				Id:     constants.ZeroAccountId,
 				Weight: sc.U64(64),
 			},
 		},
@@ -183,7 +183,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 func setup() {
 	mockStorageAuthorities = new(mocks.StorageValue[primitives.VersionedAuthorityList])
-	target = New[primitives.Ed25519PublicKey](moduleId)
+	target = New(moduleId)
 
 	target.storage.Authorities = mockStorageAuthorities
 }

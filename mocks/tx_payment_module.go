@@ -71,14 +71,14 @@ func (m *TransactionPaymentModule) Functions() map[sc.U8]types.Call {
 	return args.Get(0).(map[sc.U8]types.Call)
 }
 
-func (m *TransactionPaymentModule) PreDispatch(call types.Call) (sc.Empty, types.TransactionValidityError) {
+func (m *TransactionPaymentModule) PreDispatch(call types.Call) (sc.Empty, error) {
 	args := m.Called(call)
-	return args.Get(0).(sc.Empty), args.Get(1).(types.TransactionValidityError)
+	return args.Get(0).(sc.Empty), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) ValidateUnsigned(source types.TransactionSource, call types.Call) (types.ValidTransaction, types.TransactionValidityError) {
+func (m *TransactionPaymentModule) ValidateUnsigned(source types.TransactionSource, call types.Call) (types.ValidTransaction, error) {
 	args := m.Called(source, call)
-	return args.Get(0).(types.ValidTransaction), args.Get(1).(types.TransactionValidityError)
+	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
 func (m *TransactionPaymentModule) Metadata() (sc.Sequence[types.MetadataType], types.MetadataModule) {

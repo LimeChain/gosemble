@@ -17,39 +17,40 @@ const (
 	MetadataTypeDefinitionBitSequence
 )
 
-type MetadataTypeDefinition = sc.VaryingData
+type MetadataTypeDefinition struct {
+	sc.VaryingData
+}
 
 func NewMetadataTypeDefinitionComposite(fields sc.Sequence[MetadataTypeDefinitionField]) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionComposite, fields)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionComposite, fields)}
 }
 
 func NewMetadataTypeDefinitionVariant(variants sc.Sequence[MetadataDefinitionVariant]) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionVariant, variants)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionVariant, variants)}
 }
 
 func NewMetadataTypeDefinitionSequence(compact sc.Compact) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionSequence, compact)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionSequence, compact)}
 }
 
 func NewMetadataTypeDefinitionFixedSequence(length sc.U32, typeId sc.Compact) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionFixedSequence, length, typeId)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionFixedSequence, length, typeId)}
 }
 
 func NewMetadataTypeDefinitionTuple(compacts sc.Sequence[sc.Compact]) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionTuple, compacts)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionTuple, compacts)}
 }
 
 func NewMetadataTypeDefinitionPrimitive(primitive MetadataDefinitionPrimitive) MetadataTypeDefinition {
-	// TODO: type safety
-	return sc.NewVaryingData(MetadataTypeDefinitionPrimitive, primitive)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionPrimitive, primitive)}
 }
 
 func NewMetadataTypeDefinitionCompact(compact sc.Compact) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionCompact, compact)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionCompact, compact)}
 }
 
 func NewMetadataTypeDefinitionBitSequence(storeOrder, orderType sc.Compact) MetadataTypeDefinition {
-	return sc.NewVaryingData(MetadataTypeDefinitionBitSequence, storeOrder, orderType)
+	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionBitSequence, storeOrder, orderType)}
 }
 
 func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition, error) {
@@ -251,6 +252,8 @@ func (mdv MetadataDefinitionVariant) Bytes() []byte {
 	return sc.EncodedBytes(mdv)
 }
 
+type MetadataDefinitionPrimitive sc.U8
+
 const (
 	MetadataDefinitionPrimitiveBoolean MetadataDefinitionPrimitive = iota
 	MetadataDefinitionPrimitiveChar
@@ -269,7 +272,9 @@ const (
 	MetadataDefinitionPrimitiveI256
 )
 
-type MetadataDefinitionPrimitive = sc.U8
+func (mdp MetadataDefinitionPrimitive) Encode(buffer *bytes.Buffer) error {
+	return sc.U8(mdp).Encode(buffer)
+}
 
 func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinitionPrimitive, error) {
 	b, err := sc.DecodeU8(buffer)
@@ -277,7 +282,7 @@ func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinition
 		return MetadataDefinitionPrimitive(0), err
 	}
 
-	switch b {
+	switch MetadataDefinitionPrimitive(b) {
 	case MetadataDefinitionPrimitiveBoolean:
 		return MetadataDefinitionPrimitiveBoolean, nil
 	case MetadataDefinitionPrimitiveChar:
@@ -311,4 +316,8 @@ func DecodeMetadataDefinitionPrimitive(buffer *bytes.Buffer) (MetadataDefinition
 	default:
 		return MetadataDefinitionPrimitive(0), newTypeError("MetadataDefinitionPrimitive")
 	}
+}
+
+func (mdp MetadataDefinitionPrimitive) Bytes() []byte {
+	return sc.EncodedBytes(mdp)
 }

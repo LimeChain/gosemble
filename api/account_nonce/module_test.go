@@ -37,22 +37,22 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_AccountNonce(t *testing.T) {
 	target := setup()
 
-	publicKey := constants.OneAddressAccountId
+	accountId := constants.OneAccountId
 	nonce := sc.U32(5)
 	accountInfo := types.AccountInfo{
 		Nonce: nonce,
 	}
 	expect := int64(7)
 
-	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(1)).Return(publicKey.Bytes())
-	mockSystem.On("Get", publicKey).Return(accountInfo, nil)
+	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(1)).Return(accountId.Bytes())
+	mockSystem.On("Get", accountId).Return(accountInfo, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", nonce.Bytes()).Return(expect)
 
 	result := target.AccountNonce(0, 1)
 
 	assert.Equal(t, expect, result)
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
-	mockSystem.AssertCalled(t, "Get", publicKey)
+	mockSystem.AssertCalled(t, "Get", accountId)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
 }
 
@@ -80,11 +80,11 @@ func Test_Module_Metadata(t *testing.T) {
 	assert.Equal(t, expect, target.Metadata())
 }
 
-func setup() Module[types.Ed25519PublicKey] {
+func setup() Module {
 	mockSystem = new(mocks.SystemModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New[types.Ed25519PublicKey](mockSystem)
+	target := New(mockSystem)
 	target.memUtils = mockMemoryUtils
 
 	return target

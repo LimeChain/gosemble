@@ -18,7 +18,7 @@ func NewRawOriginRoot() RawOrigin {
 	return RawOrigin{sc.NewVaryingData(RawOriginRoot)}
 }
 
-func NewRawOriginSigned(address AccountId[PublicKey]) RawOrigin {
+func NewRawOriginSigned(address AccountId) RawOrigin {
 	return RawOrigin{sc.NewVaryingData(RawOriginSigned, address)}
 }
 
@@ -26,7 +26,7 @@ func NewRawOriginNone() RawOrigin {
 	return RawOrigin{sc.NewVaryingData(RawOriginNone)}
 }
 
-func RawOriginFrom(a sc.Option[AccountId[PublicKey]]) RawOrigin {
+func RawOriginFrom(a sc.Option[AccountId]) RawOrigin {
 	if a.HasValue {
 		return NewRawOriginSigned(a.Value)
 	} else {
@@ -46,10 +46,10 @@ func (o RawOrigin) IsNoneOrigin() bool {
 	return o.VaryingData[0] == RawOriginNone
 }
 
-func (o RawOrigin) AsSigned() (AccountId[PublicKey], error) {
+func (o RawOrigin) AsSigned() (AccountId, error) {
 	if !o.IsSignedOrigin() {
-		return AccountId[PublicKey]{}, newTypeError("RawOrigin")
+		return AccountId{}, newTypeError("RawOrigin")
 	}
 
-	return o.VaryingData[1].(AccountId[PublicKey]), nil
+	return o.VaryingData[1].(AccountId), nil
 }

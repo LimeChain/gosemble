@@ -12,18 +12,39 @@ const (
 	ArithmeticErrorDivisionByZero
 )
 
-type ArithmeticError = sc.VaryingData
+type ArithmeticError sc.VaryingData
 
 func NewArithmeticErrorUnderflow() ArithmeticError {
-	return sc.NewVaryingData(ArithmeticErrorUnderflow)
+	return ArithmeticError(sc.NewVaryingData(ArithmeticErrorUnderflow))
 }
 
 func NewArithmeticErrorOverflow() ArithmeticError {
-	return sc.NewVaryingData(ArithmeticErrorOverflow)
+	return ArithmeticError(sc.NewVaryingData(ArithmeticErrorOverflow))
 }
 
 func NewArithmeticErrorDivisionByZero() ArithmeticError {
-	return sc.NewVaryingData(ArithmeticErrorDivisionByZero)
+	return ArithmeticError(sc.NewVaryingData(ArithmeticErrorDivisionByZero))
+}
+
+func (err ArithmeticError) Encode(buffer *bytes.Buffer) error {
+	return err[0].Encode(buffer)
+}
+
+func (err ArithmeticError) Error() string {
+	if len(err) == 0 {
+		return newTypeError("ArithmeticError").Error()
+	}
+
+	switch err[0] {
+	case ArithmeticErrorUnderflow:
+		return "An underflow would occur"
+	case ArithmeticErrorOverflow:
+		return "An overflow would occur"
+	case ArithmeticErrorDivisionByZero:
+		return "Division by zero"
+	default:
+		return newTypeError("ArithmeticError").Error()
+	}
 }
 
 func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
@@ -40,6 +61,10 @@ func DecodeArithmeticError(buffer *bytes.Buffer) (ArithmeticError, error) {
 	case ArithmeticErrorDivisionByZero:
 		return NewArithmeticErrorDivisionByZero(), nil
 	default:
-		return nil, newTypeError("ArithmeticError")
+		return ArithmeticError{}, newTypeError("ArithmeticError")
 	}
+}
+
+func (err ArithmeticError) Bytes() []byte {
+	return sc.EncodedBytes(err)
 }

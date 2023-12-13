@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -15,11 +14,15 @@ const (
 )
 
 type CheckWeight struct {
-	systemModule system.Module
+	systemModule                  system.Module
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewCheckWeight(systemModule system.Module) primitives.SignedExtension {
-	return &CheckWeight{systemModule: systemModule}
+	return &CheckWeight{
+		systemModule:                  systemModule,
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
 }
 
 func (cw CheckWeight) Encode(*bytes.Buffer) error {
@@ -32,34 +35,32 @@ func (cw CheckWeight) Bytes() []byte {
 	return sc.EncodedBytes(cw)
 }
 
-func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, primitives.TransactionValidityError) {
+func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (cw CheckWeight) Validate(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) Validate(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) PreDispatch(_who primitives.AccountId[primitives.PublicKey], _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, primitives.TransactionValidityError) {
+func (cw CheckWeight) PreDispatch(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	return primitives.Pre{}, cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	return cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) primitives.TransactionValidityError {
+func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight, err := cw.systemModule.StorageBlockWeight()
 		if err != nil {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-			return transactionValidityError
+			return err
 		}
 		err = currentWeight.Reduce(unspent, info.Class)
 		if err != nil {
@@ -73,7 +74,7 @@ func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primiti
 // Do the validate checks. This can be applied to both signed and unsigned.
 //
 // It only checks that the block weight and length limit will not exceed.
-func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, primitives.TransactionValidityError) {
+func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	// ignore the next length. If they return `Ok`, then it is below the limit.
 	_, err := cw.checkBlockLength(info, length)
 	if err != nil {
@@ -91,7 +92,7 @@ func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compac
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) primitives.TransactionValidityError {
+func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) error {
 	nextLength, err := cw.checkBlockLength(info, length)
 	if err != nil {
 		return err
@@ -116,22 +117,18 @@ func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Com
 // Checks if the current extrinsic can fit into the block with respect to block length limits.
 //
 // Upon successes, it returns the new block length as a `Result`.
-func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, error) {
 	lengthLimit := cw.systemModule.BlockLength()
 	currentLen, err := cw.systemModule.StorageAllExtrinsicsLen()
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return 0, transactionValidityError
+		return 0, err
 	}
 	addedLen := sc.U32(length.ToBigInt().Uint64())
 
 	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
 
 	if nextLen > maxLimit(lengthLimit, info) {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-		return sc.U32(0), invalidTransactionExhaustsResources
+		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 
 	return nextLen, nil
@@ -140,20 +137,18 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 // Checks if the current extrinsic can fit into the block with respect to block weight limits.
 //
 // Upon successes, it returns the new block weight as a `Result`.
-func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
+func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitives.ConsumedWeight, error) {
 	maximumWeight := cw.systemModule.BlockWeights()
 	allWeight, err := cw.systemModule.StorageBlockWeight()
 	if err != nil {
-		// TODO https://github.com/LimeChain/gosemble/issues/271
-		transactionValidityError, _ := primitives.NewTransactionValidityError(sc.Str(err.Error()))
-		return primitives.ConsumedWeight{}, transactionValidityError
+		return primitives.ConsumedWeight{}, err
 	}
 	return cw.calculateConsumedWeight(maximumWeight, allWeight, info)
 }
 
 // Checks if the current extrinsic does not exceed the maximum weight a single extrinsic
 // with given `DispatchClass` can have.
-func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primitives.TransactionValidityError {
+func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) error {
 	dispatchClass, err := cw.systemModule.BlockWeights().Get(info.Class)
 	if err != nil {
 		log.Critical(err.Error())
@@ -163,16 +158,14 @@ func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) primit
 
 	if max.HasValue {
 		if info.Weight.AnyGt(max.Value) {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return invalidTransactionExhaustsResources
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
 	return nil
 }
 
-func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, primitives.TransactionValidityError) {
+func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, error) {
 	limitPerClass, err := maximumWeight.Get(info.Class)
 	if err != nil {
 		log.Critical(err.Error())
@@ -186,9 +179,7 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	} else {
 		err := allConsumedWeight.CheckedAccrue(extrinsicWeight, info.Class)
 		if err != nil {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
@@ -201,9 +192,7 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	if limitPerClass.MaxTotal.HasValue {
 		max := limitPerClass.MaxTotal.Value
 		if consumedPerClass.AnyGt(max) {
-			// TODO https://github.com/LimeChain/gosemble/issues/271
-			invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-			return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+			return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 		}
 	}
 
@@ -218,24 +207,12 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 		if limitPerClass.Reserved.HasValue {
 			reserved := limitPerClass.Reserved.Value
 			if consumedPerClass.AnyGt(reserved) {
-				// TODO https://github.com/LimeChain/gosemble/issues/271
-				invalidTransactionExhaustsResources, _ := primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
-				return primitives.ConsumedWeight{}, invalidTransactionExhaustsResources
+				return primitives.ConsumedWeight{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 			}
 		}
 	}
 
 	return allConsumedWeight, nil
-}
-
-func (cw CheckWeight) Metadata() (primitives.MetadataType, primitives.MetadataSignedExtension) {
-	return primitives.NewMetadataTypeWithPath(
-			metadata.CheckWeight,
-			"CheckWeight",
-			sc.Sequence[sc.Str]{"frame_system", "extensions", "check_weight", "CheckWeight"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{}),
-		),
-		primitives.NewMetadataSignedExtension("CheckWeight", metadata.CheckWeight, metadata.TypesEmptyTuple)
 }
 
 func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
@@ -266,4 +243,8 @@ func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo)
 	log.Critical(errInvalidDispatchClass)
 
 	panic("unreachable")
+}
+
+func (cw CheckWeight) ModulePath() string {
+	return systemModulePath
 }

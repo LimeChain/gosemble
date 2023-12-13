@@ -10,5 +10,5 @@ type UncheckedExtrinsic interface {
 	Extra() SignedExtra
 
 	IsSigned() bool
-	Check() (CheckedExtrinsic, TransactionValidityError)
+	Check() (CheckedExtrinsic, error)
 }

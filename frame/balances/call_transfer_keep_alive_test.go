@@ -13,7 +13,7 @@ import (
 
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expected := callTransferKeepAlive[testPublicKeyType]{
+	expected := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
@@ -91,7 +91,7 @@ func Test_Call_TransferKeepAlive_ClassifyDispatch(t *testing.T) {
 func Test_Call_TransferKeepAlive_PaysFee(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 
-	assert.Equal(t, primitives.NewPaysYes(), target.PaysFee(baseWeight))
+	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
 }
 
 func Test_Call_TransferKeepAlive_Dispatch_Success(t *testing.T) {
@@ -187,5 +187,5 @@ func setupCallTransferKeepAlive() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferKeepAlive[testPublicKeyType](moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallTransferKeepAlive(moduleId, functionTransferKeepAliveIndex, mockStoredMap, testConstants, mockMutator)
 }

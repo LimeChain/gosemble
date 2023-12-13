@@ -14,7 +14,7 @@ var (
 	mockCurrencyAdapter *mocks.CurrencyAdapter
 	target              chargeTransaction
 
-	who               = constants.ZeroAddressAccountId
+	who               = constants.ZeroAccountId
 	fee               = sc.NewU128(5)
 	imbalance         = sc.NewU128(1)
 	expectedImbalance = sc.NewOption[sc.U128](imbalance)
@@ -25,7 +25,7 @@ var (
 	alreadyWithdrawn = sc.NewOption[sc.U128](sc.NewU128(11))
 	refundAmount     = sc.NewU128(1)
 
-	expectedError, _ = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
+	expectedError = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionPayment())
 )
 
 func Test_ChargeTransaction_WithdrawFee_Success(t *testing.T) {

@@ -12,14 +12,14 @@ import (
 )
 
 var (
-	signerOption = sc.NewOption[types.AccountId[types.PublicKey]](constants.ZeroAddressAccountId)
-	emptySigner  = sc.NewOption[types.AccountId[types.PublicKey]](nil)
+	signerOption = sc.NewOption[types.AccountId](constants.ZeroAccountId)
+	emptySigner  = sc.NewOption[types.AccountId](nil)
 
 	txSource     = types.NewTransactionSourceExternal()
 	dispatchInfo = &types.DispatchInfo{
 		Weight:  types.WeightFromParts(4, 5),
 		Class:   types.NewDispatchClassMandatory(),
-		PaysFee: types.NewPaysNo(),
+		PaysFee: types.PaysNo,
 	}
 	length           = sc.ToCompact(5)
 	postDispatchInfo = types.PostDispatchInfo{
@@ -39,16 +39,16 @@ var (
 )
 
 var (
-	expectedInvalidTransactionStaleErr, _               = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
-	expectedInvalidTransactionPaymentErr, _             = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
-	expectedUnknownTransactionNoUnsignedValidatorErr, _ = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
+	expectedInvalidTransactionStaleErr               = types.NewTransactionValidityError(types.NewInvalidTransactionStale())
+	expectedInvalidTransactionPaymentErr             = types.NewTransactionValidityError(types.NewInvalidTransactionPayment())
+	expectedUnknownTransactionNoUnsignedValidatorErr = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
 )
 
 var (
 	mockTransactional     *mocks.IoTransactional[types.PostDispatchInfo, types.DispatchError]
 	mockUnsignedValidator *mocks.UnsignedValidator
 
-	mockWithStorageLayer = mock.AnythingOfType("func() (types.PostDispatchInfo, goscale.VaryingData)")
+	mockWithStorageLayer = mock.AnythingOfType("func() (types.PostDispatchInfo, types.DispatchError)")
 )
 
 func Test_CheckedExtrinsic_Function(t *testing.T) {
@@ -72,7 +72,7 @@ func Test_CheckedExtrinsic_Apply_Signed_Success(t *testing.T) {
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(postDispatchInfo, nil)
 	mockSignedExtra.
 		On("PostDispatch", optionPre, dispatchInfo, &postDispatchInfo, length, &dispatchResult).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 
 	result, err := target.Apply(mockUnsignedValidator, dispatchInfo, length)
 
@@ -119,7 +119,7 @@ func Test_CheckedExtrinsic_Apply_Signed_WithStorageLayerErr(t *testing.T) {
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(errPostDispatchInfo.PostInfo, errPostDispatchInfo.Error)
 	mockSignedExtra.
 		On("PostDispatch", optionPre, dispatchInfo, &errPostDispatchInfo.PostInfo, length, &dispatchResult).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 
 	result, err := target.Apply(mockUnsignedValidator, dispatchInfo, length)
 
@@ -201,12 +201,12 @@ func Test_CheckedExtrinsic_Apply_Unsigned_Success(t *testing.T) {
 
 	mockSignedExtra.
 		On("PreDispatchUnsigned", mockCall, dispatchInfo, length).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 	mockUnsignedValidator.On("PreDispatch", mockCall).Return(sc.Empty{}, nil)
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(postDispatchInfo, nil)
 	mockSignedExtra.
 		On("PostDispatch", emptyOptionPre, dispatchInfo, &postDispatchInfo, length, &dispatchResult).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 
 	result, err := target.Apply(mockUnsignedValidator, dispatchInfo, length)
 
@@ -246,7 +246,7 @@ func Test_CheckedExtrinsic_Apply_Unsigned_PreDispatch_Fails(t *testing.T) {
 
 	mockSignedExtra.
 		On("PreDispatchUnsigned", mockCall, dispatchInfo, length).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 	mockUnsignedValidator.On("PreDispatch", mockCall).Return(sc.Empty{}, expectedInvalidTransactionStaleErr)
 
 	result, err := target.Apply(mockUnsignedValidator, dispatchInfo, length)
@@ -271,12 +271,12 @@ func Test_CheckedExtrinsic_Apply_Unsigned_WithStorageLayerErr(t *testing.T) {
 
 	mockSignedExtra.
 		On("PreDispatchUnsigned", mockCall, dispatchInfo, length).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 	mockUnsignedValidator.On("PreDispatch", mockCall).Return(sc.Empty{}, nil)
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(errPostDispatchInfo.PostInfo, errPostDispatchInfo.Error)
 	mockSignedExtra.
 		On("PostDispatch", emptyOptionPre, dispatchInfo, &errPostDispatchInfo.PostInfo, length, &dispatchResult).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 
 	result, err := target.Apply(mockUnsignedValidator, dispatchInfo, length)
 
@@ -303,7 +303,7 @@ func Test_CheckedExtrinsic_Apply_Unsigned_WithStorageLayerErr_PostDispatch_Fails
 
 	mockSignedExtra.
 		On("PreDispatchUnsigned", mockCall, dispatchInfo, length).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 	mockUnsignedValidator.On("PreDispatch", mockCall).Return(sc.Empty{}, nil)
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(errPostDispatchInfo.PostInfo, errPostDispatchInfo.Error)
 	mockSignedExtra.
@@ -334,7 +334,7 @@ func Test_CheckedExtrinsic_Apply_Unsigned_PostDispatch_Fails(t *testing.T) {
 
 	mockSignedExtra.
 		On("PreDispatchUnsigned", mockCall, dispatchInfo, length).
-		Return(types.TransactionValidityError(nil))
+		Return(nil)
 	mockUnsignedValidator.On("PreDispatch", mockCall).Return(sc.Empty{}, nil)
 	mockTransactional.On("WithStorageLayer", mockWithStorageLayer).Return(postDispatchInfo, nil)
 	mockSignedExtra.
@@ -467,7 +467,7 @@ func Test_CheckedExtrinsic_dispatch_Fails(t *testing.T) {
 	mockCall.AssertCalled(t, "Dispatch", types.RawOriginFrom(signerOption), args)
 }
 
-func setupCheckedExtrinsic(signer sc.Option[types.AccountId[types.PublicKey]]) checkedExtrinsic {
+func setupCheckedExtrinsic(signer sc.Option[types.AccountId]) checkedExtrinsic {
 	mockCall = new(mocks.Call)
 	mockSignedExtra = new(mocks.SignedExtra)
 	mockTransactional = new(mocks.IoTransactional[types.PostDispatchInfo, types.DispatchError])

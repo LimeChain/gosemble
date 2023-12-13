@@ -9,17 +9,22 @@ import (
 )
 
 func Test_NewUnknownTransactionCannotLookup(t *testing.T) {
-	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionCannotLookup)}, NewUnknownTransactionCannotLookup())
+	err := NewUnknownTransactionCannotLookup()
+	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionCannotLookup)}, err)
+	assert.NotEmpty(t, err.Error())
 }
 
 func Test_NewUnknownTransactionNoUnsignedValidator(t *testing.T) {
-	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionNoUnsignedValidator)}, NewUnknownTransactionNoUnsignedValidator())
+	err := NewUnknownTransactionNoUnsignedValidator()
+	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionNoUnsignedValidator)}, err)
+	assert.NotEmpty(t, err.Error())
 }
 
 func Test_NewUnknownTransactionCustom(t *testing.T) {
 	unknown := sc.U8(5)
-
-	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)}, NewUnknownTransactionCustomUnknownTransaction(unknown))
+	err := NewUnknownTransactionCustomUnknownTransaction(unknown)
+	assert.Equal(t, UnknownTransaction{sc.NewVaryingData(UnknownTransactionCustomUnknownTransaction, unknown)}, err)
+	assert.NotEmpty(t, err.Error())
 }
 
 func Test_DecodeUnknownTransaction_CannotLookup(t *testing.T) {

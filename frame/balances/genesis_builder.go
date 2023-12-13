@@ -6,7 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
+	"github.com/vedhavyas/go-subkey"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 )
 
 type gcAccountBalance struct {
-	AccountId types.AccountId[types.PublicKey]
+	AccountId types.AccountId
 	Balance   types.Balance
 }
 type GenesisConfig struct {
@@ -52,18 +52,20 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 			return errDuplicateBalancesInGenesis
 		}
 
-		_, publicKey, err := utils.SS58Decode(addrString)
+		_, publicKey, err := subkey.SS58Decode(addrString)
 		if err != nil {
 			return err
 		}
 
-		ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
+		// ed25519Signer, err := types.NewEd25519PublicKey(sc.BytesToSequenceU8(publicKey)...)
+		// if err != nil {
+		// 	return err
+		// }
+
+		accId, err := types.NewAccountId(sc.BytesToSequenceU8(publicKey)...)
 		if err != nil {
 			return err
 		}
-
-		accId := types.NewAccountId[types.PublicKey](ed25519Signer)
-
 		balanceFloat, ok := b[1].(float64)
 		if !ok {
 			return errInvalidBalanceValue
