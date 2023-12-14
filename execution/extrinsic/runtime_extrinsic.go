@@ -201,8 +201,6 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 	eventVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 	errorVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
 
-	v := (*mdGenerator).(*primitives.MetadataTypeGenerator)
-
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
 
@@ -221,7 +219,7 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata(v.MetadataIds)
+	signedExtraTypes, signedExtensions := re.extra.Metadata((*mdGenerator).IdsMap())
 	// append to signed extra types to all types
 	metadataTypes = append(metadataTypes, signedExtraTypes...)
 
@@ -268,8 +266,6 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenera
 		Map: sc.Dictionary[sc.Str, primitives.CustomValueMetadata]{},
 	}
 
-	v := (*mdGenerator).(*primitives.MetadataTypeGenerator)
-
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
 		mTypes, mModule := module.Metadata(mdGenerator)
@@ -288,7 +284,7 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenera
 	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata(v.MetadataIds)
+	signedExtraTypes, signedExtensions := re.extra.Metadata((*mdGenerator).IdsMap())
 	// append to signed extra types to all types
 	metadataTypes = append(metadataTypes, signedExtraTypes...)
 

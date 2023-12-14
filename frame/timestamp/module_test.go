@@ -317,6 +317,7 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 
 func Test_Module_Metadata(t *testing.T) {
 	expectedTimestampCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+	expectedCompactU64TypeId := expectedTimestampCallsMetadataId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedTimestampCallsMetadataId, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
@@ -324,7 +325,7 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataDefinitionVariant(
 					"set",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128), // TODO: Is CompactU128 used as CompactU64 ?
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU64TypeId),
 					},
 					functionSetIndex,
 					"Set the current time."),

@@ -46,7 +46,6 @@ func BuildMetadataTypesIdsMap() map[string]int {
 		"SequenceU8":   metadata.TypesSequenceU8,
 		"MultiAddress": metadata.TypesMultiAddress,
 		"CompactU128":  metadata.TypesCompactU128,
-		"CompactU64":   metadata.TypesCompactU64,
 	}
 }
 
@@ -103,20 +102,27 @@ func (g MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value) int
 		switch compactLen {
 		case 2: // CompactU128
 			if valueType.Name() == "Compact" {
-				compactU128Id, ok := g.MetadataIds["CompactU128"]
+				typeId, ok = g.MetadataIds["CompactU128"]
 				if !ok {
-					compactU128Id = g.BuildMetadataTypeRecursively(v.Elem())
+					typeId = g.BuildMetadataTypeRecursively(v.Elem())
 				}
-				typeId = compactU128Id
 			} else {
 				typeId = g.MetadataIds[typeName]
+			}
+		}
+	case reflect.Uint64:
+		if strings.HasPrefix(typeName, "Compact") {
+			typeId, ok = g.MetadataIds["CompactU64"]
+			if !ok {
+				typeId = g.assignNewMetadataId(typeName)
+				g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
 			}
 		}
 	}
 	return typeId
 }
 
-// constructFunctionName constructs the formal name of a function for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
+// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
 func (g MetadataTypeGenerator) constructFunctionName(input string) string {
 	input, _ = strings.CutPrefix(input, "call")
 	var result strings.Builder
