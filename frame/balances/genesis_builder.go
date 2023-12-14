@@ -1,6 +1,7 @@
 package balances
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 
@@ -33,7 +34,9 @@ type gcJsonStruct struct {
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	gcJson := gcJsonStruct{}
 
-	if err := json.Unmarshal(data, &gcJson); err != nil {
+	jsonDecoder := json.NewDecoder(bytes.NewReader(data))
+	jsonDecoder.UseNumber()
+	if err := jsonDecoder.Decode(&gcJson); err != nil {
 		return err
 	}
 
@@ -57,12 +60,18 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		balanceFloat, ok := b[1].(float64)
+
+		balance, ok := b[1].(json.Number)
 		if !ok {
 			return errInvalidBalanceValue
 		}
 
-		gc.Balances = append(gc.Balances, gcAccountBalance{AccountId: accId, Balance: sc.NewU128(uint64(balanceFloat))})
+		balanceU128, err := sc.NewU128FromString(balance.String())
+		if err != nil {
+			return err
+		}
+
+		gc.Balances = append(gc.Balances, gcAccountBalance{AccountId: accId, Balance: balanceU128})
 		addrExists[addrString] = true
 	}
 
@@ -93,11 +102,19 @@ func (m Module) BuildConfig(config []byte) error {
 
 		totalIssuance = totalIssuance.Add(b.Balance)
 
-		if _, err := m.Config.StoredMap.IncProviders(b.AccountId); err != nil {
+		result, err := m.Config.StoredMap.TryMutateExists(
+			b.AccountId,
+			func(maybeAccount *types.AccountData) sc.Result[sc.Encodable] {
+				return updateAccount(maybeAccount, b.Balance, sc.NewU128(0))
+			},
+		)
+		if err != nil {
 			return err
 		}
-
-		m.Config.StoredMap.Put(b.AccountId, types.AccountInfo{Data: types.AccountData{Free: b.Balance}})
+		if result.HasError {
+			err, _ := result.Value.(error)
+			return err
+		}
 	}
 
 	m.storage.TotalIssuance.Put(totalIssuance)

@@ -1,34 +1,37 @@
 package balances
 
 import (
-	// "encoding/json"
-	// "errors"
 	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	validGcJson = "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}"
-	accId, _    = types.NewAccountId(sc.BytesToSequenceU8([]byte{212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125})...)
-	balance     = sc.NewU128(uint64(1))
+	validGcJson             = "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}"
+	accId, _                = types.NewAccountId(sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)...)
+	balanceOne              = sc.NewU128(uint64(1))
+	balanceOverMaxUint64, _ = sc.NewU128FromString("184467440737095516150")
 )
 
 func Test_GenesisConfig_BuildConfig(t *testing.T) {
 	for _, tt := range []struct {
-		name               string
-		gcJson             string
-		wantErr            error
-		shouldAssertCalled bool
-		incProvidersErr    error
+		name                     string
+		gcJson                   string
+		wantErr                  error
+		shouldAssertCalled       bool
+		tryMutateExistsErr       error
+		tryMutateExistsResultErr error
+		balance                  sc.U128
 	}{
 		{
 			name:               "valid",
 			gcJson:             validGcJson,
+			balance:            balanceOne,
 			shouldAssertCalled: true,
 		},
 		{
@@ -52,6 +55,12 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			wantErr: errInvalidBalanceValue,
 		},
 		{
+			name:               "balance greater than MaxUint64",
+			gcJson:             "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",184467440737095516150]]}}",
+			balance:            balanceOverMaxUint64,
+			shouldAssertCalled: true,
+		},
+		{
 			name:   "zero balances",
 			gcJson: "{\"aura\":{\"authorities\":[]}}",
 		},
@@ -61,10 +70,16 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			wantErr: errBalanceBelowExistentialDeposit,
 		},
 		{
-			name:            "inc providers error",
-			gcJson:          validGcJson,
-			incProvidersErr: errors.New("err"),
-			wantErr:         errors.New("err"),
+			name:               "TryMutateExists error",
+			gcJson:             validGcJson,
+			tryMutateExistsErr: errors.New("err"),
+			wantErr:            errors.New("err"),
+		},
+		{
+			name:                     "TryMutateExists result errror",
+			gcJson:                   validGcJson,
+			tryMutateExistsResultErr: errors.New("err"),
+			wantErr:                  types.NewDispatchErrorOther(sc.Str(errors.New("err").Error())),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -72,17 +87,23 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 			target.storage.TotalIssuance = mockTotalIssuance
 
-			mockTotalIssuance.On("Put", balance).Return()
-			mockStoredMap.On("IncProviders", accId).Return(types.IncRefStatus(0), tt.incProvidersErr)
-			mockStoredMap.On("Put", accId, types.AccountInfo{Data: types.AccountData{Free: balance}}).Return()
+			mockResult := sc.Result[sc.Encodable]{}
+			if tt.tryMutateExistsResultErr != nil {
+				mockResult = sc.Result[sc.Encodable]{
+					HasError: true,
+					Value:    types.NewDispatchErrorOther(sc.Str(tt.tryMutateExistsResultErr.Error())),
+				}
+			}
+
+			mockStoredMap.On("TryMutateExists", accId, mockTypeMutateAccountData).Return(mockResult, tt.tryMutateExistsErr)
+			mockTotalIssuance.On("Put", tt.balance).Return()
 
 			err := target.BuildConfig([]byte(tt.gcJson))
 			assert.Equal(t, tt.wantErr, err)
 
 			if tt.shouldAssertCalled {
-				mockTotalIssuance.AssertCalled(t, "Put", balance)
-				mockStoredMap.AssertCalled(t, "Put", accId, types.AccountInfo{Data: types.AccountData{Free: balance}})
-				mockStoredMap.AssertCalled(t, "IncProviders", accId)
+				mockTotalIssuance.AssertCalled(t, "Put", tt.balance)
+				mockStoredMap.AssertCalled(t, "TryMutateExists", accId, mockTypeMutateAccountData)
 			}
 		})
 	}

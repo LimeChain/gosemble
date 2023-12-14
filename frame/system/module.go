@@ -36,7 +36,6 @@ type Module interface {
 	NoteFinishedExtrinsics() error
 	ResetEvents()
 	Get(key primitives.AccountId) (primitives.AccountInfo, error)
-	Put(key primitives.AccountId, accInfo primitives.AccountInfo)
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
@@ -373,10 +372,6 @@ func (m module) ResetEvents() {
 
 func (m module) Get(key primitives.AccountId) (primitives.AccountInfo, error) {
 	return m.storage.Account.Get(key)
-}
-
-func (m module) Put(key primitives.AccountId, accInfo primitives.AccountInfo) {
-	m.storage.Account.Put(key, accInfo)
 }
 
 func (m module) CanDecProviders(who primitives.AccountId) (bool, error) {

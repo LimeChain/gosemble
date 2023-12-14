@@ -16,12 +16,7 @@ func (m module) CreateDefaultConfig() ([]byte, error) {
 }
 
 func (m module) BuildConfig(_ []byte) error {
-	bytes69 := []byte{69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69}
-	hash69, err := types.NewBlake2bHash(sc.BytesToFixedSequenceU8(bytes69)...)
-	if err != nil {
-		return err
-	}
-
+	hash69 := types.Blake2bHash69()
 	m.StorageBlockHashSet(sc.U64(0), hash69)
 	m.storage.ParentHash.Put(hash69)
 

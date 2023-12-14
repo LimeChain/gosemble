@@ -9,6 +9,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/grandpa"
 	"github.com/LimeChain/gosemble/primitives/types"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,8 +39,7 @@ func Test_BuildConfig(t *testing.T) {
 	blockHashKey = append(blockHashKey, blockNumHash...)
 	blockHashKey = append(blockHashKey, encBlockNumber...)
 	zeroBlockHash := (*storage).Get(blockHashKey)
-	bytes69 := []byte{69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69}
-	wantBlockHash, _ := types.NewBlake2bHash(sc.BytesToFixedSequenceU8(bytes69)...)
+	wantBlockHash := types.Blake2bHash69()
 	assert.Equal(t, wantBlockHash.Bytes(), zeroBlockHash)
 
 	// assert ParentHash
@@ -58,14 +58,13 @@ func Test_BuildConfig(t *testing.T) {
 
 	// assert aura authorities
 	auraAuthorities := (*storage).Get(append(keyAuraHash, keyAuthoritiesHash...))
-	wantPubKey := sc.BytesToSequenceU8([]byte{212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125})
+	wantPubKey := sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)
 	wantAuraAuthorityPubKey, _ := types.NewSr25519PublicKey(wantPubKey...)
 	wantAuraAuthorities := sc.Sequence[types.Sr25519PublicKey]{wantAuraAuthorityPubKey}
 	assert.Equal(t, wantAuraAuthorities.Bytes(), auraAuthorities)
 
 	// assert grandpa authorities
 	grandpaAuthorities := (*storage).Get(keyGrandpaAuthorities)
-	// wantGrandpaAuthorityPubKey, _ := types.NewEd25519PublicKey(wantPubKey...)
 	accId, _ := types.NewAccountId(wantPubKey...)
 	authorities := sc.Sequence[types.Authority]{{Id: accId, Weight: sc.U64(1)}}
 	wantGrandpaAuthorities := types.VersionedAuthorityList{AuthorityList: authorities, Version: grandpa.AuthorityVersion}
@@ -78,7 +77,7 @@ func Test_BuildConfig(t *testing.T) {
 	keyStorageAccount = append(keyStorageAccount, accId.Bytes()...)
 	accInfo := (*storage).Get(keyStorageAccount)
 	wantBalance := sc.NewU128(uint64(1000000000000000000))
-	wantAccInfo := types.AccountInfo{Data: types.AccountData{Free: wantBalance}}
+	wantAccInfo := types.AccountInfo{Data: types.AccountData{Free: wantBalance}, Providers: 1}
 	assert.Equal(t, wantAccInfo.Bytes(), accInfo)
 
 	// assert total issuance

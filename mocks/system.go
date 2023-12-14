@@ -129,10 +129,6 @@ func (m *SystemModule) Get(key primitives.AccountId) (primitives.AccountInfo, er
 	return args.Get(0).(primitives.AccountInfo), args.Get(1).(error)
 }
 
-func (m *SystemModule) Put(key primitives.AccountId, accInfo primitives.AccountInfo) {
-	m.Called(key, accInfo)
-}
-
 func (m *SystemModule) CanDecProviders(who primitives.AccountId) (bool, error) {
 	args := m.Called(who)
 	if args.Get(1) == nil {
