@@ -99,7 +99,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 	return authorities, nil
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	grandpaMetadataCallsType, _ := (*mdGenerator).CallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I"),
@@ -128,7 +128,9 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 
 	metadataTypes := append(sc.Sequence[primitives.MetadataType]{grandpaMetadataCallsType}, m.metadataTypes()...)
 
-	return metadataTypes, primitives.MetadataModule{
+	(*mdGenerator).AppendMetadataTypes(metadataTypes)
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

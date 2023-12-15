@@ -18,8 +18,8 @@ type RuntimeExtrinsic interface {
 	OnFinalize(n sc.U64) error
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
-	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
-	MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
+	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
+	MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
 }
 
 type runtimeExtrinsic struct {
@@ -193,8 +193,8 @@ func (re runtimeExtrinsic) OffchainWorker(n sc.U64) {
 	}
 }
 
-func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
-	metadataTypes := sc.Sequence[primitives.MetadataType]{}
+func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
+	// metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModuleV14]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
@@ -204,9 +204,11 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
 
-		mTypes, mModule := module.Metadata(mdGenerator)
+		// mTypes, mModule := module.Metadata(mdGenerator)
+		mModule := module.Metadata(mdGenerator)
 
-		metadataTypes = append(metadataTypes, mTypes...)
+		//metadataTypes = append(metadataTypes, mTypes...)
+		//(*mdGenerator).
 		mModuleV14 := mModule.ModuleV14
 		modules = append(modules, mModuleV14)
 
@@ -216,27 +218,38 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 	}
 
 	// append runtime event
-	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants)})
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata((*mdGenerator).IdsMap())
+	signedExtensions := re.extra.Metadata(mdGenerator)
+
+	// append runtime event
+	//metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
+
+	// get the signed extra types and extensions
+	// signedExtraTypes, signedExtensions := re.extra.Metadata(mdGenerator)
 	// append to signed extra types to all types
-	metadataTypes = append(metadataTypes, signedExtraTypes...)
+	//metadataTypes = append(metadataTypes, signedExtraTypes...)
 
 	// create runtime call type
 	runtimeCall := re.runtimeCall(callVariants)
 	// append runtime call to all types
-	metadataTypes = append(metadataTypes, runtimeCall)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{runtimeCall})
+
+	// append runtime call to all types
+	//metadataTypes = append(metadataTypes, runtimeCall)
 
 	runtimeError := re.runtimeError(errorVariants)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{runtimeError})
 
-	metadataTypes = append(metadataTypes, runtimeError)
+	//metadataTypes = append(metadataTypes, runtimeError)
 
 	// create the unchecked extrinsic type using runtime call id
 	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{uncheckedExtrinsicType})
 
 	// append it to all types
-	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
+	//metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
 
 	// create the metadata extrinsic, which uses the id of the unchecked extrinsic and signed extra extensions
 	extrinsic := primitives.MetadataExtrinsicV14{
@@ -245,11 +258,12 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 		SignedExtensions: signedExtensions,
 	}
 
-	return metadataTypes, modules, extrinsic
+	// return metadataTypes, modules, extrinsic
+	return modules, extrinsic
 }
 
-func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
-	metadataTypes := sc.Sequence[primitives.MetadataType]{}
+func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
+	// metadataTypes := sc.Sequence[primitives.MetadataType]{}
 	modules := sc.Sequence[primitives.MetadataModuleV15]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
@@ -268,11 +282,11 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenera
 
 	// iterate all modules and append their types and modules
 	for _, module := range re.modules {
-		mTypes, mModule := module.Metadata(mdGenerator)
+		mModule := module.Metadata(mdGenerator)
 
 		moduleV15 := mModule.ModuleV15
 
-		metadataTypes = append(metadataTypes, mTypes...)
+		//metadataTypes = append(metadataTypes, mTypes...)
 		modules = append(modules, moduleV15)
 
 		callVariants = append(callVariants, moduleV15.CallDef)
@@ -281,27 +295,32 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenera
 	}
 
 	// append runtime event
-	metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
+	//metadataTypes = append(metadataTypes, re.runtimeEvent(eventVariants))
+	// append runtime event
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants)})
 
 	// get the signed extra types and extensions
-	signedExtraTypes, signedExtensions := re.extra.Metadata((*mdGenerator).IdsMap())
+	signedExtensions := re.extra.Metadata(mdGenerator)
 	// append to signed extra types to all types
-	metadataTypes = append(metadataTypes, signedExtraTypes...)
+	//metadataTypes = append(metadataTypes, signedExtraTypes...)
 
 	// create runtime call type
 	runtimeCall := re.runtimeCall(callVariants)
 	// append runtime call to all types
-	metadataTypes = append(metadataTypes, runtimeCall)
+	//metadataTypes = append(metadataTypes, runtimeCall)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{runtimeCall})
 
 	runtimeError := re.runtimeError(errorVariants)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{runtimeError})
 
-	metadataTypes = append(metadataTypes, runtimeError)
+	//metadataTypes = append(metadataTypes, runtimeError)
 
 	// create the unchecked extrinsic type using runtime call id
 	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
 
 	// append it to all types
-	metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
+	// metadataTypes = append(metadataTypes, uncheckedExtrinsicType)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{uncheckedExtrinsicType})
 
 	extrinsicV15 := primitives.MetadataExtrinsicV15{
 		Version:          types.ExtrinsicFormatVersion,
@@ -312,7 +331,7 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenera
 		SignedExtensions: signedExtensions,
 	}
 
-	return metadataTypes, modules, extrinsicV15, outerEnums, custom
+	return modules, extrinsicV15, outerEnums, custom
 }
 
 func createUncheckedExtrinsicType(runtimeCall primitives.MetadataType) primitives.MetadataType {

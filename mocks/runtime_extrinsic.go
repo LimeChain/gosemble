@@ -70,12 +70,12 @@ func (re *RuntimeExtrinsic) OffchainWorker(n sc.U64) {
 	re.Called(n)
 }
 
-func (re *RuntimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
+func (re *RuntimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
 	args := re.Called(mdGenerator)
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModuleV14]), args.Get(2).(primitives.MetadataExtrinsicV14)
+	return args.Get(0).(sc.Sequence[primitives.MetadataModuleV14]), args.Get(1).(primitives.MetadataExtrinsicV14)
 }
 
-func (re *RuntimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
+func (re *RuntimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
 	args := re.Called(mdGenerator)
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(sc.Sequence[primitives.MetadataModuleV15]), args.Get(2).(primitives.MetadataExtrinsicV15), args.Get(3).(primitives.OuterEnums), args.Get(4).(primitives.CustomMetadata)
+	return args.Get(0).(sc.Sequence[primitives.MetadataModuleV15]), args.Get(1).(primitives.MetadataExtrinsicV15), args.Get(2).(primitives.OuterEnums), args.Get(3).(primitives.CustomMetadata)
 }

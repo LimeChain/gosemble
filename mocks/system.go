@@ -174,9 +174,9 @@ func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId, f func(w
 	return args.Get(0).(sc.Result[sc.Encodable])
 }
 
-func (m *SystemModule) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m *SystemModule) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	args := m.Called(mdGenerator)
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(primitives.MetadataModule)
+	return args.Get(0).(primitives.MetadataModule)
 }
 
 func (m *SystemModule) RuntimeUpgrade() bool {

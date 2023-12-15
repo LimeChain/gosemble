@@ -42,10 +42,10 @@ func (m *Module) ValidateUnsigned(txSource types.TransactionSource, call types.C
 	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
-func (m *Module) Metadata(mdGenerator *types.MetadataGenerator) (sc.Sequence[types.MetadataType], types.MetadataModule) {
+func (m *Module) Metadata(mdGenerator *types.MetadataGenerator) types.MetadataModule {
 	args := m.Called(mdGenerator)
 
-	return args.Get(0).(sc.Sequence[types.MetadataType]), args.Get(1).(types.MetadataModule)
+	return args.Get(0).(types.MetadataModule)
 }
 
 func (m *Module) CreateInherent(inherent types.InherentData) (sc.Option[types.Call], error) {

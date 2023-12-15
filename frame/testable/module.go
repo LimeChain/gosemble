@@ -47,7 +47,7 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	testableCallsMetadataType, testableCallsMetadataId := (*mdGenerator).CallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
 	dataV14 := primitives.MetadataModuleV14{
@@ -73,7 +73,9 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 
 	metadataTypes := append(m.metadataTypes(), testableCallsMetadataType)
 
-	return metadataTypes, primitives.MetadataModule{
+	(*mdGenerator).AppendMetadataTypes(metadataTypes)
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

@@ -57,9 +57,9 @@ func (m *AuraModule) OnTimestampSet(now sc.U64) error {
 	return args.Error(0)
 }
 
-func (m *AuraModule) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m *AuraModule) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	args := m.Called(mdGenerator)
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(primitives.MetadataModule)
+	return args.Get(0).(primitives.MetadataModule)
 }
 
 func (m *AuraModule) SlotDuration() sc.U64 {

@@ -311,7 +311,7 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	metadataTypeBalancesCalls, metadataIdBalancesCalls := (*mdGenerator).CallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
@@ -355,7 +355,9 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 
 	mdTypes := append(sc.Sequence[primitives.MetadataType]{metadataTypeBalancesCalls}, m.metadataTypes()...)
 
-	return mdTypes, primitives.MetadataModule{
+	(*mdGenerator).AppendMetadataTypes(mdTypes)
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

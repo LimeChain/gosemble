@@ -186,7 +186,8 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	metadataTypes, metadataModule := target.Metadata(&mdGenerator)
+	metadataModule := target.Metadata(&mdGenerator)
+	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, metadataTypes)
 	assert.Equal(t, expectMetadataModule, metadataModule)

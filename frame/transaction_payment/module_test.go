@@ -217,7 +217,8 @@ func Test_ValidateUnsigned(t *testing.T) {
 func Test_Metadata(t *testing.T) {
 	setup()
 
-	metadataTypes, metadataModule := target.Metadata(&mdGenerator)
+	metadataModule := target.Metadata(&mdGenerator)
+	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataModule, metadataModule)

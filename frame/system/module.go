@@ -37,7 +37,7 @@ type Module interface {
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule)
+	Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength
@@ -578,12 +578,11 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
-func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
-	metadataTypes := sc.Sequence[primitives.MetadataType]{}
+func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 
 	metadataTypeSystemCalls, metadataIdSystemCalls := (*mdGenerator).CallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
-	metadataTypes = append(metadataTypes, metadataTypeSystemCalls)
+	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{metadataTypeSystemCalls})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -622,9 +621,9 @@ func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		Index: m.Index,
 	}
 
-	metadataTypes = append(metadataTypes, m.metadataTypes()...)
+	(*mdGenerator).AppendMetadataTypes(m.metadataTypes())
 
-	return metadataTypes, primitives.MetadataModule{
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

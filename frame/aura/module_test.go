@@ -221,7 +221,9 @@ func Test_Aura_KeyTypeId(t *testing.T) {
 func Test_Aura_Metadata(t *testing.T) {
 	setup(timestampMinimumPeriod)
 
-	metadataTypes, metadataModule := module.Metadata(&mdGenerator)
+	metadataModule := module.Metadata(&mdGenerator)
+	metadataTypes := mdGenerator.GetMetadataTypes()
+
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataModule, metadataModule)
 }

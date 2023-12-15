@@ -150,7 +150,7 @@ func (m Module) IsInherent(call primitives.Call) bool {
 	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 
 	timestampCallsMetadata, timestampCallsMetadataId := (*mdGenerator).CallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	dataV14 := primitives.MetadataModuleV14{
@@ -183,7 +183,9 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 
 	metadataTypes := append(sc.Sequence[primitives.MetadataType]{timestampCallsMetadata}, m.metadataTypes()...)
 
-	return metadataTypes, primitives.MetadataModule{
+	(*mdGenerator).AppendMetadataTypes(metadataTypes)
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

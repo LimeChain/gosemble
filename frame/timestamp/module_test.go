@@ -320,6 +320,7 @@ func Test_Module_Metadata(t *testing.T) {
 	expectedCompactU64TypeId := expectedTimestampCallsMetadataId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataType(expectedCompactU64TypeId, "CompactU64", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))),
 		primitives.NewMetadataTypeWithParam(expectedTimestampCallsMetadataId, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
@@ -380,7 +381,8 @@ func Test_Module_Metadata(t *testing.T) {
 
 	target := setupModule()
 
-	resultTypes, resultMetadataModule := target.Metadata(&mdGenerator)
+	resultMetadataModule := target.Metadata(&mdGenerator)
+	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)

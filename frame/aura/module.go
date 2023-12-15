@@ -142,7 +142,7 @@ func (m Module) OnTimestampSet(now sc.U64) error {
 	return nil
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   m.metadataStorage(),
@@ -155,7 +155,10 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence
 		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.index,
 	}
-	return m.metadataTypes(), primitives.MetadataModule{
+
+	(*mdGenerator).AppendMetadataTypes(m.metadataTypes())
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}

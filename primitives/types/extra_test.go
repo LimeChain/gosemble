@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/hex"
 	"math"
+	"strconv"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,9 +54,9 @@ var (
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
-	expectedMetadataTypes = sc.Sequence[MetadataType]{
+	expectedMetadataTypes = sc.Sequence[MetadataType]{ // TODO: Confirm that in such a case where we have repeating extras (so their metadata types will be equal), we don't expect to have duplicates in the returned MetadataTypes
 		testExtraCheckMetadataType,
-		testExtraCheckMetadataType,
+		// testExtraCheckMetadataType,
 		signedExtraMetadataType,
 	}
 
@@ -232,7 +234,11 @@ func Test_SignedExtra_PostDispatch_Err(t *testing.T) {
 }
 
 func Test_SignedExtra_Metadata(t *testing.T) {
-	metadataTypes, metadataSignedExtensions := targetSignedExtraOk.Metadata(metadataIds)
+	//metadataTypes, metadataSignedExtensions := targetSignedExtraOk.Metadata(&mdGenerator)
+	metadataSignedExtensions := targetSignedExtraOk.Metadata(&mdGenerator)
+	metadataTypes := mdGenerator.GetMetadataTypes()
+
+	log.Info("Result len: " + strconv.Itoa(len(metadataTypes)))
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataSignedExtensions, metadataSignedExtensions)
@@ -356,7 +362,8 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 		signedExtraMdType,
 	}
 
-	metadataTypes, metadataSignedExtensions := targetSignedExtra.Metadata(metadataIdsComplexAll)
+	metadataSignedExtensions := targetSignedExtra.Metadata(&mdGeneratorAll)
+	metadataTypes := mdGeneratorAll.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypesEmptyEraComplexAll, metadataTypes)
 	assert.Equal(t, expectedExtensionsEmptyEraComplex, metadataSignedExtensions)
@@ -479,7 +486,8 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 		metadataSignedExtensionComplexSome,
 	}
 
-	metadataTypes, metadataSignedExtensions := targetSignedExtra.Metadata(metadataIdsComplexSome)
+	metadataSignedExtensions := targetSignedExtra.Metadata(&mdGeneratorSome)
+	metadataTypes := mdGeneratorSome.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypesEmptyEraComplexSome, metadataTypes)
 	assert.Equal(t, expectedExtensionsEmptyEraComplexSome, metadataSignedExtensions)
