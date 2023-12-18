@@ -305,7 +305,5 @@ func getAllMetadataTypes(target *Module) sc.Sequence[primitives.MetadataType] {
 
 	metadataTypes = append(metadataTypes, target.runtimeTypes()...)
 
-	// metadataTypes = append(metadataTypes, mdTypes...) // TODO: MetadataGenerator should be exported to utils and mocked in order to use .On function to specify the returned MetadataTypes
-
 	return metadataTypes
 }
