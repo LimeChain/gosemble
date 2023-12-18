@@ -2,12 +2,18 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+var (
+	errInvalidExtrinsicVersion = errors.New("invalid Extrinsic version")
+	errInvalidLengthPrefix     = errors.New("invalid length prefix")
 )
 
 type RuntimeDecoder interface {
@@ -19,12 +25,14 @@ type RuntimeDecoder interface {
 type runtimeDecoder struct {
 	modules []types.Module
 	extra   primitives.SignedExtra
+	logger  log.WarnLogger
 }
 
-func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra) RuntimeDecoder {
+func NewRuntimeDecoder(modules []types.Module, extra primitives.SignedExtra, logger log.WarnLogger) RuntimeDecoder {
 	return runtimeDecoder{
 		modules: modules,
 		extra:   extra,
+		logger:  logger,
 	}
 }
 
@@ -65,7 +73,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	version, _ := buffer.ReadByte()
 
 	if version&ExtrinsicUnmaskVersion != ExtrinsicFormatVersion {
-		log.Critical("invalid Extrinsic version")
+		return nil, errInvalidExtrinsicVersion
 	}
 
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
@@ -87,10 +95,10 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	afterLength := buffer.Len()
 
 	if int(expectedLength) != beforeLength-afterLength {
-		log.Critical("invalid length prefix")
+		return nil, errInvalidLengthPrefix
 	}
 
-	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra), nil
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra, rd.logger), nil
 }
 
 func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, error) {
@@ -111,7 +119,7 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, erro
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {
-		log.Critical(fmt.Sprintf("function index [%d] for module [%d] not found", functionIndex, moduleIndex))
+		return nil, fmt.Errorf("function index [%d] for module [%d] not found", functionIndex, moduleIndex)
 	}
 
 	function, err = function.DecodeArgs(buffer)

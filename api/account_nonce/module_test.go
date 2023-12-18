@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -84,7 +85,7 @@ func setup() Module {
 	mockSystem = new(mocks.SystemModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockSystem)
+	target := New(mockSystem, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

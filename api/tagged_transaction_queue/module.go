@@ -26,13 +26,15 @@ type Module struct {
 	executive executive.Module
 	decoder   types.RuntimeDecoder
 	memUtils  utils.WasmMemoryTranslator
+	logger    log.Logger
 }
 
-func New(executive executive.Module, decoder types.RuntimeDecoder) Module {
+func New(executive executive.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
 	return Module{
 		executive: executive,
 		decoder:   decoder,
 		memUtils:  utils.NewMemoryTranslator(),
+		logger:    logger,
 	}
 }
 
@@ -58,27 +60,28 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 
 	txSource, err := primitives.DecodeTransactionSource(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	tx, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	blockHash, err := primitives.DecodeBlake2bHash(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	ok, err := m.executive.ValidateTransaction(txSource, tx, blockHash)
+
 	var res primitives.TransactionValidityResult
-	switch err.(type) {
+	switch typedErr := err.(type) {
 	case primitives.TransactionValidityError:
-		res, err = primitives.NewTransactionValidityResult(err.(primitives.TransactionValidityError))
+		res, err = primitives.NewTransactionValidityResult(typedErr)
 	case nil:
 		res, err = primitives.NewTransactionValidityResult(ok)
 	}
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(res.Bytes())

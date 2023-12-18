@@ -1,8 +1,6 @@
 package grandpa
 
 import (
-	"fmt"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
@@ -43,12 +41,14 @@ type Module struct {
 	hooks.DefaultDispatchModule
 	Index   sc.U8
 	storage *storage
+	logger  log.WarnLogger
 }
 
-func New(index sc.U8) Module {
+func New(index sc.U8, logger log.WarnLogger) Module {
 	return Module{
 		Index:   index,
 		storage: newStorage(),
+		logger:  logger,
 	}
 }
 
@@ -88,7 +88,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 
 	authorities := versionedAuthorityList.AuthorityList
 	if versionedAuthorityList.Version != AuthorityVersion {
-		log.Warn(fmt.Sprintf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version))
+		m.logger.Warnf("unknown Grandpa authorities version: [%d]", versionedAuthorityList.Version)
 		return sc.Sequence[primitives.Authority]{}, nil
 	}
 

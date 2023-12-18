@@ -7,6 +7,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +22,7 @@ func setup() {
 	mockAura = new(mocks.AuraModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target = New(mockAura)
+	target = New(mockAura, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 }
 

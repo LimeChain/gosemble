@@ -7,11 +7,12 @@ import (
 )
 
 type RuntimeApi struct {
-	apis []primitives.ApiModule
+	apis   []primitives.ApiModule
+	logger log.Logger
 }
 
-func NewRuntimeApi(apis []primitives.ApiModule) RuntimeApi {
-	return RuntimeApi{apis: apis}
+func NewRuntimeApi(apis []primitives.ApiModule, logger log.Logger) RuntimeApi {
+	return RuntimeApi{apis: apis, logger: logger}
 }
 
 func (ra RuntimeApi) Items() sc.Sequence[primitives.ApiItem] {
@@ -30,7 +31,7 @@ func (ra RuntimeApi) Module(name string) primitives.ApiModule {
 			return module
 		}
 	}
-	log.Critical("runtime module [" + name + "] not found.")
+	ra.logger.Criticalf("runtime module [%s] not found.", name)
 
 	panic("unreachable")
 }

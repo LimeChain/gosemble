@@ -7,6 +7,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -203,7 +204,7 @@ func setup() Module {
 		mockSessionKey,
 	}
 
-	target := New(sessions)
+	target := New(sessions, log.NewLogger())
 	target.crypto = mockCrypto
 	target.memUtils = mockMemoryUtils
 

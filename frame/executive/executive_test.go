@@ -1,12 +1,14 @@
 package executive
 
 import (
+	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -143,6 +145,7 @@ func setup() {
 		mockSystemModule,
 		mockRuntimeExtrinsic,
 		mockOnRuntimeUpgradeHook,
+		log.NewLogger(),
 	).(module)
 	target.hashing = mockIoHashing
 
@@ -225,9 +228,8 @@ func Test_Executive_ExecuteBlock_InvalidParentHash(t *testing.T) {
 	invalidParentHash, _ := primitives.NewBlake2bHash(sc.BytesToSequenceU8([]byte("abcdefghijklmnopqrstuvwxyz123450"))...)
 	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(invalidParentHash, nil)
 
-	assert.PanicsWithValue(t, "parent hash should be valid", func() {
-		target.ExecuteBlock(block)
-	})
+	err := target.ExecuteBlock(block)
+	assert.Equal(t, errInvalidParentHash, err)
 }
 
 func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
@@ -251,9 +253,8 @@ func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
 	mockSystemModule.On("NoteFinishedInitialize")
 	mockRuntimeExtrinsic.On("EnsureInherentsAreFirst", block).Return(0)
 
-	assert.PanicsWithValue(t, "invalid inherent position for extrinsic at index [0]", func() {
-		target.ExecuteBlock(block)
-	})
+	err := target.ExecuteBlock(block)
+	assert.Equal(t, fmt.Errorf("invalid inherent position for extrinsic at index [%d]", 0), err)
 }
 
 func Test_Executive_ExecuteBlock_Success(t *testing.T) {

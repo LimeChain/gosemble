@@ -7,7 +7,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -106,7 +105,7 @@ func (m Module) CreateInherent(inherent primitives.InherentData) (sc.Option[prim
 	return sc.NewOption[primitives.Call](function), nil
 }
 
-func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) primitives.FatalError {
+func (m Module) CheckInherent(call primitives.Call, inherent primitives.InherentData) error {
 	if !m.IsInherent(call) {
 		return primitives.NewTimestampErrorInvalid()
 	}
@@ -118,22 +117,20 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 
 	inherentData := inherent.Get(inherentIdentifier)
 
+	// todo add new tests for assertPanic in the api modules tests
 	if inherentData == nil {
-		// TODO: return err
-		log.Critical(errTimestampInherentNotProvided.Error())
+		return errTimestampInherentNotProvided
 	}
 
 	buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(inherentData))
 	ts, err := sc.DecodeU64(buffer)
 	if err != nil {
-		// TODO: return err
-		log.Critical(errTimestampInherentDataNotCorrectlyEncoded.Error())
+		return errTimestampInherentDataNotCorrectlyEncoded
 	}
 
 	systemNow, err := m.storage.Now.Get()
 	if err != nil {
-		// TODO: return err
-		log.Critical(err.Error())
+		return err
 	}
 
 	minimum := systemNow + m.constants.MinimumPeriod

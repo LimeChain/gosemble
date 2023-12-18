@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -128,7 +129,7 @@ func newTestSignedExtrinsic(
 		return signedPayload, nil
 	}
 
-	uxt := NewUncheckedExtrinsic(version, signature, call, extra).(uncheckedExtrinsic)
+	uxt := NewUncheckedExtrinsic(version, signature, call, extra, logger).(uncheckedExtrinsic)
 	uxt.initializePayload = initializer
 	uxt.crypto = crypto
 	uxt.hashing = hashing
@@ -234,7 +235,7 @@ func Test_IsSigned(t *testing.T) {
 
 func Test_Check_UnsignedUncheckedExtrinsic(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](nil), mockCall, types.SignedExtra(nil)).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](nil), mockCall, types.SignedExtra(nil), logger).(checkedExtrinsic)
 
 	result, err := targetUnsigned.Check()
 
@@ -310,7 +311,7 @@ func Test_Check_SignedUncheckedExtrinsic_LongEncoding_BadProofError(t *testing.T
 
 func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 	setup(signatureEd25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra, logger).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Ed25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -330,7 +331,7 @@ func Test_Check_SignedUncheckedExtrinsic_Success(t *testing.T) {
 
 func Test_Check_SignedUncheckedExtrinsic_Success_Sr25519(t *testing.T) {
 	setup(signatureSr25519)
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra, logger).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockCrypto.On("Sr25519Verify", signatureBytes, encodedPayloadBytes, signerAddressBytes).Return(true)
@@ -354,7 +355,7 @@ func Test_SignedUncheckedExtrinsic_Check_Ecdsa_Success(t *testing.T) {
 		HasError: false,
 		Value:    ecdsaPublicKey,
 	}
-	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra).(checkedExtrinsic)
+	expect := NewCheckedExtrinsic(sc.NewOption[types.AccountId](signerAccountId), mockCall, mockSignedExtra, logger).(checkedExtrinsic)
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
@@ -419,7 +420,7 @@ func Test_SignedUncheckedExtrinsic_Check_Ecdsa_BadProof_BadSignature(t *testing.
 	mockCrypto.AssertCalled(t, "EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes)
 }
 
-func Test_SignedUncheckedExtrinsic_Check_Ecdsa_Panics_InvalidResultBytes(t *testing.T) {
+func Test_SignedUncheckedExtrinsic_Check_Ecdsa_InvalidResultBytes(t *testing.T) {
 	setup(signatureEcdsa)
 	recoverResult := sc.U8(5)
 
@@ -427,9 +428,8 @@ func Test_SignedUncheckedExtrinsic_Check_Ecdsa_Panics_InvalidResultBytes(t *test
 	mockHashing.On("Blake256", encodedPayloadBytes).Return(encodedPayloadBytes)
 	mockCrypto.On("EcdsaRecoverCompressed", ecdsaSignatureBytes, encodedPayloadBytes).Return(recoverResult.Bytes())
 
-	assert.PanicsWithValue(t, "invalid bool representation", func() {
-		targetSigned.Check()
-	})
+	_, err := targetSigned.Check()
+	assert.Equal(t, errors.New("invalid bool representation"), err)
 
 	mocksSignedPayload.AssertCalled(t, "Bytes")
 	mockHashing.AssertCalled(t, "Blake256", encodedPayloadBytes)
@@ -441,9 +441,8 @@ func Test_Check_SignedUncheckedExtrinsic_UnknownSignatureType(t *testing.T) {
 
 	mocksSignedPayload.On("Bytes").Return(encodedPayloadBytes)
 
-	assert.PanicsWithValue(t, "invalid MultiSignature type in Verify", func() {
-		targetSigned.Check()
-	})
+	_, err := targetSigned.Check()
+	assert.Equal(t, errInvalidMultisigType, err)
 
 	mocksSignedPayload.AssertCalled(t, "Bytes")
 	mockHashing.AssertNotCalled(t, "Blake256", mock.Anything)

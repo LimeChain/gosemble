@@ -70,9 +70,9 @@ func (m *GrandpaModule) CreateInherent(inherent types.InherentData) (sc.Option[t
 	return args.Get(0).(sc.Option[types.Call]), args.Get(1).(error)
 }
 
-func (m *GrandpaModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
+func (m *GrandpaModule) CheckInherent(call types.Call, data types.InherentData) error {
 	args := m.Called(call, data)
-	return args.Get(0).(types.FatalError)
+	return args.Get(0).(error)
 }
 
 func (m *GrandpaModule) InherentIdentifier() [8]byte {

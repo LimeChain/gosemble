@@ -9,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1739,7 +1740,7 @@ func testDigest() primitives.Digest {
 func setupModule() module {
 	config := NewConfig(blockHashCount, blockWeights, blockLength, dbWeight, version)
 
-	target := New(moduleId, config).(module)
+	target := New(moduleId, config, log.NewLogger()).(module)
 
 	initMockStorage()
 	target.storage.Account = mockStorageAccount

@@ -9,6 +9,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -172,7 +173,7 @@ func setup() Module {
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockUxt = new(mocks.UncheckedExtrinsic)
 
-	target := New(mockExecutive, mockRuntimeDecoder)
+	target := New(mockExecutive, mockRuntimeDecoder, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

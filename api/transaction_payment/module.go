@@ -24,13 +24,15 @@ type Module struct {
 	decoder    types.RuntimeDecoder
 	txPayments transaction_payment.Module
 	memUtils   utils.WasmMemoryTranslator
+	logger     log.Logger
 }
 
-func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module) Module {
+func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module, logger log.Logger) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
 		memUtils:   utils.NewMemoryTranslator(),
+		logger:     logger,
 	}
 }
 
@@ -56,11 +58,11 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 
 	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
@@ -69,7 +71,7 @@ func (m Module) QueryInfo(dataPtr int32, dataLen int32) int64 {
 	if ext.IsSigned() {
 		partialFee, err = m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 		if err != nil {
-			log.Critical(err.Error())
+			m.logger.Critical(err.Error())
 		}
 	}
 
@@ -95,11 +97,11 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 
 	ext, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(ext.Function())
@@ -108,7 +110,7 @@ func (m Module) QueryFeeDetails(dataPtr int32, dataLen int32) int64 {
 	if ext.IsSigned() {
 		feeDetails, err = m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 		if err != nil {
-			log.Critical(err.Error())
+			m.logger.Critical(err.Error())
 		}
 	} else {
 		feeDetails = tx_types.FeeDetails{

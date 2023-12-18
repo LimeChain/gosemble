@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -214,8 +215,10 @@ func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
 	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(nil)
 	mockModuleTwo.On("IsInherent", mockCallOne).Return(false)
 
-	result := target.CheckInherents(inherentData, mockBlock)
+	result, err := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, err)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -244,8 +247,10 @@ func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(err)
 	mockModuleOne.On("InherentIdentifier").Return(inherentIdentifier)
 
-	result := target.CheckInherents(inherentData, mockBlock)
+	result, errCheckInherents := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, errCheckInherents)
 
+	assert.NoError(t, errCheckInherents)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -267,8 +272,10 @@ func Test_RuntimeExtrinsic_CheckInherents_NoInherents(t *testing.T) {
 	mockModuleOne.On("IsInherent", mockCallOne).Return(false)
 	mockModuleTwo.On("IsInherent", mockCallOne).Return(false)
 
-	result := target.CheckInherents(inherentData, mockBlock)
+	result, err := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, err)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -286,8 +293,10 @@ func Test_RuntimeExtrinsic_CheckInherents_Signed(t *testing.T) {
 	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
 	mockUncheckedExtrinsic.On("IsSigned").Return(true)
 
-	result := target.CheckInherents(inherentData, mockBlock)
+	result, err := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, err)
 
+	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 
 	mockBlock.AssertCalled(t, "Extrinsics")
@@ -575,5 +584,5 @@ func setupRuntimeExtrinsic() RuntimeExtrinsic {
 		mockModuleTwo,
 	}
 
-	return New(modules, mockSignedExtra)
+	return New(modules, mockSignedExtra, log.NewLogger())
 }

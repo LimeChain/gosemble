@@ -105,5 +105,5 @@ func setupRuntimeApi() RuntimeApi {
 
 	apis := []primitives.ApiModule{mockApiModuleOne, mockApiModuleTwo}
 
-	return NewRuntimeApi(apis)
+	return NewRuntimeApi(apis, logger)
 }

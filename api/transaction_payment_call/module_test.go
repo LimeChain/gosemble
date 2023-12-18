@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -177,7 +178,7 @@ func setup() Module {
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockCall = new(mocks.Call)
 
-	target := New(mockRuntimeDecoder, mockTransactionPayment)
+	target := New(mockRuntimeDecoder, mockTransactionPayment, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

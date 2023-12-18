@@ -2,10 +2,10 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/balances/types"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -23,9 +23,9 @@ const (
 	EventSlashed
 )
 
-const (
-	errInvalidEventModule = "invalid balances.Event module"
-	errInvalidEventType   = "invalid balances.Event type"
+var (
+	errInvalidEventModule = errors.New("invalid balances.Event module")
+	errInvalidEventType   = errors.New("invalid balances.Event type")
 )
 
 func newEventEndowed(moduleIndex sc.U8, account primitives.AccountId, freeBalance primitives.Balance) primitives.Event {
@@ -74,7 +74,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		return primitives.Event{}, err
 	}
 	if decodedModuleIndex != moduleIndex {
-		log.Critical(errInvalidEventModule)
+		return primitives.Event{}, errInvalidEventModule
 	}
 
 	b, err := sc.DecodeU8(buffer)
@@ -200,8 +200,6 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (primitives.Event, err
 		}
 		return newEventSlashed(moduleIndex, account, amount), nil
 	default:
-		log.Critical(errInvalidEventType)
+		return primitives.Event{}, errInvalidEventType
 	}
-
-	panic("unreachable")
 }

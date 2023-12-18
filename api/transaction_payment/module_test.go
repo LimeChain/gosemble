@@ -10,6 +10,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -258,7 +259,7 @@ func setup() Module {
 	mockUxt = new(mocks.UncheckedExtrinsic)
 	mockCall = new(mocks.Call)
 
-	target := New(mockRuntimeDecoder, mockTransactionPayment)
+	target := New(mockRuntimeDecoder, mockTransactionPayment, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

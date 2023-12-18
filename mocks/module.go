@@ -56,14 +56,14 @@ func (m *Module) CreateInherent(inherent types.InherentData) (sc.Option[types.Ca
 	return args.Get(0).(sc.Option[types.Call]), args.Get(1).(error)
 }
 
-func (m *Module) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
+func (m *Module) CheckInherent(call types.Call, data types.InherentData) error {
 	args := m.Called(call, data)
 
 	if args.Get(0) == nil {
 		return nil
 	}
 
-	return args.Get(0).(types.FatalError)
+	return args.Get(0).(error)
 }
 
 func (m *Module) InherentIdentifier() [8]byte {

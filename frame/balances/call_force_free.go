@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -14,15 +13,17 @@ import (
 type callForceFree struct {
 	primitives.Callable
 	transfer
+	logger log.DebugLogger
 }
 
-func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator, logger log.DebugLogger) primitives.Call {
 	call := callForceFree{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
+		logger:   logger,
 	}
 
 	return call
@@ -119,7 +120,7 @@ func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress,
 
 	target, err := types.Lookup(who)
 	if err != nil {
-		log.Debug(fmt.Sprintf("Failed to lookup [%s]", who.Bytes()))
+		c.logger.Debugf("Failed to lookup [%s]", who.Bytes())
 		return types.NewDispatchErrorCannotLookup()
 	}
 

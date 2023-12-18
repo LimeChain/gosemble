@@ -24,9 +24,15 @@ func (re *RuntimeExtrinsic) CreateInherents(inherentData primitives.InherentData
 	return args.Get(0).([]byte), args.Get(1).(error)
 }
 
-func (re *RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
+func (re *RuntimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) (primitives.CheckInherentsResult, error) {
 	args := re.Called(data, block)
-	return args.Get(0).(primitives.CheckInherentsResult)
+
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.CheckInherentsResult), nil
+	}
+
+	return args.Get(0).(primitives.CheckInherentsResult), args.Get(1).(error)
+
 }
 
 func (re *RuntimeExtrinsic) EnsureInherentsAreFirst(block types.Block) int {

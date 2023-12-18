@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -279,7 +280,7 @@ func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{})
+	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{}, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

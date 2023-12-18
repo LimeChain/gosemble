@@ -469,12 +469,8 @@ func Test_CheckWeight_checkBlockLength_InvalidDispatch(t *testing.T) {
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 
-	assert.PanicsWithValue(t,
-		errInvalidDispatchClass,
-		func() {
-			target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
-		},
-	)
+	_, err := target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
+	assert.Equal(t, errInvalidDispatchClass, err)
 
 	mockModule.AssertCalled(t, "BlockLength")
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")

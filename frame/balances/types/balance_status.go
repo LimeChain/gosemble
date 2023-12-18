@@ -2,8 +2,7 @@ package types
 
 import (
 	"bytes"
-
-	"github.com/LimeChain/gosemble/primitives/log"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 )
@@ -15,6 +14,10 @@ const (
 
 type BalanceStatus = sc.U8
 
+var (
+	errInvalidBalanceStatusType = errors.New("invalid balance status type")
+)
+
 func DecodeBalanceStatus(buffer *bytes.Buffer) (sc.U8, error) {
 	value, err := sc.DecodeU8(buffer)
 	if err != nil {
@@ -24,8 +27,6 @@ func DecodeBalanceStatus(buffer *bytes.Buffer) (sc.U8, error) {
 	case BalanceStatusFree, BalanceStatusReserved:
 		return value, nil
 	default:
-		log.Critical("invalid balance status type")
+		return sc.U8(0), errInvalidBalanceStatusType
 	}
-
-	panic("unreachable")
 }

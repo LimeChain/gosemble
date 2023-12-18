@@ -2,15 +2,15 @@ package extensions
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	errInvalidDispatchClass = "invalid DispatchClass type in CheckBlockLength()"
+var (
+	errInvalidDispatchClass = errors.New("invalid DispatchClass type in CheckBlockLength()")
 )
 
 type CheckWeight struct {
@@ -64,7 +64,7 @@ func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primiti
 		}
 		err = currentWeight.Reduce(unspent, info.Class)
 		if err != nil {
-			log.Critical(err.Error())
+			return err
 		}
 		cw.systemModule.StorageBlockWeightSet(currentWeight)
 	}
@@ -127,7 +127,12 @@ func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.
 
 	nextLen := sc.SaturatingAddU32(currentLen, addedLen)
 
-	if nextLen > maxLimit(lengthLimit, info) {
+	maxLimit, err := maxLimit(lengthLimit, info)
+	if err != nil {
+		return 0, err
+	}
+
+	if nextLen > maxLimit {
 		return sc.U32(0), primitives.NewTransactionValidityError(primitives.NewInvalidTransactionExhaustsResources())
 	}
 
@@ -151,7 +156,7 @@ func (cw CheckWeight) checkBlockWeight(info *primitives.DispatchInfo) (primitive
 func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) error {
 	dispatchClass, err := cw.systemModule.BlockWeights().Get(info.Class)
 	if err != nil {
-		log.Critical(err.Error())
+		return err
 	}
 
 	max := dispatchClass.MaxExtrinsic
@@ -168,7 +173,7 @@ func (cw CheckWeight) checkExtrinsicWeight(info *primitives.DispatchInfo) error 
 func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeights, allConsumedWeight primitives.ConsumedWeight, info *primitives.DispatchInfo) (primitives.ConsumedWeight, error) {
 	limitPerClass, err := maximumWeight.Get(info.Class)
 	if err != nil {
-		log.Critical(err.Error())
+		return primitives.ConsumedWeight{}, err
 	}
 
 	extrinsicWeight := info.Weight.SaturatingAdd(limitPerClass.BaseExtrinsic)
@@ -185,7 +190,7 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 
 	consumedPerClass, perClassErr := allConsumedWeight.Get(info.Class)
 	if perClassErr != nil {
-		log.Critical(perClassErr.Error())
+		return primitives.ConsumedWeight{}, perClassErr
 	}
 
 	// Check if we don't exceed per-class allowance
@@ -200,7 +205,7 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	// to `reserved` pool if there is any.
 	total, totalWeightErr := allConsumedWeight.Total()
 	if totalWeightErr != nil {
-		log.Critical(totalWeightErr.Error())
+		return primitives.ConsumedWeight{}, totalWeightErr
 	}
 
 	if total.AnyGt(maximumWeight.MaxBlock) {
@@ -215,34 +220,33 @@ func (cw CheckWeight) calculateConsumedWeight(maximumWeight primitives.BlockWeig
 	return allConsumedWeight, nil
 }
 
-func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) sc.U32 {
+func maxLimit(lengthLimit primitives.BlockLength, info *primitives.DispatchInfo) (sc.U32, error) {
 	isNormal, err := info.Class.Is(primitives.DispatchClassNormal)
 	if err != nil {
-		log.Critical(err.Error())
+		return 0, err
 	}
 	if isNormal {
-		return lengthLimit.Max.Normal
+		return lengthLimit.Max.Normal, nil
 	}
 
 	isOperational, err := info.Class.Is(primitives.DispatchClassOperational)
 	if err != nil {
-		log.Critical(err.Error())
+		return 0, err
 	}
 	if isOperational {
-		return lengthLimit.Max.Operational
+		return lengthLimit.Max.Operational, nil
 	}
 
 	isMandatory, err := info.Class.Is(primitives.DispatchClassMandatory)
 	if err != nil {
-		log.Critical(err.Error())
+		return 0, err
 	}
 	if isMandatory {
-		return lengthLimit.Max.Mandatory
+		return lengthLimit.Max.Mandatory, nil
 	}
 
-	log.Critical(errInvalidDispatchClass)
+	return 0, errInvalidDispatchClass
 
-	panic("unreachable")
 }
 
 func (cw CheckWeight) ModulePath() string {

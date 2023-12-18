@@ -1,9 +1,9 @@
 package executive
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/extrinsic"
@@ -11,6 +11,14 @@ import (
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+var (
+	errInvalidParentHash  = errors.New("parent hash should be valid")
+	errInvalidDigestNum   = errors.New("number of digest must match the calculated")
+	errInvalidDigestItem  = errors.New("digest item must match that calculated")
+	errInvalidStorageRoot = errors.New("storage root must match that calculated")
+	errInvalidTxTrie      = errors.New("Transaction trie must be valid")
 )
 
 type Module interface {
@@ -27,21 +35,23 @@ type module struct {
 	onRuntimeUpgrade primitives.OnRuntimeUpgrade
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	hashing          io.Hashing
+	logger           log.TraceLogger
 }
 
-func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade primitives.OnRuntimeUpgrade) Module {
+func New(systemModule system.Module, runtimeExtrinsic extrinsic.RuntimeExtrinsic, onRuntimeUpgrade primitives.OnRuntimeUpgrade, logger log.TraceLogger) Module {
 	return module{
 		system:           systemModule,
 		onRuntimeUpgrade: onRuntimeUpgrade,
 		runtimeExtrinsic: runtimeExtrinsic,
 		hashing:          io.NewHashing(),
+		logger:           logger,
 	}
 }
 
 // InitializeBlock initialises a block with the given header,
 // starting the execution of a particular block.
 func (m module) InitializeBlock(header primitives.Header) error {
-	log.Trace("init_block")
+	m.logger.Trace("init_block")
 	m.system.ResetEvents()
 
 	weight := primitives.WeightZero()
@@ -73,7 +83,7 @@ func (m module) InitializeBlock(header primitives.Header) error {
 }
 
 func (m module) ExecuteBlock(block primitives.Block) error {
-	log.Trace(fmt.Sprintf("execute_block %v", block.Header().Number))
+	m.logger.Tracef("execute_block %v", block.Header().Number)
 
 	err := m.InitializeBlock(block.Header())
 	if err != nil {
@@ -103,7 +113,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
-	log.Trace("apply_extrinsic")
+	m.logger.Trace("apply_extrinsic")
 
 	// Verify that the signature is good.
 	checked, err := uxt.Check()
@@ -120,7 +130,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
-	log.Trace("get_dispatch_info: weight ref time " + strconv.Itoa(int(dispatchInfo.Weight.RefTime)))
+	m.logger.Tracef("get_dispatch_info: weight ref time %d", dispatchInfo.Weight.RefTime)
 
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
 	res, err := checked.Apply(unsignedValidator, &dispatchInfo, encodedLen)
@@ -132,13 +142,18 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	//
 	// The entire block should be discarded if an inherent fails to apply. Otherwise
 	// it may open an attack vector.
-	if res.HasError && isMandatoryDispatch(dispatchInfo) {
+	isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
+	if err != nil {
+		return primitives.DispatchOutcome{}, err
+	}
+
+	if res.HasError && isMendatoryDispatch {
 		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
 	}
 
 	noteErr := m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
 	if noteErr != nil {
-		log.Critical(noteErr.Error())
+		return primitives.DispatchOutcome{}, err
 	}
 
 	if res.HasError {
@@ -149,7 +164,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 }
 
 func (m module) FinalizeBlock() (primitives.Header, error) {
-	log.Trace("finalize_block")
+	m.logger.Trace("finalize_block")
 	err := m.system.NoteFinishedExtrinsics()
 	if err != nil {
 		return primitives.Header{}, err
@@ -173,7 +188,7 @@ func (m module) FinalizeBlock() (primitives.Header, error) {
 //
 // Changes made to storage should be discarded.
 func (m module) ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, error) {
-	log.Trace("validate_transaction")
+	m.logger.Trace("validate_transaction")
 	currentBlockNumber, err := m.system.StorageBlockNumber()
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -181,22 +196,28 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 
 	m.system.Initialize(currentBlockNumber+1, blockHash, primitives.Digest{})
 
-	log.Trace("using_encoded")
+	m.logger.Trace("using_encoded")
 	encodedLen := sc.ToCompact(len(uxt.Bytes()))
 
-	log.Trace("check")
+	m.logger.Trace("check")
 	checked, errCheck := uxt.Check()
 	if errCheck != nil {
 		return primitives.ValidTransaction{}, errCheck
 	}
 
-	log.Trace("dispatch_info")
+	m.logger.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
-	if isMandatoryDispatch(dispatchInfo) {
+
+	isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
+	if err != nil {
+		return primitives.ValidTransaction{}, err
+	}
+
+	if isMendatoryDispatch {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
-	log.Trace("validate")
+	m.logger.Trace("validate")
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
 	return checked.Validate(unsignedValidator, source, &dispatchInfo, encodedLen)
 }
@@ -227,7 +248,7 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
 
 	total, totalErr := weight.Total()
 	if totalErr != nil {
-		log.Critical(totalErr.Error())
+		return totalErr
 	}
 	remainingWeight := maxWeight.SaturatingSub(total)
 
@@ -246,21 +267,23 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
 	return nil
 }
 
-func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) {
+func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) error {
 	for _, ext := range block.Extrinsics() {
 		_, err := m.ApplyExtrinsic(ext)
 		if err != nil {
-			log.Critical(err.Error())
+			return err
 		}
 	}
 
-	m.system.NoteFinishedExtrinsics()
+	if err := m.system.NoteFinishedExtrinsics(); err != nil {
+		return err
+	}
 
-	m.idleAndFinalizeHook(block.Header().Number)
+	return m.idleAndFinalizeHook(block.Header().Number)
 }
 
 func (m module) initialChecks(block primitives.Block) error {
-	log.Trace("initial_checks")
+	m.logger.Trace("initial_checks")
 
 	header := block.Header()
 	blockNumber := header.Number
@@ -272,13 +295,13 @@ func (m module) initialChecks(block primitives.Block) error {
 		}
 
 		if !reflect.DeepEqual(storageParentHash, header.ParentHash) {
-			log.Critical("parent hash should be valid")
+			return errInvalidParentHash
 		}
 	}
 
 	inherentsAreFirst := m.runtimeExtrinsic.EnsureInherentsAreFirst(block)
 	if inherentsAreFirst >= 0 {
-		log.Critical(fmt.Sprintf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst))
+		return fmt.Errorf("invalid inherent position for extrinsic at index [%d]", inherentsAreFirst)
 	}
 	return nil
 }
@@ -311,22 +334,22 @@ func (m module) finalChecks(header *primitives.Header) error {
 	}
 
 	if len(header.Digest.Sequence) != len(newHeader.Digest.Sequence) {
-		log.Critical("Number of digest must match the calculated")
+		return errInvalidDigestNum
 	}
 
 	for i, digest := range header.Digest.Sequence {
 		otherDigest := newHeader.Digest.Sequence[i]
 		if !reflect.DeepEqual(digest, otherDigest) {
-			log.Critical("digest item must match that calculated")
+			return errInvalidDigestItem
 		}
 	}
 
 	if !reflect.DeepEqual(header.StateRoot, newHeader.StateRoot) {
-		log.Critical("Storage root must match that calculated")
+		return errInvalidStorageRoot
 	}
 
 	if !reflect.DeepEqual(header.ExtrinsicsRoot, newHeader.ExtrinsicsRoot) {
-		log.Critical("Transaction trie must be valid")
+		return errInvalidTxTrie
 	}
 	return nil
 }
@@ -342,10 +365,6 @@ func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
 	return digest.OnlyPreRuntimes()
 }
 
-func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) sc.Bool {
-	isMandatory, err := dispatchInfo.Class.Is(primitives.DispatchClassMandatory)
-	if err != nil {
-		log.Critical(err.Error())
-	}
-	return isMandatory
+func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) (sc.Bool, error) {
+	return dispatchInfo.Class.Is(primitives.DispatchClassMandatory)
 }

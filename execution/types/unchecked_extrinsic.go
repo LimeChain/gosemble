@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -22,6 +22,10 @@ const (
 	ExtrinsicUnmaskVersion = 0b0111_1111
 )
 
+var (
+	errInvalidMultisigType = errors.New("invalid MultiSignature type in Verify")
+)
+
 type PayloadInitializer = func(call primitives.Call, extra primitives.SignedExtra) (
 	primitives.SignedPayload, error,
 )
@@ -37,10 +41,11 @@ type uncheckedExtrinsic struct {
 	initializePayload PayloadInitializer
 	crypto            io.Crypto
 	hashing           io.Hashing
+	logger            log.WarnLogger
 }
 
 // NewUncheckedExtrinsic returns a new instance of an unchecked extrinsic.
-func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra) primitives.UncheckedExtrinsic {
+func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.ExtrinsicSignature], function primitives.Call, extra primitives.SignedExtra, logger log.WarnLogger) primitives.UncheckedExtrinsic {
 	return uncheckedExtrinsic{
 		version:           version,
 		signature:         signature,
@@ -49,6 +54,7 @@ func NewUncheckedExtrinsic(version sc.U8, signature sc.Option[primitives.Extrins
 		initializePayload: primitives.NewSignedPayload,
 		crypto:            io.NewCrypto(),
 		hashing:           io.NewHashing(),
+		logger:            logger,
 	}
 }
 
@@ -123,49 +129,49 @@ func (uxt uncheckedExtrinsic) Check() (primitives.CheckedExtrinsic, error) {
 			return nil, err
 		}
 
-		if !uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress) {
+		verify, err := uxt.verify(signature, uxt.usingEncoded(rawPayload), signerAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		if !verify {
 			return nil, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
 		}
 
-		return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](signerAddress), uxt.function, extra), nil
+		return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](signerAddress), uxt.function, extra, uxt.logger), nil
 	}
 
-	return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](nil), uxt.function, uxt.extra), nil
+	return NewCheckedExtrinsic(sc.NewOption[primitives.AccountId](nil), uxt.function, uxt.extra, uxt.logger), nil
 }
 
-func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.AccountId) bool {
+func (uxt uncheckedExtrinsic) verify(signature primitives.MultiSignature, msg sc.Sequence[sc.U8], signer primitives.AccountId) (bool, error) {
 	msgBytes := sc.SequenceU8ToBytes(msg)
 	signerBytes := signer.Bytes()
 
 	if signature.IsEd25519() {
 		sigEd25519, err := signature.AsEd25519()
 		if err != nil {
-			// TODO: return err
-			log.Critical(err.Error())
+			return false, err
 		}
 		sigBytes := sc.FixedSequenceU8ToBytes(sigEd25519.FixedSequence)
-		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes)
+		return uxt.crypto.Ed25519Verify(sigBytes, msgBytes, signerBytes), nil
 	} else if signature.IsSr25519() {
 		sigSr25519, err := signature.AsSr25519()
 		if err != nil {
-			// TODO: return err
-			log.Critical(err.Error())
+			return false, err
 		}
 		sigBytes := sc.FixedSequenceU8ToBytes(sigSr25519.FixedSequence)
-		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes)
+		return uxt.crypto.Sr25519Verify(sigBytes, msgBytes, signerBytes), nil
 	} else if signature.IsEcdsa() {
 		sigEcdsa, err := signature.AsEcdsa()
 		if err != nil {
-			// TODO: return err
-			log.Critical(err.Error())
+			return false, err
 		}
 
 		return uxt.verifyEcdsa(sigEcdsa, msgBytes, signerBytes)
 	}
 
-	log.Critical("invalid MultiSignature type in Verify")
-
-	panic("unreachable")
+	return false, errInvalidMultisigType
 }
 
 func (uxt uncheckedExtrinsic) usingEncoded(sp primitives.SignedPayload) sc.Sequence[sc.U8] {
@@ -179,7 +185,7 @@ func (uxt uncheckedExtrinsic) usingEncoded(sp primitives.SignedPayload) sc.Seque
 	}
 }
 
-func (uxt uncheckedExtrinsic) verifyEcdsa(signature primitives.SignatureEcdsa, msgBytes []byte, signer []byte) bool {
+func (uxt uncheckedExtrinsic) verifyEcdsa(signature primitives.SignatureEcdsa, msgBytes []byte, signer []byte) (bool, error) {
 	sigBytes := sc.FixedSequenceU8ToBytes(signature.FixedSequence)
 	msg := uxt.hashing.Blake256(msgBytes)
 
@@ -189,17 +195,16 @@ func (uxt uncheckedExtrinsic) verifyEcdsa(signature primitives.SignatureEcdsa, m
 
 	result, err := sc.DecodeResult(buffer, primitives.DecodeEcdsaPublicKey, primitives.DecodeEcdsaVerifyError)
 	if err != nil {
-		// TODO: return err
-		log.Critical(err.Error())
+		return false, err
 	}
 
 	if result.HasError {
-		log.Debug(fmt.Sprintf("Failed to verify signature. Error: [%s]", result.Value.(error).Error()))
-		return false
+		uxt.logger.Debugf("Failed to verify signature. Error: [%s]", result.Value.(error).Error())
+		return false, nil
 	}
 
 	// In order to match AccountId, ECDSA public keys are hashed to 32 bytes.
 	hashPublicKey := uxt.hashing.Blake256(result.Value.Bytes())
 
-	return reflect.DeepEqual(hashPublicKey, signer)
+	return reflect.DeepEqual(hashPublicKey, signer), nil
 }

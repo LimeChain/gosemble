@@ -2,12 +2,14 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -49,6 +51,7 @@ var (
 var (
 	mockModuleOne *mocks.Module
 	mockCallOne   *mocks.Call
+	logger        = log.NewLogger()
 )
 
 func Test_RuntimeDecoder_New(t *testing.T) {
@@ -56,6 +59,7 @@ func Test_RuntimeDecoder_New(t *testing.T) {
 	expect := runtimeDecoder{
 		modules: []primitives.Module{mockModuleOne},
 		extra:   mockSignedExtra,
+		logger:  logger,
 	}
 
 	assert.Equal(t, expect, target)
@@ -96,7 +100,7 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 	assert.NoError(t, err)
 
 	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{
-		NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra),
+		NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra, logger),
 	}
 
 	expectedBlock := NewBlock(header, extrinsics)
@@ -147,7 +151,7 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 
 	extrinsics := sc.Sequence[primitives.UncheckedExtrinsic]{}
 	for i := 0; i < totalExtrinsicsInBlock; i++ {
-		extrinsics = append(extrinsics, NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra))
+		extrinsics = append(extrinsics, NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra, logger))
 	}
 
 	expectedBlock := NewBlock(header, extrinsics)
@@ -188,7 +192,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 	result, err := target.DecodeUncheckedExtrinsic(buff)
 	assert.NoError(t, err)
 
-	expectedUnsignedExtrinsic := NewUncheckedExtrinsic(version, sc.Option[primitives.ExtrinsicSignature]{}, mockCallOne, mockSignedExtra)
+	expectedUnsignedExtrinsic := NewUncheckedExtrinsic(version, sc.Option[primitives.ExtrinsicSignature]{}, mockCallOne, mockSignedExtra, logger)
 
 	assert.Equal(t, expectedUnsignedExtrinsic.IsSigned(), result.IsSigned())
 
@@ -217,7 +221,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 	result, err := target.DecodeUncheckedExtrinsic(buff)
 	assert.NoError(t, err)
 
-	expectedSignedExtrinsicsBytesAfterDecode := NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra)
+	expectedSignedExtrinsicsBytesAfterDecode := NewUncheckedExtrinsic(sc.U8(signedExtrinsicVersion), extrinsicSignature, mockCallOne, mockSignedExtra, logger)
 
 	assert.Equal(t, expectedSignedExtrinsicsBytesAfterDecode.IsSigned(), result.IsSigned())
 
@@ -242,9 +246,8 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidExtrinsicVersion(t *tes
 
 	buff := bytes.NewBuffer(append(sc.ToCompact(len(signedExtrinsicBytesInvalid)).Bytes(), signedExtrinsicBytesInvalid...))
 
-	assert.PanicsWithValue(t, "invalid Extrinsic version", func() {
-		target.DecodeUncheckedExtrinsic(buff)
-	})
+	_, err := target.DecodeUncheckedExtrinsic(buff)
+	assert.Equal(t, errInvalidExtrinsicVersion, err)
 }
 
 func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing.T) {
@@ -262,9 +265,8 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
 
-	assert.PanicsWithValue(t, "invalid length prefix", func() {
-		target.DecodeUncheckedExtrinsic(buff)
-	})
+	_, err := target.DecodeUncheckedExtrinsic(buff)
+	assert.Equal(t, errInvalidLengthPrefix, err)
 }
 
 func Test_RuntimeDecoder_DecodeCall_Module_Not_Exists(t *testing.T) {
@@ -301,9 +303,8 @@ func Test_RuntimeDecoder_DecodeCall_Function_Not_Exists(t *testing.T) {
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 
-	assert.PanicsWithValue(t, "function index ["+strconv.Itoa(int(idxFunctionNotExists))+"] for module ["+strconv.Itoa(int(moduleOneIdx))+"] not found", func() {
-		target.DecodeCall(buf)
-	})
+	_, err := target.DecodeCall(buf)
+	assert.Equal(t, fmt.Errorf("function index [%d] for module [%d] not found", idxFunctionNotExists, moduleOneIdx), err)
 }
 
 func Test_RuntimeDecoder_DecodeCall(t *testing.T) {
@@ -355,5 +356,5 @@ func setupRuntimeDecoder() RuntimeDecoder {
 
 	apis := []primitives.Module{mockModuleOne}
 
-	return NewRuntimeDecoder(apis, mockSignedExtra)
+	return NewRuntimeDecoder(apis, mockSignedExtra, logger)
 }

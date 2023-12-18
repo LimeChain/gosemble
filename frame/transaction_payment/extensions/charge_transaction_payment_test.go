@@ -352,7 +352,8 @@ func Test_getPriority(t *testing.T) {
 	mockSystemModule.On("BlockWeights").Return(blockWeights)
 	mockSystemModule.On("BlockLength").Return(blockLength)
 
-	priority := targetChargeTxPayment.getPriority(&info, sc.ToCompact(extLen), txTip, txFee)
+	priority, err := targetChargeTxPayment.getPriority(&info, sc.ToCompact(extLen), txTip, txFee)
+	assert.NoError(t, err)
 
 	mockSystemModule.AssertCalled(t, "BlockWeights")
 	mockSystemModule.AssertCalled(t, "BlockLength")
