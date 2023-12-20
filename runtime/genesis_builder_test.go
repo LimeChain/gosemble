@@ -15,13 +15,13 @@ import (
 
 func Test_CreateDefaultConfig(t *testing.T) {
 	rt, _ := newTestRuntime(t)
-	wantGc := []byte("{\"system\":{},\"aura\":{\"authorities\":[]},\"grandpa\":{\"authorities\":[]},\"balances\":{\"balances\":[]},\"transactionPayment\":{\"multiplier\":\"1\"}}")
+	expectedGc := []byte("{\"system\":{},\"aura\":{\"authorities\":[]},\"grandpa\":{\"authorities\":[]},\"balances\":{\"balances\":[]},\"transactionPayment\":{\"multiplier\":\"1\"}}")
 
 	res, err := rt.Exec("GenesisBuilder_create_default_config", []byte{})
 	assert.NoError(t, err)
 
 	resDecoded, err := sc.DecodeSequence[sc.U8](bytes.NewBuffer(res))
-	assert.Equal(t, wantGc, sc.SequenceU8ToBytes(resDecoded))
+	assert.Equal(t, expectedGc, sc.SequenceU8ToBytes(resDecoded))
 }
 
 func Test_BuildConfig(t *testing.T) {
@@ -29,8 +29,9 @@ func Test_BuildConfig(t *testing.T) {
 
 	gc := []byte("{\"system\":{},\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]},\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]},\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1000000000000000000]]},\"transactionPayment\":{\"multiplier\":\"2\"}}")
 
-	_, err := rt.Exec("GenesisBuilder_build_config", sc.BytesToSequenceU8(gc).Bytes())
+	res, err := rt.Exec("GenesisBuilder_build_config", sc.BytesToSequenceU8(gc).Bytes())
 	assert.NoError(t, err)
+	assert.Equal(t, []byte{0}, res)
 
 	// assert BlockHash
 	encBlockNumber, _ := scale.Marshal(uint64(0))

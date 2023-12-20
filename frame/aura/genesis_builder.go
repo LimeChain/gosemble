@@ -18,14 +18,14 @@ type GenesisConfig struct {
 	Authorities sc.Sequence[types.Sr25519PublicKey]
 }
 
-type gcJsonStruct struct {
+type genesisConfigJsonStruct struct {
 	AuraGc struct {
 		Authorities []string `json:"authorities"`
 	} `json:"aura"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
-	gcJson := gcJsonStruct{}
+	gcJson := genesisConfigJsonStruct{}
 
 	if err := json.Unmarshal(data, &gcJson); err != nil {
 		return err
@@ -55,7 +55,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 }
 
 func (m Module) CreateDefaultConfig() ([]byte, error) {
-	gc := gcJsonStruct{}
+	gc := genesisConfigJsonStruct{}
 	gc.AuraGc.Authorities = []string{}
 
 	return json.Marshal(gc)

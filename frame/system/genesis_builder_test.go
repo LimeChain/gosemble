@@ -17,11 +17,11 @@ var (
 func Test_CreateDefaultConfig(t *testing.T) {
 	target := setupModule()
 
-	wantGc := []byte("{\"system\":{}}")
+	expectedGc := []byte("{\"system\":{}}")
 
 	gc, err := target.CreateDefaultConfig()
 	assert.NoError(t, err)
-	assert.Equal(t, wantGc, gc)
+	assert.Equal(t, expectedGc, gc)
 }
 
 func Test_BuildConfig(t *testing.T) {

@@ -87,9 +87,9 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 func Test_CreateDefaultConfig(t *testing.T) {
 	setup(timestampMinimumPeriod)
 
-	wantGc := []byte("{\"aura\":{\"authorities\":[]}}")
+	expectedGc := []byte("{\"aura\":{\"authorities\":[]}}")
 
 	gc, err := module.CreateDefaultConfig()
 	assert.NoError(t, err)
-	assert.Equal(t, wantGc, gc)
+	assert.Equal(t, expectedGc, gc)
 }

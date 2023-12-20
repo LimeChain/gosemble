@@ -18,14 +18,14 @@ var (
 type GenesisConfig struct {
 	Authorities sc.Sequence[types.Authority]
 }
-type gcJsonStruct struct {
+type genesisConfigJsonStruct struct {
 	GrandpaGc struct {
 		Authorities [][2]interface{} `json:"authorities"`
 	} `json:"grandpa"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
-	gcJson := gcJsonStruct{}
+	gcJson := genesisConfigJsonStruct{}
 
 	if err := json.Unmarshal(data, &gcJson); err != nil {
 		return err
@@ -67,7 +67,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 }
 
 func (m Module) CreateDefaultConfig() ([]byte, error) {
-	gc := &gcJsonStruct{}
+	gc := &genesisConfigJsonStruct{}
 	gc.GrandpaGc.Authorities = [][2]interface{}{}
 
 	return json.Marshal(gc)

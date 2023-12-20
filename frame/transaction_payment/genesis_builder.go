@@ -9,14 +9,14 @@ type GenesisConfig struct {
 	Multiplier sc.U128
 }
 
-type gcJsonStruct struct {
+type genesisConfigJsonStruct struct {
 	TransactionPaymentGc struct {
 		Multiplier string `json:"multiplier"`
 	} `json:"transactionPayment"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
-	gcJson := gcJsonStruct{}
+	gcJson := genesisConfigJsonStruct{}
 
 	if err := json.Unmarshal(data, &gcJson); err != nil {
 		return err
@@ -32,7 +32,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 }
 
 func (m module) CreateDefaultConfig() ([]byte, error) {
-	gc := &gcJsonStruct{}
+	gc := &genesisConfigJsonStruct{}
 	gc.TransactionPaymentGc.Multiplier = defaultMultiplierValue.ToBigInt().String()
 
 	return json.Marshal(gc)

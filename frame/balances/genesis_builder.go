@@ -17,22 +17,22 @@ var (
 	errInvalidAddrValue               = errors.New("invalid address in genesis config json")
 )
 
-type gcAccountBalance struct {
+type genesisConfigAccountBalance struct {
 	AccountId types.AccountId
 	Balance   types.Balance
 }
 type GenesisConfig struct {
-	Balances []gcAccountBalance
+	Balances []genesisConfigAccountBalance
 }
 
-type gcJsonStruct struct {
+type genesisConfigJsonStruct struct {
 	BalancesGc struct {
 		Balances [][2]interface{} `json:"balances"`
 	} `json:"balances"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
-	gcJson := gcJsonStruct{}
+	gcJson := genesisConfigJsonStruct{}
 
 	jsonDecoder := json.NewDecoder(bytes.NewReader(data))
 	jsonDecoder.UseNumber()
@@ -71,14 +71,14 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		gc.Balances = append(gc.Balances, gcAccountBalance{AccountId: accId, Balance: balanceU128})
+		gc.Balances = append(gc.Balances, genesisConfigAccountBalance{AccountId: accId, Balance: balanceU128})
 		addrExists[addrString] = true
 	}
 
 	return nil
 }
 func (m Module) CreateDefaultConfig() ([]byte, error) {
-	gc := &gcJsonStruct{}
+	gc := &genesisConfigJsonStruct{}
 	gc.BalancesGc.Balances = [][2]interface{}{}
 
 	return json.Marshal(gc)

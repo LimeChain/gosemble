@@ -112,9 +112,9 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 func Test_GenesisConfig_CreateDefaultConfig(t *testing.T) {
 	target := setupModule()
 
-	wantGc := []byte("{\"balances\":{\"balances\":[]}}")
+	expectedGc := []byte("{\"balances\":{\"balances\":[]}}")
 
 	gc, err := target.CreateDefaultConfig()
 	assert.NoError(t, err)
-	assert.Equal(t, wantGc, gc)
+	assert.Equal(t, expectedGc, gc)
 }

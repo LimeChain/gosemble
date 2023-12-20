@@ -51,14 +51,14 @@ func (m Module) CreateDefaultConfig() int64 {
 			continue
 		}
 
-		gcBz, err := genesisBuilder.CreateDefaultConfig()
+		gcJsonBytes, err := genesisBuilder.CreateDefaultConfig()
 		if err != nil {
 			log.Critical(err.Error())
 		}
 
-		// gcBz[1:len(gcBz)-1] trims first and last characters which represent start and end of the json
+		// gcJsonBytes[1:len(gcJsonBytes)-1] trims first and last characters which represent start and end of the json
 		// CreateDefaultConfig returns a valid json (e.g. {"system":{}}), and here we need it as a json field
-		gcs = append(gcs, string(gcBz[1:len(gcBz)-1]))
+		gcs = append(gcs, string(gcJsonBytes[1:len(gcJsonBytes)-1]))
 	}
 
 	gcJson := []byte(fmt.Sprintf("{%s}", strings.Join(gcs, ",")))
@@ -67,8 +67,8 @@ func (m Module) CreateDefaultConfig() int64 {
 }
 
 func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
-	gcBz := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
-	gcDecoded, err := sc.DecodeSequence[sc.U8](bytes.NewBuffer(gcBz))
+	gcJsonBytes := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
+	gcDecoded, err := sc.DecodeSequence[sc.U8](bytes.NewBuffer(gcJsonBytes))
 	if err != nil {
 		log.Critical(err.Error())
 	}
