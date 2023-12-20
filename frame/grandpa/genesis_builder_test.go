@@ -21,7 +21,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 	for _, tt := range []struct {
 		name                     string
 		gcJson                   string
-		wantErr                  error
+		expectedErr              error
 		shouldAssertCalled       bool
 		storageAuthorities       types.VersionedAuthorityList
 		storageAuthoritiesGetErr error
@@ -37,19 +37,19 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			shouldAssertCalled: true,
 		},
 		{
-			name:    "invalid genesis address",
-			gcJson:  "{\"grandpa\":{\"authorities\":[[1,1]]}}",
-			wantErr: errInvalidAddrValue,
+			name:        "invalid genesis address",
+			gcJson:      "{\"grandpa\":{\"authorities\":[[1,1]]}}",
+			expectedErr: errInvalidAddrValue,
 		},
 		{
-			name:    "invalid ss58 address",
-			gcJson:  "{\"grandpa\":{\"authorities\":[[\"invalid\",1]]}}",
-			wantErr: errors.New("expected at least 2 bytes in base58 decoded address"),
+			name:        "invalid ss58 address",
+			gcJson:      "{\"grandpa\":{\"authorities\":[[\"invalid\",1]]}}",
+			expectedErr: errors.New("expected at least 2 bytes in base58 decoded address"),
 		},
 		{
-			name:    "invalid genesis weight",
-			gcJson:  "{\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"invalid\"]]}}",
-			wantErr: errInvalidWeightValue,
+			name:        "invalid genesis weight",
+			gcJson:      "{\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"invalid\"]]}}",
+			expectedErr: errInvalidWeightValue,
 		},
 		{
 			name:   "zero authorities",
@@ -59,13 +59,13 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			name:                     "storage authorities error on get",
 			gcJson:                   validGcJson,
 			storageAuthoritiesGetErr: errors.New("err"),
-			wantErr:                  errors.New("err"),
+			expectedErr:              errors.New("err"),
 		},
 		{
 			name:               "storage authorities already initialized",
 			gcJson:             validGcJson,
 			storageAuthorities: versionedAuthorityList,
-			wantErr:            errAuthoritiesAlreadyInitialized,
+			expectedErr:        errAuthoritiesAlreadyInitialized,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,7 +74,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			mockStorageAuthorities.On("Put", versionedAuthorityList).Return()
 
 			err := target.BuildConfig([]byte(tt.gcJson))
-			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.expectedErr, err)
 
 			if tt.shouldAssertCalled {
 				mockStorageAuthorities.AssertCalled(t, "Get")

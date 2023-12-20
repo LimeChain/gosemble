@@ -40,36 +40,36 @@ func Test_BuildConfig(t *testing.T) {
 	blockHashKey = append(blockHashKey, blockNumHash...)
 	blockHashKey = append(blockHashKey, encBlockNumber...)
 	zeroBlockHash := (*storage).Get(blockHashKey)
-	wantBlockHash := types.Blake2bHash69()
-	assert.Equal(t, wantBlockHash.Bytes(), zeroBlockHash)
+	expectedBlockHash := types.Blake2bHash69()
+	assert.Equal(t, expectedBlockHash.Bytes(), zeroBlockHash)
 
 	// assert ParentHash
 	parentHash := (*storage).Get(append(keySystemHash, keyParentHash...))
-	assert.Equal(t, wantBlockHash.Bytes(), parentHash)
+	assert.Equal(t, expectedBlockHash.Bytes(), parentHash)
 
 	// assert LastRuntimeUpgradeSet
 	lrui := (*storage).Get(append(keySystemHash, keyLastRuntime...))
-	wantLrui := types.LastRuntimeUpgradeInfo{SpecVersion: 100, SpecName: "node-template"}
-	assert.Equal(t, wantLrui.Bytes(), lrui)
+	expectedLrui := types.LastRuntimeUpgradeInfo{SpecVersion: 100, SpecName: "node-template"}
+	assert.Equal(t, expectedLrui.Bytes(), lrui)
 
 	// assert ExtrinsicIndex
 	extrinsicIndex := (*storage).Get(keyExtrinsicIndex)
-	wantExtrinsicIndex := sc.U32(0)
-	assert.Equal(t, wantExtrinsicIndex.Bytes(), extrinsicIndex)
+	expectedExtrinsicIndex := sc.U32(0)
+	assert.Equal(t, expectedExtrinsicIndex.Bytes(), extrinsicIndex)
 
 	// assert aura authorities
 	auraAuthorities := (*storage).Get(append(keyAuraHash, keyAuthoritiesHash...))
-	wantPubKey := sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)
-	wantAuraAuthorityPubKey, _ := types.NewSr25519PublicKey(wantPubKey...)
-	wantAuraAuthorities := sc.Sequence[types.Sr25519PublicKey]{wantAuraAuthorityPubKey}
-	assert.Equal(t, wantAuraAuthorities.Bytes(), auraAuthorities)
+	expectedPubKey := sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)
+	expectedAuraAuthorityPubKey, _ := types.NewSr25519PublicKey(expectedPubKey...)
+	expectedAuraAuthorities := sc.Sequence[types.Sr25519PublicKey]{expectedAuraAuthorityPubKey}
+	assert.Equal(t, expectedAuraAuthorities.Bytes(), auraAuthorities)
 
 	// assert grandpa authorities
 	grandpaAuthorities := (*storage).Get(keyGrandpaAuthorities)
-	accId, _ := types.NewAccountId(wantPubKey...)
+	accId, _ := types.NewAccountId(expectedPubKey...)
 	authorities := sc.Sequence[types.Authority]{{Id: accId, Weight: sc.U64(1)}}
-	wantGrandpaAuthorities := types.VersionedAuthorityList{AuthorityList: authorities, Version: grandpa.AuthorityVersion}
-	assert.Equal(t, wantGrandpaAuthorities.Bytes(), grandpaAuthorities)
+	expectedGrandpaAuthorities := types.VersionedAuthorityList{AuthorityList: authorities, Version: grandpa.AuthorityVersion}
+	assert.Equal(t, expectedGrandpaAuthorities.Bytes(), grandpaAuthorities)
 
 	// assert balance
 	accHash, _ := common.Blake2b128(accId.Bytes())
@@ -77,16 +77,16 @@ func Test_BuildConfig(t *testing.T) {
 	keyStorageAccount = append(keyStorageAccount, accHash...)
 	keyStorageAccount = append(keyStorageAccount, accId.Bytes()...)
 	accInfo := (*storage).Get(keyStorageAccount)
-	wantBalance := sc.NewU128(uint64(1000000000000000000))
-	wantAccInfo := types.AccountInfo{Data: types.AccountData{Free: wantBalance}, Providers: 1}
-	assert.Equal(t, wantAccInfo.Bytes(), accInfo)
+	expectedBalance := sc.NewU128(uint64(1000000000000000000))
+	expectedAccInfo := types.AccountInfo{Data: types.AccountData{Free: expectedBalance}, Providers: 1}
+	assert.Equal(t, expectedAccInfo.Bytes(), accInfo)
 
 	// assert total issuance
 	totalIssuance := (*storage).Get(append(keyBalancesHash, keyTotalIssuanceHash...))
-	assert.Equal(t, wantBalance.Bytes(), totalIssuance)
+	assert.Equal(t, expectedBalance.Bytes(), totalIssuance)
 
 	// assert next fee multiplier
 	nextFeeMultiplier := (*storage).Get(append(keyTransactionPaymentHash, keyNextFeeMultiplierHash...))
-	wantNextFeeMultiplier := sc.NewU128(2)
-	assert.Equal(t, wantNextFeeMultiplier.Bytes(), nextFeeMultiplier)
+	expectedNextFeeMultiplier := sc.NewU128(2)
+	assert.Equal(t, expectedNextFeeMultiplier.Bytes(), nextFeeMultiplier)
 }

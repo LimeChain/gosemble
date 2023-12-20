@@ -66,7 +66,6 @@ type Module interface {
 
 	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
-	IncProviders(who primitives.AccountId) (primitives.IncRefStatus, error)
 }
 
 type module struct {
@@ -411,7 +410,7 @@ func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.Acc
 	isProviding := !reflect.DeepEqual(*someData, primitives.AccountData{})
 
 	if !wasProviding && isProviding {
-		_, err := m.IncProviders(who)
+		_, err := m.incProviders(who)
 		if err != nil {
 			return sc.Result[sc.Encodable]{}, err
 		}
@@ -440,7 +439,7 @@ func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.Acc
 	return result, nil
 }
 
-func (m module) IncProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
+func (m module) incProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
 	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
 		return m.incrementProviders(who, account)
 	})

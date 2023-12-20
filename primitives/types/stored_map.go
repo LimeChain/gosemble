@@ -9,5 +9,4 @@ type StoredMap interface {
 	Get(key AccountId) (AccountInfo, error)
 	CanDecProviders(who AccountId) (bool, error)
 	TryMutateExists(who AccountId, f func(who *AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	IncProviders(who AccountId) (IncRefStatus, error)
 }

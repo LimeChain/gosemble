@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	validGcJson = "{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]}}"
+	validGcJson = "{}"
+	// validGcJson = "{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]}}"
 	pubKey, _   = types.NewSr25519PublicKey(sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)...)
 	authorities = sc.Sequence[types.Sr25519PublicKey]{pubKey}
 )
@@ -20,7 +21,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 	for _, tt := range []struct {
 		name               string
 		gcJson             string
-		wantErr            error
+		expectedErr        error
 		decodeLen          sc.Option[sc.U64]
 		decodeLenErr       error
 		maxAuthorities     sc.Option[sc.U32]
@@ -39,9 +40,9 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			decodeLen:          sc.NewOption[sc.U64](nil),
 		},
 		{
-			name:    "invalid ss58 address",
-			gcJson:  "{\"aura\":{\"authorities\":[\"invalid\"]}}",
-			wantErr: errors.New("expected at least 2 bytes in base58 decoded address"),
+			name:        "invalid ss58 address",
+			gcJson:      "{\"aura\":{\"authorities\":[\"invalid\"]}}",
+			expectedErr: errors.New("expected at least 2 bytes in base58 decoded address"),
 		},
 		{
 			name:   "zero authorities",
@@ -51,19 +52,19 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			name:         "storage authorities DecodeLen error",
 			gcJson:       validGcJson,
 			decodeLenErr: errors.New("err"),
-			wantErr:      errors.New("err"),
+			expectedErr:  errors.New("err"),
 		},
 		{
-			name:      "storage authorities DecodeLen has value",
-			gcJson:    validGcJson,
-			decodeLen: sc.NewOption[sc.U64](sc.U64(1)),
-			wantErr:   errAuthoritiesAlreadyInitialized,
+			name:        "storage authorities DecodeLen has value",
+			gcJson:      validGcJson,
+			decodeLen:   sc.NewOption[sc.U64](sc.U64(1)),
+			expectedErr: errAuthoritiesAlreadyInitialized,
 		},
 		{
 			name:           "authorities exceed max authorities",
 			gcJson:         validGcJson,
 			maxAuthorities: sc.NewOption[sc.U32](sc.U32(0)),
-			wantErr:        errAuthoritiesExceedMaxAuthorities,
+			expectedErr:    errAuthoritiesExceedMaxAuthorities,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -75,7 +76,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			}
 
 			err := module.BuildConfig([]byte(tt.gcJson))
-			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.expectedErr, err)
 
 			if tt.shouldAssertCalled {
 				mockStorageAuthorities.AssertCalled(t, "Put", authorities)

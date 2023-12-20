@@ -22,7 +22,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 	for _, tt := range []struct {
 		name                     string
 		gcJson                   string
-		wantErr                  error
+		expectedErr              error
 		shouldAssertCalled       bool
 		tryMutateExistsErr       error
 		tryMutateExistsResultErr error
@@ -35,24 +35,24 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			shouldAssertCalled: true,
 		},
 		{
-			name:    "invalid genesis address",
-			gcJson:  "{\"balances\":{\"balances\":[[1,1]]}}",
-			wantErr: errInvalidAddrValue,
+			name:        "invalid genesis address",
+			gcJson:      "{\"balances\":{\"balances\":[[1,1]]}}",
+			expectedErr: errInvalidAddrValue,
 		},
 		{
-			name:    "duplicate genesis balance",
-			gcJson:  "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1],[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}",
-			wantErr: errDuplicateBalancesInGenesis,
+			name:        "duplicate genesis balance",
+			gcJson:      "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1],[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]}}",
+			expectedErr: errDuplicateBalancesInGenesis,
 		},
 		{
-			name:    "invalid ss58 address",
-			gcJson:  "{\"balances\":{\"balances\":[[\"invalid\",1]]}}",
-			wantErr: errors.New("expected at least 2 bytes in base58 decoded address"),
+			name:        "invalid ss58 address",
+			gcJson:      "{\"balances\":{\"balances\":[[\"invalid\",1]]}}",
+			expectedErr: errors.New("expected at least 2 bytes in base58 decoded address"),
 		},
 		{
-			name:    "invalid genesis balance",
-			gcJson:  "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"invalid\"]]}}",
-			wantErr: errInvalidBalanceValue,
+			name:        "invalid genesis balance",
+			gcJson:      "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"invalid\"]]}}",
+			expectedErr: errInvalidBalanceValue,
 		},
 		{
 			name:               "balance greater than MaxUint64",
@@ -65,21 +65,21 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			gcJson: "{\"aura\":{\"authorities\":[]}}",
 		},
 		{
-			name:    "balance below existential deposit",
-			gcJson:  "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",0]]}}",
-			wantErr: errBalanceBelowExistentialDeposit,
+			name:        "balance below existential deposit",
+			gcJson:      "{\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",0]]}}",
+			expectedErr: errBalanceBelowExistentialDeposit,
 		},
 		{
 			name:               "TryMutateExists error",
 			gcJson:             validGcJson,
 			tryMutateExistsErr: errors.New("err"),
-			wantErr:            errors.New("err"),
+			expectedErr:        errors.New("err"),
 		},
 		{
 			name:                     "TryMutateExists result errror",
 			gcJson:                   validGcJson,
 			tryMutateExistsResultErr: errors.New("err"),
-			wantErr:                  types.NewDispatchErrorOther(sc.Str(errors.New("err").Error())),
+			expectedErr:              types.NewDispatchErrorOther(sc.Str(errors.New("err").Error())),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,7 +99,7 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			mockTotalIssuance.On("Put", tt.balance).Return()
 
 			err := target.BuildConfig([]byte(tt.gcJson))
-			assert.Equal(t, tt.wantErr, err)
+			assert.Equal(t, tt.expectedErr, err)
 
 			if tt.shouldAssertCalled {
 				mockTotalIssuance.AssertCalled(t, "Put", tt.balance)

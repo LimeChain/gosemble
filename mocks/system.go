@@ -277,7 +277,7 @@ func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {
 	m.Called(value)
 }
 
-func (m *SystemModule) IncProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
+func (m *SystemModule) incProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
 	args := m.Called()
 	if args.Get(1) == nil {
 		return args.Get(0).(primitives.IncRefStatus), nil

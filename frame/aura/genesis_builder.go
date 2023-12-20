@@ -20,8 +20,8 @@ type GenesisConfig struct {
 
 type genesisConfigJsonStruct struct {
 	AuraGc struct {
-		Authorities []string `json:"authorities"`
-	} `json:"aura"`
+		Authorities []string `json:"authorities" validate:"required"`
+	} `json:"aura" validate:"required"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
