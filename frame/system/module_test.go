@@ -1,6 +1,7 @@
 package system
 
 import (
+	"errors"
 	"math"
 	"testing"
 
@@ -90,6 +91,7 @@ var (
 
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	errPanic                              = errors.New("panic")
 )
 
 var (
@@ -390,6 +392,30 @@ func Test_Module_RegisterExtraWeightUnchecked(t *testing.T) {
 
 	mockStorageBlockWeight.AssertCalled(t, "Get")
 	mockStorageBlockWeight.AssertCalled(t, "Put", expectCurrentWeight)
+}
+
+func Test_Module_RegisterExtraWeightUnchecked_BlockWeight_Error(t *testing.T) {
+	target := setupModule()
+
+	weight := primitives.WeightFromParts(7, 8)
+	class := primitives.NewDispatchClassNormal()
+
+	mockStorageBlockWeight.On("Get").Return(primitives.ConsumedWeight{}, errPanic)
+
+	err := target.RegisterExtraWeightUnchecked(weight, class)
+	assert.Equal(t, errPanic, err)
+}
+
+func Test_Module_RegisterExtraWeightUnchecked_Accrue_Error(t *testing.T) {
+	target := setupModule()
+
+	weight := primitives.WeightFromParts(7, 8)
+	class := primitives.DispatchClass{VaryingData: sc.NewVaryingData(sc.U8(99))}
+
+	mockStorageBlockWeight.On("Get").Return(primitives.ConsumedWeight{}, nil)
+
+	err := target.RegisterExtraWeightUnchecked(weight, class)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
 }
 
 func Test_Module_NoteFinishedInitialize(t *testing.T) {
