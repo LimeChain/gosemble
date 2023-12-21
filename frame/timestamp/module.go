@@ -117,7 +117,6 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 
 	inherentData := inherent.Get(inherentIdentifier)
 
-	// todo add new tests for assertPanic in the api modules tests
 	if inherentData == nil {
 		return errTimestampInherentNotProvided
 	}

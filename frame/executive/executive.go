@@ -95,6 +95,7 @@ func (m module) ExecuteBlock(block primitives.Block) error {
 		return err
 	}
 
+	// todo: handle err
 	m.executeExtrinsicsWithBookKeeping(block)
 
 	header := block.Header()
@@ -153,7 +154,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 
 	noteErr := m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
 	if noteErr != nil {
-		return primitives.DispatchOutcome{}, err
+		return primitives.DispatchOutcome{}, noteErr
 	}
 
 	if res.HasError {

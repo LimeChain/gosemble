@@ -1,6 +1,8 @@
 package offchain_worker
 
 import (
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -63,6 +65,42 @@ func Test_Module_OffchainWorker(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockExecutive.AssertCalled(t, "OffchainWorker", header)
+}
+
+func Test_Module_OffchainWorker_DecodeHeader_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.OffchainWorker(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_OffchainWorker_OffchainWorker_Panics(t *testing.T) {
+	target := setup()
+
+	parentHash := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355c").ToBytes()
+	stateRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355b").ToBytes()
+	extrinsicsRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355a").ToBytes()
+	header := primitives.Header{
+		ParentHash: primitives.Blake2bHash{
+			FixedSequence: sc.BytesToFixedSequenceU8(parentHash)},
+		Number:         5,
+		StateRoot:      primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(stateRoot)},
+		ExtrinsicsRoot: primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicsRoot)},
+		Digest:         primitives.NewDigest(sc.Sequence[primitives.DigestItem]{}),
+	}
+	expectedErr := errors.New("panic")
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(header.Bytes())
+	mockExecutive.On("OffchainWorker", header).Return(expectedErr)
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.OffchainWorker(dataPtr, dataLen) },
+	)
 }
 
 func Test_Module_Metadata(t *testing.T) {

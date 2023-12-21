@@ -86,7 +86,12 @@ func (m *SystemModule) Initialize(blockNumber sc.U64, parentHash primitives.Blak
 }
 
 func (m *SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error {
-	m.Called(weight, class)
+	args := m.Called(weight, class)
+
+	if args.Get(0) != nil {
+		return args.Get(0).(error)
+	}
+
 	return nil
 }
 
@@ -100,7 +105,12 @@ func (m *SystemModule) NoteExtrinsic(encodedExt []byte) error {
 }
 
 func (m *SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
-	m.Called(r, info)
+	args := m.Called(r, info)
+
+	if args.Get(0) != nil {
+		return args.Get(0).(error)
+	}
+
 	return nil
 }
 
@@ -113,7 +123,12 @@ func (m *SystemModule) Finalize() (primitives.Header, error) {
 }
 
 func (m *SystemModule) NoteFinishedExtrinsics() error {
-	m.Called()
+	args := m.Called()
+
+	if args.Get(0) != nil {
+		return args.Get(0).(error)
+	}
+
 	return nil
 }
 

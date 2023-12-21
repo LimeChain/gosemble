@@ -202,6 +202,22 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 	assert.Equal(t, primitives.Pre{}, result)
 }
 
+func Test_CheckMortality_Validate_StorageBlockNumber_Error(t *testing.T) {
+	target := setupCheckMortality()
+	target.era = primitives.NewImmortalEra()
+
+	expect := primitives.DefaultValidTransaction()
+	expect.Longevity = math.MaxUint64 - 1
+
+	blockNumber := sc.U64(1)
+	expectedErr := errors.New("panic")
+
+	mockModule.On("StorageBlockNumber").Return(blockNumber, expectedErr)
+
+	_, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
+	assert.Equal(t, expectedErr, err)
+}
+
 func Test_CheckMortality_PreDispatchUnsigned(t *testing.T) {
 	target := setupCheckMortality()
 

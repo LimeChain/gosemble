@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -274,6 +275,17 @@ func Test_Module_Metadata_AtVersion_Unsupported(t *testing.T) {
 	assert.Equal(t, ptrAndSize, resultUnsupported)
 
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", optionUnsupported.Bytes())
+}
+
+func Test_Module_Metadata_AtVersion_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.MetadataAtVersion(dataPtr, dataLen) },
+	)
 }
 
 func setup() Module {

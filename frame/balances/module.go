@@ -151,7 +151,6 @@ func (m Module) tryMutateAccount(who primitives.AccountId, f func(who *primitive
 
 	dustCleaner := r[1].(dustCleaner)
 	if err := dustCleaner.Drop(); err != nil {
-		// todo issue may be here
 		return sc.Result[sc.Encodable]{HasError: true, Value: primitives.NewDispatchErrorOther(sc.Str(err.Error()))}
 	}
 

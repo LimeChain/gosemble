@@ -2,6 +2,8 @@ package transaction_payment_call
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -32,6 +34,8 @@ var (
 		Class:   dispatchInfoClass,
 		PaysFee: dispatchInfoPays,
 	}
+
+	errPanic = errors.New("panic")
 )
 
 var (
@@ -93,6 +97,54 @@ func Test_Module_QueryCallInfo(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", runtimeDispatchInfo.Bytes())
 }
 
+func Test_Module_QueryCallInfo_DecodeCall_Panics(t *testing.T) {
+	target := setup()
+
+	bufferCall := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryCallInfo(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_QueryCallInfo_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	bufferCall := bytes.NewBuffer([]byte{})
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.QueryCallInfo(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_QueryCallInfo_ComputeFee_Panics(t *testing.T) {
+	target := setup()
+
+	partialFee := sc.NewU128(10)
+	bufferCall := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
+	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryCallInfo(dataPtr, dataLen) },
+	)
+}
+
 func Test_Module_QueryCallFeeDetails(t *testing.T) {
 	target := setup()
 
@@ -127,6 +179,62 @@ func Test_Module_QueryCallFeeDetails(t *testing.T) {
 	mockCall.AssertCalled(t, "PaysFee", baseWeight)
 	mockTransactionPayment.AssertCalled(t, "ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", feeDetails.Bytes())
+}
+
+func Test_Module_QueryCallFeeDetails_DecodeCall_Panics(t *testing.T) {
+	target := setup()
+
+	bufferCall := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_QueryCallFeeDetails_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	bufferCall := bytes.NewBuffer([]byte{})
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_QueryCallFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
+	target := setup()
+
+	feeDetails := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](
+			types.NewInclusionFee(
+				sc.NewU128(9),
+				sc.NewU128(8),
+				sc.NewU128(7),
+			)),
+		Tip: constants.DefaultTip,
+	}
+	bufferCall := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeCall", bufferCall).Return(mockCall, nil)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
+	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
+	)
 }
 
 func Test_Module_Metadata(t *testing.T) {

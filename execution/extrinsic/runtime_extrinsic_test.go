@@ -2,6 +2,7 @@ package extrinsic
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -42,6 +43,8 @@ var (
 
 	weightOne = primitives.WeightFromParts(1, 2)
 	weightTwo = primitives.WeightFromParts(3, 4)
+
+	errPanic = errors.New("panic")
 )
 
 var (
@@ -202,6 +205,18 @@ func Test_RuntimeExtrinsic_CreateInherents_Empty(t *testing.T) {
 	mockCallTwo.AssertNotCalled(t, "Encode", mock.Anything)
 }
 
+func Test_RuntimeExtrinsic_CreateInherents_CreateInherents_Error(t *testing.T) {
+	target := setupRuntimeExtrinsic()
+
+	inherentData := *primitives.NewInherentData()
+	emptyCall := sc.NewOption[primitives.Call](nil)
+
+	mockModuleOne.On("CreateInherent", inherentData).Return(emptyCall, errPanic)
+
+	_, err := target.CreateInherents(inherentData)
+	assert.Equal(t, errPanic, err)
+}
+
 func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
 	target := setupRuntimeExtrinsic()
 
@@ -218,7 +233,6 @@ func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
 	result, err := target.CheckInherents(inherentData, mockBlock)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -232,8 +246,8 @@ func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 	target := setupRuntimeExtrinsic()
 
 	inherentData := *primitives.NewInherentData()
-	err := primitives.NewTimestampErrorInvalid()
-	inherentData.Put(inherentIdentifier, err)
+	errInvalidTimestamp := primitives.NewTimestampErrorInvalid()
+	inherentData.Put(inherentIdentifier, errInvalidTimestamp)
 	expect := primitives.CheckInherentsResult{
 		Okay:       false,
 		FatalError: true,
@@ -244,13 +258,12 @@ func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 	mockUncheckedExtrinsic.On("IsSigned").Return(false)
 	mockUncheckedExtrinsic.On("Function").Return(mockCallOne)
 	mockModuleOne.On("IsInherent", mockCallOne).Return(true)
-	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(err)
+	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(errInvalidTimestamp)
 	mockModuleOne.On("InherentIdentifier").Return(inherentIdentifier)
 
-	result, errCheckInherents := target.CheckInherents(inherentData, mockBlock)
-	assert.NoError(t, errCheckInherents)
+	result, err := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, err)
 
-	assert.NoError(t, errCheckInherents)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -275,7 +288,6 @@ func Test_RuntimeExtrinsic_CheckInherents_NoInherents(t *testing.T) {
 	result, err := target.CheckInherents(inherentData, mockBlock)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
@@ -296,11 +308,46 @@ func Test_RuntimeExtrinsic_CheckInherents_Signed(t *testing.T) {
 	result, err := target.CheckInherents(inherentData, mockBlock)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
 	assert.Equal(t, expect, result)
 
 	mockBlock.AssertCalled(t, "Extrinsics")
 	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
+}
+
+func Test_RuntimeExtrinsic_CheckInherents_CheckInherent_Error(t *testing.T) {
+	target := setupRuntimeExtrinsic()
+
+	inherentData := *primitives.NewInherentData()
+
+	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+	mockUncheckedExtrinsic.On("IsSigned").Return(false)
+	mockUncheckedExtrinsic.On("Function").Return(mockCallOne)
+	mockModuleOne.On("IsInherent", mockCallOne).Return(true)
+	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(errPanic)
+
+	_, err := target.CheckInherents(inherentData, mockBlock)
+	assert.Equal(t, errPanic, err)
+}
+
+func Test_RuntimeExtrinsic_CheckInherents_PutError_InherentErrorInherentDataExists(t *testing.T) {
+	target := setupRuntimeExtrinsic()
+
+	inherentData := *primitives.NewInherentData()
+	errNonFatalTimestampErr := primitives.TimestampError{VaryingData: sc.NewVaryingData(sc.U8(99))}
+	inherentData.Put(inherentIdentifier, errNonFatalTimestampErr)
+
+	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+	mockUncheckedExtrinsic.On("IsSigned").Return(false)
+	mockUncheckedExtrinsic.On("Function").Return(mockCallOne)
+	mockModuleOne.On("IsInherent", mockCallOne).Return(true)
+	mockModuleOne.On("CheckInherent", mockCallOne, inherentData).Return(errNonFatalTimestampErr)
+	mockModuleOne.On("InherentIdentifier").Return(inherentIdentifier)
+	mockModuleTwo.On("IsInherent", mockCallOne).Return(true)
+	mockModuleTwo.On("CheckInherent", mockCallOne, inherentData).Return(errNonFatalTimestampErr)
+	mockModuleTwo.On("InherentIdentifier").Return(inherentIdentifier)
+
+	_, err := target.CheckInherents(inherentData, mockBlock)
+	assert.NoError(t, err)
 }
 
 func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Signed(t *testing.T) {
@@ -377,6 +424,15 @@ func Test_RuntimeExtrinsic_OnInitialize(t *testing.T) {
 	mockModuleTwo.AssertCalled(t, "OnInitialize", blockNumber)
 }
 
+func Test_RuntimeExtrinsic_OnInitialize_Error(t *testing.T) {
+	target := setupRuntimeExtrinsic()
+
+	mockModuleOne.On("OnInitialize", blockNumber).Return(weightOne, errPanic)
+
+	_, err := target.OnInitialize(blockNumber)
+	assert.Error(t, errPanic, err)
+}
+
 func Test_RuntimeExtrinsic_OnRuntimeUpgrade(t *testing.T) {
 	target := setupRuntimeExtrinsic()
 
@@ -402,6 +458,15 @@ func Test_RuntimeExtrinsic_OnFinalize(t *testing.T) {
 
 	mockModuleOne.AssertCalled(t, "OnFinalize", blockNumber)
 	mockModuleTwo.AssertCalled(t, "OnFinalize", blockNumber)
+}
+
+func Test_RuntimeExtrinsic_OnFinalize_Error(t *testing.T) {
+	target := setupRuntimeExtrinsic()
+
+	mockModuleOne.On("OnFinalize", blockNumber).Return(errPanic)
+
+	err := target.OnFinalize(blockNumber)
+	assert.Equal(t, errPanic, err)
 }
 
 func Test_RuntimeExtrinsic_OnIdle(t *testing.T) {

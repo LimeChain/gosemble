@@ -32,8 +32,6 @@ type DebugLogger interface {
 
 type WarnLogger interface {
 	DebugLogger
-	Info(message string)
-	Infof(message string, a ...any)
 	Warn(message string)
 	Warnf(message string, a ...any)
 }

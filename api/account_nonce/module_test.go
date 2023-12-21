@@ -1,6 +1,8 @@
 package account_nonce
 
 import (
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -55,6 +57,42 @@ func Test_Module_AccountNonce(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
 	mockSystem.AssertCalled(t, "Get", accountId)
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
+}
+
+func Test_Module_AccountNonce_DecodeAccountId_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(1)).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.AccountNonce(0, 1) },
+	)
+}
+
+func Test_Module_AccountNonce_GetAccountInfo_Panics(t *testing.T) {
+	target := setup()
+
+	accountId := constants.OneAccountId
+	nonce := sc.U32(5)
+	accountInfo := types.AccountInfo{
+		Nonce: nonce,
+	}
+	expect := int64(7)
+
+	expectedErr := errors.New("panic")
+
+	mockMemoryUtils.On("GetWasmMemorySlice", int32(0), int32(1)).Return(accountId.Bytes())
+	mockSystem.On("Get", accountId).Return(accountInfo, expectedErr)
+	mockMemoryUtils.On("BytesToOffsetAndSize", nonce.Bytes()).Return(expect)
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.AccountNonce(0, 1) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
+	mockSystem.AssertCalled(t, "Get", accountId)
 }
 
 func Test_Module_Metadata(t *testing.T) {

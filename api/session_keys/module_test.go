@@ -1,6 +1,7 @@
 package session_keys
 
 import (
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -126,6 +127,17 @@ func Test_Module_GenerateSessionKeys_InvalidPublicKeyType(t *testing.T) {
 	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", seqPublicKey.Bytes())
 }
 
+func Test_Module_GenerateSessionKeys_DecodeOption_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.GenerateSessionKeys(dataPtr, dataLen) },
+	)
+}
+
 func Test_Module_DecodeSessionKeys(t *testing.T) {
 	target := setup()
 
@@ -146,6 +158,30 @@ func Test_Module_DecodeSessionKeys(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockSessionKey.AssertCalled(t, "KeyTypeId")
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", expect.Bytes())
+}
+
+func Test_Module_DecodeSessionKeys_DecodeSequence_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.DecodeSessionKeys(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_DecodeSessionKeys_DecodeAccountId_Panics(t *testing.T) {
+	target := setup()
+
+	bytes := sc.BytesToSequenceU8([]byte{}).Bytes()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bytes)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.DecodeSessionKeys(dataPtr, dataLen) },
+	)
 }
 
 func Test_Module_Metadata(t *testing.T) {

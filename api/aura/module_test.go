@@ -1,6 +1,7 @@
 package aura
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -69,6 +70,21 @@ func Test_Authorities_Some(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", []byte{1, 2, 3})
 	mockMemoryUtils.AssertNumberOfCalls(t, "BytesToOffsetAndSize", 1)
+}
+
+func Test_Authorities_Panics(t *testing.T) {
+	setup()
+
+	expectedErr := errors.New("panic")
+	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](
+		sc.Sequence[sc.U8]{},
+	), expectedErr)
+	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{1, 2, 3}).Return(int64(13))
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.Authorities() },
+	)
 }
 
 func Test_SlotDuration(t *testing.T) {

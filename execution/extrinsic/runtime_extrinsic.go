@@ -94,7 +94,6 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block pr
 					return result, err
 				}
 
-				// todo add new tests for assertPanic in the api modules tests
 				if err := result.PutError(module.InherentIdentifier(), fatalErr); err != nil {
 					if inherentErr, ok := err.(primitives.InherentError); ok && inherentErr.VaryingData[0] == primitives.InherentErrorInherentDataExists {
 						re.logger.Debug(inherentErr.Error())
