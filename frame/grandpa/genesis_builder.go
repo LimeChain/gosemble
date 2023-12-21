@@ -19,7 +19,7 @@ type GenesisConfig struct {
 	Authorities sc.Sequence[types.Authority]
 }
 type genesisConfigJsonStruct struct {
-	GrandpaGc struct {
+	GrandpaGenesisConfig struct {
 		Authorities [][2]interface{} `json:"authorities"`
 	} `json:"grandpa"`
 }
@@ -32,7 +32,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	addrExists := map[string]bool{}
-	for _, a := range gcJson.GrandpaGc.Authorities {
+	for _, a := range gcJson.GrandpaGenesisConfig.Authorities {
 		addrString, ok := a[0].(string)
 		if !ok {
 			return errInvalidAddrValue
@@ -68,7 +68,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 
 func (m Module) CreateDefaultConfig() ([]byte, error) {
 	gc := &genesisConfigJsonStruct{}
-	gc.GrandpaGc.Authorities = [][2]interface{}{}
+	gc.GrandpaGenesisConfig.Authorities = [][2]interface{}{}
 
 	return json.Marshal(gc)
 }

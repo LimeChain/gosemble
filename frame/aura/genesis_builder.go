@@ -19,9 +19,9 @@ type GenesisConfig struct {
 }
 
 type genesisConfigJsonStruct struct {
-	AuraGc struct {
-		Authorities []string `json:"authorities" validate:"required"`
-	} `json:"aura" validate:"required"`
+	AuraGenesisConfig struct {
+		Authorities []string `json:"authorities"`
+	} `json:"aura"`
 }
 
 func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
@@ -32,7 +32,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	addrExists := map[string]bool{}
-	for _, a := range gcJson.AuraGc.Authorities {
+	for _, a := range gcJson.AuraGenesisConfig.Authorities {
 		if addrExists[a] {
 			continue
 		}
@@ -56,7 +56,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 
 func (m Module) CreateDefaultConfig() ([]byte, error) {
 	gc := genesisConfigJsonStruct{}
-	gc.AuraGc.Authorities = []string{}
+	gc.AuraGenesisConfig.Authorities = []string{}
 
 	return json.Marshal(gc)
 }

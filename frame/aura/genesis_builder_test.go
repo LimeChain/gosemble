@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	validGcJson = "{}"
-	// validGcJson = "{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]}}"
+	validGcJson = "{\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]}}"
 	pubKey, _   = types.NewSr25519PublicKey(sc.BytesToSequenceU8(signature.TestKeyringPairAlice.PublicKey)...)
 	authorities = sc.Sequence[types.Sr25519PublicKey]{pubKey}
 )

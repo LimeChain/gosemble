@@ -26,7 +26,7 @@ type GenesisConfig struct {
 }
 
 type genesisConfigJsonStruct struct {
-	BalancesGc struct {
+	BalancesGenesisConfig struct {
 		Balances [][2]interface{} `json:"balances"`
 	} `json:"balances"`
 }
@@ -41,7 +41,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 	}
 
 	addrExists := map[string]bool{}
-	for _, b := range gcJson.BalancesGc.Balances {
+	for _, b := range gcJson.BalancesGenesisConfig.Balances {
 		addrString, ok := b[0].(string)
 		if !ok {
 			return errInvalidAddrValue
@@ -79,7 +79,7 @@ func (gc *GenesisConfig) UnmarshalJSON(data []byte) error {
 }
 func (m Module) CreateDefaultConfig() ([]byte, error) {
 	gc := &genesisConfigJsonStruct{}
-	gc.BalancesGc.Balances = [][2]interface{}{}
+	gc.BalancesGenesisConfig.Balances = [][2]interface{}{}
 
 	return json.Marshal(gc)
 }
