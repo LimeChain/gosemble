@@ -267,6 +267,10 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing
 
 	_, err := target.DecodeUncheckedExtrinsic(buff)
 	assert.Equal(t, errInvalidLengthPrefix, err)
+
+	mockModuleOne.AssertCalled(t, "GetIndex")
+	mockModuleOne.AssertCalled(t, "Functions")
+	mockCallOne.AssertCalled(t, "DecodeArgs", buff)
 }
 
 func Test_RuntimeDecoder_DecodeCall_Module_Not_Exists(t *testing.T) {
@@ -283,9 +287,10 @@ func Test_RuntimeDecoder_DecodeCall_Module_Not_Exists(t *testing.T) {
 
 	mod, err := target.DecodeCall(buf)
 
-	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "module with index ["+strconv.Itoa(int(idxModuleNotExists))+"] not found.")
 	assert.Nil(t, mod)
+
+	mockModuleOne.AssertCalled(t, "GetIndex")
 }
 
 func Test_RuntimeDecoder_DecodeCall_Function_Not_Exists(t *testing.T) {
@@ -305,6 +310,9 @@ func Test_RuntimeDecoder_DecodeCall_Function_Not_Exists(t *testing.T) {
 
 	_, err := target.DecodeCall(buf)
 	assert.Equal(t, fmt.Errorf("function index [%d] for module [%d] not found", idxFunctionNotExists, moduleOneIdx), err)
+
+	mockModuleOne.AssertCalled(t, "GetIndex")
+	mockModuleOne.AssertCalled(t, "Functions")
 }
 
 func Test_RuntimeDecoder_DecodeCall(t *testing.T) {

@@ -76,6 +76,8 @@ func Test_Authorities_Panics(t *testing.T) {
 		expectedErr.Error(),
 		func() { target.Authorities() },
 	)
+
+	mockGrandpa.AssertCalled(t, "Authorities")
 }
 
 func Test_Module_Metadata(t *testing.T) {

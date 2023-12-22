@@ -13,6 +13,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -68,6 +69,9 @@ func Test_Module_AccountNonce_DecodeAccountId_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.AccountNonce(0, 1) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
+	mockSystem.AssertNotCalled(t, "Get", mock.Anything)
 }
 
 func Test_Module_AccountNonce_GetAccountInfo_Panics(t *testing.T) {
@@ -93,6 +97,7 @@ func Test_Module_AccountNonce_GetAccountInfo_Panics(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", int32(0), int32(1))
 	mockSystem.AssertCalled(t, "Get", accountId)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", nonce.Bytes())
 }
 
 func Test_Module_Metadata(t *testing.T) {

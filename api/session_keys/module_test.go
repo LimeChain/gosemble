@@ -11,6 +11,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -136,6 +137,10 @@ func Test_Module_GenerateSessionKeys_DecodeOption_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.GenerateSessionKeys(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockSessionKey.AssertNotCalled(t, "KeyType")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_DecodeSessionKeys(t *testing.T) {
@@ -169,6 +174,10 @@ func Test_Module_DecodeSessionKeys_DecodeSequence_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.DecodeSessionKeys(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockSessionKey.AssertNotCalled(t, "KeyTypeId")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_DecodeSessionKeys_DecodeAccountId_Panics(t *testing.T) {
@@ -182,6 +191,10 @@ func Test_Module_DecodeSessionKeys_DecodeAccountId_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.DecodeSessionKeys(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockSessionKey.AssertNotCalled(t, "KeyTypeId")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_Metadata(t *testing.T) {

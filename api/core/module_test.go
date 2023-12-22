@@ -14,6 +14,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -103,6 +104,10 @@ func Test_Module_InitializeBlock_DecodeHeader_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.InitializeBlock(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertNotCalled(t, "InitializeBlock", mock.Anything)
+
 }
 
 func Test_Module_InitializeBlock_InitializeBlock_Panics(t *testing.T) {
@@ -127,6 +132,9 @@ func Test_Module_InitializeBlock_InitializeBlock_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.InitializeBlock(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertCalled(t, "InitializeBlock", header)
 }
 
 func Test_Module_ExecuteBlock(t *testing.T) {
@@ -142,7 +150,7 @@ func Test_Module_ExecuteBlock(t *testing.T) {
 	target.ExecuteBlock(dataPtr, dataLen)
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
-	mockRuntimeDecoder.AssertCalled(t, "DecodeBlock", buffer)
+	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ExecuteBlock", block)
 }
 
@@ -175,6 +183,10 @@ func Test_Module_ExecuteBlock_ExecuteBlock_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.ExecuteBlock(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertCalled(t, "ExecuteBlock", block)
 }
 
 func Test_Module_Metadata(t *testing.T) {

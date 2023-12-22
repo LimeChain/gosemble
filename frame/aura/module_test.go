@@ -306,6 +306,8 @@ func Test_Aura_OnTimestampSet_TimestampSlotMismatch(t *testing.T) {
 
 	err := module.OnTimestampSet(sc.U64(4_000))
 	assert.Equal(t, errTimestampSlotMismatch, err)
+
+	mockStorageCurrentSlot.AssertCalled(t, "Get")
 }
 
 func Test_Aura_SlotDuration(t *testing.T) {

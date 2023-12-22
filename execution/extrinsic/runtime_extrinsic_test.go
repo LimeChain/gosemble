@@ -215,6 +215,8 @@ func Test_RuntimeExtrinsic_CreateInherents_CreateInherents_Error(t *testing.T) {
 
 	_, err := target.CreateInherents(inherentData)
 	assert.Equal(t, errPanic, err)
+
+	mockModuleOne.AssertCalled(t, "CreateInherent", inherentData)
 }
 
 func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
@@ -327,6 +329,12 @@ func Test_RuntimeExtrinsic_CheckInherents_CheckInherent_Error(t *testing.T) {
 
 	_, err := target.CheckInherents(inherentData, mockBlock)
 	assert.Equal(t, errPanic, err)
+
+	mockBlock.AssertCalled(t, "Extrinsics")
+	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
+	mockUncheckedExtrinsic.AssertCalled(t, "Function")
+	mockModuleOne.AssertCalled(t, "IsInherent", mockCallOne)
+	mockModuleOne.AssertCalled(t, "CheckInherent", mockCallOne, inherentData)
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_PutError_InherentErrorInherentDataExists(t *testing.T) {
@@ -348,6 +356,16 @@ func Test_RuntimeExtrinsic_CheckInherents_PutError_InherentErrorInherentDataExis
 
 	_, err := target.CheckInherents(inherentData, mockBlock)
 	assert.NoError(t, err)
+
+	mockBlock.AssertCalled(t, "Extrinsics")
+	mockUncheckedExtrinsic.AssertCalled(t, "IsSigned")
+	mockUncheckedExtrinsic.AssertCalled(t, "Function")
+	mockModuleOne.AssertCalled(t, "IsInherent", mockCallOne)
+	mockModuleOne.AssertCalled(t, "CheckInherent", mockCallOne, inherentData)
+	mockModuleOne.AssertCalled(t, "InherentIdentifier")
+	mockModuleTwo.AssertCalled(t, "IsInherent", mockCallOne)
+	mockModuleTwo.AssertCalled(t, "CheckInherent", mockCallOne, inherentData)
+	mockModuleTwo.AssertCalled(t, "InherentIdentifier")
 }
 
 func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Signed(t *testing.T) {
@@ -431,6 +449,8 @@ func Test_RuntimeExtrinsic_OnInitialize_Error(t *testing.T) {
 
 	_, err := target.OnInitialize(blockNumber)
 	assert.Error(t, errPanic, err)
+
+	mockModuleOne.AssertCalled(t, "OnInitialize", blockNumber)
 }
 
 func Test_RuntimeExtrinsic_OnRuntimeUpgrade(t *testing.T) {
@@ -467,6 +487,8 @@ func Test_RuntimeExtrinsic_OnFinalize_Error(t *testing.T) {
 
 	err := target.OnFinalize(blockNumber)
 	assert.Equal(t, errPanic, err)
+
+	mockModuleOne.AssertCalled(t, "OnFinalize", blockNumber)
 }
 
 func Test_RuntimeExtrinsic_OnIdle(t *testing.T) {

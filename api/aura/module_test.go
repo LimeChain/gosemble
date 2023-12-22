@@ -85,6 +85,9 @@ func Test_Authorities_Panics(t *testing.T) {
 		expectedErr.Error(),
 		func() { target.Authorities() },
 	)
+
+	mockAura.AssertCalled(t, "GetAuthorities")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", []byte{1, 2, 3})
 }
 
 func Test_SlotDuration(t *testing.T) {

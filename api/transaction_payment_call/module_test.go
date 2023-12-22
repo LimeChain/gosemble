@@ -15,6 +15,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -109,6 +110,10 @@ func Test_Module_QueryCallInfo_DecodeCall_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryCallInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_QueryCallInfo_DecodeU32_Panics(t *testing.T) {
@@ -123,6 +128,10 @@ func Test_Module_QueryCallInfo_DecodeU32_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.QueryCallInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_QueryCallInfo_ComputeFee_Panics(t *testing.T) {
@@ -143,6 +152,11 @@ func Test_Module_QueryCallInfo_ComputeFee_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryCallInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertCalled(t, "ComputeFee", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_QueryCallFeeDetails(t *testing.T) {
@@ -193,6 +207,10 @@ func Test_Module_QueryCallFeeDetails_DecodeCall_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFeeDetails", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_QueryCallFeeDetails_DecodeU32_Panics(t *testing.T) {
@@ -207,6 +225,10 @@ func Test_Module_QueryCallFeeDetails_DecodeU32_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFeeDetails", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_QueryCallFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
@@ -235,6 +257,12 @@ func Test_Module_QueryCallFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryCallFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertCalled(t, "ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+
 }
 
 func Test_Module_Metadata(t *testing.T) {

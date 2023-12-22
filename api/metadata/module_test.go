@@ -12,6 +12,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -286,6 +287,9 @@ func Test_Module_Metadata_AtVersion_DecodeU32_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.MetadataAtVersion(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func setup() Module {

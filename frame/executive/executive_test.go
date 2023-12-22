@@ -443,6 +443,16 @@ func Test_Executive_ApplyExtrinsic_isMendatoryDispatch_Error(t *testing.T) {
 
 	_, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockCheckedExtrinsic.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, mock.Anything, encodedExtrinsicLen)
 }
 
 func Test_Executive_ApplyExtrinsic_NoteAppliedExtrinsic_Error(t *testing.T) {
@@ -465,6 +475,17 @@ func Test_Executive_ApplyExtrinsic_NoteAppliedExtrinsic_Error(t *testing.T) {
 
 	_, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
 	assert.Equal(t, errPanic, err)
+
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockCheckedExtrinsic.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, mock.Anything, encodedExtrinsicLen)
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultOk, dispatchInfo)
 }
 
 func Test_Executive_FinalizeBlock(t *testing.T) {
@@ -517,6 +538,9 @@ func Test_Executive_FinalizeBlock_StorageBlockNumber_Error(t *testing.T) {
 
 	_, err := target.FinalizeBlock()
 	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "NoteFinishedExtrinsics")
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
 }
 
 func Test_Executive_FinalizeBlock_idleAndFinalizeHook_Error(t *testing.T) {
@@ -528,6 +552,10 @@ func Test_Executive_FinalizeBlock_idleAndFinalizeHook_Error(t *testing.T) {
 
 	_, err := target.FinalizeBlock()
 	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "NoteFinishedExtrinsics")
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
+	mockSystemModule.AssertCalled(t, "StorageBlockWeight")
 }
 
 func Test_Executive_ValidateTransaction_UnknownTransactionCannotLookupError(t *testing.T) {
@@ -622,6 +650,8 @@ func Test_Executive_ValidateTransaction_StorageBlockNumber_Error(t *testing.T) {
 
 	_, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
 	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
 }
 
 func Test_Executive_ValidateTransaction_isMendatoryDispatch_Error(t *testing.T) {
@@ -636,12 +666,19 @@ func Test_Executive_ValidateTransaction_isMendatoryDispatch_Error(t *testing.T) 
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{VaryingData: sc.NewVaryingData()})
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-	mockCheckedExtrinsic.On("Validate", unsignedValidator, txSource, &dispatchInfo, encodedExtrinsicLen).
-		Return(defaultValidTransaction, nil)
 
 	_, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
 
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
+	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+	mockCheckedExtrinsic.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
 }
 
 func Test_Executive_OffchainWorker(t *testing.T) {
@@ -667,6 +704,9 @@ func Test_Executive_OffchainWorker_NewBlake2bHash_Error(t *testing.T) {
 
 	err := target.OffchainWorker(header)
 	assert.Equal(t, errors.New("Blake2bHash should be of size 32"), err)
+
+	mockSystemModule.AssertCalled(t, "Initialize", header.Number, header.ParentHash, header.Digest)
+	mockIoHashing.AssertCalled(t, "Blake256", header.Bytes())
 }
 
 func Test_Executive_idleAndFinalizeHook_RegisterExtraWeightUnchecked_Error(t *testing.T) {
@@ -679,6 +719,11 @@ func Test_Executive_idleAndFinalizeHook_RegisterExtraWeightUnchecked_Error(t *te
 
 	err := target.idleAndFinalizeHook(blockNumber)
 	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "StorageBlockWeight")
+	mockSystemModule.AssertCalled(t, "BlockWeights")
+	mockRuntimeExtrinsic.AssertCalled(t, "OnIdle", mock.Anything, mock.Anything)
+	mockSystemModule.AssertCalled(t, "RegisterExtraWeightUnchecked", mock.Anything, mock.Anything)
 }
 
 func Test_Executive_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error(t *testing.T) {
@@ -692,6 +737,10 @@ func Test_Executive_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error(t *tes
 
 	err := target.executeExtrinsicsWithBookKeeping(&mockBlock)
 	assert.Equal(t, unknownTransactionCannotLookupError, err)
+
+	mockBlock.AssertCalled(t, "Extrinsics")
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 }
 
 func Test_Executive_executeExtrinsicsWithBookKeeping_NoteFinishedExtrinsics_Error(t *testing.T) {
@@ -715,6 +764,19 @@ func Test_Executive_executeExtrinsicsWithBookKeeping_NoteFinishedExtrinsics_Erro
 
 	err := target.executeExtrinsicsWithBookKeeping(&mockBlock)
 	assert.Equal(t, errPanic, err)
+
+	mockBlock.AssertCalled(t, "Extrinsics")
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockCheckedExtrinsic.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen)
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
+	mockSystemModule.AssertCalled(t, "NoteFinishedExtrinsics")
 }
 
 func Test_Executive_finalChecks_Finalize_Error(t *testing.T) {
@@ -724,6 +786,8 @@ func Test_Executive_finalChecks_Finalize_Error(t *testing.T) {
 
 	err := target.finalChecks(&primitives.Header{})
 	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "Finalize")
 }
 
 func Test_Executive_finalChecks_ErrorInvalidDigestNum(t *testing.T) {
@@ -733,6 +797,8 @@ func Test_Executive_finalChecks_ErrorInvalidDigestNum(t *testing.T) {
 
 	err := target.finalChecks(&primitives.Header{})
 	assert.Equal(t, errInvalidDigestNum, err)
+
+	mockSystemModule.AssertCalled(t, "Finalize")
 }
 
 func Test_Executive_finalChecks_ErrorInvalidDigestItem(t *testing.T) {
@@ -752,6 +818,8 @@ func Test_Executive_finalChecks_ErrorInvalidDigestItem(t *testing.T) {
 
 	err := target.finalChecks(&header)
 	assert.Equal(t, errInvalidDigestItem, err)
+
+	mockSystemModule.AssertCalled(t, "Finalize")
 }
 
 func Test_Executive_finalChecks_ErrorInvalidStorageRoot(t *testing.T) {
@@ -767,6 +835,8 @@ func Test_Executive_finalChecks_ErrorInvalidStorageRoot(t *testing.T) {
 
 	err := target.finalChecks(&header)
 	assert.Equal(t, errInvalidStorageRoot, err)
+
+	mockSystemModule.AssertCalled(t, "Finalize")
 }
 
 func Test_Executive_finalChecks_ErrorInvalidTxTrie(t *testing.T) {
@@ -782,4 +852,6 @@ func Test_Executive_finalChecks_ErrorInvalidTxTrie(t *testing.T) {
 
 	err := target.finalChecks(&header)
 	assert.Equal(t, errInvalidTxTrie, err)
+
+	mockSystemModule.AssertCalled(t, "Finalize")
 }

@@ -205,10 +205,13 @@ func Test_Validate_Operational_getPriority_Error(t *testing.T) {
 	mockSystemModule.On("BlockWeights").Return(blockWeights)
 	mockSystemModule.On("BlockLength").Return(blockLength)
 
-	mockTxPaymentModule.On("OperationalFeeMultiplier").Return(sc.U8(1))
-
 	_, err := targetChargeTxPayment.Validate(whoAccountId, mockCall, &dispatchInfoInvalidClass, sc.ToCompact(extLen))
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockTxPaymentModule.AssertCalled(t, "ComputeFee", extLen, dispatchInfoInvalidClass, txTip)
+	mockOnChargeTransaction.AssertCalled(t, "WithdrawFee", whoAccountId, mockCall, &dispatchInfoInvalidClass, txTip, txFee)
+	mockSystemModule.AssertCalled(t, "BlockWeights")
+	mockSystemModule.AssertCalled(t, "BlockLength")
 }
 
 func Test_ValidateUnsigned(t *testing.T) {

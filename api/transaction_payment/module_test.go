@@ -152,6 +152,12 @@ func Test_Module_QueryInfo_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+
 }
 
 func Test_Module_QueryInfo_DecodeU32_Panics(t *testing.T) {
@@ -166,6 +172,11 @@ func Test_Module_QueryInfo_DecodeU32_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.QueryInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_QueryInfo_ComputeFee_Panics(t *testing.T) {
@@ -188,6 +199,17 @@ func Test_Module_QueryInfo_ComputeFee_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryInfo(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockUxt.AssertCalled(t, "IsSigned")
+	mockTransactionPayment.AssertCalled(t, "ComputeFee", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_QueryFeeDetails_Signed(t *testing.T) {
@@ -275,6 +297,10 @@ func Test_Module_QueryFeeDetails_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertNotCalled(t, "IsSigned")
 }
 
 func Test_Module_QueryFeeDetails_DecodeU32_Panics(t *testing.T) {
@@ -289,6 +315,10 @@ func Test_Module_QueryFeeDetails_DecodeU32_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.QueryFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertNotCalled(t, "IsSigned")
 }
 
 func Test_Module_QueryFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
@@ -319,6 +349,17 @@ func Test_Module_QueryFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.QueryFeeDetails(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockUxt.AssertCalled(t, "IsSigned")
+	mockTransactionPayment.AssertCalled(t, "ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_Metadata(t *testing.T) {

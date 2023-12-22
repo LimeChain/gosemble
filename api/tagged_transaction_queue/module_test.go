@@ -13,6 +13,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -136,6 +137,10 @@ func Test_Module_ValidateTransaction_DecodeTransactionSource_Panics(t *testing.T
 		io.EOF.Error(),
 		func() { target.ValidateTransaction(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+
 }
 
 func Test_Module_ValidateTransaction_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
@@ -153,6 +158,9 @@ func Test_Module_ValidateTransaction_DecodeUncheckedExtrinsic_Panics(t *testing.
 		errPanic.Error(),
 		func() { target.ValidateTransaction(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
 }
 
 func Test_Module_ValidateTransaction_DecodeBlake2bHash_Panics(t *testing.T) {
@@ -170,6 +178,10 @@ func Test_Module_ValidateTransaction_DecodeBlake2bHash_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.ValidateTransaction(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertNotCalled(t, "ValidateTransaction", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_Metadata(t *testing.T) {

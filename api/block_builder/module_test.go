@@ -178,6 +178,9 @@ func Test_Module_FinalizeBlock_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.FinalizeBlock() },
 	)
+
+	mockExecutive.AssertCalled(t, "FinalizeBlock")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_InherentExtrinsics_Success(t *testing.T) {
@@ -233,6 +236,7 @@ func Test_Module_InherentExtrinsics_CreateInherents_Panics(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockRuntimeExtrinsic.AssertCalled(t, "CreateInherents", *inherentData)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_CheckInherents_Success(t *testing.T) {
@@ -293,6 +297,10 @@ func Test_Module_CheckInherents_DecodeBlock_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.CheckInherents(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockRuntimeExtrinsic.AssertNotCalled(t, "CheckInherents", mock.Anything, mock.Anything)
 }
 
 func Test_Module_CheckInherents_CheckInherents_Panics(t *testing.T) {
@@ -312,6 +320,11 @@ func Test_Module_CheckInherents_CheckInherents_Panics(t *testing.T) {
 		errPanic.Error(),
 		func() { target.CheckInherents(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockRuntimeExtrinsic.AssertCalled(t, "CheckInherents", *inherentData, block)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_Metadata(t *testing.T) {

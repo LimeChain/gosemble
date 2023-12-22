@@ -254,6 +254,8 @@ func Test_CheckWeight_PostDispatch_Reduce_Error(t *testing.T) {
 
 	err := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfoInvalidClass, postInfo, sc.Compact{}, nil)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockModule.AssertCalled(t, "StorageBlockWeight")
 }
 
 func Test_CheckWeight_doValidate_Success(t *testing.T) {
@@ -606,6 +608,8 @@ func Test_CheckWeight_checkExtrinsicWeight_BlockWeights_Get_Error(t *testing.T) 
 
 	err := target.checkExtrinsicWeight(dispatchInfoInvalidClass)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockModule.AssertCalled(t, "BlockWeights")
 }
 
 func Test_CheckWeight_calculateConsumedWeight_Success(t *testing.T) {

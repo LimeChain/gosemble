@@ -12,6 +12,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -76,6 +77,9 @@ func Test_Module_OffchainWorker_DecodeHeader_Panics(t *testing.T) {
 		io.EOF.Error(),
 		func() { target.OffchainWorker(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertNotCalled(t, "OffchainWorker", mock.Anything)
 }
 
 func Test_Module_OffchainWorker_OffchainWorker_Panics(t *testing.T) {
@@ -101,6 +105,9 @@ func Test_Module_OffchainWorker_OffchainWorker_Panics(t *testing.T) {
 		expectedErr.Error(),
 		func() { target.OffchainWorker(dataPtr, dataLen) },
 	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertCalled(t, "OffchainWorker", header)
 }
 
 func Test_Module_Metadata(t *testing.T) {

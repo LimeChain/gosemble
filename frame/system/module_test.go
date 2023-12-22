@@ -404,6 +404,8 @@ func Test_Module_RegisterExtraWeightUnchecked_BlockWeight_Error(t *testing.T) {
 
 	err := target.RegisterExtraWeightUnchecked(weight, class)
 	assert.Equal(t, errPanic, err)
+
+	mockStorageBlockWeight.AssertCalled(t, "Get")
 }
 
 func Test_Module_RegisterExtraWeightUnchecked_Accrue_Error(t *testing.T) {
@@ -416,6 +418,8 @@ func Test_Module_RegisterExtraWeightUnchecked_Accrue_Error(t *testing.T) {
 
 	err := target.RegisterExtraWeightUnchecked(weight, class)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockStorageBlockWeight.AssertCalled(t, "Get")
 }
 
 func Test_Module_NoteFinishedInitialize(t *testing.T) {
