@@ -219,39 +219,3 @@ func DecodeCustomModuleError(buffer *bytes.Buffer) (CustomModuleError, error) {
 func (err CustomModuleError) Bytes() []byte {
 	return sc.EncodedBytes(err)
 }
-
-// DispatchErrorWithPostInfo Result of a `Dispatchable` which contains the `DispatchResult` and additional information about
-// the `Dispatchable` that is only known post dispatch.
-type DispatchErrorWithPostInfo[T sc.Encodable] struct {
-	// Additional information about the `Dispatchable` which is only known post dispatch.
-	PostInfo T
-
-	// The actual `DispatchResult` indicating whether the dispatch was successful.
-	Error DispatchError
-}
-
-func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Encode(buffer *bytes.Buffer) error {
-	return sc.EncodeEach(buffer,
-		e.PostInfo,
-		e.Error,
-	)
-}
-
-func DecodeErrorWithPostInfo(buffer *bytes.Buffer) (DispatchErrorWithPostInfo[PostDispatchInfo], error) {
-	e := DispatchErrorWithPostInfo[PostDispatchInfo]{}
-	postInfo, err := DecodePostDispatchInfo(buffer)
-	if err != nil {
-		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
-	}
-	e.PostInfo = postInfo
-	dispatchError, err := DecodeDispatchError(buffer)
-	if err != nil {
-		return DispatchErrorWithPostInfo[PostDispatchInfo]{}, err
-	}
-	e.Error = dispatchError
-	return e, nil
-}
-
-func (e DispatchErrorWithPostInfo[PostDispatchInfo]) Bytes() []byte {
-	return sc.EncodedBytes(e)
-}

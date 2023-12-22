@@ -79,45 +79,37 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 
 // DepositIntoExisting deposits `value` into the free balance of an existing target account `who`.
 // If `value` is 0, it does nothing.
-func (m Module) DepositIntoExisting(who primitives.AccountId, value sc.U128) (primitives.Balance, primitives.DispatchError) {
+func (m Module) DepositIntoExisting(who primitives.AccountId, value sc.U128) (primitives.Balance, error) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
 
-	result := m.tryMutateAccount(
+	result, err := m.tryMutateAccount(
 		who,
-		func(account *primitives.AccountData, isNew bool) sc.Result[sc.Encodable] {
+		func(account *primitives.AccountData, isNew bool) (sc.Encodable, error) {
 			return m.deposit(who, account, isNew, value)
 		},
 	)
 
-	if result.HasError {
-		return sc.NewU128(0), result.Value.(primitives.DispatchError)
-	}
-
-	return result.Value.(primitives.Balance), nil
+	return result.(primitives.Balance), err
 }
 
 // Withdraw withdraws `value` free balance from `who`, respecting existence requirements.
 // Does not do anything if value is 0.
-func (m Module) Withdraw(who primitives.AccountId, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, primitives.DispatchError) {
+func (m Module) Withdraw(who primitives.AccountId, value sc.U128, reasons sc.U8, liveness primitives.ExistenceRequirement) (primitives.Balance, error) {
 	if value.Eq(constants.Zero) {
 		return sc.NewU128(0), nil
 	}
 
-	result := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
+	result, err := m.tryMutateAccount(who, func(account *primitives.AccountData, _ bool) (sc.Encodable, error) {
 		return m.withdraw(who, value, account, reasons, liveness)
 	})
 
-	if result.HasError {
-		return primitives.Balance{}, result.Value.(primitives.DispatchError)
-	}
-
-	return value, nil
+	return result.(primitives.Balance), err
 }
 
 // ensureCanWithdraw checks that an account can withdraw from their balance given any existing withdraw restrictions.
-func (m Module) ensureCanWithdraw(who primitives.AccountId, amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) primitives.DispatchError {
+func (m Module) ensureCanWithdraw(who primitives.AccountId, amount sc.U128, reasons primitives.Reasons, newBalance sc.U128) error {
 	if amount.Eq(constants.Zero) {
 		return nil
 	}
@@ -126,6 +118,7 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId, amount sc.U128, reas
 	if err != nil {
 		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
+
 	minBalance := accountInfo.Frozen(reasons)
 	if minBalance.Gt(newBalance) {
 		return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
@@ -140,38 +133,32 @@ func (m Module) ensureCanWithdraw(who primitives.AccountId, amount sc.U128, reas
 
 // tryMutateAccount mutates an account based on argument `f`. Does not change total issuance.
 // Does not do anything if `f` returns an error.
-func (m Module) tryMutateAccount(who primitives.AccountId, f func(who *primitives.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
-	result := m.tryMutateAccountWithDust(who, f)
-	if result.HasError {
-		return result
+func (m Module) tryMutateAccount(who primitives.AccountId, f func(who *primitives.AccountData, bool bool) (sc.Encodable, error)) (sc.Encodable, error) {
+	result, err := m.tryMutateAccountWithDust(who, f)
+	if err != nil {
+		return result, err
 	}
 
-	r := result.Value.(sc.VaryingData)
+	r := result.(sc.VaryingData)
 
 	dustCleaner := r[1].(dustCleaner)
 	dustCleaner.Drop()
 
-	return sc.Result[sc.Encodable]{HasError: false, Value: r[0].(sc.Result[sc.Encodable]).Value}
+	return r[0].(sc.Encodable), nil
 }
 
-func (m Module) tryMutateAccountWithDust(who primitives.AccountId, f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) tryMutateAccountWithDust(who primitives.AccountId, f func(who *primitives.AccountData, _ bool) (sc.Encodable, error)) (sc.Encodable, error) {
 	result, err := m.Config.StoredMap.TryMutateExists(
 		who,
-		func(maybeAccount *primitives.AccountData) sc.Result[sc.Encodable] {
+		func(maybeAccount *primitives.AccountData) (sc.Encodable, error) {
 			return m.mutateAccount(maybeAccount, f)
 		},
 	)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    primitives.NewDispatchErrorOther(sc.Str(err.Error())),
-		}
-	}
-	if result.HasError {
-		return result
+		return result, err
 	}
 
-	resultValue := result.Value.(sc.VaryingData)
+	resultValue := result.(sc.VaryingData)
 	maybeEndowed := resultValue[0].(sc.Option[primitives.Balance])
 	if maybeEndowed.HasValue {
 		m.Config.StoredMap.DepositEvent(newEventEndowed(m.Index, who, maybeEndowed.Value))
@@ -181,10 +168,10 @@ func (m Module) tryMutateAccountWithDust(who primitives.AccountId, f func(who *p
 	dustCleaner := newDustCleaner(m.Index, who, maybeDust, m.Config.StoredMap)
 
 	r := sc.NewVaryingData(resultValue[2], dustCleaner)
-	return sc.Result[sc.Encodable]{HasError: false, Value: r}
+	return r, nil
 }
 
-func (m Module) mutateAccount(maybeAccount *primitives.AccountData, f func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m Module) mutateAccount(maybeAccount *primitives.AccountData, f func(who *primitives.AccountData, _ bool) (sc.Encodable, error)) (sc.Encodable, error) {
 	account := &primitives.AccountData{}
 	isNew := true
 	if !reflect.DeepEqual(*maybeAccount, primitives.AccountData{}) {
@@ -192,9 +179,9 @@ func (m Module) mutateAccount(maybeAccount *primitives.AccountData, f func(who *
 		isNew = false
 	}
 
-	result := f(account, isNew)
-	if result.HasError {
-		return result
+	result, err := f(account, isNew)
+	if err != nil {
+		return result, err
 	}
 
 	maybeEndowed := sc.NewOption[primitives.Balance](nil)
@@ -213,10 +200,7 @@ func (m Module) mutateAccount(maybeAccount *primitives.AccountData, f func(who *
 
 	r := sc.NewVaryingData(maybeEndowed, imbalance, result)
 
-	return sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    r,
-	}
+	return r, nil
 }
 
 func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.AccountData], sc.Option[negativeImbalance]) {
@@ -233,17 +217,14 @@ func (m Module) postMutation(new primitives.AccountData) (sc.Option[primitives.A
 	return sc.NewOption[primitives.AccountData](new), sc.NewOption[negativeImbalance](nil)
 }
 
-func (m Module) withdraw(who primitives.AccountId, value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (m Module) withdraw(who primitives.AccountId, value sc.U128, account *primitives.AccountData, reasons sc.U8, liveness primitives.ExistenceRequirement) (sc.Encodable, error) {
 	newFreeAccount, err := sc.CheckedSubU128(account.Free, value)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-				Index:   m.Index,
-				Err:     sc.U32(ErrorInsufficientBalance),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+			Index:   m.Index,
+			Err:     sc.U32(ErrorInsufficientBalance),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 
 	existentialDeposit := m.constants.ExistentialDeposit
@@ -252,60 +233,41 @@ func (m Module) withdraw(who primitives.AccountId, value sc.U128, account *primi
 	wouldKill := wouldBeDead && ((account.Free.Add(account.Reserved)).Gte(existentialDeposit))
 
 	if !(liveness == primitives.ExistenceRequirementAllowDeath || !wouldKill) {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-				Index:   m.Index,
-				Err:     sc.U32(ErrorKeepAlive),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+			Index:   m.Index,
+			Err:     sc.U32(ErrorKeepAlive),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 
-	dispatchErr := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount)
-	if dispatchErr != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    dispatchErr,
-		}
+	if err := m.ensureCanWithdraw(who, value, primitives.Reasons(reasons), newFreeAccount); err != nil {
+		return nil, err
 	}
 
 	account.Free = newFreeAccount
 
 	m.Config.StoredMap.DepositEvent(newEventWithdraw(m.Index, who, value))
-	return sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    value,
-	}
+	return value, nil
 }
 
-func (m Module) deposit(who primitives.AccountId, account *primitives.AccountData, isNew bool, value sc.U128) sc.Result[sc.Encodable] {
+func (m Module) deposit(who primitives.AccountId, account *primitives.AccountData, isNew bool, value sc.U128) (sc.Encodable, error) {
 	if isNew {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-				Index:   m.Index,
-				Err:     sc.U32(ErrorDeadAccount),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+			Index:   m.Index,
+			Err:     sc.U32(ErrorDeadAccount),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 
 	free, err := sc.CheckedAddU128(account.Free, value)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    primitives.NewDispatchErrorArithmetic(primitives.NewArithmeticErrorOverflow()),
-		}
+		return nil, primitives.NewDispatchErrorArithmetic(primitives.NewArithmeticErrorOverflow())
 	}
 	account.Free = free
 
 	m.Config.StoredMap.DepositEvent(newEventDeposit(m.Index, who, value))
 
-	return sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    value,
-	}
+	return value, nil
 }
 
 func (m Module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {

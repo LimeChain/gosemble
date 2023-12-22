@@ -55,7 +55,7 @@ func (c CheckNonZeroAddress) PreDispatchUnsigned(call primitives.Call, info *pri
 	return err
 }
 
-func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _dispatchErr error) error {
 	return nil
 }
 

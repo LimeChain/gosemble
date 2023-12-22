@@ -12,7 +12,7 @@ type Call interface {
 	ModuleIndex() sc.U8
 	FunctionIndex() sc.U8
 	Args() sc.VaryingData
-	Dispatch(origin RuntimeOrigin, args sc.VaryingData) DispatchResultWithPostInfo[PostDispatchInfo]
+	Dispatch(origin RuntimeOrigin, args sc.VaryingData) (PostDispatchInfo, error)
 	BaseWeight() Weight
 	ClassifyDispatch(baseWeight Weight) DispatchClass
 	PaysFee(baseWeight Weight) Pays

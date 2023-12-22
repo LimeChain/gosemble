@@ -52,7 +52,7 @@ func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *prim
 	return err
 }
 
-func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _dispatchErr error) error {
 	return nil
 }
 

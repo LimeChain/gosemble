@@ -111,8 +111,8 @@ var (
 	mockIoStorage *mocks.IoStorage
 	mockIoTrie    *mocks.IoTrie
 
-	mockTypeMutateAccountInfo       = mock.AnythingOfType("func(*types.AccountInfo) goscale.Result[github.com/LimeChain/goscale.Encodable]")
-	mockTypeMutateOptionAccountInfo = mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	mockTypeMutateAccountInfo       = mock.AnythingOfType("func(*types.AccountInfo) (goscale.Encodable, error)")
+	mockTypeMutateOptionAccountInfo = mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) (goscale.Encodable, error)")
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -420,12 +420,9 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicSuccess(t *testing.T) {
 	blockNum := sc.U64(5)
 	eventCount := sc.U32(0)
 	extrinsicIndex := sc.U32(1)
-	extrinsicResult := &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok: primitives.PostDispatchInfo{
-			ActualWeight: sc.NewOption[primitives.Weight](nil),
-			PaysFee:      primitives.PaysYes,
-		},
+	postInfo := primitives.PostDispatchInfo{
+		ActualWeight: sc.NewOption[primitives.Weight](nil),
+		PaysFee:      primitives.PaysYes,
 	}
 	dispatchInfo := primitives.DispatchInfo{
 		Class:   primitives.NewDispatchClassNormal(),
@@ -454,7 +451,7 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicSuccess(t *testing.T) {
 	mockStorageExtrinsicIndex.On("Put", extrinsicIndex+1).Return()
 	mockStorageExecutionPhase.On("Put", primitives.NewExtrinsicPhaseApply(extrinsicIndex+1)).Return()
 
-	target.NoteAppliedExtrinsic(extrinsicResult, dispatchInfo)
+	target.NoteAppliedExtrinsic(postInfo, nil, dispatchInfo)
 
 	mockStorageBlockNumber.AssertNumberOfCalls(t, "Get", 1)
 	mockStorageExecutionPhase.AssertCalled(t, "Get")
@@ -471,14 +468,8 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 	blockNum := sc.U64(5)
 	eventCount := sc.U32(0)
 	extrinsicIndex := sc.U32(1)
-	extrinsicResult := &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Ok:       primitives.PostDispatchInfo{},
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			PostInfo: primitives.PostDispatchInfo{},
-			Error:    primitives.NewDispatchErrorCorruption(),
-		},
-	}
+
+	dispatchErr := primitives.NewDispatchErrorCorruption()
 	dispatchInfo := primitives.DispatchInfo{
 		Class:   primitives.NewDispatchClassNormal(),
 		PaysFee: primitives.PaysYes,
@@ -490,7 +481,7 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 	}
 	expectEventRecord := primitives.EventRecord{
 		Phase:  primitives.NewExtrinsicPhaseInitialization(),
-		Event:  newEventExtrinsicFailed(moduleId, extrinsicResult.Err.Error, expectDispatchInfo),
+		Event:  newEventExtrinsicFailed(moduleId, dispatchErr, expectDispatchInfo),
 		Topics: []primitives.H256{},
 	}
 
@@ -506,7 +497,7 @@ func Test_Module_NoteAppliedExtrinsic_ExtrinsicFailed(t *testing.T) {
 	mockStorageExtrinsicIndex.On("Put", extrinsicIndex+1).Return()
 	mockStorageExecutionPhase.On("Put", primitives.NewExtrinsicPhaseApply(extrinsicIndex+1)).Return()
 
-	target.NoteAppliedExtrinsic(extrinsicResult, dispatchInfo)
+	target.NoteAppliedExtrinsic(primitives.PostDispatchInfo{}, dispatchErr, dispatchInfo)
 
 	mockStorageBlockNumber.AssertNumberOfCalls(t, "Get", 2)
 	mockStorageExecutionPhase.AssertCalled(t, "Get")
@@ -691,22 +682,18 @@ func Test_Module_CanDecProviders_False(t *testing.T) {
 
 func Test_Module_TryMutateExists_Error(t *testing.T) {
 	target := setupModule()
-	expectResult := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    primitives.NewDispatchErrorBadOrigin(),
-	}
+	expectedErr := primitives.NewDispatchErrorBadOrigin()
 
 	accountInfo := primitives.AccountInfo{}
-	f := func(account *primitives.AccountData) sc.Result[sc.Encodable] {
-		return expectResult
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
+		return nil, expectedErr
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
 
-	result, err := target.TryMutateExists(targetAccountId, f)
-	assert.Nil(t, err)
+	_, err := target.TryMutateExists(targetAccountId, f)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedErr, err)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.AssertNotCalled(t,
@@ -717,13 +704,11 @@ func Test_Module_TryMutateExists_Error(t *testing.T) {
 
 func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
 	target := setupModule()
-	expectResult := sc.Result[sc.Encodable]{
-		Value: sc.NewU128(5),
-	}
+	expectedResult := sc.NewU128(5)
 
 	accountInfo := primitives.AccountInfo{}
-	f := func(account *primitives.AccountData) sc.Result[sc.Encodable] {
-		return expectResult
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
+		return expectedResult, nil
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
@@ -731,7 +716,7 @@ func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
 	result, err := target.TryMutateExists(targetAccountId, f)
 	assert.Nil(t, err)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedResult, result)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.AssertNotCalled(t,
@@ -742,21 +727,16 @@ func Test_Module_TryMutateExists_NoProviding(t *testing.T) {
 
 func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Success(t *testing.T) {
 	target := setupModule()
-	mockResult := sc.Result[sc.Encodable]{
-		Value: primitives.DecRefStatusExists,
-	}
-	expectResult := sc.Result[sc.Encodable]{
-		Value: sc.NewU128(5),
-	}
+	expectedResult := sc.NewU128(5)
 
 	accountInfo := primitives.AccountInfo{
 		Data: primitives.AccountData{
 			Free: sc.NewU128(1),
 		},
 	}
-	f := func(account *primitives.AccountData) sc.Result[sc.Encodable] {
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
 		account.Free = primitives.Balance{}
-		return expectResult
+		return expectedResult, nil
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
@@ -765,12 +745,12 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Suc
 			"TryMutateExists",
 			targetAccountId,
 			mockTypeMutateOptionAccountInfo).
-		Return(mockResult, nil)
+		Return(primitives.DecRefStatusExists, nil)
 
 	result, err := target.TryMutateExists(targetAccountId, f)
 	assert.Nil(t, err)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedResult, result)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.
@@ -786,24 +766,16 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_DecRefStatus_Suc
 
 func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing.T) {
 	target := setupModule()
-	expectError := primitives.NewDispatchErrorCannotLookup()
-	mockResult := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    expectError,
-	}
-	expectResult := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    expectError,
-	}
+	expectedErr := primitives.NewDispatchErrorCannotLookup()
 
 	accountInfo := primitives.AccountInfo{
 		Data: primitives.AccountData{
 			Free: sc.NewU128(1),
 		},
 	}
-	f := func(account *primitives.AccountData) sc.Result[sc.Encodable] {
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
 		account.Free = primitives.Balance{}
-		return sc.Result[sc.Encodable]{}
+		return sc.Empty{}, nil
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
@@ -812,12 +784,11 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing
 			"TryMutateExists",
 			targetAccountId,
 			mockTypeMutateOptionAccountInfo).
-		Return(mockResult, nil)
+		Return(sc.Empty{}, expectedErr)
 
-	result, err := target.TryMutateExists(targetAccountId, f)
-	assert.Nil(t, err)
+	_, err := target.TryMutateExists(targetAccountId, f)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedErr, err)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.
@@ -834,15 +805,13 @@ func Test_Module_TryMutateExists_WasProviding_NoLongerProviding_Error(t *testing
 func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 	target := setupModule()
 
-	expectResult := sc.Result[sc.Encodable]{
-		Value: sc.NewU128(5),
-	}
+	expectedResult := sc.NewU128(5)
 	accountInfo := primitives.AccountInfo{
 		Data: primitives.AccountData{},
 	}
-	f := func(account *primitives.AccountData) sc.Result[sc.Encodable] {
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
 		account.Free = sc.NewU128(5)
-		return expectResult
+		return expectedResult, nil
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
@@ -850,17 +819,17 @@ func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 		"Mutate",
 		targetAccountId,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{Value: primitives.IncRefStatusExisted}, nil).Once()
+		Return(primitives.IncRefStatusExisted, nil).Once()
 	mockStorageAccount.On(
 		"Mutate",
 		targetAccountId,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{Value: sc.NewU128(2)}, nil).Once()
+		Return(sc.NewU128(2), nil).Once()
 
 	result, err := target.TryMutateExists(targetAccountId, f)
 	assert.Nil(t, err)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedResult, result)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.AssertNumberOfCalls(t, "Mutate", 2)
@@ -873,16 +842,14 @@ func Test_Module_TryMutateExists_WasNotProviding_IsProviding(t *testing.T) {
 func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) {
 	target := setupModule()
 
-	expectResult := sc.Result[sc.Encodable]{
-		Value: sc.NewU128(5),
-	}
+	expectedResult := sc.NewU128(5)
 	accountInfo := primitives.AccountInfo{
 		Data: primitives.AccountData{
 			Free: sc.NewU128(1),
 		},
 	}
-	f := func(*primitives.AccountData) sc.Result[sc.Encodable] {
-		return expectResult
+	f := func(*primitives.AccountData) (sc.Encodable, error) {
+		return expectedResult, nil
 	}
 
 	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
@@ -890,12 +857,12 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 		"Mutate",
 		targetAccountId,
 		mockTypeMutateAccountInfo).
-		Return(sc.Result[sc.Encodable]{}, nil)
+		Return(sc.Empty{}, nil)
 
 	result, err := target.TryMutateExists(targetAccountId, f)
 	assert.Nil(t, err)
 
-	assert.Equal(t, expectResult, result)
+	assert.Equal(t, expectedResult, result)
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.AssertNumberOfCalls(t, "Mutate", 1)
@@ -907,17 +874,14 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 
 func Test_Module_incrementProviders_RefStatusCreated(t *testing.T) {
 	accountInfo := &primitives.AccountInfo{}
-	expect := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    primitives.IncRefStatusCreated,
-	}
+	expectedResult := primitives.IncRefStatusCreated
 	target := setupModule()
 
 	mockStorageBlockNumber.On("Get").Return(sc.U64(0), nil)
 
 	result := target.incrementProviders(targetAccountId, accountInfo)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedResult, result)
 	assert.Equal(t, sc.U32(1), accountInfo.Providers)
 
 	mockStorageBlockNumber.AssertCalled(t, "Get")
@@ -932,15 +896,12 @@ func Test_Module_incrementProviders_RefStatusExisted(t *testing.T) {
 	accountInfo := &primitives.AccountInfo{
 		Sufficients: 1,
 	}
-	expect := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    primitives.IncRefStatusExisted,
-	}
+	expectedResult := primitives.IncRefStatusExisted
 	target := setupModule()
 
 	result := target.incrementProviders(targetAccountId, accountInfo)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedResult, result)
 	assert.Equal(t, sc.U32(1), accountInfo.Providers)
 
 	mockStorageBlockNumber.AssertNotCalled(t, "Get")
@@ -1058,15 +1019,14 @@ func Test_Module_DepositEvent_ZeroBlockNumber(t *testing.T) {
 func Test_Module_decrementProviders_HasAccount_NoProvidersLeft(t *testing.T) {
 	target := setupModule()
 	maybeAccount := sc.NewOption[primitives.AccountInfo](primitives.AccountInfo{})
-	expect := sc.Result[sc.Encodable]{
-		Value: primitives.DecRefStatusReaped,
-	}
+	expectedResult := primitives.DecRefStatusReaped
 
 	mockStorageBlockNumber.On("Get").Return(sc.U64(0), nil)
 
-	result := target.decrementProviders(targetAccountId, &maybeAccount)
+	result, err := target.decrementProviders(targetAccountId, &maybeAccount)
 
-	assert.Equal(t, expect, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Providers)
 
 	mockStorageBlockNumber.AssertCalled(t, "Get")
@@ -1081,14 +1041,11 @@ func Test_Module_decrementProviders_HasAccount_ConsumerRemaining(t *testing.T) {
 		Data:      primitives.AccountData{},
 	}
 	maybeAccount := sc.NewOption[primitives.AccountInfo](accountInfo)
-	expect := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    primitives.NewDispatchErrorConsumerRemaining(),
-	}
+	expectedErr := primitives.NewDispatchErrorConsumerRemaining()
 
-	result := target.decrementProviders(targetAccountId, &maybeAccount)
+	_, err := target.decrementProviders(targetAccountId, &maybeAccount)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedErr, err)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Providers)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Consumers)
 }
@@ -1100,13 +1057,12 @@ func Test_Module_decrementProviders_HasAccount_ContinueExist(t *testing.T) {
 		Data:        primitives.AccountData{},
 	}
 	maybeAccount := sc.NewOption[primitives.AccountInfo](accountInfo)
-	expect := sc.Result[sc.Encodable]{
-		Value: primitives.DecRefStatusExists,
-	}
+	expectedResult := primitives.DecRefStatusExists
 
-	result := target.decrementProviders(targetAccountId, &maybeAccount)
+	result, err := target.decrementProviders(targetAccountId, &maybeAccount)
 
-	assert.Equal(t, expect, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	assert.Equal(t, sc.U32(0), maybeAccount.Value.Providers)
 	assert.Equal(t, sc.U32(1), maybeAccount.Value.Sufficients)
 }
@@ -1114,13 +1070,12 @@ func Test_Module_decrementProviders_HasAccount_ContinueExist(t *testing.T) {
 func Test_Module_decrementProviders_NoAccount(t *testing.T) {
 	target := setupModule()
 	maybeAccount := sc.NewOption[primitives.AccountInfo](nil)
-	expect := sc.Result[sc.Encodable]{
-		Value: primitives.DecRefStatusReaped,
-	}
+	expectedResult := primitives.DecRefStatusReaped
 
-	result := target.decrementProviders(targetAccountId, &maybeAccount)
+	result, err := target.decrementProviders(targetAccountId, &maybeAccount)
 
-	assert.Equal(t, expect, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 }
 
 func Test_Module_mutateAccount(t *testing.T) {

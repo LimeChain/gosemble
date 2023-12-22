@@ -19,7 +19,6 @@ var (
 	txFee        = sc.NewU128(10)
 	txImbalance  = sc.NewOption[types.Balance](sc.NewU128(0))
 	whoAccountId = constants.ZeroAccountId
-	postResult   = types.DispatchResult{}
 
 	info = types.DispatchInfo{
 		Weight:  types.WeightFromParts(0, 0),
@@ -244,7 +243,7 @@ func Test_PostDispatch_None(t *testing.T) {
 
 	pre := sc.NewOption[types.Pre](nil)
 
-	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), &postResult)
+	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), nil)
 
 	mockTxPaymentModule.AssertNotCalled(t, "ComputeActualFee", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	mockSystemModule.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -268,7 +267,7 @@ func Test_PostDispatch_Some(t *testing.T) {
 	mockTxPaymentModule.On("GetIndex").Return(sc.U8(0))
 	mockSystemModule.On("DepositEvent", mock.Anything)
 
-	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), &postResult)
+	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), nil)
 
 	mockTxPaymentModule.AssertCalled(t, "ComputeActualFee", extLen, info, postInfo, txTip)
 	mockOnChargeTransaction.AssertCalled(t, "CorrectAndDepositFee", whoAccountId, actualFee, txTip, txImbalance)
@@ -292,7 +291,7 @@ func Test_PostDispatch_CorrectAndDepositFeeError(t *testing.T) {
 	mockOnChargeTransaction.On("CorrectAndDepositFee", whoAccountId, actualFee, txTip, txImbalance).
 		Return(invalidTransactionPaymentError)
 
-	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), &postResult)
+	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), nil)
 
 	mockTxPaymentModule.AssertCalled(t, "ComputeActualFee", extLen, info, postInfo, txTip)
 	mockOnChargeTransaction.AssertCalled(t, "CorrectAndDepositFee", whoAccountId, actualFee, txTip, txImbalance)
@@ -315,7 +314,7 @@ func Test_PostDispatch_ComputeActualFeeError(t *testing.T) {
 	actualFee := sc.NewU128(1)
 	mockTxPaymentModule.On("ComputeActualFee", extLen, info, postInfo, txTip).Return(actualFee, expectedErr)
 
-	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), &postResult)
+	err := targetChargeTxPayment.PostDispatch(pre, &info, &postInfo, sc.ToCompact(extLen), nil)
 
 	mockTxPaymentModule.AssertCalled(t, "ComputeActualFee", extLen, info, postInfo, txTip)
 	assert.Equal(t, expectedErr, err)

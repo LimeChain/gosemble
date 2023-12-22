@@ -99,10 +99,6 @@ func Test_Call_ForceTransfer_PaysFee(t *testing.T) {
 
 func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 	target := setupCallForceTransfer()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
 
 	fromAddressAccId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -115,16 +111,16 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 		toAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).
-		Return(sc.Result[sc.Encodable]{})
+		Return(sc.Empty{}, nil)
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(moduleId, fromAddressAccId, toAddressAccId, targetValue),
 	).
 		Return()
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
 
-	assert.Equal(t, expect, result)
+	assert.Nil(t, dispatchErr)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccountWithDust",
 		toAddressAccId,
@@ -138,56 +134,38 @@ func Test_Call_ForceTransfer_Dispatch_Success(t *testing.T) {
 
 func Test_Call_ForceTransfer_Dispatch_InvalidBadOrigin(t *testing.T) {
 	target := setupCallForceTransfer()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
 func Test_Call_ForceTransfer_Dispatch_CannotLookup_Source(t *testing.T) {
 	target := setupCallForceTransfer()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), toAddress, sc.ToCompact(targetValue)),
 	)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), dispatchErr)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
 func Test_Call_ForceTransfer_Dispatch_CannotLookup_Dest(t *testing.T) {
 	target := setupCallForceTransfer()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(fromAddress, primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(targetValue)),
 	)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), dispatchErr)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

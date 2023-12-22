@@ -102,9 +102,9 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.PaysYes
 }
 
-func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) (primitives.PostDispatchInfo, error) {
 	valueTs := sc.U128(args[0].(sc.Compact))
-	return c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
+	return primitives.PostDispatchInfo{}, c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }
 
 // set sets the current time.
@@ -122,14 +122,9 @@ func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) 
 //   - 1 storage read and 1 storage mutation (codec `O(1)`). (because of `DidUpdate::take` in
 //     `on_finalize`)
 //   - 1 event handler `on_timestamp_set`. Must be `O(1)`.
-func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) error {
 	if !origin.IsNoneOrigin() {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-			HasError: true,
-			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: primitives.NewDispatchErrorBadOrigin(),
-			},
-		}
+		return primitives.NewDispatchErrorBadOrigin()
 	}
 
 	didUpdate := c.storage.DidUpdate.Exists()
@@ -139,12 +134,7 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	previousTimestamp, err := c.storage.Now.Get()
 	if err != nil {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-			HasError: true,
-			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: primitives.NewDispatchErrorOther(sc.Str(err.Error())),
-			},
-		}
+		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
 
 	if !(previousTimestamp == 0 ||
@@ -157,8 +147,5 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	c.onTimestampSet.OnTimestampSet(now)
 
-	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
+	return nil
 }

@@ -52,7 +52,7 @@ func (ctv CheckTxVersion) PreDispatchUnsigned(call primitives.Call, info *primit
 	return err
 }
 
-func (ctv CheckTxVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (ctv CheckTxVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _dispatchErr error) error {
 	return nil
 }
 

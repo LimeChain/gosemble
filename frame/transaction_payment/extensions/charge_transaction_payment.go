@@ -77,7 +77,7 @@ func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId, call p
 	return sc.NewVaryingData(ctp.fee, who, imbalance), nil
 }
 
-func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) error {
+func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, dispatchErr error) error {
 	if pre.HasValue {
 		preValue := pre.Value
 

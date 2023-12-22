@@ -169,9 +169,9 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
-	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	_, dispatchErr := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Nil(t, dispatchErr)
 	mockStorageDidUpdate.AssertCalled(t, "Exists")
 	mockStorageNow.AssertCalled(t, "Get")
 	mockStorageNow.AssertCalled(t, "Put", now)
@@ -187,9 +187,10 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
-	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	result, dispatchErr := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Equal(t, primitives.PostDispatchInfo{}, result)
+	assert.Nil(t, dispatchErr)
 	mockStorageDidUpdate.AssertCalled(t, "Exists")
 	mockStorageNow.AssertCalled(t, "Get")
 	mockStorageNow.AssertCalled(t, "Put", now)
@@ -199,16 +200,10 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 
 func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	target := setUpCallSet()
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
 	mockStorageNow.AssertNotCalled(t, "Get")
 	mockStorageNow.AssertNotCalled(t, "Put")

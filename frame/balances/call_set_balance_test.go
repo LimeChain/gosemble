@@ -114,14 +114,8 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 	newFree := sc.NewU128(0)
 	newReserved := sc.NewU128(0)
 	target := setupCallSetBalance()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
 
-	mockResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0))
 
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -131,12 +125,12 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
 	).
-		Return(mockResult)
+		Return(expectedResult, nil)
 	mockStoredMap.On("DepositEvent", newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, sc.ToCompact(newFree), sc.ToCompact(newReserved)))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, sc.ToCompact(newFree), sc.ToCompact(newReserved)))
 
-	assert.Equal(t, expect, result)
+	assert.NoError(t, dispatchErr)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
 	mockMutator.AssertCalled(t,
@@ -152,18 +146,12 @@ func Test_Call_SetBalance_Dispatch_Success(t *testing.T) {
 
 func Test_Call_SetBalance_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallSetBalance()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(targetAddress, sc.ToCompact(newFree), sc.ToCompact(newReserved)))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
@@ -172,18 +160,12 @@ func Test_Call_SetBalance_Dispatch_BadOrigin(t *testing.T) {
 
 func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 	target := setupCallSetBalance()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(newFree), sc.ToCompact(newReserved)))
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), dispatchErr)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
 	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
@@ -193,9 +175,7 @@ func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
-	mockResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(oldFree, oldReserved),
-	}
+	expectedResult := sc.NewVaryingData(oldFree, oldReserved)
 
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -204,7 +184,7 @@ func Test_Call_SetBalance_setBalance_Success(t *testing.T) {
 		"tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
-	).Return(mockResult)
+	).Return(expectedResult, nil)
 	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(1), nil) // positive imbalance
 	mockStorageTotalIssuance.On("Put", newFree.Sub(oldFree).Add(sc.NewU128(1))).
 		Return().Once() // newFree positive imbalance
@@ -237,9 +217,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 	newReserved := sc.NewU128(0)
 	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
-	mockResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0)),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewU128(0), sc.NewU128(0))
 
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -248,7 +226,7 @@ func Test_Call_SetBalance_setBalance_Success_LessThanExistentialDeposit(t *testi
 		"tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
-	).Return(mockResult)
+	).Return(expectedResult, nil)
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventBalanceSet(moduleId, targetAddressAccId, newFree, newReserved))
@@ -274,9 +252,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	newReserved := sc.NewU128(1)
 	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
-	mockResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(oldFree, oldReserved),
-	}
+	expectedResult := sc.NewVaryingData(oldFree, oldReserved)
 
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -284,7 +260,7 @@ func Test_Call_SetBalance_setBalance_Success_NegativeImbalance(t *testing.T) {
 	mockMutator.On("tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
-	).Return(mockResult)
+	).Return(expectedResult, nil)
 	mockStorageTotalIssuance.On("Get").Return(oldReserved.Add(oldFree), nil).Once() // newFree negative imbalance
 	mockStorageTotalIssuance.On("Put", oldFree).Return().Once()                     // newFree negative imbalance
 	mockStorageTotalIssuance.On("Get").Return(sc.NewU128(4), nil).Once()            // newReserved negative imbalance
@@ -338,11 +314,7 @@ func Test_Call_SetBalance_setBalance_Lookup(t *testing.T) {
 func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 	target, ok := setupCallSetBalance().(callSetBalance)
 	assert.True(t, ok)
-	err := primitives.NewDispatchErrorBadOrigin()
-	mockResult := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    err,
-	}
+	expectedErr := primitives.NewDispatchErrorBadOrigin()
 
 	targetAddressAccId, errAccId := targetAddress.AsAccountId()
 	assert.Nil(t, errAccId)
@@ -351,11 +323,11 @@ func Test_Call_SetBalance_setBalance_tryMutateAccount_Fails(t *testing.T) {
 		"tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
-	).Return(mockResult)
+	).Return(sc.Empty{}, expectedErr)
 
 	result := target.setBalance(primitives.NewRawOriginRoot(), targetAddress, targetValue, targetValue)
 
-	assert.Equal(t, err, result)
+	assert.Equal(t, expectedErr, result)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
 		targetAddressAccId,
@@ -400,7 +372,7 @@ func Test_Call_SetBalance_setBalance_Drop(t *testing.T) {
 				"tryMutateAccount",
 				mock.Anything,
 				mock.Anything,
-			).Return(sc.Result[sc.Encodable]{Value: sc.NewVaryingData(tt.oldFree, tt.oldReserved)})
+			).Return(sc.NewVaryingData(tt.oldFree, tt.oldReserved), nil)
 
 			mockStorageTotalIssuance.On("Put", mock.Anything)
 			mockStoredMap.On("DepositEvent", mock.Anything).Return()
@@ -414,14 +386,14 @@ func Test_Call_SetBalance_setBalance_Drop(t *testing.T) {
 }
 
 func Test_Call_SetBalance_updateAccount(t *testing.T) {
-	oldFree := sc.NewU128(1)
-	oldReserved := sc.NewU128(2)
+	expectedOldFree := sc.NewU128(1)
+	expectedOldReserved := sc.NewU128(2)
 	newFree := sc.NewU128(5)
 	newReserved := sc.NewU128(6)
 
 	account := &primitives.AccountData{
-		Free:       oldFree,
-		Reserved:   oldReserved,
+		Free:       expectedOldFree,
+		Reserved:   expectedOldReserved,
 		MiscFrozen: sc.NewU128(3),
 		FeeFrozen:  sc.NewU128(4),
 	}
@@ -432,9 +404,10 @@ func Test_Call_SetBalance_updateAccount(t *testing.T) {
 		FeeFrozen:  sc.NewU128(4),
 	}
 
-	result := updateAccount(account, newFree, newReserved)
+	oldFree, oldReserved := updateAccount(account, newFree, newReserved)
 
-	assert.Equal(t, sc.Result[sc.Encodable]{Value: sc.NewVaryingData(oldFree, oldReserved)}, result)
+	assert.Equal(t, expectedOldFree, oldFree)
+	assert.Equal(t, expectedOldReserved, oldReserved)
 	assert.Equal(t, expectAccount, account)
 }
 

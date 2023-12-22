@@ -183,11 +183,13 @@ func Test_Transactional_WithTransaction_InvalidTransactionOutcome(t *testing.T) 
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 
-	assert.PanicsWithValue(t, errInvalidTransactionOutcome, func() {
-		target.WithTransaction(func() primitives.TransactionOutcome {
-			return primitives.TransactionOutcome(sc.NewVaryingData(sc.U32(3)))
+	assert.PanicsWithValue(t,
+		errInvalidTransactionOutcome.Error(),
+		func() {
+			target.WithTransaction(func() primitives.TransactionOutcome {
+				return primitives.TransactionOutcome(sc.NewVaryingData(sc.U32(3)))
+			})
 		})
-	})
 
 	mockStorageValue.AssertCalled(t, "Get")
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
@@ -206,7 +208,7 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return expect, nil
 	})
 
@@ -231,7 +233,7 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return sc.U32(0), expect
 	})
 
@@ -246,11 +248,35 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel)
 }
 
-func setupTransactional() transactional[sc.U32, primitives.DispatchError] {
+func Test_Transactional_WithStorageLayer_Panics(t *testing.T) {
+	target := setupTransactional()
+
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
+	mockStorageValue.On("Put", transactionLevel+1).Once()
+	mockTransactionBroker.On("Start").Return()
+	mockTransactionBroker.On("Rollback").Return()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
+	mockStorageValue.On("Put", transactionLevel).Once()
+
+	assert.PanicsWithValue(t,
+		errInvalidTransactionOutcome.Error(),
+		func() {
+			target.WithStorageLayer(func() (sc.U32, error) {
+				return sc.U32(0), errPanic
+			})
+		},
+	)
+
+	mockStorageValue.AssertCalled(t, "Get")
+	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
+	mockTransactionBroker.AssertCalled(t, "Start")
+}
+
+func setupTransactional() transactional[sc.U32] {
 	mockStorageValue = new(mocks.StorageValue[sc.U32])
 	mockTransactionBroker = new(mocks.IoTransactionBroker)
 
-	target := NewTransactional[sc.U32, primitives.DispatchError]().(transactional[sc.U32, primitives.DispatchError])
+	target := NewTransactional[sc.U32]().(transactional[sc.U32])
 	target.storage = mockStorageValue
 	target.transactionBroker = mockTransactionBroker
 

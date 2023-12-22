@@ -55,7 +55,7 @@ func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitive
 	return cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _dispatchErr error) error {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight, err := cw.systemModule.StorageBlockWeight()

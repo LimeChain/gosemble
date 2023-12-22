@@ -86,7 +86,7 @@ func (e testExtraCheck) PreDispatchUnsigned(call Call, info *DispatchInfo, lengt
 	return err
 }
 
-func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
+func (e testExtraCheck) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, dispatchErr error) error {
 	if e.hasError {
 		return unknownTransactionCustomUnknownTransaction
 	}

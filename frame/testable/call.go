@@ -69,16 +69,16 @@ func (_ callTest) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.PaysYes
 }
 
-func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (primitives.PostDispatchInfo, error) {
 	storage := io.NewStorage()
 	storage.Set([]byte("testvalue"), []byte{1})
 
 	transactional := support.NewTransactional[primitives.PostDispatchInfo]()
 	// TODO: handle err
-	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, primitives.DispatchError) {
+	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, error) {
 		storage.Set([]byte("testvalue"), []byte{2})
 		return primitives.PostDispatchInfo{}, primitives.NewDispatchErrorOther("revert")
 	})
 
-	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{Ok: primitives.PostDispatchInfo{}}
+	return primitives.PostDispatchInfo{}, nil
 }

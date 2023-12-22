@@ -67,13 +67,17 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 		log.Critical(err.Error())
 	}
 
-	ok, err := m.executive.ApplyExtrinsic(uxt)
+	err = m.executive.ApplyExtrinsic(uxt)
 	var applyExtrinsicResult primitives.ApplyExtrinsicResult
-	switch err.(type) {
+	switch typedErr := err.(type) {
 	case primitives.TransactionValidityError:
-		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(err.(primitives.TransactionValidityError))
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(typedErr)
+	case primitives.DispatchError:
+		dispatchOutcome := primitives.DispatchOutcome(sc.NewVaryingData(typedErr))
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(dispatchOutcome)
 	case nil:
-		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(ok)
+		dispatchOutcome := primitives.DispatchOutcome(sc.NewVaryingData(sc.Empty{}))
+		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(dispatchOutcome)
 	}
 	if err != nil {
 		log.Critical(err.Error())
