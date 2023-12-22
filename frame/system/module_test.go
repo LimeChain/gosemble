@@ -1683,7 +1683,7 @@ func Test_Module_Metadata(t *testing.T) {
 					"The execution phase of the block."),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedSystemCallId)),
+		Call: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(expectedSystemCallId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -1693,7 +1693,7 @@ func Test_Module_Metadata(t *testing.T) {
 				moduleId,
 				"Call.System"),
 		),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
+		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -1735,7 +1735,7 @@ func Test_Module_Metadata(t *testing.T) {
 				"Get the chain's current version.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		Error: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,

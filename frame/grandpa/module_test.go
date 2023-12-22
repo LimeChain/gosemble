@@ -157,18 +157,18 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesEd25519PubKey),
 			})),
 		primitives.NewMetadataType(metadata.TypesTupleGrandpaAppPublicU64, "(GrandpaAppPublic, U64)",
-			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
 		primitives.NewMetadataType(metadata.TypesSequenceTupleGrandpaAppPublic, "[]byte (GrandpaAppPublic, U64)", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleGrandpaAppPublicU64))),
 	}
 	moduleV14 := primitives.MetadataModuleV14{
 		Name:      name,
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
-		Call:      sc.NewOption[sc.Compact](nil),
+		Call:      sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		CallDef:   sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:     sc.NewOption[sc.Compact](nil),
+		Event:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact](nil),
+		Error:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,

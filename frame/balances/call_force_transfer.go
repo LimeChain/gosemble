@@ -18,7 +18,7 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact{}),
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact[sc.U128]{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -35,7 +35,7 @@ func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, er
 	if err != nil {
 		return nil, err
 	}
-	value, err := sc.DecodeCompact(buffer)
+	value, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -94,9 +94,10 @@ func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	value := sc.U128(args[2].(sc.Compact))
+	value, _ := args[2].(sc.Compact[sc.Numeric])
+	valueU128 := value.Number.(sc.U128)
 
-	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
+	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), valueU128)
 	if err != nil {
 		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
 			HasError: true,

@@ -21,7 +21,7 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{}, sc.Compact{}),
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact[sc.U128]{}, sc.Compact[sc.U128]{}),
 		},
 		constants:      constants,
 		storedMap:      storedMap,
@@ -37,11 +37,11 @@ func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	if err != nil {
 		return nil, err
 	}
-	newFree, err := sc.DecodeCompact(buffer)
+	newFree, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return nil, err
 	}
-	newReserved, err := sc.DecodeCompact(buffer)
+	newReserved, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +109,11 @@ func (_ callSetBalance) Docs() string {
 }
 
 func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	newFree := sc.U128(args[1].(sc.Compact))
-	newReserved := sc.U128(args[2].(sc.Compact))
+	compactFree, _ := args[1].(sc.Compact[sc.Numeric])
+	newFree := compactFree.Number.(sc.U128)
+
+	compactReserved, _ := args[2].(sc.Compact[sc.Numeric])
+	newReserved := compactReserved.Number.(sc.U128)
 
 	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
 	if err != nil {

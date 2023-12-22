@@ -35,12 +35,12 @@ func (mm MetadataModule) Bytes() []byte {
 type MetadataModuleV15 struct {
 	Name      sc.Str
 	Storage   sc.Option[MetadataModuleStorage]
-	Call      sc.Option[sc.Compact]
+	Call      sc.Option[sc.Compact[sc.Numeric]]
 	CallDef   sc.Option[MetadataDefinitionVariant] // not encoded
-	Event     sc.Option[sc.Compact]
+	Event     sc.Option[sc.Compact[sc.Numeric]]
 	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Constants sc.Sequence[MetadataModuleConstant]
-	Error     sc.Option[sc.Compact]
+	Error     sc.Option[sc.Compact[sc.Numeric]]
 	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Index     sc.U8
 	Docs      sc.Sequence[sc.Str]
@@ -68,11 +68,11 @@ func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
-	call, err := sc.DecodeOption[sc.Compact](buffer)
+	call, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
-	event, err := sc.DecodeOption[sc.Compact](buffer)
+	event, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
@@ -80,7 +80,7 @@ func DecodeMetadataModuleV15(buffer *bytes.Buffer) (MetadataModuleV15, error) {
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
-	e, err := sc.DecodeOption[sc.Compact](buffer)
+	e, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV15{}, err
 	}
@@ -111,12 +111,12 @@ func (mm MetadataModuleV15) Bytes() []byte {
 type MetadataModuleV14 struct {
 	Name      sc.Str
 	Storage   sc.Option[MetadataModuleStorage]
-	Call      sc.Option[sc.Compact]
+	Call      sc.Option[sc.Compact[sc.Numeric]]
 	CallDef   sc.Option[MetadataDefinitionVariant] // not encoded
-	Event     sc.Option[sc.Compact]
+	Event     sc.Option[sc.Compact[sc.Numeric]]
 	EventDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Constants sc.Sequence[MetadataModuleConstant]
-	Error     sc.Option[sc.Compact]
+	Error     sc.Option[sc.Compact[sc.Numeric]]
 	ErrorDef  sc.Option[MetadataDefinitionVariant] // not encoded
 	Index     sc.U8
 }
@@ -142,11 +142,11 @@ func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
-	call, err := sc.DecodeOption[sc.Compact](buffer)
+	call, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
-	event, err := sc.DecodeOption[sc.Compact](buffer)
+	event, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
@@ -154,7 +154,7 @@ func DecodeMetadataModuleV14(buffer *bytes.Buffer) (MetadataModuleV14, error) {
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
-	e, err := sc.DecodeOption[sc.Compact](buffer)
+	e, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataModuleV14{}, err
 	}
@@ -310,11 +310,11 @@ type MetadataModuleStorageEntryDefinition struct {
 	sc.VaryingData
 }
 
-func NewMetadataModuleStorageEntryDefinitionPlain(key sc.Compact) MetadataModuleStorageEntryDefinition {
+func NewMetadataModuleStorageEntryDefinitionPlain(key sc.Compact[sc.Numeric]) MetadataModuleStorageEntryDefinition {
 	return MetadataModuleStorageEntryDefinition{sc.NewVaryingData(MetadataModuleStorageEntryDefinitionPlain, key)}
 }
 
-func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[MetadataModuleStorageHashFunc], key, value sc.Compact) MetadataModuleStorageEntryDefinition {
+func NewMetadataModuleStorageEntryDefinitionMap(storageHashFuncs sc.Sequence[MetadataModuleStorageHashFunc], key, value sc.Compact[sc.Numeric]) MetadataModuleStorageEntryDefinition {
 	return MetadataModuleStorageEntryDefinition{sc.NewVaryingData(MetadataModuleStorageEntryDefinitionMap, storageHashFuncs, key, value)}
 }
 
@@ -326,7 +326,7 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 
 	switch b {
 	case MetadataModuleStorageEntryDefinitionPlain:
-		key, err := sc.DecodeCompact(buffer)
+		key, err := sc.DecodeCompact[sc.Numeric](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
@@ -336,11 +336,11 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
-		key, err := sc.DecodeCompact(buffer)
+		key, err := sc.DecodeCompact[sc.Numeric](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
-		value, err := sc.DecodeCompact(buffer)
+		value, err := sc.DecodeCompact[sc.Numeric](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
@@ -352,12 +352,12 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 
 type MetadataModuleConstant struct {
 	Name  sc.Str
-	Type  sc.Compact
+	Type  sc.Compact[sc.Numeric]
 	Value sc.Sequence[sc.U8]
 	Docs  sc.Sequence[sc.Str]
 }
 
-func NewMetadataModuleConstant(name string, id sc.Compact, value sc.Sequence[sc.U8], docs string) MetadataModuleConstant {
+func NewMetadataModuleConstant(name string, id sc.Compact[sc.Numeric], value sc.Sequence[sc.U8], docs string) MetadataModuleConstant {
 	return MetadataModuleConstant{
 		Name:  sc.Str(name),
 		Type:  id,
@@ -380,7 +380,7 @@ func DecodeMetadataModuleConstant(buffer *bytes.Buffer) (MetadataModuleConstant,
 	if err != nil {
 		return MetadataModuleConstant{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	t, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return MetadataModuleConstant{}, err
 	}

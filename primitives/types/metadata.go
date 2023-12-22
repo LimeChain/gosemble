@@ -113,7 +113,7 @@ func (m Metadata) Bytes() []byte {
 }
 
 type MetadataType struct {
-	Id         sc.Compact
+	Id         sc.Compact[sc.Numeric]
 	Path       sc.Sequence[sc.Str]
 	Params     sc.Sequence[MetadataTypeParameter]
 	Definition MetadataTypeDefinition
@@ -173,7 +173,7 @@ func (mt MetadataType) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeMetadataType(buffer *bytes.Buffer) (MetadataType, error) {
-	id, err := sc.DecodeCompact(buffer)
+	id, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return MetadataType{}, err
 	}
@@ -208,27 +208,27 @@ func (mt MetadataType) Bytes() []byte {
 
 type MetadataTypeParameter struct {
 	Text sc.Str
-	Type sc.Option[sc.Compact]
+	Type sc.Option[sc.Compact[sc.Numeric]]
 }
 
 func NewMetadataTypeParameter(id int, text string) MetadataTypeParameter {
 	return MetadataTypeParameter{
 		Text: sc.Str(text),
-		Type: sc.NewOption[sc.Compact](sc.ToCompact(id)),
+		Type: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(id)),
 	}
 }
 
-func NewMetadataTypeParameterCompactId(id sc.Compact, text string) MetadataTypeParameter {
+func NewMetadataTypeParameterCompactId(id sc.Compact[sc.Numeric], text string) MetadataTypeParameter {
 	return MetadataTypeParameter{
 		Text: sc.Str(text),
-		Type: sc.NewOption[sc.Compact](id),
+		Type: sc.NewOption[sc.Compact[sc.Numeric]](id),
 	}
 }
 
 func NewMetadataEmptyTypeParameter(text string) MetadataTypeParameter {
 	return MetadataTypeParameter{
 		Text: sc.Str(text),
-		Type: sc.NewOption[sc.Compact](nil),
+		Type: sc.NewOption[sc.Compact[sc.Numeric]](nil),
 	}
 }
 
@@ -244,7 +244,7 @@ func DecodeMetadataTypeParameter(buffer *bytes.Buffer) (MetadataTypeParameter, e
 	if err != nil {
 		return MetadataTypeParameter{}, err
 	}
-	t, err := sc.DecodeOption[sc.Compact](buffer)
+	t, err := sc.DecodeOption[sc.Compact[sc.Numeric]](buffer)
 	if err != nil {
 		return MetadataTypeParameter{}, err
 	}

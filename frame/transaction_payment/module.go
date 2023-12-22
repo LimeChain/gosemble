@@ -55,13 +55,13 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
+func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](nil),
+		Call:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:   sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		Event:   sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -79,7 +79,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
-		Error:    sc.NewOption[sc.Compact](nil),
+		Error:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:    m.index,
 	}

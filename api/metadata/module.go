@@ -31,6 +31,7 @@ type Module struct {
 	runtimeApiModules []primitives.RuntimeApiModule
 	runtimeExtrinsic  extrinsic.RuntimeExtrinsic
 	memUtils          utils.WasmMemoryTranslator
+	generator         primitives.MetadataTypeGenerator
 	logger            log.Logger
 }
 
@@ -40,6 +41,7 @@ func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primit
 		runtimeExtrinsic:  runtimeExtrinsic,
 		memUtils:          utils.NewMemoryTranslator(),
 		logger:            logger,
+		generator:         primitives.NewMetadataTypeGenerator(),
 	}
 }
 
@@ -74,15 +76,13 @@ func (m Module) Metadata() int64 {
 
 // TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
-	metadataGenerator := primitives.NewMetadataTypeGenerator()
-
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	modules, extrinsic := m.runtimeExtrinsic.Metadata(&metadataGenerator)
+	modules, extrinsic := m.runtimeExtrinsic.Metadata(&m.generator)
 
-	mdTypes := metadataGenerator.GetMetadataTypes()
+	mdTypes := m.generator.GetMetadataTypes()
 	// append types to all
 	metadataTypes = append(metadataTypes, mdTypes...)
 
@@ -111,16 +111,14 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		m.logger.Critical(err.Error())
 	}
 
-	metadataGenerator := primitives.NewMetadataTypeGenerator()
-
 	metadataTypes := append(primitiveTypes(), basicTypes()...)
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(&metadataGenerator)
-		types := metadataGenerator.GetMetadataTypes()
+		modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(&m.generator)
+		types := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
 			Types:     metadataTypes,
@@ -135,8 +133,8 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(&metadataGenerator)
-		typesV15 := metadataGenerator.GetMetadataTypes()
+		modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(&m.generator)
+		typesV15 := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
 			Types:      metadataTypes,
@@ -363,11 +361,11 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				})),
 
 		primitives.NewMetadataType(metadata.TypesEmptyTuple, "EmptyTuple", primitives.NewMetadataTypeDefinitionTuple(
-			sc.Sequence[sc.Compact]{},
+			sc.Sequence[sc.Compact[sc.Numeric]]{},
 		)),
 
 		primitives.NewMetadataType(metadata.TypesTupleU32U32, "(U32, U32)",
-			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.PrimitiveTypesU32), sc.ToCompact(metadata.PrimitiveTypesU32)})),
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.PrimitiveTypesU32), sc.ToCompact(metadata.PrimitiveTypesU32)})),
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesMultiAddress, "MultiAddress", sc.Sequence[sc.Str]{"sp_runtime", "multiaddress", "MultiAddress"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -429,7 +427,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 			metadata.TypesTupleApiIdU32,
 			"(ApiId, u32)",
 			primitives.NewMetadataTypeDefinitionTuple(
-				sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesApiId), sc.ToCompact(metadata.PrimitiveTypesU32)})),
+				sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesApiId), sc.ToCompact(metadata.PrimitiveTypesU32)})),
 
 		primitives.NewMetadataType(
 			metadata.TypesApiId,
@@ -762,7 +760,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataType(metadata.TypesSequenceUncheckedExtrinsics, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.UncheckedExtrinsic))),
 		//type 876
 		primitives.NewMetadataType(metadata.TypesTuple8U8SequenceU8, "([8]bytes, []byte])",
-			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesFixedSequence8U8), sc.ToCompact(metadata.TypesSequenceU8)})),
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesFixedSequence8U8), sc.ToCompact(metadata.TypesSequenceU8)})),
 		// type 875
 		primitives.NewMetadataType(metadata.TypesSequenceTuple8U8SequenceU8, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTuple8U8SequenceU8))),
 		// type 874

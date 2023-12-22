@@ -18,8 +18,8 @@ type RuntimeExtrinsic interface {
 	OnFinalize(n sc.U64) error
 	OnIdle(n sc.U64, remainingWeight primitives.Weight) primitives.Weight
 	OffchainWorker(n sc.U64)
-	Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
-	MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
+	Metadata(mdGenerator *primitives.MetadataTypeGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14)
+	MetadataLatest(mdGenerator *primitives.MetadataTypeGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata)
 }
 
 type runtimeExtrinsic struct {
@@ -193,7 +193,7 @@ func (re runtimeExtrinsic) OffchainWorker(n sc.U64) {
 	}
 }
 
-func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
+func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataTypeGenerator) (sc.Sequence[primitives.MetadataModuleV14], primitives.MetadataExtrinsicV14) {
 	modules := sc.Sequence[primitives.MetadataModuleV14]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}
@@ -233,7 +233,7 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataGenerator) (
 	return modules, extrinsic
 }
 
-func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
+func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataTypeGenerator) (sc.Sequence[primitives.MetadataModuleV15], primitives.MetadataExtrinsicV15, primitives.OuterEnums, primitives.CustomMetadata) {
 	modules := sc.Sequence[primitives.MetadataModuleV15]{}
 
 	callVariants := sc.Sequence[sc.Option[primitives.MetadataDefinitionVariant]]{}

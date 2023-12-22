@@ -15,13 +15,13 @@ type SignedExtra interface {
 	Decode(buffer *bytes.Buffer)
 
 	AdditionalSigned() (AdditionalSigned, error)
-	Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
-	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
-	PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error)
-	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
-	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
+	Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error)
+	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error)
+	PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (sc.Sequence[Pre], error)
+	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) error
+	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact[sc.Numeric], result *DispatchResult) error
 
-	Metadata(metadataGenerator *MetadataGenerator) sc.Sequence[MetadataSignedExtension]
+	Metadata(metadataGenerator *MetadataTypeGenerator) sc.Sequence[MetadataSignedExtension]
 }
 
 // signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
@@ -69,7 +69,7 @@ func (e signedExtra) AdditionalSigned() (AdditionalSigned, error) {
 	return result, nil
 }
 
-func (e signedExtra) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
+func (e signedExtra) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -83,7 +83,7 @@ func (e signedExtra) Validate(who AccountId, call Call, info *DispatchInfo, leng
 	return valid, nil
 }
 
-func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
+func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error) {
 	valid := DefaultValidTransaction()
 
 	for _, extra := range e.extras {
@@ -97,7 +97,7 @@ func (e signedExtra) ValidateUnsigned(call Call, info *DispatchInfo, length sc.C
 	return valid, nil
 }
 
-func (e signedExtra) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error) {
+func (e signedExtra) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (sc.Sequence[Pre], error) {
 	pre := sc.Sequence[Pre]{}
 
 	for _, extra := range e.extras {
@@ -112,7 +112,7 @@ func (e signedExtra) PreDispatch(who AccountId, call Call, info *DispatchInfo, l
 	return pre, nil
 }
 
-func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
+func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) error {
 	for _, extra := range e.extras {
 		err := extra.PreDispatchUnsigned(call, info, length)
 		if err != nil {
@@ -123,7 +123,7 @@ func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length s
 	return nil
 }
 
-func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
+func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact[sc.Numeric], result *DispatchResult) error {
 	if pre.HasValue {
 		preValue := pre.Value
 		for i, extra := range e.extras {
@@ -144,8 +144,8 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e signedExtra) Metadata(metadataGenerator *MetadataGenerator) sc.Sequence[MetadataSignedExtension] {
-	ids := sc.Sequence[sc.Compact]{}
+func (e signedExtra) Metadata(metadataGenerator *MetadataTypeGenerator) sc.Sequence[MetadataSignedExtension] {
+	ids := sc.Sequence[sc.Compact[sc.Numeric]]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
@@ -164,7 +164,7 @@ func (e signedExtra) Metadata(metadataGenerator *MetadataGenerator) sc.Sequence[
 }
 
 // generateExtraMetadata generates the metadata for a signed extension. It may generate some new metadata types in the process. Returns the metadata id for the extra
-func generateExtraMetadata(extra SignedExtension, metadataGenerator *MetadataGenerator, metadataTypes *sc.Sequence[MetadataType], extensions *sc.Sequence[MetadataSignedExtension]) int {
+func generateExtraMetadata(extra SignedExtension, metadataGenerator *MetadataTypeGenerator, metadataTypes *sc.Sequence[MetadataType], extensions *sc.Sequence[MetadataSignedExtension]) int {
 	extraValue := reflect.ValueOf(extra)
 	extraTypeName := extraValue.Elem().Type().Name()
 	extraMetadataId := (*metadataGenerator).BuildMetadataTypeRecursively(extraValue.Elem(), &sc.Sequence[sc.Str]{sc.Str(extra.ModulePath()), "extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)})
@@ -173,14 +173,14 @@ func generateExtraMetadata(extra SignedExtension, metadataGenerator *MetadataGen
 	return extraMetadataId
 }
 
-func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact]) MetadataType {
+func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact[sc.Numeric]]) MetadataType {
 	return NewMetadataType(typeId, typeName, NewMetadataTypeDefinitionTuple(tupleIds))
 }
 
 // constructExtension Iterates through the elements of the typesInfoAdditionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
-func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataGenerator *MetadataGenerator, metadataTypes *sc.Sequence[MetadataType]) {
+func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataGenerator *MetadataTypeGenerator, metadataTypes *sc.Sequence[MetadataType]) {
 	var resultTypeName string
-	var resultTupleIds sc.Sequence[sc.Compact]
+	var resultTupleIds sc.Sequence[sc.Compact[sc.Numeric]]
 
 	extraType := extra.Elem().Type
 	extraName := extraType().Name()

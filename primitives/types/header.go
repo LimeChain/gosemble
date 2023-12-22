@@ -33,7 +33,7 @@ func DecodeHeader(buffer *bytes.Buffer) (Header, error) {
 	if err != nil {
 		return Header{}, err
 	}
-	blockNumber, err := sc.DecodeCompact(buffer)
+	blockNumber, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return Header{}, err
 	}

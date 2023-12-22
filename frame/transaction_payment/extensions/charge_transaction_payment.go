@@ -30,16 +30,18 @@ func NewChargeTransactionPayment(module system.Module, txPaymentModule transacti
 }
 
 func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) error {
-	return sc.Compact(ctp.fee).Encode(buffer)
+	return sc.Compact[sc.Numeric]{Number: ctp.fee}.Encode(buffer)
 }
 
 func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) error {
-	fee, err := sc.DecodeCompact(buffer)
+	fee, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return err
 	}
 
-	ctp.fee = sc.U128(fee)
+	feeU128, _ := fee.Number.(sc.U128)
+
+	ctp.fee = feeU128
 	return nil
 }
 
@@ -51,7 +53,7 @@ func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSig
 	return sc.NewVaryingData(), nil
 }
 
-func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
+func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	finalFee, _, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -69,11 +71,11 @@ func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call prim
 	return validTransaction, nil
 }
 
-func (ctp ChargeTransactionPayment) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
+func (ctp ChargeTransactionPayment) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
 	_, imbalance, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
 		return primitives.Pre{}, err
@@ -81,7 +83,7 @@ func (ctp ChargeTransactionPayment) PreDispatch(who primitives.AccountId, call p
 	return sc.NewVaryingData(ctp.fee, who, imbalance), nil
 }
 
-func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact, result *primitives.DispatchResult) error {
+func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, length sc.Compact[sc.Numeric], result *primitives.DispatchResult) error {
 	if pre.HasValue {
 		preValue := pre.Value
 
@@ -111,12 +113,12 @@ func (ctp ChargeTransactionPayment) PostDispatch(pre sc.Option[primitives.Pre], 
 	return nil
 }
 
-func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
+func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
 	_, err := ctp.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) (primitives.TransactionPriority, error) {
+func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact[sc.Numeric], tip primitives.Balance, finalFee primitives.Balance) (primitives.TransactionPriority, error) {
 	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max
 
@@ -189,7 +191,7 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 	return 0, nil
 }
 
-func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], error) {
+func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Balance, sc.Option[primitives.Balance], error) {
 	tip := ctp.fee
 	fee, err := ctp.txPaymentModule.ComputeFee(sc.U32(length.ToBigInt().Uint64()), *info, tip)
 	if err != nil {

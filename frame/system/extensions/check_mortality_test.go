@@ -173,7 +173,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 
 	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
-	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact[sc.Numeric]{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
@@ -182,7 +182,7 @@ func Test_CheckMortality_Validate_Success(t *testing.T) {
 func Test_CheckMortality_ValidateUnsigned(t *testing.T) {
 	target := setupCheckMortality()
 
-	result, err := target.ValidateUnsigned(nil, nil, sc.Compact{})
+	result, err := target.ValidateUnsigned(nil, nil, sc.Compact[sc.Numeric]{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -196,7 +196,7 @@ func Test_CheckMortality_PreDispatch(t *testing.T) {
 
 	mockModule.On("StorageBlockNumber").Return(blockNumber, nil)
 
-	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact[sc.Numeric]{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -221,7 +221,7 @@ func Test_CheckMortality_Validate_StorageBlockNumber_Error(t *testing.T) {
 func Test_CheckMortality_PreDispatchUnsigned(t *testing.T) {
 	target := setupCheckMortality()
 
-	err := target.PreDispatchUnsigned(nil, nil, sc.Compact{})
+	err := target.PreDispatchUnsigned(nil, nil, sc.Compact[sc.Numeric]{})
 
 	assert.Nil(t, err)
 }
@@ -229,7 +229,7 @@ func Test_CheckMortality_PreDispatchUnsigned(t *testing.T) {
 func Test_CheckMortality_PostDispatch(t *testing.T) {
 	target := setupCheckMortality()
 
-	err := target.PostDispatch(sc.NewOption[primitives.Pre](nil), nil, nil, sc.Compact{}, nil)
+	err := target.PostDispatch(sc.NewOption[primitives.Pre](nil), nil, nil, sc.Compact[sc.Numeric]{}, nil)
 
 	assert.Nil(t, err)
 }

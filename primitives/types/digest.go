@@ -15,7 +15,7 @@ func NewDigest(items sc.Sequence[DigestItem]) Digest {
 }
 
 func DecodeDigest(buffer *bytes.Buffer) (Digest, error) {
-	compactSize, err := sc.DecodeCompact(buffer)
+	compactSize, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return Digest{}, err
 	}

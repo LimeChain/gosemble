@@ -28,7 +28,7 @@ func newCallSet(moduleId sc.U8, functionId sc.U8, storage *storage, constants *c
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(sc.CompactU64(0)),
+			Arguments:  sc.NewVaryingData(sc.Compact[sc.U64]{}),
 		},
 		onTimestampSet: onTimestampSet,
 	}
@@ -49,7 +49,7 @@ func newCallSetWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) p
 }
 
 func (c callSet) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	compact, err := sc.DecodeCompact(buffer)
+	compact, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
-	valueTs := sc.U128(args[0].(sc.Compact))
+	valueTs, _ := args[0].(sc.Compact[sc.Numeric])
 	return c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }
 

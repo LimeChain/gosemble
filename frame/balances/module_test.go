@@ -588,14 +588,17 @@ func Test_Module_Metadata(t *testing.T) {
 
 	expectedBalancesCallsMetadataId := len(mdGenerator.IdsMap()) + 1
 
+	expectedCompactU128TypeId := expectedBalancesCallsMetadataId + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
+		primitives.NewMetadataType(expectedCompactU128TypeId, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
 		primitives.NewMetadataTypeWithParams(expectedBalancesCallsMetadataId, "Balances calls", sc.Sequence[sc.Str]{"pallet_balances", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"transfer",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU128TypeId),
 					},
 					functionTransferIndex,
 					"Transfer some liquid free balance to another account."),
@@ -603,8 +606,8 @@ func Test_Module_Metadata(t *testing.T) {
 					"set_balance",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU128TypeId),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU128TypeId),
 					},
 					functionSetBalanceIndex,
 					"Set the balances of a given account."),
@@ -613,7 +616,7 @@ func Test_Module_Metadata(t *testing.T) {
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU128TypeId),
 					},
 					functionForceTransferIndex,
 					"Exactly as `transfer`, except the origin must be root and the source account may be specified."),
@@ -621,7 +624,7 @@ func Test_Module_Metadata(t *testing.T) {
 					"transfer_keep_alive",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
 						primitives.NewMetadataTypeDefinitionField(metadata.TypesMultiAddress),
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU128),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU128TypeId),
 					},
 					functionTransferKeepAliveIndex,
 					"Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."),
@@ -814,7 +817,7 @@ func Test_Module_Metadata(t *testing.T) {
 					"The total units issued in the system."),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedBalancesCallsMetadataId)),
+		Call: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(expectedBalancesCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -824,7 +827,7 @@ func Test_Module_Metadata(t *testing.T) {
 				moduleId,
 				"Call.Balances"),
 		),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
+		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -854,7 +857,7 @@ func Test_Module_Metadata(t *testing.T) {
 				"The maximum number of named reserves that can exist on an account.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
+		Error: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,

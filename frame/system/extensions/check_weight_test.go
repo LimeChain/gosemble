@@ -196,7 +196,7 @@ func Test_CheckWeight_PostDispatch_Unspent(t *testing.T) {
 	mockModule.On("StorageBlockWeight").Return(consumedWeight, nil)
 	mockModule.On("StorageBlockWeightSet", expectedStorageWeight).Return()
 
-	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact{}, nil)
+	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact[sc.Numeric]{}, nil)
 
 	assert.Nil(t, result)
 
@@ -210,7 +210,7 @@ func Test_CheckWeight_PostDispatch_NoUnspent(t *testing.T) {
 	}
 	target := setupCheckWeight()
 
-	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact{}, nil)
+	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact[sc.Numeric]{}, nil)
 
 	assert.Nil(t, result)
 
@@ -232,7 +232,7 @@ func Test_CheckWeight_PostDispatch_StorageBlockWeightError(t *testing.T) {
 	mockModule.On("StorageBlockWeight").Return(consumedWeight, expectedErr)
 	mockModule.On("StorageBlockWeightSet", expectedStorageWeight).Return()
 
-	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact{}, nil)
+	result := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfo, postInfo, sc.Compact[sc.Numeric]{}, nil)
 
 	assert.Equal(t, expectedErr, result)
 

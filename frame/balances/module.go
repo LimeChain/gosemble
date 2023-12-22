@@ -311,7 +311,7 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
+func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 	metadataTypeBalancesCalls, metadataIdBalancesCalls := (*mdGenerator).CallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
@@ -319,7 +319,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdBalancesCalls)),
+		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadataIdBalancesCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -329,7 +329,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 				m.Index,
 				"Call.Balances"),
 		),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
+		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -340,7 +340,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 				"Events.Balances"),
 		),
 		Constants: m.metadataConstants(),
-		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
+		Error:     sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),

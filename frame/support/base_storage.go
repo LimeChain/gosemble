@@ -70,7 +70,7 @@ func (bs baseStorage[T]) decodeLen(key []byte) (sc.Option[sc.U64], error) {
 	buffer := &bytes.Buffer{}
 	buffer.Write(data[:length])
 
-	compact, err := sc.DecodeCompact(buffer)
+	compact, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return sc.Option[sc.U64]{}, err
 	}

@@ -10,7 +10,7 @@ type RuntimeMetadataV14 struct {
 	Types     sc.Sequence[MetadataType]
 	Modules   sc.Sequence[MetadataModuleV14]
 	Extrinsic MetadataExtrinsicV14
-	Type      sc.Compact
+	Type      sc.Compact[sc.Numeric]
 }
 
 func (rm RuntimeMetadataV14) Encode(buffer *bytes.Buffer) error {
@@ -35,7 +35,7 @@ func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) 
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}
-	typeId, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}

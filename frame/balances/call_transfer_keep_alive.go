@@ -18,7 +18,7 @@ func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primit
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{}),
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact[sc.U128]{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -31,7 +31,7 @@ func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) (primitives.Call
 	if err != nil {
 		return nil, err
 	}
-	value, err := sc.DecodeCompact(buffer)
+	value, err := sc.DecodeCompact[sc.Numeric](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,8 @@ func (_ callTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	value := sc.U128(args[1].(sc.Compact))
+	valueCompact, _ := args[1].(sc.Compact[sc.Numeric])
+	value := valueCompact.Number.(sc.U128)
 
 	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
 	if err != nil {

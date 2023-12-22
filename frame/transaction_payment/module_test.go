@@ -137,9 +137,9 @@ var (
 					"StorageVersion"),
 			},
 		}),
-		Call:    sc.NewOption[sc.Compact](nil),
+		Call:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		CallDef: sc.NewOption[types.MetadataDefinitionVariant](nil),
-		Event:   sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		Event:   sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
 		EventDef: sc.NewOption[types.MetadataDefinitionVariant](
 			types.NewMetadataDefinitionVariantStr(
 				"TransactionPayment",
@@ -157,7 +157,7 @@ var (
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
-		Error:    sc.NewOption[sc.Compact](nil),
+		Error:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:    moduleId,
 	}

@@ -58,7 +58,7 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, error)
 	return sc.NewVaryingData(hash), nil
 }
 
-func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	currentBlockNum, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -72,21 +72,21 @@ func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Ca
 	return ok, nil
 }
 
-func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
+func (cm CheckMortality) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cm CheckMortality) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (cm CheckMortality) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
 	_, err := cm.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
+func (cm CheckMortality) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
 	_, err := cm.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (cm CheckMortality) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact[sc.Numeric], _result *primitives.DispatchResult) error {
 	return nil
 }
 

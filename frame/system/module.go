@@ -37,7 +37,7 @@ type Module interface {
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule
+	Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength
@@ -578,7 +578,7 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
-func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.MetadataModule {
+func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 
 	metadataTypeSystemCalls, metadataIdSystemCalls := (*mdGenerator).CallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
@@ -587,7 +587,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdSystemCalls)),
+		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadataIdSystemCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -597,7 +597,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 				m.Index,
 				"Call.System"),
 		),
-		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
+		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -608,7 +608,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataGenerator) primitives.M
 				"Events.System"),
 		),
 		Constants: m.metadataConstants(),
-		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		Error:     sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),

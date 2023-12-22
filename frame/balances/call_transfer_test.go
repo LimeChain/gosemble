@@ -26,9 +26,9 @@ var (
 			NewMultiAddressId(constants.OneAccountId)
 	toAddress = primitives.
 			NewMultiAddressId(constants.TwoAccountId)
-	argsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}).Bytes()
+	argsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact[sc.U128]{}).Bytes()
 
-	callTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}).Bytes()
+	callTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact[sc.U128]{}).Bytes()
 )
 
 func Test_Call_Transfer_New(t *testing.T) {
@@ -37,7 +37,7 @@ func Test_Call_Transfer_New(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferIndex,
-			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{}),
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact[sc.U128]{}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,

@@ -34,25 +34,25 @@ func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, err
 	return sc.NewVaryingData(csv.systemModule.Version().SpecVersion), nil
 }
 
-func (_ CheckSpecVersion) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
+func (_ CheckSpecVersion) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
+func (csv CheckSpecVersion) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
+func (csv CheckSpecVersion) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
 	_, err := csv.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
+func (csv CheckSpecVersion) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
 	_, err := csv.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
+func (csv CheckSpecVersion) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact[sc.Numeric], _result *primitives.DispatchResult) error {
 	return nil
 }
 

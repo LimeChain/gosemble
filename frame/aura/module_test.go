@@ -81,7 +81,7 @@ var (
 
 		// type 924
 		types.NewMetadataType(metadata.TypesTupleSequenceU8KeyTypeId, "(Seq<U8>, KeyTypeId)",
-			types.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
+			types.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
 
 		// type 923
 		types.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TupleSequenceU8KeyTypeId", types.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),
@@ -122,12 +122,12 @@ var (
 					"The current slot of this block.   This will be set in `on_initialize`."),
 			},
 		}),
-		Call:      sc.NewOption[sc.Compact](nil),
+		Call:      sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		CallDef:   sc.NewOption[types.MetadataDefinitionVariant](nil),
-		Event:     sc.NewOption[sc.Compact](nil),
+		Event:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		EventDef:  sc.NewOption[types.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[types.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact](nil),
+		Error:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
 		ErrorDef:  sc.NewOption[types.MetadataDefinitionVariant](nil),
 		Index:     sc.U8(13),
 	}
