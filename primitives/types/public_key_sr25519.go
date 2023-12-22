@@ -40,3 +40,7 @@ func DecodeSr25519PublicKey(buffer *bytes.Buffer) (Sr25519PublicKey, error) {
 	}
 	return Sr25519PublicKey{seq}, nil
 }
+
+func DecodeSequenceSr25519PublicKey(buffer *bytes.Buffer) (sc.Sequence[Sr25519PublicKey], error) {
+	return sc.DecodeSequenceWith[Sr25519PublicKey](buffer, DecodeSr25519PublicKey)
+}

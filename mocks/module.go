@@ -109,3 +109,21 @@ func (m *Module) OnRuntimeUpgrade() types.Weight {
 
 	return args.Get(0).(types.Weight)
 }
+
+func (m *Module) CreateDefaultConfig() ([]byte, error) {
+	args := m.Called()
+
+	if args.Get(1) == nil {
+		return args.Get(0).([]byte), nil
+	}
+	return args.Get(0).([]byte), args.Get(1).(error)
+}
+
+func (m *Module) BuildConfig(config []byte) error {
+	args := m.Called(config)
+
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(error)
+}

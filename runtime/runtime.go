@@ -9,6 +9,7 @@ import (
 	apiAura "github.com/LimeChain/gosemble/api/aura"
 	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
 	"github.com/LimeChain/gosemble/api/core"
+	genesisbuilder "github.com/LimeChain/gosemble/api/genesis_builder"
 	apiGrandpa "github.com/LimeChain/gosemble/api/grandpa"
 	"github.com/LimeChain/gosemble/api/metadata"
 	"github.com/LimeChain/gosemble/api/offchain_worker"
@@ -184,6 +185,7 @@ func runtimeApi() types.RuntimeApi {
 	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
 	sessionKeysApi := session_keys.New(sessions)
 	offchainWorkerApi := offchain_worker.New(executiveModule)
+	genesisBuilderApi := genesisbuilder.New(modules)
 
 	metadataApi := metadata.New(
 		runtimeExtrinsic,
@@ -212,6 +214,7 @@ func runtimeApi() types.RuntimeApi {
 		txPaymentsCallApi,
 		sessionKeysApi,
 		offchainWorkerApi,
+		genesisBuilderApi,
 	}
 
 	runtimeApi := types.NewRuntimeApi(apis)
@@ -378,4 +381,18 @@ func OffchainWorkerApiOffchainWorker(dataPtr int32, dataLen int32) int64 {
 		OffchainWorker(dataPtr, dataLen)
 
 	return 0
+}
+
+//go:export GenesisBuilder_create_default_config
+func GenesisBuilderCreateDefaultConfig(_, _ int32) int64 {
+	return runtimeApi().
+		Module(genesisbuilder.ApiModuleName).(genesisbuilder.Module).
+		CreateDefaultConfig()
+}
+
+//go:export GenesisBuilder_build_config
+func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
+	return runtimeApi().
+		Module(genesisbuilder.ApiModuleName).(genesisbuilder.Module).
+		BuildConfig(dataPtr, dataLen)
 }

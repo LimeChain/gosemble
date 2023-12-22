@@ -35,3 +35,9 @@ func DecodeBlake2bHash(buffer *bytes.Buffer) (Blake2bHash, error) {
 func (h Blake2bHash) Bytes() []byte {
 	return sc.EncodedBytes(h)
 }
+
+func Blake2bHash69() Blake2bHash {
+	hash69Bytes := []byte{69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69}
+	hash69, _ := NewBlake2bHash(sc.BytesToFixedSequenceU8(hash69Bytes)...)
+	return hash69
+}
