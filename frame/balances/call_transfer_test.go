@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -390,6 +391,25 @@ func Test_transfer_sanityChecks_KeepAlive(t *testing.T) {
 	assert.Equal(t, expectedErr, err)
 	assert.Equal(t, sc.NewU128(0), fromAccountData.Free)
 	assert.Equal(t, sc.NewU128(6), toAccountData.Free)
+	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0))
+	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
+}
+
+func Test_transfer_sanityChecks_CanDecProviders_Error(t *testing.T) {
+	target := setupTransfer()
+
+	targetAddressId, err := targetAddress.AsAccountId()
+	assert.Nil(t, err)
+
+	mockErr := errors.New("err")
+	expectedErr := primitives.NewDispatchErrorOther(sc.Str(mockErr.Error()))
+
+	mockMutator.On("ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0)).Return(nil)
+	mockStoredMap.On("CanDecProviders", targetAddressId).Return(true, mockErr)
+
+	_, err = target.sanityChecks(targetAddressId, fromAccountData, toAccountData, targetValue, primitives.ExistenceRequirementAllowDeath)
+
+	assert.Equal(t, expectedErr, err)
 	mockMutator.AssertCalled(t, "ensureCanWithdraw", targetAddressId, targetValue, primitives.ReasonsAll, sc.NewU128(0))
 	mockStoredMap.AssertCalled(t, "CanDecProviders", targetAddressId)
 }

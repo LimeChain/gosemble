@@ -1,6 +1,7 @@
 package system
 
 import (
+	"errors"
 	"math"
 	"testing"
 
@@ -866,6 +867,92 @@ func Test_Module_TryMutateExists_WasProviding_IsProviding_Success(t *testing.T) 
 
 	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
 	mockStorageAccount.AssertNumberOfCalls(t, "Mutate", 1)
+	mockStorageAccount.AssertCalled(t,
+		"Mutate",
+		targetAccountId,
+		mockTypeMutateAccountInfo)
+}
+
+func Test_Module_TryMutateExists_GetAccount_Error(t *testing.T) {
+	target := setupModule()
+	expectedErr := primitives.NewDispatchErrorBadOrigin()
+
+	accountInfo := primitives.AccountInfo{}
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
+		return nil, nil
+	}
+
+	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, expectedErr)
+
+	_, err := target.TryMutateExists(targetAccountId, f)
+
+	assert.Equal(t, expectedErr, err)
+	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
+	mockStorageAccount.AssertNotCalled(t,
+		"Mutate",
+		targetAccountId,
+		mockTypeMutateAccountInfo)
+}
+
+func Test_Module_TryMutateExists_incProviders_Error(t *testing.T) {
+	target := setupModule()
+
+	expectedErr := errors.New("err")
+	expectedResult := sc.NewU128(5)
+	accountInfo := primitives.AccountInfo{
+		Data: primitives.AccountData{},
+	}
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
+		account.Free = sc.NewU128(5)
+		return expectedResult, nil
+	}
+
+	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
+	mockStorageAccount.On(
+		"Mutate",
+		targetAccountId,
+		mockTypeMutateAccountInfo).
+		Return(primitives.IncRefStatusExisted, expectedErr)
+
+	_, err := target.TryMutateExists(targetAccountId, f)
+
+	assert.Equal(t, expectedErr, err)
+
+	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
+	mockStorageAccount.AssertCalled(t, "Mutate", targetAccountId, mockTypeMutateAccountInfo)
+}
+
+func Test_Module_TryMutateExists_AccountMutate_Error(t *testing.T) {
+	target := setupModule()
+
+	expectedErr := errors.New("err")
+	expectedResult := sc.NewU128(5)
+	accountInfo := primitives.AccountInfo{
+		Data: primitives.AccountData{},
+	}
+	f := func(account *primitives.AccountData) (sc.Encodable, error) {
+		account.Free = sc.NewU128(5)
+		return expectedResult, nil
+	}
+
+	mockStorageAccount.On("Get", targetAccountId).Return(accountInfo, nil)
+	mockStorageAccount.On(
+		"Mutate",
+		targetAccountId,
+		mockTypeMutateAccountInfo).
+		Return(primitives.IncRefStatusExisted, nil).Once()
+	mockStorageAccount.On(
+		"Mutate",
+		targetAccountId,
+		mockTypeMutateAccountInfo).
+		Return(sc.NewU128(2), expectedErr).Once()
+
+	_, err := target.TryMutateExists(targetAccountId, f)
+
+	assert.Equal(t, expectedErr, err)
+
+	mockStorageAccount.AssertCalled(t, "Get", targetAccountId)
+	mockStorageAccount.AssertNumberOfCalls(t, "Mutate", 2)
 	mockStorageAccount.AssertCalled(t,
 		"Mutate",
 		targetAccountId,

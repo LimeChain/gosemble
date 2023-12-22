@@ -193,6 +193,7 @@ func (t transfer) sanityChecks(from types.AccountId, fromAccount *types.AccountD
 	if err != nil {
 		return nil, types.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
+
 	allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
 	allowDeath = allowDeath && canDecProviders
 

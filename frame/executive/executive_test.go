@@ -539,3 +539,23 @@ func Test_Executive_OffchainWorker(t *testing.T) {
 	mockSystemModule.AssertCalled(t, "StorageBlockHashSet", header.Number, blockHash)
 	mockRuntimeExtrinsic.AssertCalled(t, "OffchainWorker", header.Number)
 }
+
+func Test_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error_Panics(t *testing.T) {
+	setup()
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+	expectedErr := unknownTransactionCannotLookupError
+
+	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	mockUncheckedExtrinsic.On("Check").Return(nil, expectedErr)
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() {
+			target.executeExtrinsicsWithBookKeeping(block)
+		},
+	)
+
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+}

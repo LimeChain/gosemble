@@ -2,6 +2,7 @@ package timestamp
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 	"time"
 
@@ -253,6 +254,23 @@ func Test_Call_Set_Dispatch_InvalidLessThanMinPeriod(t *testing.T) {
 		func() {
 			target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 		})
+	mockStorageNow.AssertNotCalled(t, "Put")
+	mockStorageDidUpdate.AssertNotCalled(t, "Put")
+	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
+}
+
+func Test_Call_Set_Dispatch_NowGet_Error(t *testing.T) {
+	target := setUpCallSet()
+
+	mockErr := errors.New("err")
+	expectedErr := primitives.NewDispatchErrorOther(sc.Str(mockErr.Error()))
+
+	mockStorageDidUpdate.On("Exists").Return(false)
+	mockStorageNow.On("Get").Return(sc.U64(1001), mockErr)
+
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+
+	assert.Equal(t, expectedErr, err)
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
 	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
