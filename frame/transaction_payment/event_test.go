@@ -26,9 +26,8 @@ func Test_DecodeEvent_ModuleIndexError(t *testing.T) {
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
-	assert.PanicsWithValue(t, "invalid transaction_payment.Event module", func() {
-		DecodeEvent(sc.U8(123), buffer)
-	})
+	_, err = DecodeEvent(sc.U8(123), buffer)
+	assert.Equal(t, errInvalidModule, err)
 }
 
 func Test_DecodeEvent_TypeError(t *testing.T) {
@@ -38,7 +37,6 @@ func Test_DecodeEvent_TypeError(t *testing.T) {
 	err := expectedEvent.Encode(buffer)
 	assert.NoError(t, err)
 
-	assert.PanicsWithValue(t, "invalid transaction_payment.Event type", func() {
-		DecodeEvent(moduleId, buffer)
-	})
+	_, err = DecodeEvent(moduleId, buffer)
+	assert.Equal(t, errInvalidType, err)
 }

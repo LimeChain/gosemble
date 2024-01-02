@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -8,8 +9,10 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -275,11 +278,25 @@ func Test_Module_Metadata_AtVersion_Unsupported(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", optionUnsupported.Bytes())
 }
 
+func Test_Module_Metadata_AtVersion_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.MetadataAtVersion(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
 func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{})
+	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{}, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

@@ -31,13 +31,15 @@ type Module struct {
 	runtimeApiModules []primitives.RuntimeApiModule
 	runtimeExtrinsic  extrinsic.RuntimeExtrinsic
 	memUtils          utils.WasmMemoryTranslator
+	logger            log.Logger
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primitives.RuntimeApiModule) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primitives.RuntimeApiModule, logger log.Logger) Module {
 	return Module{
 		runtimeApiModules: runtimeApiModules,
 		runtimeExtrinsic:  runtimeExtrinsic,
 		memUtils:          utils.NewMemoryTranslator(),
+		logger:            logger,
 	}
 }
 
@@ -64,7 +66,7 @@ func (m Module) Metadata() int64 {
 	case primitives.MetadataVersion15:
 		bMetadata = sc.BytesToSequenceU8(primitives.NewMetadataV15(metadata.DataV15).Bytes())
 	default:
-		log.Critical("Unknown md version")
+		m.logger.Critical("Unknown md version")
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(bMetadata.Bytes())
@@ -105,7 +107,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	version, err := sc.DecodeU32(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	metadataTypesIds := primitives.BuildMetadataTypesIdsMap()

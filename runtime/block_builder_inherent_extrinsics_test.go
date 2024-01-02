@@ -8,6 +8,7 @@ import (
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/execution/types"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func Test_BlockBuilder_Inherent_Extrinsics(t *testing.T) {
 	err := idata.SetInherent(gossamertypes.Timstap0, uint64(time))
 	assert.NoError(t, err)
 
-	decoder := types.NewRuntimeDecoder(modules, newSignedExtra())
+	decoder := types.NewRuntimeDecoder(modules, newSignedExtra(), log.NewLogger())
 
 	rt, _ := newTestRuntime(t)
 	metadata := runtimeMetadata(t, rt)

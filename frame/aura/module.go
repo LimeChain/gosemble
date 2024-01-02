@@ -2,24 +2,24 @@ package aura
 
 import (
 	"bytes"
+	"errors"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-)
-
-const (
-	errSlotMustIncrease      = "Slot must increase"
-	errSlotDurationZero      = "Aura slot duration cannot be zero."
-	errTimestampSlotMismatch = "Timestamp slot must match `CurrentSlot`"
 )
 
 var (
 	EngineId  = [4]byte{'a', 'u', 'r', 'a'}
 	KeyTypeId = [4]byte{'a', 'u', 'r', 'a'}
+)
+
+var (
+	errSlotMustIncrease      = errors.New("Slot must increase")
+	errSlotDurationZero      = errors.New("Aura slot duration cannot be zero.")
+	errTimestampSlotMismatch = errors.New("Timestamp slot must match `CurrentSlot`")
 )
 
 type AuraModule interface {
@@ -95,7 +95,7 @@ func (m Module) OnInitialize(_ sc.U64) (primitives.Weight, error) {
 		}
 
 		if currentSlot >= newSlot {
-			log.Critical(errSlotMustIncrease)
+			return primitives.Weight{}, errSlotMustIncrease
 		}
 
 		m.storage.CurrentSlot.Put(newSlot)
@@ -127,7 +127,7 @@ func (m Module) OnInitialize(_ sc.U64) (primitives.Weight, error) {
 func (m Module) OnTimestampSet(now sc.U64) error {
 	slotDuration := m.SlotDuration()
 	if slotDuration == 0 {
-		log.Critical(errSlotDurationZero)
+		return errSlotDurationZero
 	}
 
 	timestampSlot := now / slotDuration
@@ -137,7 +137,7 @@ func (m Module) OnTimestampSet(now sc.U64) error {
 		return err
 	}
 	if currentSlot != timestampSlot {
-		log.Critical(errTimestampSlotMismatch)
+		return errTimestampSlotMismatch
 	}
 	return nil
 }

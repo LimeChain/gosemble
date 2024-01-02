@@ -81,9 +81,11 @@ func (dcv dustCleaner) Bytes() []byte {
 	return sc.EncodedBytes(dcv)
 }
 
-func (dcv dustCleaner) Drop() {
+func (dcv dustCleaner) Drop() error {
 	if dcv.negativeImbalance.HasValue {
 		dcv.eventDepositor.DepositEvent(newEventDustLost(dcv.moduleIndex, dcv.accountId, dcv.negativeImbalance.Value.Balance))
-		dcv.negativeImbalance.Value.Drop()
+		return dcv.negativeImbalance.Value.Drop()
 	}
+
+	return nil
 }

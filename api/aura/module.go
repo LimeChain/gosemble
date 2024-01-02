@@ -18,12 +18,14 @@ const (
 type Module struct {
 	aura     aura.AuraModule
 	memUtils utils.WasmMemoryTranslator
+	logger   log.Logger
 }
 
-func New(aura aura.AuraModule) Module {
+func New(aura aura.AuraModule, logger log.Logger) Module {
 	return Module{
 		aura:     aura,
 		memUtils: utils.NewMemoryTranslator(),
+		logger:   logger,
 	}
 }
 
@@ -41,7 +43,7 @@ func (m Module) Item() primitives.ApiItem {
 func (m Module) Authorities() int64 {
 	authorities, err := m.aura.GetAuthorities()
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	if !authorities.HasValue {

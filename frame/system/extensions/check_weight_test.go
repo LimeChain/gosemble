@@ -238,6 +238,26 @@ func Test_CheckWeight_PostDispatch_StorageBlockWeightError(t *testing.T) {
 
 	mockModule.AssertCalled(t, "StorageBlockWeight")
 }
+
+func Test_CheckWeight_PostDispatch_Reduce_Error(t *testing.T) {
+	dispatchInfoInvalidClass := &primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(1, 2),
+		Class:   primitives.DispatchClass{VaryingData: sc.NewVaryingData(sc.U8(99))},
+		PaysFee: primitives.PaysYes,
+	}
+	postInfo := &primitives.PostDispatchInfo{
+		ActualWeight: sc.NewOption[primitives.Weight](primitives.WeightFromParts(3, 1)),
+	}
+	target := setupCheckWeight()
+
+	mockModule.On("StorageBlockWeight").Return(consumedWeight, nil)
+
+	err := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfoInvalidClass, postInfo, sc.Compact{}, nil)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockModule.AssertCalled(t, "StorageBlockWeight")
+}
+
 func Test_CheckWeight_doValidate_Success(t *testing.T) {
 	target := setupCheckWeight()
 
@@ -469,12 +489,8 @@ func Test_CheckWeight_checkBlockLength_InvalidDispatch(t *testing.T) {
 	mockModule.On("BlockLength").Return(blockLength)
 	mockModule.On("StorageAllExtrinsicsLen").Return(storageLen, nil)
 
-	assert.PanicsWithValue(t,
-		errInvalidDispatchClass,
-		func() {
-			target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
-		},
-	)
+	_, err := target.checkBlockLength(dispatchInfo, sc.ToCompact(length))
+	assert.Equal(t, errInvalidDispatchClass, err)
 
 	mockModule.AssertCalled(t, "BlockLength")
 	mockModule.AssertCalled(t, "StorageAllExtrinsicsLen")
@@ -576,6 +592,23 @@ func Test_CheckWeight_checkExtrinsicWeight_NoMax(t *testing.T) {
 	result := target.checkExtrinsicWeight(dispatchInfo)
 
 	assert.Nil(t, result)
+	mockModule.AssertCalled(t, "BlockWeights")
+}
+
+func Test_CheckWeight_checkExtrinsicWeight_BlockWeights_Get_Error(t *testing.T) {
+	target := setupCheckWeight()
+
+	dispatchInfoInvalidClass := &primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(1, 2),
+		Class:   primitives.DispatchClass{VaryingData: sc.NewVaryingData()},
+		PaysFee: primitives.PaysYes,
+	}
+
+	mockModule.On("BlockWeights").Return(blockWeight)
+
+	err := target.checkExtrinsicWeight(dispatchInfoInvalidClass)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
 	mockModule.AssertCalled(t, "BlockWeights")
 }
 
@@ -699,6 +732,28 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_Success(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, expect, result)
+}
+
+func Test_CheckWeight_calculateConsumedWeight_MaximumWeight_Get_Error(t *testing.T) {
+	target := setupCheckWeight()
+
+	dispatchInfoInvalidClass := &primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(1, 2),
+		Class:   primitives.DispatchClass{VaryingData: sc.NewVaryingData()},
+		PaysFee: primitives.PaysYes,
+	}
+	_, err := target.calculateConsumedWeight(blockWeight, consumedWeight, dispatchInfoInvalidClass)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+}
+
+func Test_CheckWeight_maxLimit_ClassIs_Error(t *testing.T) {
+	dispatchInfoInvalidClass := &primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(1, 2),
+		Class:   primitives.DispatchClass{VaryingData: sc.NewVaryingData()},
+		PaysFee: primitives.PaysYes,
+	}
+	_, err := maxLimit(blockLength, dispatchInfoInvalidClass)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
 }
 
 func Test_CheckWeight_ModulePath(t *testing.T) {

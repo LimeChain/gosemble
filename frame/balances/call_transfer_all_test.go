@@ -24,6 +24,7 @@ func Test_Call_TransferAll_new(t *testing.T) {
 			constants:      testConstants,
 			accountMutator: mockMutator,
 		},
+		logger: logger,
 	}
 
 	assert.Equal(t, expected, target)
@@ -232,5 +233,5 @@ func setupCallTransferAll() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallTransferAll(moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator)
+	return newCallTransferAll(moduleId, functionTransferAllIndex, mockStoredMap, testConstants, mockMutator, logger)
 }

@@ -2,10 +2,8 @@ package system
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"reflect"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -27,7 +25,6 @@ const (
 
 type Module interface {
 	primitives.Module
-
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()
@@ -79,9 +76,10 @@ type module struct {
 	functions map[sc.U8]primitives.Call
 	trie      io.Trie
 	ioStorage io.Storage
+	logger    log.WarnLogger
 }
 
-func New(index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config, logger log.WarnLogger) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
 
@@ -95,6 +93,7 @@ func New(index sc.U8, config *Config) Module {
 		functions: functions,
 		trie:      io.NewTrie(),
 		ioStorage: io.NewStorage(),
+		logger:    logger,
 	}
 }
 
@@ -226,7 +225,7 @@ func (m module) RegisterExtraWeightUnchecked(weight primitives.Weight, class pri
 	}
 	err = currentWeight.Accrue(weight, class)
 	if err != nil {
-		log.Critical(err.Error())
+		return err
 	}
 	m.storage.BlockWeight.Put(currentWeight)
 	return nil
@@ -266,11 +265,11 @@ func (m module) NoteAppliedExtrinsic(postInfo primitives.PostDispatchInfo, postD
 
 	if dispatchErr, ok := postDispatchErr.(primitives.DispatchError); ok {
 		blockNum, err := m.StorageBlockNumber()
-		log.Trace(fmt.Sprintf("Extrinsic failed at block(%d): {%v}", blockNum, dispatchErr))
+		m.logger.Tracef("Extrinsic failed at block(%d): {%v}", blockNum, dispatchErr)
 		if err != nil {
 			return err
 		}
-		log.Trace("Extrinsic failed at block(" + strconv.Itoa(int(blockNum)) + "): {}")
+		m.logger.Tracef("Extrinsic failed at block(%d): {}", blockNum)
 
 		m.DepositEvent(newEventExtrinsicFailed(m.Index, dispatchErr, info))
 	} else {
@@ -451,7 +450,7 @@ func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Op
 		account := &maybeAccount.Value
 
 		if account.Providers == 0 {
-			log.Warn("Logic error: Unexpected underflow in reducing provider")
+			m.logger.Warn("Logic error: Unexpected underflow in reducing provider")
 			account.Providers = 1
 		}
 
@@ -469,7 +468,7 @@ func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Op
 		account.Providers = account.Providers - 1
 		return primitives.DecRefStatusExists, nil
 	} else {
-		log.Warn("Logic error: Account already dead when reducing provider")
+		m.logger.Warn("Logic error: Account already dead when reducing provider")
 		return primitives.DecRefStatusReaped, nil
 	}
 }

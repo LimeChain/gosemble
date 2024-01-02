@@ -29,13 +29,15 @@ type Transactional[T sc.Encodable] interface {
 type transactional[T sc.Encodable] struct {
 	storage           StorageValue[sc.U32]
 	transactionBroker io.TransactionBroker
+	logger            log.WarnLogger
 }
 
-func NewTransactional[T sc.Encodable]() Transactional[T] {
+func NewTransactional[T sc.Encodable](logger log.WarnLogger) Transactional[T] {
 	storageVal := NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32)
 	return transactional[T]{
 		storage:           storageVal,
 		transactionBroker: io.NewTransactionBroker(),
+		logger:            logger,
 	}
 }
 
@@ -76,7 +78,7 @@ func (t transactional[T]) DecTransactionLevel() error {
 		return err
 	}
 	if existingLevels == 0 {
-		log.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
+		t.logger.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
 	} else if existingLevels == 1 {
 		// Don't leave any trace of this storage item.
 		t.KillTransactionLevel()
@@ -119,8 +121,7 @@ func (t transactional[T]) WithTransaction(fn func() types.TransactionOutcome) (o
 		t.DecTransactionLevel()
 		return ok, res[1].(error)
 	default:
-		log.Critical(errInvalidTransactionOutcome.Error())
-		return ok, nil
+		return ok, types.NewDispatchErrorOther(sc.Str(errInvalidTransactionOutcome.Error()))
 	}
 }
 

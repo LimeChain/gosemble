@@ -19,9 +19,9 @@ func (m *TransactionPaymentModule) CreateInherent(inherent types.InherentData) (
 	return args.Get(0).(sc.Option[types.Call]), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
+func (m *TransactionPaymentModule) CheckInherent(call types.Call, data types.InherentData) error {
 	args := m.Called(call, data)
-	return args.Get(0).(types.FatalError)
+	return args.Get(0).(error)
 }
 
 func (m *TransactionPaymentModule) InherentIdentifier() [8]byte {

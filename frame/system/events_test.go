@@ -120,21 +120,19 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	)
 }
 
-func Test_System_DecodeEvent_InvalidModule_Panics(t *testing.T) {
+func Test_System_DecodeEvent_InvalidModule(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(5)
 
-	assert.PanicsWithValue(t, errInvalidEventModule, func() {
-		DecodeEvent(moduleId, buffer)
-	})
+	_, err := DecodeEvent(moduleId, buffer)
+	assert.Equal(t, errInvalidEventModule, err)
 }
 
-func Test_System_DecodeEvent_InvalidType_Panics(t *testing.T) {
+func Test_System_DecodeEvent_InvalidType(t *testing.T) {
 	buffer := &bytes.Buffer{}
 	buffer.WriteByte(moduleId)
 	buffer.WriteByte(255)
 
-	assert.PanicsWithValue(t, errInvalidEventType, func() {
-		DecodeEvent(moduleId, buffer)
-	})
+	_, err := DecodeEvent(moduleId, buffer)
+	assert.Equal(t, errInvalidEventType, err)
 }

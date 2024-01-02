@@ -3,6 +3,7 @@ package types
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -18,12 +19,12 @@ type checkedExtrinsic struct {
 	transactional support.Transactional[primitives.PostDispatchInfo]
 }
 
-func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId], function primitives.Call, extra primitives.SignedExtra) primitives.CheckedExtrinsic {
+func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId], function primitives.Call, extra primitives.SignedExtra, logger log.WarnLogger) primitives.CheckedExtrinsic {
 	return checkedExtrinsic{
 		signer:        signer,
 		function:      function,
 		extra:         extra,
-		transactional: support.NewTransactional[primitives.PostDispatchInfo](),
+		transactional: support.NewTransactional[primitives.PostDispatchInfo](logger),
 	}
 }
 

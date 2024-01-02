@@ -216,12 +216,9 @@ func Test_Call_Set_Dispatch_InvalidStorageDidUpdate(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(true)
 
-	assert.PanicsWithValue(
-		t,
-		errTimestampUpdatedOnce,
-		func() {
-			target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-		})
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampUpdatedOnce.Error())), err)
+
 	mockStorageNow.AssertNotCalled(t, "Get")
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
@@ -233,11 +230,8 @@ func Test_Call_Set_Dispatch_InvalidPreviousTimestamp(t *testing.T) {
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1000), nil)
 
-	assert.PanicsWithValue(t,
-		errTimestampMinimumPeriod,
-		func() {
-			target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-		})
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), err)
 
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
@@ -249,11 +243,9 @@ func Test_Call_Set_Dispatch_InvalidLessThanMinPeriod(t *testing.T) {
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1001), nil)
 
-	assert.PanicsWithValue(t,
-		errTimestampMinimumPeriod,
-		func() {
-			target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-		})
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), err)
+
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
 	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")

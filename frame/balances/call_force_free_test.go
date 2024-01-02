@@ -51,6 +51,7 @@ func Test_Call_ForceFree_new(t *testing.T) {
 			constants:      testConstants,
 			accountMutator: mockMutator,
 		},
+		logger: logger,
 	}
 
 	assert.Equal(t, expected, target)
@@ -277,5 +278,5 @@ func setupCallForceFree() primitives.Call {
 	mockStoredMap = new(mocks.StoredMap)
 	mockMutator = new(mockAccountMutator)
 
-	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator)
+	return newCallForceFree(moduleId, sc.U8(functionForceFreeIndex), mockStoredMap, testConstants, mockMutator, logger)
 }

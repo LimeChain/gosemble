@@ -6,6 +6,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/primitives/io"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -73,7 +74,7 @@ func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (p
 	storage := io.NewStorage()
 	storage.Set([]byte("testvalue"), []byte{1})
 
-	transactional := support.NewTransactional[primitives.PostDispatchInfo]()
+	transactional := support.NewTransactional[primitives.PostDispatchInfo](log.NewLogger())
 	// TODO: handle err
 	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, error) {
 		storage.Set([]byte("testvalue"), []byte{2})

@@ -392,7 +392,7 @@ func setupCheckedExtrinsic(signer sc.Option[types.AccountId]) checkedExtrinsic {
 	mockTransactional = new(mocks.IoTransactional[types.PostDispatchInfo])
 	mockUnsignedValidator = new(mocks.UnsignedValidator)
 
-	target := NewCheckedExtrinsic(signer, mockCall, mockSignedExtra).(checkedExtrinsic)
+	target := NewCheckedExtrinsic(signer, mockCall, mockSignedExtra, logger).(checkedExtrinsic)
 	target.transactional = mockTransactional
 
 	return target

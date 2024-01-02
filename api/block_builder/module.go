@@ -31,14 +31,16 @@ type Module struct {
 	executive        executive.Module
 	decoder          types.RuntimeDecoder
 	memUtils         utils.WasmMemoryTranslator
+	logger           log.Logger
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.RuntimeDecoder) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
 	return Module{
 		runtimeExtrinsic: runtimeExtrinsic,
 		executive:        executive,
 		decoder:          decoder,
 		memUtils:         utils.NewMemoryTranslator(),
+		logger:           logger,
 	}
 }
 
@@ -64,7 +66,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 
 	uxt, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	err = m.executive.ApplyExtrinsic(uxt)
@@ -80,13 +82,13 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 		applyExtrinsicResult, err = primitives.NewApplyExtrinsicResult(dispatchOutcome)
 	}
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	buffer.Reset()
 	err = applyExtrinsicResult.Encode(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(buffer.Bytes())
@@ -98,7 +100,7 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 func (m Module) FinalizeBlock() int64 {
 	header, err := m.executive.FinalizeBlock()
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	encodedHeader := header.Bytes()
 	return m.memUtils.BytesToOffsetAndSize(encodedHeader)
@@ -117,12 +119,12 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	result, err := m.runtimeExtrinsic.CreateInherents(*inherentData)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(result)
@@ -141,15 +143,18 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 
 	block, err := m.decoder.DecodeBlock(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	inherentData, err := primitives.DecodeInherentData(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
-	result := m.runtimeExtrinsic.CheckInherents(*inherentData, block)
+	result, err := m.runtimeExtrinsic.CheckInherents(*inherentData, block)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
 
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }

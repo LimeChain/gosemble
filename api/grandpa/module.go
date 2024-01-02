@@ -18,12 +18,14 @@ const (
 type Module struct {
 	grandpa  grandpa.GrandpaModule
 	memUtils utils.WasmMemoryTranslator
+	logger   log.Logger
 }
 
-func New(grandpa grandpa.GrandpaModule) Module {
+func New(grandpa grandpa.GrandpaModule, logger log.Logger) Module {
 	return Module{
 		grandpa:  grandpa,
 		memUtils: utils.NewMemoryTranslator(),
+		logger:   logger,
 	}
 }
 
@@ -39,7 +41,7 @@ func (m Module) Item() primitives.ApiItem {
 func (m Module) Authorities() int64 {
 	authorities, err := m.grandpa.Authorities()
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	return m.memUtils.BytesToOffsetAndSize(authorities.Bytes())
 }

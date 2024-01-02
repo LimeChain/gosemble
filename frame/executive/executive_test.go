@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/execution/extrinsic"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -133,11 +134,13 @@ func setup() {
 	mockStorageBlockNumber = new(mocks.StorageValue[sc.U64])
 	mockStorageBlockWeight = new(mocks.StorageValue[primitives.ConsumedWeight])
 	mockIoHashing = new(mocks.IoHashing)
+	logger := log.NewLogger()
 
 	target = New(
 		mockSystemModule,
 		mockRuntimeExtrinsic,
 		mockOnRuntimeUpgradeHook,
+		logger,
 	).(module)
 	target.hashing = mockIoHashing
 
@@ -220,9 +223,9 @@ func Test_Executive_ExecuteBlock_InvalidParentHash(t *testing.T) {
 	invalidParentHash, _ := primitives.NewBlake2bHash(sc.BytesToSequenceU8([]byte("abcdefghijklmnopqrstuvwxyz123450"))...)
 	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(invalidParentHash, nil)
 
-	assert.PanicsWithValue(t, "parent hash should be valid", func() {
-		target.ExecuteBlock(block)
-	})
+	err := target.ExecuteBlock(block)
+
+	assert.Equal(t, errInvalidParentHash, err)
 }
 
 func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
@@ -246,9 +249,9 @@ func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
 	mockSystemModule.On("NoteFinishedInitialize")
 	mockRuntimeExtrinsic.On("EnsureInherentsAreFirst", block).Return(0)
 
-	assert.PanicsWithValue(t, "invalid inherent position for extrinsic at index [0]", func() {
-		target.ExecuteBlock(block)
-	})
+	err := target.ExecuteBlock(block)
+
+	assert.Equal(t, "invalid inherent position for extrinsic at index [0]", err.Error())
 }
 
 func Test_Executive_ExecuteBlock_Success(t *testing.T) {
@@ -549,13 +552,9 @@ func Test_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error_Panics(t *testin
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check").Return(nil, expectedErr)
 
-	assert.PanicsWithValue(t,
-		expectedErr.Error(),
-		func() {
-			target.executeExtrinsicsWithBookKeeping(block)
-		},
-	)
+	err := target.executeExtrinsicsWithBookKeeping(block)
 
+	assert.Equal(t, expectedErr, err)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
 	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 }

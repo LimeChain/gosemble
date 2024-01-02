@@ -2,7 +2,6 @@ package balances
 
 import (
 	"bytes"
-	"fmt"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -13,15 +12,17 @@ import (
 type callTransferAll struct {
 	primitives.Callable
 	transfer
+	logger log.DebugLogger
 }
 
-func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator) primitives.Call {
+func newCallTransferAll(moduleId sc.U8, functionId sc.U8, storedMap primitives.StoredMap, constants *consts, mutator accountMutator, logger log.DebugLogger) primitives.Call {
 	call := callTransferAll{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
+		logger:   logger,
 	}
 
 	return call
@@ -106,7 +107,7 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 
 	transactor, err := origin.AsSigned()
 	if err != nil {
-		log.Critical(err.Error())
+		return primitives.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
 
 	reducibleBalance, err := c.reducibleBalance(transactor, keepAlive)
@@ -116,7 +117,7 @@ func (c callTransferAll) transferAll(origin types.RawOrigin, dest types.MultiAdd
 
 	to, errLookup := types.Lookup(dest)
 	if errLookup != nil {
-		log.Debug(fmt.Sprintf("Failed to lookup [%s]", dest.Bytes()))
+		c.logger.Debugf("Failed to lookup [%s]", dest.Bytes())
 		return types.NewDispatchErrorCannotLookup()
 	}
 

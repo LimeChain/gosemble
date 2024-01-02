@@ -2,6 +2,8 @@ package transaction_payment
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -10,6 +12,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,6 +35,8 @@ var (
 		Class:   dispatchInfoClass,
 		PaysFee: dispatchInfoPays,
 	}
+
+	errPanic = errors.New("panic")
 )
 
 var (
@@ -135,6 +140,78 @@ func Test_Module_QueryInfo_Unsigned(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", runtimeDispatchInfo.Bytes())
 }
 
+func Test_Module_QueryInfo_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryInfo(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+
+}
+
+func Test_Module_QueryInfo_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer([]byte{})
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.QueryInfo(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockTransactionPayment.AssertNotCalled(t, "ComputeFee", mock.Anything, mock.Anything, mock.Anything)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
+func Test_Module_QueryInfo_ComputeFee_Panics(t *testing.T) {
+	target := setup()
+
+	partialFee := sc.NewU128(10)
+	bufferUxt := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
+	mockUxt.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
+	mockUxt.On("IsSigned").Return(true)
+	mockTransactionPayment.On("ComputeFee", length, dispatchInfo, constants.DefaultTip).Return(partialFee, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryInfo(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockUxt.AssertCalled(t, "IsSigned")
+	mockTransactionPayment.AssertCalled(t, "ComputeFee", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
 func Test_Module_QueryFeeDetails_Signed(t *testing.T) {
 	target := setup()
 
@@ -208,6 +285,83 @@ func Test_Module_QueryFeeDetails_Unsigned(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", feeDetails.Bytes())
 }
 
+func Test_Module_QueryFeeDetails_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryFeeDetails(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertNotCalled(t, "IsSigned")
+}
+
+func Test_Module_QueryFeeDetails_DecodeU32_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer([]byte{})
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.QueryFeeDetails(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertNotCalled(t, "IsSigned")
+}
+
+func Test_Module_QueryFeeDetails_ComputeFeeDetails_Panics(t *testing.T) {
+	target := setup()
+
+	feeDetails := types.FeeDetails{
+		InclusionFee: sc.NewOption[types.InclusionFee](
+			types.NewInclusionFee(
+				sc.NewU128(9),
+				sc.NewU128(8),
+				sc.NewU128(7),
+			)),
+		Tip: constants.DefaultTip,
+	}
+	bufferUxt := bytes.NewBuffer(length.Bytes())
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(length.Bytes())
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(mockUxt, nil)
+	mockUxt.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfoWeight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfoClass)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfoPays)
+	mockUxt.On("IsSigned").Return(true)
+	mockTransactionPayment.On("ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip).Return(feeDetails, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.QueryFeeDetails(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockUxt.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockUxt.AssertCalled(t, "IsSigned")
+	mockTransactionPayment.AssertCalled(t, "ComputeFeeDetails", length, dispatchInfo, constants.DefaultTip)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
@@ -258,7 +412,7 @@ func setup() Module {
 	mockUxt = new(mocks.UncheckedExtrinsic)
 	mockCall = new(mocks.Call)
 
-	target := New(mockRuntimeDecoder, mockTransactionPayment)
+	target := New(mockRuntimeDecoder, mockTransactionPayment, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

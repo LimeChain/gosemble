@@ -2,6 +2,8 @@ package core
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -9,8 +11,10 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -27,6 +31,8 @@ var (
 		TransactionVersion: 4,
 		StateVersion:       5,
 	}
+
+	errPanic = errors.New("panic")
 )
 
 var (
@@ -89,6 +95,48 @@ func Test_Module_InitializeBlock(t *testing.T) {
 	mockExecutive.AssertCalled(t, "InitializeBlock", header)
 }
 
+func Test_Module_InitializeBlock_DecodeHeader_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.InitializeBlock(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertNotCalled(t, "InitializeBlock", mock.Anything)
+
+}
+
+func Test_Module_InitializeBlock_InitializeBlock_Panics(t *testing.T) {
+	target := setup()
+
+	parentHash := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355c").ToBytes()
+	stateRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355b").ToBytes()
+	extrinsicsRoot := common.MustHexToHash("0x3aa96b0149b6ca3688878bdbd19464448624136398e3ce45b9e755d3ab61355a").ToBytes()
+	header := primitives.Header{
+		ParentHash: primitives.Blake2bHash{
+			FixedSequence: sc.BytesToFixedSequenceU8(parentHash)},
+		Number:         5,
+		StateRoot:      primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(stateRoot)},
+		ExtrinsicsRoot: primitives.H256{FixedSequence: sc.BytesToFixedSequenceU8(extrinsicsRoot)},
+		Digest:         primitives.NewDigest(sc.Sequence[primitives.DigestItem]{}),
+	}
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(header.Bytes())
+	mockExecutive.On("InitializeBlock", header).Return(errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.InitializeBlock(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockExecutive.AssertCalled(t, "InitializeBlock", header)
+}
+
 func Test_Module_ExecuteBlock(t *testing.T) {
 	target := setup()
 	bBlock := []byte{1, 2, 3}
@@ -102,7 +150,42 @@ func Test_Module_ExecuteBlock(t *testing.T) {
 	target.ExecuteBlock(dataPtr, dataLen)
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
-	mockRuntimeDecoder.AssertCalled(t, "DecodeBlock", buffer)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertCalled(t, "ExecuteBlock", block)
+}
+
+func Test_Module_ExecuteBlock_DecodeBlock_Panics(t *testing.T) {
+	target := setup()
+	bBlock := []byte{1, 2, 3}
+	block := types.NewBlock(primitives.Header{Number: 2}, sc.Sequence[primitives.UncheckedExtrinsic]{})
+	buffer := bytes.NewBuffer(bBlock)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bBlock)
+	mockRuntimeDecoder.On("DecodeBlock", buffer).Return(block, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.ExecuteBlock(dataPtr, dataLen) },
+	)
+}
+
+func Test_Module_ExecuteBlock_ExecuteBlock_Panics(t *testing.T) {
+	target := setup()
+	bBlock := []byte{1, 2, 3}
+	block := types.NewBlock(primitives.Header{Number: 2}, sc.Sequence[primitives.UncheckedExtrinsic]{})
+	buffer := bytes.NewBuffer(bBlock)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bBlock)
+	mockRuntimeDecoder.On("DecodeBlock", buffer).Return(block, nil)
+	mockExecutive.On("ExecuteBlock", block).Return(errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.ExecuteBlock(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ExecuteBlock", block)
 }
 
@@ -152,7 +235,7 @@ func setup() Module {
 	mockRuntimeDecoder = new(mocks.RuntimeDecoder)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockExecutive, mockRuntimeDecoder, version)
+	target := New(mockExecutive, mockRuntimeDecoder, version, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

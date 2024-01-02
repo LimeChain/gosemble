@@ -11,6 +11,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,8 +22,9 @@ var (
 	dataLen    = int32(1)
 	ptrAndSize = int64(5)
 
-	bUxt = []byte("unchecked_extrinsic")
-	uxt  = new(mocks.UncheckedExtrinsic)
+	bUxt     = []byte("unchecked_extrinsic")
+	uxt      = new(mocks.UncheckedExtrinsic)
+	errPanic = errors.New("panic")
 )
 
 var (
@@ -133,13 +135,34 @@ func Test_Module_ApplyExtrinsic_Panics(t *testing.T) {
 	mockExecutive.On("ApplyExtrinsic", uxt).Return(expectedErr)
 
 	assert.PanicsWithValue(t,
-		expectedErr.Error(),
+		errPanic.Error(),
 		func() { target.ApplyExtrinsic(dataPtr, dataLen) },
 	)
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ApplyExtrinsic", uxt)
+}
+
+func Test_Module_ApplyExtrinsic_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
+	target := setup()
+
+	bufferUxt := bytes.NewBuffer(bUxt)
+	outcome, err := primitives.NewDispatchOutcome(sc.Empty{})
+	assert.Nil(t, err)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bUxt)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", bufferUxt).Return(uxt, errPanic)
+	mockExecutive.On("ApplyExtrinsic", uxt).Return(outcome, nil)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.ApplyExtrinsic(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertNotCalled(t, "ApplyExtrinsic", uxt)
 }
 
 func Test_Module_FinalizeBlock(t *testing.T) {
@@ -164,6 +187,20 @@ func Test_Module_FinalizeBlock(t *testing.T) {
 	assert.Equal(t, ptrAndSize, result)
 	mockExecutive.AssertCalled(t, "FinalizeBlock")
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", header.Bytes())
+}
+
+func Test_Module_FinalizeBlock_Panics(t *testing.T) {
+	target := setup()
+
+	mockExecutive.On("FinalizeBlock").Return(primitives.Header{}, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.FinalizeBlock() },
+	)
+
+	mockExecutive.AssertCalled(t, "FinalizeBlock")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
 func Test_Module_InherentExtrinsics_Success(t *testing.T) {
@@ -202,6 +239,26 @@ func Test_Module_InherentExtrinsics_InvalidInherentData(t *testing.T) {
 	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
+func Test_Module_InherentExtrinsics_CreateInherents_Panics(t *testing.T) {
+	target := setup()
+
+	bInherentData := sc.ToCompact(0).Bytes()
+	inherentData := primitives.NewInherentData()
+	bCreate := []byte{1}
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
+	mockRuntimeExtrinsic.On("CreateInherents", *inherentData).Return(bCreate, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.InherentExtrinsics(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeExtrinsic.AssertCalled(t, "CreateInherents", *inherentData)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
 func Test_Module_CheckInherents_Success(t *testing.T) {
 	target := setup()
 
@@ -213,7 +270,7 @@ func Test_Module_CheckInherents_Success(t *testing.T) {
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
 	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block, nil)
-	mockRuntimeExtrinsic.On("CheckInherents", *inherentData, block).Return(checkResult)
+	mockRuntimeExtrinsic.On("CheckInherents", *inherentData, block).Return(checkResult, nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", checkResult.Bytes()).Return(ptrAndSize)
 
 	result := target.CheckInherents(dataPtr, dataLen)
@@ -243,6 +300,50 @@ func Test_Module_CheckInherents_InvalidInherentData(t *testing.T) {
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockRuntimeExtrinsic.AssertNotCalled(t, "CheckInherents", mock.Anything)
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
+}
+
+func Test_Module_CheckInherents_DecodeBlock_Panics(t *testing.T) {
+	target := setup()
+
+	block := types.NewBlock(primitives.Header{Number: 1}, sc.Sequence[primitives.UncheckedExtrinsic]{})
+	bInherentData := sc.ToCompact(0).Bytes()
+	bufferData := bytes.NewBuffer(bInherentData)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
+	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.CheckInherents(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockRuntimeExtrinsic.AssertNotCalled(t, "CheckInherents", mock.Anything, mock.Anything)
+}
+
+func Test_Module_CheckInherents_CheckInherents_Panics(t *testing.T) {
+	target := setup()
+
+	block := types.NewBlock(primitives.Header{Number: 1}, sc.Sequence[primitives.UncheckedExtrinsic]{})
+	bInherentData := sc.ToCompact(0).Bytes()
+	bufferData := bytes.NewBuffer(bInherentData)
+	inherentData := primitives.NewInherentData()
+	checkResult := primitives.NewCheckInherentsResult()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(bInherentData)
+	mockRuntimeDecoder.On("DecodeBlock", bufferData).Return(block, nil)
+	mockRuntimeExtrinsic.On("CheckInherents", *inherentData, block).Return(checkResult, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.CheckInherents(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockRuntimeExtrinsic.AssertCalled(t, "CheckInherents", *inherentData, block)
 	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", mock.Anything)
 }
 
@@ -311,7 +412,7 @@ func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic, mockExecutive, mockRuntimeDecoder)
+	target := New(mockRuntimeExtrinsic, mockExecutive, mockRuntimeDecoder, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

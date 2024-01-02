@@ -29,14 +29,16 @@ type Module struct {
 	decoder        types.RuntimeDecoder
 	runtimeVersion *primitives.RuntimeVersion
 	memUtils       utils.WasmMemoryTranslator
+	logger         log.Logger
 }
 
-func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *primitives.RuntimeVersion) Module {
+func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *primitives.RuntimeVersion, logger log.Logger) Module {
 	return Module{
 		executive:      module,
 		decoder:        decoder,
 		runtimeVersion: runtimeVersion,
 		memUtils:       utils.NewMemoryTranslator(),
+		logger:         logger,
 	}
 }
 
@@ -68,12 +70,12 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	buffer := bytes.NewBuffer(data)
 	header, err := primitives.DecodeHeader(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	err = m.executive.InitializeBlock(header)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 }
 
@@ -88,12 +90,12 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	buffer := bytes.NewBuffer(data)
 	block, err := m.decoder.DecodeBlock(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	err = m.executive.ExecuteBlock(block)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 }
 

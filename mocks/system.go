@@ -19,9 +19,9 @@ func (m *SystemModule) CreateInherent(inherent primitives.InherentData) (sc.Opti
 	return args.Get(0).(sc.Option[primitives.Call]), args.Get(1).(error)
 }
 
-func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) primitives.FatalError {
+func (m *SystemModule) CheckInherent(call primitives.Call, data primitives.InherentData) error {
 	args := m.Called(call, data)
-	return args.Get(0).(primitives.FatalError)
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) InherentIdentifier() [8]byte {

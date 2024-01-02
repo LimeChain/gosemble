@@ -7,7 +7,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/system"
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -60,7 +59,12 @@ func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call prim
 
 	tip := ctp.fee
 	validTransaction := primitives.DefaultValidTransaction()
-	validTransaction.Priority = ctp.getPriority(info, length, tip, finalFee)
+	priority, err := ctp.getPriority(info, length, tip, finalFee)
+	if err != nil {
+		return primitives.ValidTransaction{}, err
+	}
+
+	validTransaction.Priority = priority
 
 	return validTransaction, nil
 }
@@ -112,13 +116,13 @@ func (ctp ChargeTransactionPayment) PreDispatchUnsigned(call primitives.Call, in
 	return err
 }
 
-func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) primitives.TransactionPriority {
+func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, len sc.Compact, tip primitives.Balance, finalFee primitives.Balance) (primitives.TransactionPriority, error) {
 	maxBlockWeight := ctp.systemModule.BlockWeights().MaxBlock.RefTime
 	maxDefaultBlockLength := ctp.systemModule.BlockLength().Max
 
 	value, err := maxDefaultBlockLength.Get(info.Class)
 	if err != nil {
-		log.Critical(err.Error())
+		return 0, err
 	}
 	maxBlockLength := sc.U64(*value)
 
@@ -154,23 +158,23 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 	isNormal, infoClassErr := info.Class.Is(primitives.DispatchClassNormal)
 	if infoClassErr != nil {
-		log.Critical(infoClassErr.Error())
+		return 0, infoClassErr
 	}
 	if isNormal {
-		return sc.U64(scaledTip.ToBigInt().Uint64())
+		return sc.U64(scaledTip.ToBigInt().Uint64()), nil
 	}
 
 	isMandatory, infoClassErr := info.Class.Is(primitives.DispatchClassMandatory)
 	if infoClassErr != nil {
-		log.Critical(infoClassErr.Error())
+		return 0, infoClassErr
 	}
 	if isMandatory {
-		return sc.U64(scaledTip.ToBigInt().Uint64())
+		return sc.U64(scaledTip.ToBigInt().Uint64()), nil
 	}
 
 	isOperational, infoClassErr := info.Class.Is(primitives.DispatchClassOperational)
 	if infoClassErr != nil {
-		log.Critical(infoClassErr.Error())
+		return 0, infoClassErr
 	}
 	if isOperational {
 		feeMultiplier := ctp.txPaymentModule.OperationalFeeMultiplier()
@@ -179,10 +183,10 @@ func (ctp ChargeTransactionPayment) getPriority(info *primitives.DispatchInfo, l
 
 		sum := scaledTip.Add(scaledVirtualTip)
 
-		return sc.U64(sum.ToBigInt().Uint64())
+		return sc.U64(sum.ToBigInt().Uint64()), nil
 	}
 
-	return 0
+	return 0, nil
 }
 
 func (ctp ChargeTransactionPayment) withdrawFee(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Balance, sc.Option[primitives.Balance], error) {

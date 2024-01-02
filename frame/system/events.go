@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -19,9 +18,9 @@ const (
 	EventRemarked
 )
 
-const (
-	errInvalidEventModule = "invalid system.Event module"
-	errInvalidEventType   = "invalid system.Event type"
+var (
+	errInvalidEventModule = errors.New("invalid system.Event module")
+	errInvalidEventType   = errors.New("invalid system.Event type")
 )
 
 func newEventExtrinsicSuccess(moduleIndex sc.U8, dispatchInfo types.DispatchInfo) types.Event {
@@ -54,7 +53,7 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 		return types.Event{}, err
 	}
 	if decodedModuleIndex != moduleIndex {
-		log.Critical(errInvalidEventModule)
+		return types.Event{}, errInvalidEventModule
 	}
 
 	b, err := sc.DecodeU8(buffer)
@@ -104,7 +103,6 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 		}
 		return newEventRemarked(moduleIndex, account, hash), nil
 	default:
-		log.Critical(errInvalidEventType)
-		return types.Event{}, errors.New(errInvalidEventType)
+		return types.Event{}, errInvalidEventType
 	}
 }
