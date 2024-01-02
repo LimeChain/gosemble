@@ -21,13 +21,15 @@ type Module struct {
 	sessions []types.Session
 	crypto   io.Crypto
 	memUtils utils.WasmMemoryTranslator
+	logger   log.Logger
 }
 
-func New(sessions []types.Session) Module {
+func New(sessions []types.Session, logger log.Logger) Module {
 	return Module{
 		sessions: sessions,
 		crypto:   io.NewCrypto(),
 		memUtils: utils.NewMemoryTranslator(),
+		logger:   logger,
 	}
 }
 
@@ -54,7 +56,7 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 
 	seed, err := sc.DecodeOptionWith(buffer, sc.DecodeSequence[sc.U8])
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	var publicKeys []byte
@@ -83,7 +85,7 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	buffer := bytes.NewBuffer(b)
 	sequence, err := sc.DecodeSequenceWith(buffer, sc.DecodeU8)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(sequence))
@@ -91,7 +93,7 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	for _, session := range m.sessions {
 		pk, err := types.DecodeAccountId(buffer)
 		if err != nil {
-			log.Critical(err.Error())
+			m.logger.Critical(err.Error())
 		}
 		sessionKey := types.NewSessionKey(pk.Bytes(), session.KeyTypeId())
 		sessionKeys = append(sessionKeys, sessionKey)
@@ -155,7 +157,7 @@ func getKeyFunction(m Module, keyType types.PublicKeyType) func([]byte, []byte) 
 	case types.PublicKeyEcdsa:
 		return m.crypto.EcdsaGenerate
 	default:
-		log.Critical("invalid public key type")
+		m.logger.Critical("invalid public key type")
 	}
 
 	panic("unreachable")

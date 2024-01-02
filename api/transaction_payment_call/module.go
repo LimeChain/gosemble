@@ -23,13 +23,15 @@ type Module struct {
 	decoder    types.RuntimeDecoder
 	txPayments transaction_payment.Module
 	memUtils   utils.WasmMemoryTranslator
+	logger     log.Logger
 }
 
-func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module) Module {
+func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module, logger log.Logger) Module {
 	return Module{
 		decoder:    decoder,
 		txPayments: txPayments,
 		memUtils:   utils.NewMemoryTranslator(),
+		logger:     logger,
 	}
 }
 
@@ -55,17 +57,17 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 
 	call, err := m.decoder.DecodeCall(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
 	partialFee, err := m.txPayments.ComputeFee(length, dispatchInfo, constants.DefaultTip)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	runtimeDispatchInfo := primitives.RuntimeDispatchInfo{
@@ -90,17 +92,17 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 
 	call, err := m.decoder.DecodeCall(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	length, err := sc.DecodeU32(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	dispatchInfo := primitives.GetDispatchInfo(call)
 	feeDetails, err := m.txPayments.ComputeFeeDetails(length, dispatchInfo, constants.DefaultTip)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())

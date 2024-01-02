@@ -83,9 +83,9 @@ func (m *AuraModule) CreateInherent(inherent types.InherentData) (sc.Option[type
 	return args.Get(0).(sc.Option[types.Call]), args.Error(1)
 }
 
-func (m *AuraModule) CheckInherent(call types.Call, data types.InherentData) types.FatalError {
+func (m *AuraModule) CheckInherent(call types.Call, data types.InherentData) error {
 	args := m.Called(call, data)
-	return args.Get(0).(types.FatalError)
+	return args.Get(0).(error)
 }
 
 func (m *AuraModule) InherentIdentifier() [8]byte {

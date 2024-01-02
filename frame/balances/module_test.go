@@ -7,6 +7,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/balances/types"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -14,10 +15,8 @@ import (
 
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-)
-
-var (
-	mockTypeMutateAccountData = mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	mockTypeMutateAccountData             = mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	logger                                = log.NewLogger()
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -885,5 +884,5 @@ func setupModule() Module {
 		Free: sc.NewU128(1),
 	}
 
-	return New(moduleId, config)
+	return New(moduleId, config, logger)
 }

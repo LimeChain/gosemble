@@ -5,7 +5,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -62,7 +61,7 @@ func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, error)
 func (cm CheckMortality) Validate(_who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	currentBlockNum, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {
-		log.Critical(err.Error())
+		return primitives.ValidTransaction{}, err
 	}
 
 	validTill := cm.era.Death(currentBlockNum)

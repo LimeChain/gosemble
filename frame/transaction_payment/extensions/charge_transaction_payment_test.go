@@ -187,6 +187,33 @@ func Test_Validate_Operational_NoError(t *testing.T) {
 	assert.Equal(t, expectedValidTransaction, res)
 }
 
+func Test_Validate_Operational_getPriority_Error(t *testing.T) {
+	setup(txFee)
+
+	expectedValidTransaction := types.DefaultValidTransaction()
+	expectedValidTransaction.Priority = sc.U64(42)
+
+	dispatchInfoInvalidClass := types.DispatchInfo{
+		Weight:  types.WeightFromParts(1, 2),
+		Class:   types.DispatchClass{VaryingData: sc.NewVaryingData(sc.U8(99))},
+		PaysFee: types.PaysYes,
+	}
+
+	mockTxPaymentModule.On("ComputeFee", extLen, dispatchInfoInvalidClass, txTip).Return(txFee, nil)
+	mockOnChargeTransaction.On("WithdrawFee", whoAccountId, mockCall, &dispatchInfoInvalidClass, txTip, txFee).
+		Return(sc.NewOption[types.Balance](sc.NewU128(1)), nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockSystemModule.On("BlockLength").Return(blockLength)
+
+	_, err := targetChargeTxPayment.Validate(whoAccountId, mockCall, &dispatchInfoInvalidClass, sc.ToCompact(extLen))
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockTxPaymentModule.AssertCalled(t, "ComputeFee", extLen, dispatchInfoInvalidClass, txTip)
+	mockOnChargeTransaction.AssertCalled(t, "WithdrawFee", whoAccountId, mockCall, &dispatchInfoInvalidClass, txTip, txFee)
+	mockSystemModule.AssertCalled(t, "BlockWeights")
+	mockSystemModule.AssertCalled(t, "BlockLength")
+}
+
 func Test_ValidateUnsigned(t *testing.T) {
 	setup(txFee)
 
@@ -352,7 +379,8 @@ func Test_getPriority(t *testing.T) {
 	mockSystemModule.On("BlockWeights").Return(blockWeights)
 	mockSystemModule.On("BlockLength").Return(blockLength)
 
-	priority := targetChargeTxPayment.getPriority(&info, sc.ToCompact(extLen), txTip, txFee)
+	priority, err := targetChargeTxPayment.getPriority(&info, sc.ToCompact(extLen), txTip, txFee)
+	assert.NoError(t, err)
 
 	mockSystemModule.AssertCalled(t, "BlockWeights")
 	mockSystemModule.AssertCalled(t, "BlockLength")

@@ -2,16 +2,16 @@ package timestamp
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-const (
-	errTimestampUpdatedOnce   = "Timestamp must be updated only once in the block"
-	errTimestampMinimumPeriod = "Timestamp must increment by at least <MinimumPeriod> between sequential blocks"
+var (
+	errTimestampUpdatedOnce   = errors.New("Timestamp must be updated only once in the block")
+	errTimestampMinimumPeriod = errors.New("Timestamp must increment by at least <MinimumPeriod> between sequential blocks")
 )
 
 type callSet struct {
@@ -134,7 +134,12 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	didUpdate := c.storage.DidUpdate.Exists()
 	if didUpdate {
-		log.Critical(errTimestampUpdatedOnce)
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+			HasError: true,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: primitives.NewDispatchErrorOther(sc.Str(errTimestampUpdatedOnce.Error())),
+			},
+		}
 	}
 
 	previousTimestamp, err := c.storage.Now.Get()
@@ -149,7 +154,12 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) primitives.Dis
 
 	if !(previousTimestamp == 0 ||
 		now >= previousTimestamp+c.constants.MinimumPeriod) {
-		log.Critical(errTimestampMinimumPeriod)
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+			HasError: true,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())),
+			},
+		}
 	}
 
 	c.storage.Now.Put(now)

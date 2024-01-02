@@ -31,6 +31,7 @@ import (
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -59,14 +60,11 @@ var RuntimeVersion = &primitives.RuntimeVersion{
 }
 
 var (
-	balancesExistentialDeposit = 1 * constants.Dollar
-	BalancesExistentialDeposit = sc.NewU128(balancesExistentialDeposit)
+	BalancesExistentialDeposit = sc.NewU128(1 * constants.Dollar)
 )
 
 var (
-	BlockWeights = system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
-	BlockLength  = system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
-	DbWeight     = constants.RocksDbWeight
+	DbWeight = constants.RocksDbWeight
 )
 
 var (
@@ -85,13 +83,27 @@ const (
 	TestableIndex = 255
 )
 
-// Modules contains all the modules used by the runtime.
-var modules = initializeModules()
+var (
+	logger = log.NewLogger()
+	// Modules contains all the modules used by the runtime.
+	modules = initializeModules()
+)
 
 func initializeModules() []primitives.Module {
+	blockWeights, err := system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
+	blockLength, err := system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
 	systemModule := system.New(
 		SystemIndex,
-		system.NewConfig(constants.BlockHashCount, BlockWeights, BlockLength, DbWeight, *RuntimeVersion),
+		system.NewConfig(constants.BlockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
+		logger,
 	)
 
 	auraModule := aura.New(
@@ -111,16 +123,17 @@ func initializeModules() []primitives.Module {
 		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
 	)
 
-	grandpaModule := grandpa.New(GrandpaIndex)
+	grandpaModule := grandpa.New(GrandpaIndex, logger)
 
 	balancesModule := balances.New(
 		BalancesIndex,
 		balances.NewConfig(DbWeight, BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
+		logger,
 	)
 
 	tpmModule := transaction_payment.New(
 		TxPaymentsIndex,
-		transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, BlockWeights),
+		transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, blockWeights),
 	)
 
 	testableModule := tm.New(TestableIndex)
@@ -157,8 +170,8 @@ func newSignedExtra() primitives.SignedExtra {
 
 func runtimeApi() types.RuntimeApi {
 	extra := newSignedExtra()
-	decoder := types.NewRuntimeDecoder(modules, extra)
-	runtimeExtrinsic := extrinsic.New(modules, extra)
+	decoder := types.NewRuntimeDecoder(modules, extra, logger)
+	runtimeExtrinsic := extrinsic.New(modules, extra, logger)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
 	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
@@ -168,6 +181,7 @@ func runtimeApi() types.RuntimeApi {
 		systemModule,
 		runtimeExtrinsic,
 		hooks.DefaultOnRuntimeUpgrade{},
+		logger,
 	)
 
 	sessions := []primitives.Session{
@@ -175,17 +189,17 @@ func runtimeApi() types.RuntimeApi {
 		grandpaModule,
 	}
 
-	coreApi := core.New(executiveModule, decoder, RuntimeVersion)
-	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder)
-	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder)
-	auraApi := apiAura.New(auraModule)
-	grandpaApi := apiGrandpa.New(grandpaModule)
-	accountNonceApi := account_nonce.New(systemModule)
-	txPaymentsApi := apiTxPayments.New(decoder, txPaymentsModule)
-	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule)
-	sessionKeysApi := session_keys.New(sessions)
-	offchainWorkerApi := offchain_worker.New(executiveModule)
-	genesisBuilderApi := genesisbuilder.New(modules)
+	coreApi := core.New(executiveModule, decoder, RuntimeVersion, logger)
+	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder, logger)
+	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder, logger)
+	auraApi := apiAura.New(auraModule, logger)
+	grandpaApi := apiGrandpa.New(grandpaModule, logger)
+	accountNonceApi := account_nonce.New(systemModule, logger)
+	txPaymentsApi := apiTxPayments.New(decoder, txPaymentsModule, logger)
+	txPaymentsCallApi := apiTxPaymentsCall.New(decoder, txPaymentsModule, logger)
+	sessionKeysApi := session_keys.New(sessions, logger)
+	offchainWorkerApi := offchain_worker.New(executiveModule, logger)
+	genesisBuilderApi := genesisbuilder.New(modules, logger)
 
 	metadataApi := metadata.New(
 		runtimeExtrinsic,
@@ -200,7 +214,9 @@ func runtimeApi() types.RuntimeApi {
 			txPaymentsCallApi,
 			sessionKeysApi,
 			offchainWorkerApi,
-		})
+		},
+		logger,
+	)
 
 	apis := []primitives.ApiModule{
 		coreApi,
@@ -217,7 +233,7 @@ func runtimeApi() types.RuntimeApi {
 		genesisBuilderApi,
 	}
 
-	runtimeApi := types.NewRuntimeApi(apis)
+	runtimeApi := types.NewRuntimeApi(apis, logger)
 
 	RuntimeVersion.SetApis(runtimeApi.Items())
 

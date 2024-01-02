@@ -1,12 +1,14 @@
 package aura
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +23,7 @@ func setup() {
 	mockAura = new(mocks.AuraModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target = New(mockAura)
+	target = New(mockAura, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 }
 
@@ -68,6 +70,24 @@ func Test_Authorities_Some(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", []byte{1, 2, 3})
 	mockMemoryUtils.AssertNumberOfCalls(t, "BytesToOffsetAndSize", 1)
+}
+
+func Test_Authorities_Panics(t *testing.T) {
+	setup()
+
+	expectedErr := errors.New("panic")
+	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](
+		sc.Sequence[sc.U8]{},
+	), expectedErr)
+	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{1, 2, 3}).Return(int64(13))
+
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.Authorities() },
+	)
+
+	mockAura.AssertCalled(t, "GetAuthorities")
+	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", []byte{1, 2, 3})
 }
 
 func Test_SlotDuration(t *testing.T) {

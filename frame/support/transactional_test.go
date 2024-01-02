@@ -5,7 +5,8 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
-	primitives "github.com/LimeChain/gosemble/primitives/types"
+	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -111,12 +112,12 @@ func Test_Transactional_DecTransactionLevel(t *testing.T) {
 
 func Test_Transactional_WithTransaction_ErrorLimitReached(t *testing.T) {
 	target := setupTransactional()
-	expect := primitives.NewDispatchErrorTransactional(primitives.NewTransactionalErrorLimitReached())
+	expect := types.NewDispatchErrorTransactional(types.NewTransactionalErrorLimitReached())
 
 	mockStorageValue.On("Get").Return(TransactionalLimit, nil)
 
-	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
-		return primitives.NewTransactionOutcomeCommit(sc.U32(2))
+	res, err := target.WithTransaction(func() types.TransactionOutcome {
+		return types.NewTransactionOutcomeCommit(sc.U32(2))
 	})
 
 	assert.Equal(t, sc.U32(0), res)
@@ -136,8 +137,8 @@ func Test_Transactional_WithTransaction_Commit(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
-		return primitives.NewTransactionOutcomeCommit(expect)
+	res, err := target.WithTransaction(func() types.TransactionOutcome {
+		return types.NewTransactionOutcomeCommit(expect)
 	})
 
 	assert.Equal(t, expect, res)
@@ -152,7 +153,7 @@ func Test_Transactional_WithTransaction_Commit(t *testing.T) {
 
 func Test_Transactional_WithTransaction_Rollback(t *testing.T) {
 	target := setupTransactional()
-	expect := primitives.NewDispatchErrorCorruption()
+	expect := types.NewDispatchErrorCorruption()
 
 	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
@@ -161,8 +162,8 @@ func Test_Transactional_WithTransaction_Rollback(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithTransaction(func() primitives.TransactionOutcome {
-		return primitives.NewTransactionOutcomeRollback(expect)
+	res, err := target.WithTransaction(func() types.TransactionOutcome {
+		return types.NewTransactionOutcomeRollback(expect)
 	})
 
 	assert.Equal(t, sc.U32(0), res)
@@ -183,11 +184,10 @@ func Test_Transactional_WithTransaction_InvalidTransactionOutcome(t *testing.T) 
 	mockStorageValue.On("Put", transactionLevel+1).Once()
 	mockTransactionBroker.On("Start").Return()
 
-	assert.PanicsWithValue(t, errInvalidTransactionOutcome, func() {
-		target.WithTransaction(func() primitives.TransactionOutcome {
-			return primitives.TransactionOutcome(sc.NewVaryingData(sc.U32(3)))
-		})
+	_, err := target.WithTransaction(func() types.TransactionOutcome {
+		return types.TransactionOutcome(sc.NewVaryingData(sc.U32(3)))
 	})
+	assert.Equal(t, types.NewDispatchErrorOther(sc.Str(errInvalidTransactionOutcome.Error())), err)
 
 	mockStorageValue.AssertCalled(t, "Get")
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
@@ -206,7 +206,7 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, types.DispatchError) {
 		return expect, nil
 	})
 
@@ -222,7 +222,7 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 
 func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	target := setupTransactional()
-	expect := primitives.NewDispatchErrorCorruption()
+	expect := types.NewDispatchErrorCorruption()
 
 	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
 	mockStorageValue.On("Put", transactionLevel+1).Once()
@@ -231,7 +231,7 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, primitives.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, types.DispatchError) {
 		return sc.U32(0), expect
 	})
 
@@ -246,11 +246,11 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel)
 }
 
-func setupTransactional() transactional[sc.U32, primitives.DispatchError] {
+func setupTransactional() transactional[sc.U32, types.DispatchError] {
 	mockStorageValue = new(mocks.StorageValue[sc.U32])
 	mockTransactionBroker = new(mocks.IoTransactionBroker)
 
-	target := NewTransactional[sc.U32, primitives.DispatchError]().(transactional[sc.U32, primitives.DispatchError])
+	target := NewTransactional[sc.U32, types.DispatchError](log.NewLogger()).(transactional[sc.U32, types.DispatchError])
 	target.storage = mockStorageValue
 	target.transactionBroker = mockTransactionBroker
 

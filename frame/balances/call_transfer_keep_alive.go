@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -114,7 +113,7 @@ func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest ty
 	}
 	transactor, originErr := origin.AsSigned()
 	if originErr != nil {
-		log.Critical(originErr.Error())
+		return primitives.NewDispatchErrorOther(sc.Str(originErr.Error()))
 	}
 
 	address, err := types.Lookup(dest)

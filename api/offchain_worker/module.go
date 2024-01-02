@@ -21,12 +21,14 @@ const (
 type Module struct {
 	executive executive.Module
 	memUtils  utils.WasmMemoryTranslator
+	logger    log.Logger
 }
 
-func New(executive executive.Module) Module {
+func New(executive executive.Module, logger log.Logger) Module {
 	return Module{
 		executive: executive,
 		memUtils:  utils.NewMemoryTranslator(),
+		logger:    logger,
 	}
 }
 
@@ -50,12 +52,12 @@ func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	buffer := bytes.NewBuffer(b)
 	header, err := primitives.DecodeHeader(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	err = m.executive.OffchainWorker(header)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 }
 

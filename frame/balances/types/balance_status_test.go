@@ -36,8 +36,7 @@ func Test_DecodeBalanceStatus(t *testing.T) {
 	}
 }
 
-func Test_DecodeBalanceStatus_Panics(t *testing.T) {
-	assert.PanicsWithValue(t, "invalid balance status type", func() {
-		DecodeBalanceStatus(bytes.NewBuffer([]byte{0x02}))
-	})
+func Test_DecodeBalanceStatus_Error(t *testing.T) {
+	_, err := DecodeBalanceStatus(bytes.NewBuffer([]byte{0x02}))
+	assert.Equal(t, errInvalidBalanceStatusType, err)
 }

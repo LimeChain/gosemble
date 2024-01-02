@@ -19,7 +19,7 @@ var keyTransactionLevel = []byte(":transaction_level:")
 
 var (
 	errTransactionalLimitReached = errors.New("transactional error limit reached")
-	errInvalidTransactionOutcome = "invalid transaction outcome"
+	errInvalidTransactionOutcome = errors.New("invalid transaction outcome")
 )
 
 type Transactional[T sc.Encodable, E types.DispatchError] interface {
@@ -29,13 +29,15 @@ type Transactional[T sc.Encodable, E types.DispatchError] interface {
 type transactional[T sc.Encodable, E types.DispatchError] struct {
 	storage           StorageValue[sc.U32]
 	transactionBroker io.TransactionBroker
+	logger            log.WarnLogger
 }
 
-func NewTransactional[T sc.Encodable, E types.DispatchError]() Transactional[T, E] {
+func NewTransactional[T sc.Encodable, E types.DispatchError](logger log.WarnLogger) Transactional[T, E] {
 	storageVal := NewSimpleStorageValue(keyTransactionLevel, sc.DecodeU32)
 	return transactional[T, E]{
 		storage:           storageVal,
 		transactionBroker: io.NewTransactionBroker(),
+		logger:            logger,
 	}
 }
 
@@ -76,7 +78,7 @@ func (t transactional[T, E]) DecTransactionLevel() error {
 		return err
 	}
 	if existingLevels == 0 {
-		log.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
+		t.logger.Warn("We are underflowing with calculating transactional levels. Not great, but let's not panic...")
 	} else if existingLevels == 1 {
 		// Don't leave any trace of this storage item.
 		t.KillTransactionLevel()
@@ -120,8 +122,7 @@ func (t transactional[T, E]) WithTransaction(fn func() types.TransactionOutcome)
 		t.DecTransactionLevel()
 		return ok, res[1].(E)
 	default:
-		log.Critical(errInvalidTransactionOutcome)
-		return ok, nil
+		return ok, E(types.NewDispatchErrorOther(sc.Str(errInvalidTransactionOutcome.Error())))
 	}
 }
 

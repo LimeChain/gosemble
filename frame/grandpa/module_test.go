@@ -8,6 +8,7 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,6 +22,7 @@ var (
 var (
 	mockStorageAuthorities *mocks.StorageValue[primitives.VersionedAuthorityList]
 	target                 Module
+	logger                 = log.NewLogger()
 )
 
 func Test_Module_New(t *testing.T) {
@@ -33,6 +35,7 @@ func Test_Module_New(t *testing.T) {
 		storage: &storage{
 			mockStorageAuthorities,
 		},
+		logger: logger,
 	}, target)
 }
 
@@ -183,7 +186,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 func setup() {
 	mockStorageAuthorities = new(mocks.StorageValue[primitives.VersionedAuthorityList])
-	target = New(moduleId)
+	target = New(moduleId, logger)
 
 	target.storage.Authorities = mockStorageAuthorities
 }

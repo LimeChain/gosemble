@@ -1,6 +1,7 @@
 package grandpa
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -8,6 +9,7 @@ import (
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,7 +24,7 @@ func setup() {
 	mockGrandpa = new(mocks.GrandpaModule)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target = New(mockGrandpa)
+	target = New(mockGrandpa, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 }
 
@@ -62,6 +64,20 @@ func Test_Authorities_None(t *testing.T) {
 
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", authorities.Bytes())
 	mockMemoryUtils.AssertNumberOfCalls(t, "BytesToOffsetAndSize", 1)
+}
+
+func Test_Authorities_Panics(t *testing.T) {
+	setup()
+
+	expectedErr := errors.New("panic")
+
+	mockGrandpa.On("Authorities").Return(sc.Sequence[types.Authority]{}, expectedErr)
+	assert.PanicsWithValue(t,
+		expectedErr.Error(),
+		func() { target.Authorities() },
+	)
+
+	mockGrandpa.AssertCalled(t, "Authorities")
 }
 
 func Test_Module_Metadata(t *testing.T) {

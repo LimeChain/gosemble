@@ -239,9 +239,9 @@ func Test_Aura_OnInitialize_CurrentSlotMustIncrease(t *testing.T) {
 	mockStorageDigest.On("Get").Return(newPreRuntimeDigest(sc.U64(1)), nil)
 	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
 
-	assert.PanicsWithValue(t, errSlotMustIncrease, func() {
-		module.OnInitialize(blockNumber)
-	})
+	_, err := module.OnInitialize(blockNumber)
+	assert.Equal(t, errSlotMustIncrease, err)
+
 	mockStorageDigest.AssertCalled(t, "Get")
 	mockStorageCurrentSlot.AssertNotCalled(t, "Put", mock.Anything)
 }
@@ -296,18 +296,18 @@ func Test_Aura_OnTimestampSet_DurationCannotBeZero(t *testing.T) {
 	setup(0)
 	mockStorageCurrentSlot.On("Get").Return(0, nil)
 
-	assert.PanicsWithValue(t, errSlotDurationZero, func() {
-		module.OnTimestampSet(1)
-	})
+	err := module.OnTimestampSet(1)
+	assert.Equal(t, errSlotDurationZero, err)
 }
 
 func Test_Aura_OnTimestampSet_TimestampSlotMismatch(t *testing.T) {
 	setup(timestampMinimumPeriod)
 	mockStorageCurrentSlot.On("Get").Return(sc.U64(2), nil)
 
-	assert.PanicsWithValue(t, errTimestampSlotMismatch, func() {
-		module.OnTimestampSet(sc.U64(4_000))
-	})
+	err := module.OnTimestampSet(sc.U64(4_000))
+	assert.Equal(t, errTimestampSlotMismatch, err)
+
+	mockStorageCurrentSlot.AssertCalled(t, "Get")
 }
 
 func Test_Aura_SlotDuration(t *testing.T) {

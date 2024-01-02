@@ -25,12 +25,14 @@ type GenesisBuilder interface {
 type Module struct {
 	modules  []primitives.Module
 	memUtils utils.WasmMemoryTranslator
+	logger   log.Logger
 }
 
-func New(modules []primitives.Module) Module {
+func New(modules []primitives.Module, logger log.Logger) Module {
 	return Module{
 		modules:  modules,
 		memUtils: utils.NewMemoryTranslator(),
+		logger:   logger,
 	}
 }
 
@@ -45,15 +47,15 @@ func (m Module) Item() primitives.ApiItem {
 
 func (m Module) CreateDefaultConfig() int64 {
 	gcs := []string{}
-	for _, m := range m.modules {
-		genesisBuilder, ok := m.(GenesisBuilder)
+	for _, module := range m.modules {
+		genesisBuilder, ok := module.(GenesisBuilder)
 		if !ok {
 			continue
 		}
 
 		gcJsonBytes, err := genesisBuilder.CreateDefaultConfig()
 		if err != nil {
-			log.Critical(err.Error())
+			m.logger.Critical(err.Error())
 		}
 
 		// gcJsonBytes[1:len(gcJsonBytes)-1] trims first and last characters which represent start and end of the json
@@ -70,19 +72,19 @@ func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
 	gcJsonBytes := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	gcDecoded, err := sc.DecodeSequence[sc.U8](bytes.NewBuffer(gcJsonBytes))
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	gcDecodedBytes := sc.SequenceU8ToBytes(gcDecoded)
 
-	for _, m := range m.modules {
-		genesisBuilder, ok := m.(GenesisBuilder)
+	for _, module := range m.modules {
+		genesisBuilder, ok := module.(GenesisBuilder)
 		if !ok {
 			continue
 		}
 
 		if err := genesisBuilder.BuildConfig(gcDecodedBytes); err != nil {
-			log.Critical(err.Error())
+			m.logger.Critical(err.Error())
 		}
 	}
 

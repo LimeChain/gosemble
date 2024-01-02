@@ -7,6 +7,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +27,7 @@ func setup() {
 	mockModule = new(mocks.Module)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target = New([]types.Module{mockModule})
+	target = New([]types.Module{mockModule}, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 }
 

@@ -20,12 +20,14 @@ const (
 type Module struct {
 	systemModule system.Module
 	memUtils     utils.WasmMemoryTranslator
+	logger       log.Logger
 }
 
-func New(systemModule system.Module) Module {
+func New(systemModule system.Module, logger log.Logger) Module {
 	return Module{
 		systemModule: systemModule,
 		memUtils:     utils.NewMemoryTranslator(),
+		logger:       logger,
 	}
 }
 
@@ -51,12 +53,12 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 
 	accountId, err := types.DecodeAccountId(buffer)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 
 	account, err := m.systemModule.Get(accountId)
 	if err != nil {
-		log.Critical(err.Error())
+		m.logger.Critical(err.Error())
 	}
 	nonce := account.Nonce
 

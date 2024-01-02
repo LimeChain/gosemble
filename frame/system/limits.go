@@ -3,16 +3,15 @@ package system
 import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
 
 // MaxWithNormalRatio Create new `BlockLength` with `max` for `Operational` & `Mandatory`
 // and `normal * max` for `Normal`.
-func MaxWithNormalRatio(max sc.U32, normal types.Perbill) types.BlockLength {
+func MaxWithNormalRatio(max sc.U32, normal types.Perbill) (types.BlockLength, error) {
 	normalMax, err := normal.Mul(max)
 	if err != nil {
-		log.Critical(err.Error())
+		return types.BlockLength{}, err
 	}
 	return types.BlockLength{
 		Max: types.PerDispatchClass[sc.U32]{
@@ -20,7 +19,7 @@ func MaxWithNormalRatio(max sc.U32, normal types.Perbill) types.BlockLength {
 			Operational: max,
 			Mandatory:   max,
 		},
-	}
+	}, nil
 }
 
 // WithSensibleDefaults Create a sensible default weights system given only expected maximal block weight and the
@@ -29,22 +28,30 @@ func MaxWithNormalRatio(max sc.U32, normal types.Perbill) types.BlockLength {
 // Assumptions:
 //   - Average block initialization is assumed to be `10%`.
 //   - `Operational` transactions have reserved allowance (`1.0 - normal_ratio`)
-func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio types.Perbill) types.BlockWeights {
+func WithSensibleDefaults(expectedBlockWeight types.Weight, normalRatio types.Perbill) (types.BlockWeights, error) {
 	normalWeight, err := normalRatio.Mul(expectedBlockWeight)
 	if err != nil {
-		log.Critical(err.Error())
+		return types.BlockWeights{}, err
 	}
 
-	return NewBlockWeightsBuilder().
-		ForClass([]types.DispatchClass{types.NewDispatchClassNormal()}, func(weights *types.WeightsPerClass) {
-			weights.MaxTotal = sc.NewOption[types.Weight](normalWeight)
-		}).
-		ForClass([]types.DispatchClass{types.NewDispatchClassOperational()}, func(weights *types.WeightsPerClass) {
-			weights.MaxTotal = sc.NewOption[types.Weight](expectedBlockWeight)
-			weights.Reserved = sc.NewOption[types.Weight](expectedBlockWeight.Sub(normalWeight.(types.Weight)))
-		}).
-		AvgBlockInitialization(constants.AverageOnInitializeRatio).
-		Build()
+	blockWeightBuilder := NewBlockWeightsBuilder()
+	blockWeightBuilder, err = blockWeightBuilder.ForClass([]types.DispatchClass{types.NewDispatchClassNormal()}, func(weights *types.WeightsPerClass) {
+		weights.MaxTotal = sc.NewOption[types.Weight](normalWeight)
+	})
+	if err != nil {
+		return types.BlockWeights{}, err
+	}
+
+	blockWeightBuilder, err = blockWeightBuilder.ForClass([]types.DispatchClass{types.NewDispatchClassOperational()}, func(weights *types.WeightsPerClass) {
+		weights.MaxTotal = sc.NewOption[types.Weight](expectedBlockWeight)
+		weights.Reserved = sc.NewOption[types.Weight](expectedBlockWeight.Sub(normalWeight.(types.Weight)))
+	})
+	if err != nil {
+		return types.BlockWeights{}, err
+	}
+
+	blockWeightBuilder = blockWeightBuilder.AvgBlockInitialization(constants.AverageOnInitializeRatio)
+	return blockWeightBuilder.Build()
 	// TODO: builder.Expect("Sensible defaults are tested to be valid")
 }
 
@@ -101,15 +108,16 @@ func (b *BlockWeightsBuilder) BaseBlock(baseBlock types.Weight) *BlockWeightsBui
 //
 // Note: `None` values of `max_extrinsic` will be overwritten in `build` in case
 // `avg_block_initialization` rate is set to a non-zero value.
-func (b *BlockWeightsBuilder) ForClass(classes []types.DispatchClass, action func(_ *types.WeightsPerClass)) *BlockWeightsBuilder {
+func (b *BlockWeightsBuilder) ForClass(classes []types.DispatchClass, action func(_ *types.WeightsPerClass)) (*BlockWeightsBuilder, error) {
 	for _, class := range classes {
 		perClass, err := b.Weights.PerClass.Get(class)
 		if err != nil {
-			log.Critical(err.Error())
+			return nil, err
+
 		}
 		action(perClass)
 	}
-	return b
+	return b, nil
 }
 
 // AvgBlockInitialization Average block initial ization weight cost.
@@ -126,7 +134,7 @@ func (b *BlockWeightsBuilder) AvgBlockInitialization(initCost types.Perbill) *Bl
 }
 
 // Construct the `BlockWeights` object.
-func (b *BlockWeightsBuilder) Build() types.BlockWeights {
+func (b *BlockWeightsBuilder) Build() (types.BlockWeights, error) {
 	// compute max extrinsic size
 	weights, initCost := b.Weights, b.InitCost
 
@@ -134,7 +142,7 @@ func (b *BlockWeightsBuilder) Build() types.BlockWeights {
 	for _, class := range types.DispatchClassAll() {
 		value, err := weights.PerClass.Get(class)
 		if err != nil {
-			log.Critical(err.Error())
+			return types.BlockWeights{}, err
 		}
 		perClass := *value
 
@@ -149,7 +157,7 @@ func (b *BlockWeightsBuilder) Build() types.BlockWeights {
 	if initCost.HasValue {
 		weight, err := initCost.Value.Mul(weights.MaxBlock)
 		if err != nil {
-			log.Critical(err.Error())
+			return types.BlockWeights{}, err
 		}
 		initWeight = sc.NewOption[types.Weight](weight)
 	} else {
@@ -160,7 +168,7 @@ func (b *BlockWeightsBuilder) Build() types.BlockWeights {
 		for _, class := range types.DispatchClassAll() {
 			value, err := weights.PerClass.Get(class)
 			if err != nil {
-				log.Critical(err.Error())
+				return types.BlockWeights{}, err
 			}
 			perClass := *value
 
@@ -176,5 +184,5 @@ func (b *BlockWeightsBuilder) Build() types.BlockWeights {
 
 	// Validate the result
 	// TODO: weights.Validate()
-	return weights
+	return weights, nil
 }

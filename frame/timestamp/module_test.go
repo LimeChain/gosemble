@@ -224,9 +224,8 @@ func Test_Module_CheckInherent_InherentNotProvided(t *testing.T) {
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
 
-	assert.PanicsWithValue(t, errTimestampInherentNotProvided.Error(), func() {
-		target.CheckInherent(mockCall, *inherentData)
-	})
+	err := target.CheckInherent(mockCall, *inherentData)
+	assert.Equal(t, errTimestampInherentNotProvided, err)
 
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockCall.AssertCalled(t, "FunctionIndex")
@@ -244,9 +243,8 @@ func Test_Module_CheckInherent_InherentDataNotCorrectlyEncoded(t *testing.T) {
 	mockCall.On("FunctionIndex").Return(sc.U8(functionSetIndex))
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(ts)))
 
-	assert.PanicsWithValue(t, errTimestampInherentDataNotCorrectlyEncoded.Error(), func() {
-		target.CheckInherent(mockCall, *inherentData)
-	})
+	err := target.CheckInherent(mockCall, *inherentData)
+	assert.Equal(t, errTimestampInherentDataNotCorrectlyEncoded, err)
 
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockCall.AssertCalled(t, "FunctionIndex")
@@ -263,9 +261,8 @@ func Test_Module_CheckInherent_CannotGetStorageValue(t *testing.T) {
 	mockCall.On("Args").Return(sc.NewVaryingData(sc.ToCompact(sc.U64(2))))
 	mockStorageNow.On("Get").Return(ts, errorCannotGetStorageValue)
 
-	assert.PanicsWithValue(t, errorCannotGetStorageValue.Error(), func() {
-		target.CheckInherent(mockCall, *inherentData)
-	})
+	err := target.CheckInherent(mockCall, *inherentData)
+	assert.Equal(t, errorCannotGetStorageValue, err)
 
 	mockCall.AssertCalled(t, "ModuleIndex")
 	mockCall.AssertCalled(t, "FunctionIndex")

@@ -11,7 +11,7 @@ import (
 type RuntimeExtrinsic interface {
 	Module(index sc.U8) (module primitives.Module, isFound bool)
 	CreateInherents(inherentData primitives.InherentData) ([]byte, error)
-	CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult
+	CheckInherents(data primitives.InherentData, block primitives.Block) (primitives.CheckInherentsResult, error)
 	EnsureInherentsAreFirst(block primitives.Block) int
 	OnInitialize(n sc.U64) (primitives.Weight, error)
 	OnRuntimeUpgrade() primitives.Weight
@@ -25,12 +25,14 @@ type RuntimeExtrinsic interface {
 type runtimeExtrinsic struct {
 	modules []primitives.Module
 	extra   primitives.SignedExtra
+	logger  log.DebugLogger
 }
 
-func New(modules []primitives.Module, extra primitives.SignedExtra) RuntimeExtrinsic {
+func New(modules []primitives.Module, extra primitives.SignedExtra, logger log.DebugLogger) RuntimeExtrinsic {
 	return runtimeExtrinsic{
 		modules: modules,
 		extra:   extra,
+		logger:  logger,
 	}
 }
 
@@ -66,7 +68,7 @@ func (re runtimeExtrinsic) CreateInherents(inherentData primitives.InherentData)
 	return append(sc.ToCompact(i).Bytes(), result...), nil
 }
 
-func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) primitives.CheckInherentsResult {
+func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block primitives.Block) (primitives.CheckInherentsResult, error) {
 	result := primitives.NewCheckInherentsResult()
 
 	for _, extrinsic := range block.Extrinsics() {
@@ -80,20 +82,28 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block pr
 		call := extrinsic.Function()
 
 		for _, module := range re.modules {
-			if module.IsInherent(call) {
-				isInherent = true
+			if !module.IsInherent(call) {
+				continue
+			}
 
-				fatalErr := module.CheckInherent(call, data)
-				if fatalErr != nil {
-					err := result.PutError(module.InherentIdentifier(), fatalErr)
-					// TODO: log depending on error type - handle_put_error_result
-					if err != nil {
-						log.Critical(err.Error())
-					}
+			isInherent = true
 
-					if fatalErr.IsFatal() {
-						return result
+			if err := module.CheckInherent(call, data); err != nil {
+				fatalErr, ok := err.(primitives.FatalError)
+				if !ok {
+					return result, err
+				}
+
+				if err := result.PutError(module.InherentIdentifier(), fatalErr); err != nil {
+					if inherentErr, ok := err.(primitives.InherentError); ok && inherentErr.VaryingData[0] == primitives.InherentErrorInherentDataExists {
+						re.logger.Debug(inherentErr.Error())
+					} else {
+						return result, err
 					}
+				}
+
+				if fatalErr.IsFatal() {
+					return result, nil
 				}
 			}
 		}
@@ -105,7 +115,7 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block pr
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 // EnsureInherentsAreFirst checks if the inherents are before non-inherents.

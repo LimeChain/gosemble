@@ -3,14 +3,17 @@ package tagged_transaction_queue
 import (
 	"bytes"
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -28,6 +31,7 @@ var (
 	txValidityError          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 	validitySuccessResult, _ = primitives.NewTransactionValidityResult(validTx)
 	validityFailResult, _    = primitives.NewTransactionValidityResult(txValidityError.(primitives.TransactionValidityError))
+	errPanic                 = errors.New("panic")
 )
 
 var (
@@ -109,21 +113,75 @@ func Test_Module_ValidateTransaction_Panics(t *testing.T) {
 	_, err := expectBuffer.ReadByte()
 	assert.Nil(t, err)
 
-	expectedErr := errors.New("panic")
-
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
 	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
 	mockExecutive.On("ValidateTransaction", txSource, mockUxt, blockHash).
-		Return(primitives.ValidTransaction{}, expectedErr)
+		Return(primitives.ValidTransaction{}, errPanic)
 
 	assert.PanicsWithValue(t,
-		expectedErr.Error(),
+		errPanic.Error(),
 		func() { target.ValidateTransaction(dataPtr, dataLen) },
 	)
 
 	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
 	mockRuntimeDecoder.AssertExpectations(t)
 	mockExecutive.AssertCalled(t, "ValidateTransaction", txSource, mockUxt, blockHash)
+}
+
+func Test_Module_ValidateTransaction_DecodeTransactionSource_Panics(t *testing.T) {
+	target := setup()
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return([]byte{})
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.ValidateTransaction(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+
+}
+
+func Test_Module_ValidateTransaction_DecodeUncheckedExtrinsic_Panics(t *testing.T) {
+	target := setup()
+
+	data := append(txSource.Bytes(), blockHash.Bytes()...)
+	expectBuffer := bytes.NewBuffer(data)
+	_, err := expectBuffer.ReadByte()
+	assert.Nil(t, err)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, errPanic)
+
+	assert.PanicsWithValue(t,
+		errPanic.Error(),
+		func() { target.ValidateTransaction(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+}
+
+func Test_Module_ValidateTransaction_DecodeBlake2bHash_Panics(t *testing.T) {
+	target := setup()
+
+	data := append(txSource.Bytes(), []byte{}...)
+	expectBuffer := bytes.NewBuffer(data)
+	_, err := expectBuffer.ReadByte()
+	assert.Nil(t, err)
+
+	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(data)
+	mockRuntimeDecoder.On("DecodeUncheckedExtrinsic", expectBuffer).Return(mockUxt, nil)
+
+	assert.PanicsWithValue(t,
+		io.EOF.Error(),
+		func() { target.ValidateTransaction(dataPtr, dataLen) },
+	)
+
+	mockMemoryUtils.AssertCalled(t, "GetWasmMemorySlice", dataPtr, dataLen)
+	mockRuntimeDecoder.AssertExpectations(t)
+	mockExecutive.AssertNotCalled(t, "ValidateTransaction", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Module_Metadata(t *testing.T) {
@@ -172,7 +230,7 @@ func setup() Module {
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockUxt = new(mocks.UncheckedExtrinsic)
 
-	target := New(mockExecutive, mockRuntimeDecoder)
+	target := New(mockExecutive, mockRuntimeDecoder, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target
