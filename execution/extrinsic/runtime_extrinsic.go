@@ -118,24 +118,6 @@ func (re runtimeExtrinsic) CheckInherents(data primitives.InherentData, block pr
 	return result, nil
 }
 
-// func handlePutErrorResult(err error) error {
-// 	if err == nil {
-// 		return err
-// 	}
-
-// 	inherentErr, ok := err.(primitives.InherentError)
-// 	if !ok {
-// 		return fmt.Errorf("Unexpected error from `put_error` operation: %v", err)
-// 	}
-
-// 	switch inherentErr.VaryingData[0] {
-// 	case primitives.InherentErrorInherentDataExists:
-
-// 	case primitives.InherentErrorFatalErrorReported:
-// 		return inherentErr
-// 	}
-// }
-
 // EnsureInherentsAreFirst checks if the inherents are before non-inherents.
 func (re runtimeExtrinsic) EnsureInherentsAreFirst(block primitives.Block) int {
 	signedExtrinsicFound := false
