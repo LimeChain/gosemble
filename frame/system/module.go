@@ -25,7 +25,6 @@ const (
 
 type Module interface {
 	primitives.Module
-
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()

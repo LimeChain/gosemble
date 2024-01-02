@@ -34,7 +34,7 @@ var (
 	module                 Module
 	mockStorageDigest      *mocks.StorageValue[types.Digest]
 	mockStorageCurrentSlot *mocks.StorageValue[sc.U64]
-	mockStorageAuthorities *mocks.StorageValue[sc.Sequence[sc.U8]]
+	mockStorageAuthorities *mocks.StorageValue[sc.Sequence[types.Sr25519PublicKey]]
 )
 
 var (
@@ -137,7 +137,7 @@ var (
 func setup(minimumPeriod sc.U64) {
 	mockStorageDigest = new(mocks.StorageValue[types.Digest])
 	mockStorageCurrentSlot = new(mocks.StorageValue[sc.U64])
-	mockStorageAuthorities = new(mocks.StorageValue[sc.Sequence[sc.U8]])
+	mockStorageAuthorities = new(mocks.StorageValue[sc.Sequence[types.Sr25519PublicKey]])
 
 	config := NewConfig(
 		keyType,
