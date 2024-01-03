@@ -154,12 +154,11 @@ func (e signedExtra) Metadata(metadataGenerator *MetadataTypeGenerator) sc.Seque
 		ids = append(ids, sc.ToCompact(extraMetadataId))
 	}
 
-	(*metadataGenerator).AppendMetadataTypes(extraTypes)
+	metadataGenerator.AppendMetadataTypes(extraTypes)
 
 	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
-	(*metadataGenerator).AppendMetadataTypes(sc.Sequence[MetadataType]{signedExtraType})
+	metadataGenerator.AppendMetadataTypes(sc.Sequence[MetadataType]{signedExtraType})
 
-	//return append(extraTypes, signedExtraType), signedExtensions
 	return signedExtensions
 }
 
@@ -167,7 +166,7 @@ func (e signedExtra) Metadata(metadataGenerator *MetadataTypeGenerator) sc.Seque
 func generateExtraMetadata(extra SignedExtension, metadataGenerator *MetadataTypeGenerator, metadataTypes *sc.Sequence[MetadataType], extensions *sc.Sequence[MetadataSignedExtension]) int {
 	extraValue := reflect.ValueOf(extra)
 	extraTypeName := extraValue.Elem().Type().Name()
-	extraMetadataId := (*metadataGenerator).BuildMetadataTypeRecursively(extraValue.Elem(), &sc.Sequence[sc.Str]{sc.Str(extra.ModulePath()), "extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)})
+	extraMetadataId := metadataGenerator.BuildMetadataTypeRecursively(extraValue.Elem(), &sc.Sequence[sc.Str]{sc.Str(extra.ModulePath()), "extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)})
 	constructExtension(extraValue, extraMetadataId, extensions, metadataGenerator, metadataTypes)
 
 	return extraMetadataId
@@ -196,16 +195,16 @@ func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc
 		for i := 0; i < numAdditionalSignedTypes; i++ {
 			currentType := additionalSignedField.Index(i).Elem()
 			currentTypeName := currentType.Type().Name()
-			currentTypeId, ok := (*metadataGenerator).IdsMap()[currentTypeName]
+			currentTypeId, ok := metadataGenerator.IdsMap()[currentTypeName]
 			if !ok {
-				currentTypeId = (*metadataGenerator).BuildMetadataTypeRecursively(currentType, nil)
+				currentTypeId = metadataGenerator.BuildMetadataTypeRecursively(currentType, nil)
 			}
 			resultTypeName = resultTypeName + currentTypeName
 			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
 		}
-		resultTypeId, ok := (*metadataGenerator).IdsMap()[resultTypeName]
+		resultTypeId, ok := metadataGenerator.IdsMap()[resultTypeName]
 		if !ok {
-			resultTypeId = (*metadataGenerator).assignNewMetadataId(resultTypeName)
+			resultTypeId = metadataGenerator.assignNewMetadataId(resultTypeName)
 			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
 		}
 		*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, resultTypeId))
