@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"math"
-	"strconv"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -234,11 +232,8 @@ func Test_SignedExtra_PostDispatch_Err(t *testing.T) {
 }
 
 func Test_SignedExtra_Metadata(t *testing.T) {
-	//metadataTypes, metadataSignedExtensions := targetSignedExtraOk.Metadata(&mdGenerator)
 	metadataSignedExtensions := targetSignedExtraOk.Metadata(&mdGenerator)
 	metadataTypes := mdGenerator.GetMetadataTypes()
-
-	log.Info("Result len: " + strconv.Itoa(len(metadataTypes)))
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataSignedExtensions, metadataSignedExtensions)

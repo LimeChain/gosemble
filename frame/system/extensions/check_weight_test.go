@@ -252,7 +252,7 @@ func Test_CheckWeight_PostDispatch_Reduce_Error(t *testing.T) {
 
 	mockModule.On("StorageBlockWeight").Return(consumedWeight, nil)
 
-	err := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfoInvalidClass, postInfo, sc.Compact{}, nil)
+	err := target.PostDispatch(sc.Option[primitives.Pre]{}, dispatchInfoInvalidClass, postInfo, sc.Compact[sc.Numeric]{}, nil)
 	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
 
 	mockModule.AssertCalled(t, "StorageBlockWeight")

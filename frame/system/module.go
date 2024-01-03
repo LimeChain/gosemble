@@ -1118,52 +1118,6 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 	}
 }
 
-func (m module) systemCallMetadata(mdGenerator *primitives.MetadataGenerator) (primitives.MetadataType, int) {
-	systemCallsMetadataId := (*mdGenerator).AssignNewMetadataId("SystemCalls")
-
-	functionVariants := sc.Sequence[primitives.MetadataDefinitionVariant]{}
-
-	lenFunctions := len(m.functions)
-	for i := 0; i < lenFunctions; i++ {
-		f := m.functions[sc.U8(i)]
-
-		functionValue := reflect.ValueOf(f)
-		functionType := functionValue.Type()
-
-		switch functionType.Kind() {
-		case reflect.Struct:
-			functionName := functionType.Name()
-
-			args := functionValue.FieldByName("Arguments")
-
-			fields := sc.Sequence[primitives.MetadataTypeDefinitionField]{}
-
-			if args.IsValid() {
-				argsLen := args.Len()
-				for j := 0; j < argsLen; j++ {
-					currentArg := args.Index(i).Elem().Type()
-					currentArgId := (*mdGenerator).BuildMetadataTypeRecursively(currentArg)
-					fields = append(fields, primitives.NewMetadataTypeDefinitionField(currentArgId))
-				}
-			}
-
-			functionName, _ = strings.CutPrefix(functionName, "call")
-
-			functionVariant := primitives.NewMetadataDefinitionVariant(
-				strings.ToLower(functionName),
-				fields,
-				sc.U8(i),
-				f.Docs())
-			functionVariants = append(functionVariants, functionVariant)
-		}
-	}
-
-	variant := primitives.NewMetadataTypeDefinitionVariant(functionVariants)
-
-	return primitives.NewMetadataTypeWithParam(systemCallsMetadataId, "System calls", sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"}, variant, primitives.NewMetadataEmptyTypeParameter("T")),
-		systemCallsMetadataId
-}
-
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {
 	if data != nil {
 		account.Data = *data

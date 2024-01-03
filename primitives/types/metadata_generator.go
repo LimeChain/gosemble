@@ -43,8 +43,6 @@ func BuildMetadataTypesIdsMap() map[string]int {
 		"H256":         metadata.TypesH256,
 		"SequenceU8":   metadata.TypesSequenceU8,
 		"MultiAddress": metadata.TypesMultiAddress,
-		//"CompactU128":  metadata.TypesCompactU128,
-		//"CompactU64":   metadata.TypesCompactU64,
 	}
 }
 

@@ -214,7 +214,7 @@ func Test_CheckMortality_Validate_StorageBlockNumber_Error(t *testing.T) {
 
 	mockModule.On("StorageBlockNumber").Return(blockNumber, expectedErr)
 
-	_, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
+	_, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact[sc.Numeric]{})
 	assert.Equal(t, expectedErr, err)
 }
 
