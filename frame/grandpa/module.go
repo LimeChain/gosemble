@@ -39,20 +39,20 @@ type GrandpaModule interface {
 type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index   sc.U8
-	storage *storage
+	Index     sc.U8
+	storage   *storage
 	functions map[sc.U8]primitives.Call
-	logger  log.WarnLogger
+	logger    log.WarnLogger
 }
 
 func New(index sc.U8, logger log.WarnLogger) Module {
 	functions := make(map[sc.U8]primitives.Call)
 
 	return Module{
-		Index:   index,
-		storage: newStorage(),
+		Index:     index,
+		storage:   newStorage(),
 		functions: functions,
-		logger:  logger,
+		logger:    logger,
 	}
 }
 
@@ -100,7 +100,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	grandpaMetadataCallsType, _ := (*mdGenerator).CallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+	grandpaMetadataCallsType, _ := mdGenerator.CallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I"),
 	})
@@ -128,7 +128,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 
 	metadataTypes := append(sc.Sequence[primitives.MetadataType]{grandpaMetadataCallsType}, m.metadataTypes()...)
 
-	(*mdGenerator).AppendMetadataTypes(metadataTypes)
+	mdGenerator.AppendMetadataTypes(metadataTypes)
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

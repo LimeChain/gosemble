@@ -152,7 +152,7 @@ func (m Module) IsInherent(call primitives.Call) bool {
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 
-	timestampCallsMetadata, timestampCallsMetadataId := (*mdGenerator).CallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	timestampCallsMetadata, timestampCallsMetadataId := mdGenerator.CallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -183,7 +183,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 
 	metadataTypes := append(sc.Sequence[primitives.MetadataType]{timestampCallsMetadata}, m.metadataTypes()...)
 
-	(*mdGenerator).AppendMetadataTypes(metadataTypes)
+	mdGenerator.AppendMetadataTypes(metadataTypes)
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

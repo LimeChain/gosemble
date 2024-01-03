@@ -222,7 +222,7 @@ func (re runtimeExtrinsic) Metadata(mdGenerator *primitives.MetadataTypeGenerato
 
 	// create the unchecked extrinsic type using runtime call id
 	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
-	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants), runtimeCall, runtimeError, uncheckedExtrinsicType})
+	mdGenerator.AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants), runtimeCall, runtimeError, uncheckedExtrinsicType})
 
 	// create the metadata extrinsic, which uses the id of the unchecked extrinsic and signed extra extensions
 	extrinsic := primitives.MetadataExtrinsicV14{
@@ -271,7 +271,7 @@ func (re runtimeExtrinsic) MetadataLatest(mdGenerator *primitives.MetadataTypeGe
 	uncheckedExtrinsicType := createUncheckedExtrinsicType(runtimeCall)
 
 	// append all metadata types
-	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants), runtimeCall, runtimeError, uncheckedExtrinsicType})
+	mdGenerator.AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{re.runtimeEvent(eventVariants), runtimeCall, runtimeError, uncheckedExtrinsicType})
 
 	extrinsicV15 := primitives.MetadataExtrinsicV15{
 		Version:          types.ExtrinsicFormatVersion,

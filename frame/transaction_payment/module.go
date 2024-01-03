@@ -84,7 +84,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index:    m.index,
 	}
 
-	(*mdGenerator).AppendMetadataTypes(m.metadataTypes())
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

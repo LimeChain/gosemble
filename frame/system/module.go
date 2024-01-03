@@ -580,9 +580,9 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 
 func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 
-	metadataTypeSystemCalls, metadataIdSystemCalls := (*mdGenerator).CallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	metadataTypeSystemCalls, metadataIdSystemCalls := mdGenerator.CallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
-	(*mdGenerator).AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{metadataTypeSystemCalls})
+	mdGenerator.AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{metadataTypeSystemCalls})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -621,7 +621,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	(*mdGenerator).AppendMetadataTypes(m.metadataTypes())
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

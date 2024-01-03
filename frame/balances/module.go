@@ -355,7 +355,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 
 	mdTypes := append(sc.Sequence[primitives.MetadataType]{metadataTypeBalancesCalls}, m.metadataTypes()...)
 
-	(*mdGenerator).AppendMetadataTypes(mdTypes)
+	mdGenerator.AppendMetadataTypes(mdTypes)
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
