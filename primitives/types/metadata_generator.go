@@ -74,10 +74,6 @@ func (g *MetadataTypeGenerator) isCompactVariation(t reflect.Type) (int, bool) {
 		typeId := g.assignNewMetadataId(t.Name())
 		g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
 		return typeId, true
-	case reflect.TypeOf(*new(sc.Compact[sc.U32])):
-		typeId := g.assignNewMetadataId(t.Name())
-		g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU32", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))))
-		return typeId, true
 	}
 	return -1, false
 }
