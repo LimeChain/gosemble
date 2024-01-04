@@ -55,6 +55,7 @@ type Module interface {
 	StorageBlockHashExists(key sc.U64) bool
 
 	StorageBlockNumber() (sc.U64, error)
+	StorageBlockNumberSet(sc.U64)
 
 	StorageLastRuntimeUpgrade() (types.LastRuntimeUpgradeInfo, error)
 	StorageLastRuntimeUpgradeSet(lrui types.LastRuntimeUpgradeInfo)
