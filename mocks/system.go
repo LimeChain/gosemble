@@ -179,6 +179,11 @@ func (m *SystemModule) Metadata(mdGenerator *primitives.MetadataTypeGenerator) p
 	return args.Get(0).(primitives.MetadataModule)
 }
 
+func (m *SystemModule) errorsDefinition() *primitives.MetadataTypeDefinition {
+	args := m.Called()
+	return args.Get(0).(*primitives.MetadataTypeDefinition)
+}
+
 func (m *SystemModule) RuntimeUpgrade() bool {
 	args := m.Called()
 	return args.Get(0).(bool)

@@ -623,7 +623,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	errorsMetadataId := mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
 
 	// Generate Extrinsic Phase Metadata
-	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).Metadata(), nil)
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).MetadataDefinition(), nil)
 	// Generate Block Metadata
 	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
@@ -1094,43 +1094,6 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 			"Get the chain's current version.",
 		),
 	}
-}
-
-func (m module) metadataErrors() *primitives.MetadataTypeDefinition {
-	def := primitives.NewMetadataTypeDefinitionVariant(
-		sc.Sequence[primitives.MetadataDefinitionVariant]{
-			primitives.NewMetadataDefinitionVariant(
-				"InvalidSpecName",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorInvalidSpecName,
-				"The name of specification does not match between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"SpecVersionNeedsToIncrease",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorSpecVersionNeedsToIncrease,
-				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"FailedToExtractRuntimeVersion",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorFailedToExtractRuntimeVersion,
-				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonDefaultComposite",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonDefaultComposite,
-				"Suicide called when the account has non-default composite data."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonZeroRefCount",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonZeroRefCount,
-				"There is a non-zero reference count preventing the account from being purged."),
-			primitives.NewMetadataDefinitionVariant(
-				"CallFiltered",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorCallFiltered,
-				"The origin filter prevent the call to be dispatched."),
-		})
-	return &def
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {

@@ -1187,6 +1187,46 @@ func Test_Module_mutateAccount(t *testing.T) {
 	assert.Equal(t, expectAccountInfo, accountInfo)
 }
 
+func Test_Module_ErrorsDefinition(t *testing.T) {
+	target := setupModule()
+
+	expectDefinition := primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged."),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched."),
+		})
+
+	assert.Equal(t, &expectDefinition, target.errorsDefinition())
+}
+
 func Test_Module_mutateAccount_NilData(t *testing.T) {
 	accountInfo := &primitives.AccountInfo{
 		Nonce:       1,

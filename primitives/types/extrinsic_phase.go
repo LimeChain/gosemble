@@ -56,7 +56,7 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {
 	}
 }
 
-func (p *ExtrinsicPhase) Metadata() *MetadataTypeDefinition {
+func (p *ExtrinsicPhase) MetadataDefinition() *MetadataTypeDefinition {
 	def := NewMetadataTypeDefinitionVariant(
 		sc.Sequence[MetadataDefinitionVariant]{
 			NewMetadataDefinitionVariant(

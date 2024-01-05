@@ -74,19 +74,17 @@ func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) 
 			switch field.Elem().Type() {
 			case reflect.TypeOf(*new(sc.U128)):
 				typeId, ok := g.MetadataIds["CompactU128"]
-				if ok {
-					return typeId, true
+				if !ok {
+					typeId = g.assignNewMetadataId("CompactU128")
+					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
 				}
-				typeId = g.assignNewMetadataId("CompactU128")
-				g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
 				return typeId, true
 			case reflect.TypeOf(*new(sc.U64)):
 				typeId, ok := g.MetadataIds["CompactU64"]
-				if ok {
-					return typeId, true
+				if !ok {
+					typeId = g.assignNewMetadataId("CompactU64")
+					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
 				}
-				typeId = g.assignNewMetadataId("CompactU64")
-				g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
 				return typeId, true
 			}
 		}
@@ -215,19 +213,19 @@ func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunc
 
 // BuildErrorsMetadata returns metadata errors type of a module
 func (g *MetadataTypeGenerator) BuildErrorsMetadata(moduleName string, definition *MetadataTypeDefinition) int {
+	var errorsTypeId = -1
+	var ok bool
 	switch moduleName {
 	case "System":
-		errorsTypeId, ok := g.MetadataIds[moduleName+"Errors"]
+		errorsTypeId, ok = g.MetadataIds[moduleName+"Errors"]
 		if !ok {
 			errorsTypeId = g.assignNewMetadataId(moduleName + "Errors")
 			g.MetadataTypes = append(g.MetadataTypes, NewMetadataTypeWithPath(errorsTypeId,
 				"frame_system pallet Error",
 				sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, *definition))
-			return errorsTypeId
 		}
-		return errorsTypeId
 	}
-	return -1
+	return errorsTypeId
 }
 
 func isIgnoredType(t string) bool {
