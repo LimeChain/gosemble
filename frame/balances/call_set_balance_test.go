@@ -18,7 +18,7 @@ var (
 	oldFree     = sc.NewU128(4)
 	oldReserved = sc.NewU128(3)
 
-	callSetBalanceArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact[sc.U128]{}, sc.Compact[sc.U128]{}).Bytes()
+	callSetBalanceArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}, sc.Compact{Number: sc.U128{}}).Bytes()
 )
 
 func Test_Call_SetBalance_new(t *testing.T) {
@@ -27,7 +27,7 @@ func Test_Call_SetBalance_new(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetBalanceIndex,
-			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact[sc.U128]{}, sc.Compact[sc.U128]{}),
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}, sc.Compact{Number: sc.U128{}}),
 		},
 		constants:      testConstants,
 		storedMap:      mockStoredMap,

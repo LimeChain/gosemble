@@ -349,7 +349,7 @@ func Test_Module_Metadata(t *testing.T) {
 					"Did the timestamp get updated in this block?"),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(expectedTimestampCallsMetadataId)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedTimestampCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -359,7 +359,7 @@ func Test_Module_Metadata(t *testing.T) {
 				moduleId,
 				"Call.Timestamp"),
 		),
-		Event:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Event:    sc.NewOption[sc.Compact](nil),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
@@ -369,7 +369,7 @@ func Test_Module_Metadata(t *testing.T) {
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
-		Error:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:    sc.NewOption[sc.Compact](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:    moduleId,
 	}

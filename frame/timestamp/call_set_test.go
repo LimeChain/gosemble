@@ -22,7 +22,7 @@ var (
 	origin     = primitives.NewRawOriginNone()
 	now        = sc.U64(time.Unix(1, 0).UnixMilli())
 
-	argsBytesCallSet = sc.NewVaryingData(sc.Compact[sc.U64]{}).Bytes()
+	argsBytesCallSet = sc.NewVaryingData(sc.Compact{Number: sc.NewU64(0)}).Bytes()
 
 	mockOnTimestampSet   *mocks.OnTimestampSet
 	mockStorageNow       *mocks.StorageValue[sc.U64]
@@ -39,7 +39,7 @@ func Test_Call_Set_NewSetCall(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetIndex,
-			Arguments:  sc.NewVaryingData(sc.Compact[sc.U64]{}),
+			Arguments:  sc.NewVaryingData(sc.Compact{Number: sc.NewU64(0)}),
 		},
 	}
 

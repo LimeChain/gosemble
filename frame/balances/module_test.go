@@ -589,6 +589,8 @@ func Test_Module_Metadata(t *testing.T) {
 	expectedBalancesCallsMetadataId := len(mdGenerator.IdsMap()) + 1
 
 	expectedCompactU128TypeId := expectedBalancesCallsMetadataId + 1
+	//lg.Printf("expected Id calls: " + strconv.Itoa(expectedBalancesCallsMetadataId))
+	//lg.Printf("expected Id compact: " + strconv.Itoa(expectedCompactU128TypeId))
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(expectedCompactU128TypeId, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
@@ -817,7 +819,7 @@ func Test_Module_Metadata(t *testing.T) {
 					"The total units issued in the system."),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(expectedBalancesCallsMetadataId)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedBalancesCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -827,7 +829,7 @@ func Test_Module_Metadata(t *testing.T) {
 				moduleId,
 				"Call.Balances"),
 		),
-		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesEvent)),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
@@ -857,7 +859,7 @@ func Test_Module_Metadata(t *testing.T) {
 				"The maximum number of named reserves that can exist on an account.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesErrors)),
+		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,

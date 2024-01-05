@@ -43,7 +43,7 @@ func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(), nil
 }
 
-func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		return primitives.ValidTransaction{}, err
@@ -75,11 +75,11 @@ func (cn CheckNonce) Validate(who primitives.AccountId, _call primitives.Call, _
 	}, nil
 }
 
-func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (cn CheckNonce) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
+func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	account, err := cn.systemModule.StorageAccount(who)
 	if err != nil {
 		return primitives.Pre{}, err
@@ -101,12 +101,12 @@ func (cn CheckNonce) PreDispatch(who primitives.AccountId, call primitives.Call,
 	return primitives.Pre{}, nil
 }
 
-func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
+func (cn CheckNonce) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := cn.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact[sc.Numeric], _result *primitives.DispatchResult) error {
+func (cn CheckNonce) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
 

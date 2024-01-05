@@ -170,7 +170,7 @@ func (a MultiAddress) IsAccountIndex() bool {
 
 func (a MultiAddress) AsAccountIndex() (AccountIndex, error) {
 	if a.IsAccountIndex() {
-		compact := a.VaryingData[1].(sc.Compact[sc.Numeric])
+		compact := a.VaryingData[1].(sc.Compact)
 		return sc.U32(compact.ToBigInt().Uint64()), nil
 	} else {
 		return 0, newTypeError("AccountIndex")

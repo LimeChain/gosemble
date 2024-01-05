@@ -146,12 +146,12 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   m.metadataStorage(),
-		Call:      sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Call:      sc.NewOption[sc.Compact](nil),
 		CallDef:   sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Event:     sc.NewOption[sc.Compact](nil),
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:     sc.NewOption[sc.Compact](nil),
 		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.index,
 	}
@@ -204,7 +204,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		// type 924
 		primitives.NewMetadataType(metadata.TypesTupleSequenceU8KeyTypeId, "(Seq<U8>, KeyTypeId)",
-			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesSequenceU8), sc.ToCompact(metadata.TypesKeyTypeId)})),
 
 		// type 923
 		primitives.NewMetadataType(metadata.TypesSequenceTupleSequenceU8KeyTypeId, "[]byte TupleSequenceU8KeyTypeId", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleSequenceU8KeyTypeId))),

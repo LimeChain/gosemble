@@ -10,7 +10,7 @@ type CheckedExtrinsic struct {
 	mock.Mock
 }
 
-func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], error) {
+func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], error) {
 	args := c.Called(validator, info, length)
 
 	var arg0 primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
@@ -32,7 +32,7 @@ func (c *CheckedExtrinsic) Function() primitives.Call {
 	return args.Get(0).(primitives.Call)
 }
 
-func (c *CheckedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (c *CheckedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	args := c.Called(validator, source, info, length)
 
 	var arg0 primitives.ValidTransaction

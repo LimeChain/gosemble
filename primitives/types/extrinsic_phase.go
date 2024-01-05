@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 const (
@@ -53,4 +54,28 @@ func DecodeExtrinsicPhase(buffer *bytes.Buffer) (ExtrinsicPhase, error) {
 	default:
 		return ExtrinsicPhase{}, newTypeError("ExtrinsicPhase")
 	}
+}
+
+func (p *ExtrinsicPhase) Metadata() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"ApplyExtrinsic",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32),
+				},
+				PhaseApplyExtrinsic,
+				"Phase.ApplyExtrinsic"),
+			NewMetadataDefinitionVariant(
+				"Finalization",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				PhaseFinalization,
+				"Phase.Finalization"),
+			NewMetadataDefinitionVariant(
+				"Initialization",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				PhaseInitialization,
+				"Phase.Initialization"),
+		})
+	return &def
 }

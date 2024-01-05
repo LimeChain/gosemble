@@ -39,23 +39,23 @@ func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return primitives.AdditionalSigned{}, nil
 }
 
-func (cw CheckWeight) Validate(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (cw CheckWeight) Validate(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (cw CheckWeight) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return cw.doValidate(info, length)
 }
 
-func (cw CheckWeight) PreDispatch(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
+func (cw CheckWeight) PreDispatch(_who primitives.AccountId, _call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	return primitives.Pre{}, cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
+func (cw CheckWeight) PreDispatchUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	return cw.doPreDispatch(info, length)
 }
 
-func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact[sc.Numeric], _result *primitives.DispatchResult) error {
+func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	unspent := postInfo.CalcUnspent(info)
 	if unspent.AnyGt(primitives.WeightZero()) {
 		currentWeight, err := cw.systemModule.StorageBlockWeight()
@@ -74,7 +74,7 @@ func (cw CheckWeight) PostDispatch(_pre sc.Option[primitives.Pre], info *primiti
 // Do the validate checks. This can be applied to both signed and unsigned.
 //
 // It only checks that the block weight and length limit will not exceed.
-func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	// ignore the next length. If they return `Ok`, then it is below the limit.
 	_, err := cw.checkBlockLength(info, length)
 	if err != nil {
@@ -92,7 +92,7 @@ func (cw CheckWeight) doValidate(info *primitives.DispatchInfo, length sc.Compac
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
+func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Compact) error {
 	nextLength, err := cw.checkBlockLength(info, length)
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func (cw CheckWeight) doPreDispatch(info *primitives.DispatchInfo, length sc.Com
 // Checks if the current extrinsic can fit into the block with respect to block length limits.
 //
 // Upon successes, it returns the new block length as a `Result`.
-func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (sc.U32, error) {
+func (cw CheckWeight) checkBlockLength(info *primitives.DispatchInfo, length sc.Compact) (sc.U32, error) {
 	lengthLimit := cw.systemModule.BlockLength()
 	currentLen, err := cw.systemModule.StorageAllExtrinsicsLen()
 	if err != nil {

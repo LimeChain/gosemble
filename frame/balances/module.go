@@ -312,14 +312,14 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	metadataTypeBalancesCalls, metadataIdBalancesCalls := (*mdGenerator).CallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+	metadataIdBalancesCalls := (*mdGenerator).BuildCallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadataIdBalancesCalls)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdBalancesCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -329,7 +329,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				m.Index,
 				"Call.Balances"),
 		),
-		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesEvent)),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -340,7 +340,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				"Events.Balances"),
 		),
 		Constants: m.metadataConstants(),
-		Error:     sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesBalancesErrors)),
+		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -353,9 +353,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	mdTypes := append(sc.Sequence[primitives.MetadataType]{metadataTypeBalancesCalls}, m.metadataTypes()...)
-
-	mdGenerator.AppendMetadataTypes(mdTypes)
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

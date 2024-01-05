@@ -18,7 +18,7 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact[sc.U128]{}),
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -94,7 +94,7 @@ func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	value, _ := args[2].(sc.Compact[sc.Numeric])
+	value, _ := args[2].(sc.Compact)
 	valueU128 := value.Number.(sc.U128)
 
 	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), valueU128)

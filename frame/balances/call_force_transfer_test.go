@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	callForceTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact[sc.U128]{}).Bytes()
+	callForceTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}).Bytes()
 )
 
 func Test_Call_ForceTransfer_new(t *testing.T) {
@@ -21,7 +21,7 @@ func Test_Call_ForceTransfer_new(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceTransferIndex,
-			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact[sc.U128]{}),
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,

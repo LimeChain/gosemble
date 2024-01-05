@@ -112,7 +112,7 @@ func (m Module) CheckInherent(call primitives.Call, inherent primitives.Inherent
 
 	maxTimestampDriftMillis := sc.U64(30 * 1000)
 
-	compactTs := call.Args()[0].(sc.Compact[sc.Numeric])
+	compactTs := call.Args()[0].(sc.Compact)
 	t := sc.U64(compactTs.ToBigInt().Uint64())
 
 	inherentData := inherent.Get(inherentIdentifier)
@@ -152,11 +152,11 @@ func (m Module) IsInherent(call primitives.Call) bool {
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
 
-	timestampCallsMetadata, timestampCallsMetadataId := mdGenerator.CallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	timestampCallsMetadataId := mdGenerator.BuildCallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(timestampCallsMetadataId)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(timestampCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -166,7 +166,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				m.Index,
 				"Call.Timestamp"),
 		),
-		Event:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Event:    sc.NewOption[sc.Compact](nil),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
@@ -176,14 +176,12 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				"The minimum period between blocks. Beware that this is different to the *expected*  period that the block production apparatus provides.",
 			),
 		},
-		Error:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:    sc.NewOption[sc.Compact](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:    m.Index,
 	}
 
-	metadataTypes := append(sc.Sequence[primitives.MetadataType]{timestampCallsMetadata}, m.metadataTypes()...)
-
-	mdGenerator.AppendMetadataTypes(metadataTypes)
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

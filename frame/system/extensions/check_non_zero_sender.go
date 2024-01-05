@@ -33,7 +33,7 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)
 }
 
-func (c CheckNonZeroAddress) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (c CheckNonZeroAddress) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	if reflect.DeepEqual(who, constants.ZeroAccountId) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())
 	}
@@ -41,21 +41,21 @@ func (c CheckNonZeroAddress) Validate(who primitives.AccountId, _call primitives
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (c CheckNonZeroAddress) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.ValidTransaction, error) {
+func (c CheckNonZeroAddress) ValidateUnsigned(_call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	return primitives.DefaultValidTransaction(), nil
 }
 
-func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) (primitives.Pre, error) {
+func (c CheckNonZeroAddress) PreDispatch(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.Pre, error) {
 	_, err := c.Validate(who, call, info, length)
 	return primitives.Pre{}, err
 }
 
-func (c CheckNonZeroAddress) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact[sc.Numeric]) error {
+func (c CheckNonZeroAddress) PreDispatchUnsigned(call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) error {
 	_, err := c.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact[sc.Numeric], _result *primitives.DispatchResult) error {
+func (c CheckNonZeroAddress) PostDispatch(_pre sc.Option[primitives.Pre], info *primitives.DispatchInfo, postInfo *primitives.PostDispatchInfo, _length sc.Compact, _result *primitives.DispatchResult) error {
 	return nil
 }
 

@@ -100,7 +100,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	grandpaMetadataCallsType, _ := mdGenerator.CallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+	mdGenerator.BuildCallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I"),
 	})
@@ -108,12 +108,12 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   sc.Option[primitives.MetadataModuleStorage]{},
-		Call:      sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Call:      sc.NewOption[sc.Compact](nil),
 		CallDef:   sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Event:     sc.NewOption[sc.Compact](nil),
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:     sc.NewOption[sc.Compact](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -126,9 +126,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	metadataTypes := append(sc.Sequence[primitives.MetadataType]{grandpaMetadataCallsType}, m.metadataTypes()...)
-
-	mdGenerator.AppendMetadataTypes(metadataTypes)
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
@@ -156,7 +154,7 @@ func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeDefinitionField(metadata.TypesEd25519PubKey),
 			})),
 		primitives.NewMetadataType(metadata.TypesTupleGrandpaAppPublicU64, "(GrandpaAppPublic, U64)",
-			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
+			primitives.NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{sc.ToCompact(metadata.TypesGrandpaAppPublic), sc.ToCompact(metadata.PrimitiveTypesU64)})),
 		primitives.NewMetadataType(metadata.TypesSequenceTupleGrandpaAppPublic, "[]byte (GrandpaAppPublic, U64)", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleGrandpaAppPublicU64))),
 	}
 }

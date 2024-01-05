@@ -59,9 +59,9 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Call:    sc.NewOption[sc.Compact](nil),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
-		Event:   sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
+		Event:   sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesTransactionPaymentEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -79,7 +79,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				"A fee multiplier for `Operational` extrinsics to compute \"virtual tip\" to boost their  `priority` ",
 			),
 		},
-		Error:    sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:    sc.NewOption[sc.Compact](nil),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:    m.index,
 	}

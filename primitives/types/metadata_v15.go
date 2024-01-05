@@ -10,7 +10,7 @@ type RuntimeMetadataV15 struct {
 	Types      sc.Sequence[MetadataType]
 	Modules    sc.Sequence[MetadataModuleV15]
 	Extrinsic  MetadataExtrinsicV15
-	Type       sc.Compact[sc.Numeric]
+	Type       sc.Compact
 	Apis       sc.Sequence[RuntimeApiMetadata]
 	OuterEnums OuterEnums
 	Custom     CustomMetadata
@@ -41,7 +41,7 @@ func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) 
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
-	typeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
@@ -74,7 +74,7 @@ func (rm RuntimeMetadataV15) Bytes() []byte {
 }
 
 type CustomValueMetadata struct {
-	Type  sc.Compact[sc.Numeric]
+	Type  sc.Compact
 	Value sc.Sequence[sc.U8]
 }
 
@@ -112,9 +112,9 @@ func (cm CustomMetadata) Bytes() []byte {
 }
 
 type OuterEnums struct {
-	CallEnumType  sc.Compact[sc.Numeric]
-	EventEnumType sc.Compact[sc.Numeric]
-	ErrorEnumType sc.Compact[sc.Numeric]
+	CallEnumType  sc.Compact
+	EventEnumType sc.Compact
+	ErrorEnumType sc.Compact
 }
 
 func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
@@ -126,15 +126,15 @@ func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeOuterEnums(buffer *bytes.Buffer) (OuterEnums, error) {
-	callEnum, err := sc.DecodeCompact[sc.Numeric](buffer)
+	callEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
-	eventEnum, err := sc.DecodeCompact[sc.Numeric](buffer)
+	eventEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
-	errorEnum, err := sc.DecodeCompact[sc.Numeric](buffer)
+	errorEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
@@ -151,7 +151,7 @@ func (oe OuterEnums) Bytes() []byte {
 
 type RuntimeApiMethodParamMetadata struct {
 	Name sc.Str
-	Type sc.Compact[sc.Numeric]
+	Type sc.Compact
 }
 
 func (rampm RuntimeApiMethodParamMetadata) Encode(buffer *bytes.Buffer) error {
@@ -166,7 +166,7 @@ func DecodeRuntimeApiMethodParamMetadata(buffer *bytes.Buffer) (RuntimeApiMethod
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
-	typeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
@@ -183,7 +183,7 @@ func (rampm RuntimeApiMethodParamMetadata) Bytes() []byte {
 type RuntimeApiMethodMetadata struct {
 	Name   sc.Str
 	Inputs sc.Sequence[RuntimeApiMethodParamMetadata]
-	Output sc.Compact[sc.Numeric]
+	Output sc.Compact
 	Docs   sc.Sequence[sc.Str]
 }
 

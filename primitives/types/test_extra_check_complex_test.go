@@ -51,27 +51,27 @@ func (e testExtraCheckComplex) AdditionalSigned() (AdditionalSigned, error) {
 	return sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}), nil
 }
 
-func (e testExtraCheckComplex) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error) {
+func (e testExtraCheckComplex) Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	validTransaction := DefaultValidTransaction()
 	validTransaction.Priority = 1
 
 	return validTransaction, nil
 }
 
-func (e testExtraCheckComplex) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (ValidTransaction, error) {
+func (e testExtraCheckComplex) ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error) {
 	return e.Validate(AccountId{}, call, info, length)
 }
 
-func (e testExtraCheckComplex) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) (Pre, error) {
+func (e testExtraCheckComplex) PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (Pre, error) {
 	_, err := e.Validate(who, call, info, length)
 	return Pre{}, err
 }
 
-func (e testExtraCheckComplex) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact[sc.Numeric]) error {
+func (e testExtraCheckComplex) PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error {
 	_, err := e.ValidateUnsigned(call, info, length)
 	return err
 }
 
-func (e testExtraCheckComplex) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact[sc.Numeric], result *DispatchResult) error {
+func (e testExtraCheckComplex) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
 	return nil
 }

@@ -48,12 +48,12 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 }
 
 func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	testableCallsMetadataType, testableCallsMetadataId := mdGenerator.CallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	testableCallsMetadataId := mdGenerator.BuildCallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: sc.Option[primitives.MetadataModuleStorage]{},
-		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(testableCallsMetadataId)),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(testableCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -63,17 +63,15 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				m.Index,
 				"Call.Testable"),
 		),
-		Event:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Event:     sc.NewOption[sc.Compact](nil),
 		EventDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{},
-		Error:     sc.NewOption[sc.Compact[sc.Numeric]](nil),
+		Error:     sc.NewOption[sc.Compact](nil),
 		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.Index,
 	}
 
-	metadataTypes := append(m.metadataTypes(), testableCallsMetadataType)
-
-	mdGenerator.AppendMetadataTypes(metadataTypes)
+	mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

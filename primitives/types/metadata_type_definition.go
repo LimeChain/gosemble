@@ -29,15 +29,15 @@ func NewMetadataTypeDefinitionVariant(variants sc.Sequence[MetadataDefinitionVar
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionVariant, variants)}
 }
 
-func NewMetadataTypeDefinitionSequence(compact sc.Compact[sc.Numeric]) MetadataTypeDefinition {
+func NewMetadataTypeDefinitionSequence(compact sc.Compact) MetadataTypeDefinition {
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionSequence, compact)}
 }
 
-func NewMetadataTypeDefinitionFixedSequence(length sc.U32, typeId sc.Compact[sc.Numeric]) MetadataTypeDefinition {
+func NewMetadataTypeDefinitionFixedSequence(length sc.U32, typeId sc.Compact) MetadataTypeDefinition {
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionFixedSequence, length, typeId)}
 }
 
-func NewMetadataTypeDefinitionTuple(compacts sc.Sequence[sc.Compact[sc.Numeric]]) MetadataTypeDefinition {
+func NewMetadataTypeDefinitionTuple(compacts sc.Sequence[sc.Compact]) MetadataTypeDefinition {
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionTuple, compacts)}
 }
 
@@ -45,11 +45,11 @@ func NewMetadataTypeDefinitionPrimitive(primitive MetadataDefinitionPrimitive) M
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionPrimitive, primitive)}
 }
 
-func NewMetadataTypeDefinitionCompact(compact sc.Compact[sc.Numeric]) MetadataTypeDefinition {
+func NewMetadataTypeDefinitionCompact(compact sc.Compact) MetadataTypeDefinition {
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionCompact, compact)}
 }
 
-func NewMetadataTypeDefinitionBitSequence(storeOrder, orderType sc.Compact[sc.Numeric]) MetadataTypeDefinition {
+func NewMetadataTypeDefinitionBitSequence(storeOrder, orderType sc.Compact) MetadataTypeDefinition {
 	return MetadataTypeDefinition{sc.NewVaryingData(MetadataTypeDefinitionBitSequence, storeOrder, orderType)}
 }
 
@@ -73,7 +73,7 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionVariant(variants), nil
 	case MetadataTypeDefinitionSequence:
-		cmpct, err := sc.DecodeCompact[sc.Numeric](buffer)
+		cmpct, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -83,13 +83,13 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
-		id, err := sc.DecodeCompact[sc.Numeric](buffer)
+		id, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
 		return NewMetadataTypeDefinitionFixedSequence(len, id), nil
 	case MetadataTypeDefinitionTuple:
-		cmpcts, err := sc.DecodeSequence[sc.Compact[sc.Numeric]](buffer)
+		cmpcts, err := sc.DecodeSequence[sc.Compact](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -101,17 +101,17 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionPrimitive(prim), nil
 	case MetadataTypeDefinitionCompact:
-		cmpct, err := sc.DecodeCompact[sc.Numeric](buffer)
+		cmpct, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
 		return NewMetadataTypeDefinitionCompact(cmpct), nil
 	case MetadataTypeDefinitionBitSequence:
-		storeOrder, err := sc.DecodeCompact[sc.Numeric](buffer)
+		storeOrder, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
-		orderType, err := sc.DecodeCompact[sc.Numeric](buffer)
+		orderType, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -123,7 +123,7 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 
 type MetadataTypeDefinitionField struct {
 	Name     sc.Option[sc.Str]
-	Type     sc.Compact[sc.Numeric]
+	Type     sc.Compact
 	TypeName sc.Option[sc.Str]
 	Docs     sc.Sequence[sc.Str]
 }
@@ -169,7 +169,7 @@ func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefini
 	if err != nil {
 		return MetadataTypeDefinitionField{}, err
 	}
-	t, err := sc.DecodeCompact[sc.Numeric](buffer)
+	t, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataTypeDefinitionField{}, err
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 type MetadataExtrinsicV14 struct {
-	Type             sc.Compact[sc.Numeric]
+	Type             sc.Compact
 	Version          sc.U8
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
@@ -21,7 +21,7 @@ func (me MetadataExtrinsicV14) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeMetadataExtrinsicV14(buffer *bytes.Buffer) (MetadataExtrinsicV14, error) {
-	typeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataExtrinsicV14{}, err
 	}
@@ -47,10 +47,10 @@ func (me MetadataExtrinsicV14) Bytes() []byte {
 
 type MetadataExtrinsicV15 struct {
 	Version          sc.U8
-	Address          sc.Compact[sc.Numeric]
-	Call             sc.Compact[sc.Numeric]
-	Signature        sc.Compact[sc.Numeric]
-	Extra            sc.Compact[sc.Numeric]
+	Address          sc.Compact
+	Call             sc.Compact
+	Signature        sc.Compact
+	Extra            sc.Compact
 	SignedExtensions sc.Sequence[MetadataSignedExtension]
 }
 
@@ -70,19 +70,19 @@ func DecodeMetadataExtrinsicV15(buffer *bytes.Buffer) (MetadataExtrinsicV15, err
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	addrTypeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	addrTypeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	callTypeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	callTypeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	sigTypeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	sigTypeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
-	extraTypeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	extraTypeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataExtrinsicV15{}, err
 	}
@@ -107,8 +107,8 @@ func (me MetadataExtrinsicV15) Bytes() []byte {
 
 type MetadataSignedExtension struct {
 	Identifier       sc.Str
-	Type             sc.Compact[sc.Numeric]
-	AdditionalSigned sc.Compact[sc.Numeric]
+	Type             sc.Compact
+	AdditionalSigned sc.Compact
 }
 
 func NewMetadataSignedExtension(identifier sc.Str, typeIndex, additionalSigned int) MetadataSignedExtension {
@@ -132,11 +132,11 @@ func DecodeMetadataSignedExtension(buffer *bytes.Buffer) (MetadataSignedExtensio
 	if err != nil {
 		return MetadataSignedExtension{}, err
 	}
-	typeId, err := sc.DecodeCompact[sc.Numeric](buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataSignedExtension{}, err
 	}
-	as, err := sc.DecodeCompact[sc.Numeric](buffer)
+	as, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataSignedExtension{}, err
 	}

@@ -48,7 +48,7 @@ var (
 		Id:         sc.ToCompact(metadata.SignedExtra),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(expectedExtraCheckMetadataId), sc.ToCompact(expectedExtraCheckMetadataId)}}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedExtraCheckMetadataId), sc.ToCompact(expectedExtraCheckMetadataId)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
@@ -76,7 +76,7 @@ var (
 	who            = AccountId{}
 	call           = testCall{}
 	info           = &DispatchInfo{}
-	length         = sc.Compact[sc.Numeric]{}
+	length         = sc.Compact{}
 	postInfo       = &PostDispatchInfo{}
 	dispatchResult = &DispatchResult{}
 
@@ -287,7 +287,7 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 	}
 
 	tupleAdditionalSignedMetadataType := NewMetadataType(expectedTupleAdditionalSignedMetadataId, "H256U32U64H512Ed25519PublicKeyWeight",
-		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{
+		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{
 			sc.ToCompact(metadata.TypesH256),
 			sc.ToCompact(metadata.PrimitiveTypesU32),
 			sc.ToCompact(metadata.PrimitiveTypesU64),
@@ -299,7 +299,7 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 		Id:         sc.ToCompact(metadata.SignedExtra),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(expectedEmptyCheckMetadataId), sc.ToCompact(expectedCheckEraMetadataId), sc.ToCompact(expectedCheckComplexMetadataId)}}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataId), sc.ToCompact(expectedCheckEraMetadataId), sc.ToCompact(expectedCheckComplexMetadataId)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
@@ -417,7 +417,7 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 	}))
 
 	tupleAdditionalSignedMetadataTypeSome := NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKeyWeight",
-		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact[sc.Numeric]]{
+		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{
 			sc.ToCompact(metadata.TypesH256),
 			sc.ToCompact(metadata.PrimitiveTypesU32),
 			sc.ToCompact(metadata.PrimitiveTypesU64),
@@ -443,7 +443,7 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 		Id:         sc.ToCompact(metadata.SignedExtra),
 		Path:       sc.Sequence[sc.Str]{},
 		Params:     sc.Sequence[MetadataTypeParameter]{},
-		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact[sc.Numeric]]{sc.ToCompact(expectedEmptyCheckMetadataIdSome), sc.ToCompact(expectedCheckEraMetadataIdSome), sc.ToCompact(expectedExtraCheckComplexIdSome)}}},
+		Definition: MetadataTypeDefinition{sc.VaryingData{sc.U8(4), sc.Sequence[sc.Compact]{sc.ToCompact(expectedEmptyCheckMetadataIdSome), sc.ToCompact(expectedCheckEraMetadataIdSome), sc.ToCompact(expectedExtraCheckComplexIdSome)}}},
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 

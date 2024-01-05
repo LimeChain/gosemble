@@ -8,6 +8,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	execTypes "github.com/LimeChain/gosemble/execution/types"
 	"github.com/LimeChain/gosemble/hooks"
 	"github.com/LimeChain/gosemble/primitives/io"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -578,16 +579,61 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
+func (m module) errorsDefinition() *primitives.MetadataTypeDefinition {
+	def := primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged."),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched."),
+		})
+	return &def
+}
+
 func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
+	// Build System Calls Metadata
+	metadataIdSystemCalls := mdGenerator.BuildCallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	// Build System Errors Metadata
+	errorsMetadataId := mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
 
-	metadataTypeSystemCalls, metadataIdSystemCalls := mdGenerator.CallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
-
-	mdGenerator.AppendMetadataTypes(sc.Sequence[primitives.MetadataType]{metadataTypeSystemCalls})
+	// Generate Extrinsic Phase Metadata
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).Metadata(), nil)
+	// Generate Block Metadata
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
+		primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
+		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
+	})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
-		Storage: m.metadataStorage(),
-		Call:    sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadataIdSystemCalls)),
+		Storage: m.metadataStorage(mdGenerator),
+		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdSystemCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -597,7 +643,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				m.Index,
 				"Call.System"),
 		),
-		Event: sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemEvent)),
+		Event: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemEvent)),
 		EventDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
@@ -608,12 +654,12 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 				"Events.System"),
 		),
 		Constants: m.metadataConstants(),
-		Error:     sc.NewOption[sc.Compact[sc.Numeric]](sc.ToCompact(metadata.TypesSystemErrors)),
+		Error:     sc.NewOption[sc.Compact](sc.ToCompact(errorsMetadataId)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				m.name(),
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+					primitives.NewMetadataTypeDefinitionField(errorsMetadataId),
 				},
 				m.Index,
 				"Errors.System"),
@@ -621,7 +667,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	mdGenerator.AppendMetadataTypes(m.metadataTypes())
+	mdGenerator.AppendMetadataTypes(m.metadataTypes(mdGenerator))
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
@@ -629,31 +675,10 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	}
 }
 
-func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+func (m module) metadataTypes(mdGenerator *primitives.MetadataTypeGenerator) sc.Sequence[primitives.MetadataType] {
+	typesPhaseId := mdGenerator.IdsMap()["ExtrinsicPhase"]
+
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithPath(metadata.TypesPhase,
-			"frame_system Phase",
-			sc.Sequence[sc.Str]{"frame_system", "Phase"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"ApplyExtrinsic",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32),
-						},
-						primitives.PhaseApplyExtrinsic,
-						"Phase.ApplyExtrinsic"),
-					primitives.NewMetadataDefinitionVariant(
-						"Finalization",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.PhaseFinalization,
-						"Phase.Finalization"),
-					primitives.NewMetadataDefinitionVariant(
-						"Initialization",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.PhaseInitialization,
-						"Phase.Initialization"),
-				})),
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
@@ -711,7 +736,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 			"frame_system EventRecord",
 			sc.Sequence[sc.Str]{"frame_system", "EventRecord"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPhase, "phase", "Phase"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(typesPhaseId, "phase", "Phase"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesRuntimeEvent, "event", "E"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesVecTopics, "topics", "Vec<T>"),
 			}),
@@ -775,56 +800,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString),
 				})),
 
-		primitives.NewMetadataTypeWithPath(metadata.TypesSystemErrors,
-			"frame_system pallet Error",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"InvalidSpecName",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorInvalidSpecName,
-						"The name of specification does not match between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"SpecVersionNeedsToIncrease",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorSpecVersionNeedsToIncrease,
-						"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"FailedToExtractRuntimeVersion",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorFailedToExtractRuntimeVersion,
-						"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonDefaultComposite",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonDefaultComposite,
-						"Suicide called when the account has non-default composite data."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonZeroRefCount",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonZeroRefCount,
-						"There is a non-zero reference count preventing the account from being purged."),
-					primitives.NewMetadataDefinitionVariant(
-						"CallFiltered",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorCallFiltered,
-						"The origin filter prevent the call to be dispatched."),
-				})),
-
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
-
-		primitives.NewMetadataTypeWithParams(metadata.TypesBlock, "Block",
-			sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.Header, "Header"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceUncheckedExtrinsics, "Vec<Extrinsic>"),
-				}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
-				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
-			},
-		),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionSource, "TransactionSource", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"},
 			primitives.NewMetadataTypeDefinitionVariant(
@@ -987,7 +963,9 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+func (m module) metadataStorage(mdGenerator *primitives.MetadataTypeGenerator) sc.Option[primitives.MetadataModuleStorage] {
+	typesPhaseId := mdGenerator.IdsMap()["ExtrinsicPhase"]
+
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
 		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
@@ -1077,7 +1055,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 			primitives.NewMetadataModuleStorageEntry(
 				"ExecutionPhase",
 				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesPhase)),
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(typesPhaseId)),
 				"The execution phase of the block."),
 		},
 	})
@@ -1116,6 +1094,43 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 			"Get the chain's current version.",
 		),
 	}
+}
+
+func (m module) metadataErrors() *primitives.MetadataTypeDefinition {
+	def := primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged."),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched."),
+		})
+	return &def
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {

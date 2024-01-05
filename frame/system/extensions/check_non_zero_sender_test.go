@@ -56,7 +56,7 @@ func Test_CheckNonZeroAddress_Bytes(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact[sc.Numeric]{})
+	result, err := target.Validate(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -65,7 +65,7 @@ func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 func Test_CheckNonZeroAddress_Validate_Fails(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.Validate(constants.ZeroAccountId, nil, nil, sc.Compact[sc.Numeric]{})
+	result, err := target.Validate(constants.ZeroAccountId, nil, nil, sc.Compact{})
 
 	assert.Equal(t, invalidTransactionBadSigner, err)
 	assert.Equal(t, primitives.ValidTransaction{}, result)
@@ -74,7 +74,7 @@ func Test_CheckNonZeroAddress_Validate_Fails(t *testing.T) {
 func Test_CheckNonZeroAddress_ValidateUnsigned(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.ValidateUnsigned(nil, nil, sc.Compact[sc.Numeric]{})
+	result, err := target.ValidateUnsigned(nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.DefaultValidTransaction(), result)
@@ -83,7 +83,7 @@ func Test_CheckNonZeroAddress_ValidateUnsigned(t *testing.T) {
 func Test_CheckNonZeroAddress_PreDispatch(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact[sc.Numeric]{})
+	result, err := target.PreDispatch(constants.OneAccountId, nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, primitives.Pre{}, result)
@@ -92,7 +92,7 @@ func Test_CheckNonZeroAddress_PreDispatch(t *testing.T) {
 func Test_CheckNonZeroAddress_PreDispatchUnsigned(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	err := target.PreDispatchUnsigned(nil, nil, sc.Compact[sc.Numeric]{})
+	err := target.PreDispatchUnsigned(nil, nil, sc.Compact{})
 
 	assert.Nil(t, err)
 }
@@ -100,7 +100,7 @@ func Test_CheckNonZeroAddress_PreDispatchUnsigned(t *testing.T) {
 func Test_CheckNonZeroAddress_PostDispatch(t *testing.T) {
 	target := setupCheckNonZeroSender()
 
-	err := target.PostDispatch(sc.NewOption[primitives.Pre](nil), nil, nil, sc.Compact[sc.Numeric]{}, nil)
+	err := target.PostDispatch(sc.NewOption[primitives.Pre](nil), nil, nil, sc.Compact{}, nil)
 
 	assert.Nil(t, err)
 }

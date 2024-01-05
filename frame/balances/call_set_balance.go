@@ -21,7 +21,7 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
-			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact[sc.U128]{}, sc.Compact[sc.U128]{}),
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{Number: sc.U128{}}, sc.Compact{Number: sc.U128{}}),
 		},
 		constants:      constants,
 		storedMap:      storedMap,
@@ -109,10 +109,10 @@ func (_ callSetBalance) Docs() string {
 }
 
 func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	compactFree, _ := args[1].(sc.Compact[sc.Numeric])
+	compactFree, _ := args[1].(sc.Compact)
 	newFree := compactFree.Number.(sc.U128)
 
-	compactReserved, _ := args[2].(sc.Compact[sc.Numeric])
+	compactReserved, _ := args[2].(sc.Compact)
 	newReserved := compactReserved.Number.(sc.U128)
 
 	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
