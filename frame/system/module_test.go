@@ -1305,6 +1305,12 @@ func Test_Module_Metadata(t *testing.T) {
 
 	expectedTypesBlockId := expectedTypesPhaseId + 1
 
+	expectedTypesWeightPerClassId := expectedTypesBlockId + 1
+
+	expectedTypesWeightId := expectedTypesWeightPerClassId + 1
+
+	expectedTypesOptionWeightId := expectedTypesWeightId + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
 			"System calls",
@@ -1390,6 +1396,38 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 			},
 		),
+		primitives.NewMetadataTypeWithPath(expectedTypesWeightId, "Weight", sc.Sequence[sc.Str]{}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "RefTime"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "ProofSize"),
+			},
+		)),
+
+		primitives.NewMetadataTypeWithParam(expectedTypesOptionWeightId, "Option<Weight>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[primitives.MetadataDefinitionVariant]{
+				primitives.NewMetadataDefinitionVariant(
+					"None",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+					0,
+					"Option<Weight>(nil)"),
+				primitives.NewMetadataDefinitionVariant(
+					"Some",
+					sc.Sequence[primitives.MetadataTypeDefinitionField]{
+						primitives.NewMetadataTypeDefinitionField(expectedTypesWeightId),
+					},
+					1,
+					"Option<Weight>(value)"),
+			}),
+			primitives.NewMetadataTypeParameter(expectedTypesWeightId, "T"),
+		),
+
+		primitives.NewMetadataTypeWithPath(expectedTypesWeightPerClassId, "WeightsPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
+			sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "BaseExtrinsic"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "MaxExtrinsic"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "MaxTotal"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "Reserved"),
+			})),
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
@@ -1406,13 +1444,13 @@ func Test_Module_Metadata(t *testing.T) {
 		),
 			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
 		),
-		primitives.NewMetadataTypeWithPath(metadata.TypesWeightPerClass, "WeightPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_extrinsic", "Weight"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_extrinsic", "Option<Weight>"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_total", "Option<Weight>"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "reserved", "Option<Weight>"),
-			})),
+		//primitives.NewMetadataTypeWithPath(metadata.TypesWeightPerClass, "WeightPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
+		//	sc.Sequence[primitives.MetadataTypeDefinitionField]{
+		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_extrinsic", "Weight"),
+		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_extrinsic", "Option<Weight>"),
+		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_total", "Option<Weight>"),
+		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "reserved", "Option<Weight>"),
+		//	})),
 		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeightsPerClass, "PerDispatchClass<WeightPerClass>", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "normal", "T"),

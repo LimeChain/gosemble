@@ -282,29 +282,6 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 			},
 		)),
 
-		primitives.NewMetadataTypeWithPath(metadata.TypesWeight, "Weight", sc.Sequence[sc.Str]{"sp_weights", "weight_v2", "Weight"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "ref_time", "u64"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "proof_size", "u64"),
-			},
-		)),
-		primitives.NewMetadataTypeWithParam(metadata.TypesOptionWeight, "Option<Weight>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
-			sc.Sequence[primitives.MetadataDefinitionVariant]{
-				primitives.NewMetadataDefinitionVariant(
-					"None",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-					0,
-					"Option<Weight>(nil)"),
-				primitives.NewMetadataDefinitionVariant(
-					"Some",
-					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),
-					},
-					1,
-					"Option<Weight>(value)"),
-			}),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
-		),
 		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassU32,
 			"PerDispatchClass[U32]",
 			sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"},

@@ -9,6 +9,11 @@ import (
 )
 
 const (
+	indexOptionNone sc.U8 = iota
+	indexOptionSome
+)
+
+const (
 	additionalSignedTypeName = "typesInfoAdditionalSignedData"
 	moduleTypeName           = "Module"
 	hookOnChargeTypeName     = "OnChargeTransaction"
@@ -58,9 +63,6 @@ func (g *MetadataTypeGenerator) GetMetadataTypes() sc.Sequence[MetadataType] {
 }
 
 func (g *MetadataTypeGenerator) AppendMetadataTypes(types sc.Sequence[MetadataType]) {
-	//for i := 0; i < len(types); i++ {
-	//	currentTypeId := types[i].Id.Number.ToBigInt().Int64()
-	//}
 	g.MetadataTypes = append(g.MetadataTypes, types...)
 }
 
@@ -99,6 +101,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			metadataTypeDef := NewMetadataTypeDefinitionComposite(metadataFields)
 			metadataTypePath := sc.Sequence[sc.Str]{}
 			metadataTypeParams := sc.Sequence[MetadataTypeParameter]{}
+			metadataDocs := typeName
 			if def != nil {
 				metadataTypeDef = *def
 			}
@@ -108,7 +111,14 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			if params != nil {
 				metadataTypeParams = *params
 			}
-			newMetadataType := NewMetadataTypeWithParams(typeId, typeName, metadataTypePath, metadataTypeDef, metadataTypeParams)
+			if strings.HasPrefix(typeName, "Option") {
+				typeParameterId := g.GetIdsMap()[v.FieldByName("Value").Type().Name()]
+				metadataTypeParams = append(metadataTypeParams, NewMetadataTypeParameter(typeParameterId, "T"))
+				metadataTypeDef = optionTypeDefinition(v.FieldByName("Value").Type().Name(), typeParameterId)
+				metadataDocs = "Option<" + v.FieldByName("Value").Type().Name() + ">"
+				metadataTypePath = sc.Sequence[sc.Str]{"Option"}
+			}
+			newMetadataType := NewMetadataTypeWithParams(typeId, metadataDocs, metadataTypePath, metadataTypeDef, metadataTypeParams)
 			g.MetadataTypes = append(g.MetadataTypes, newMetadataType)
 		}
 	case reflect.Slice:
@@ -185,6 +195,21 @@ func (g *MetadataTypeGenerator) BuildErrorsMetadata(moduleName string, definitio
 	return errorsTypeId
 }
 
+// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
+func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
+	input, _ = strings.CutPrefix(input, "call")
+	var result strings.Builder
+
+	for i, char := range input {
+		if i > 0 && 'A' <= char && char <= 'Z' {
+			result.WriteRune('_')
+		}
+		result.WriteRune(char)
+	}
+
+	return strings.ToLower(result.String())
+}
+
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
 	newId := len(g.metadataIds) + 1
 	g.metadataIds[name] = newId
@@ -216,19 +241,22 @@ func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) 
 	return -1, false
 }
 
-// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
-func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
-	input, _ = strings.CutPrefix(input, "call")
-	var result strings.Builder
-
-	for i, char := range input {
-		if i > 0 && 'A' <= char && char <= 'Z' {
-			result.WriteRune('_')
-		}
-		result.WriteRune(char)
-	}
-
-	return strings.ToLower(result.String())
+func optionTypeDefinition(typeName string, typeParameterId int) MetadataTypeDefinition {
+	return NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"None",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				indexOptionNone,
+				"Option<"+typeName+">(nil)"),
+			NewMetadataDefinitionVariant(
+				"Some",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(typeParameterId),
+				},
+				indexOptionSome,
+				"Option<"+typeName+">(value)"),
+		})
 }
 
 func isIgnoredType(t string) bool {
