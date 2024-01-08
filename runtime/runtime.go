@@ -428,6 +428,10 @@ func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
 		BuildConfig(dataPtr, dataLen)
 }
 
+// The state implementation in Gossamer does not implement
+// caching and nested transactions (DbCommit, DbWipe)
+// https://github.com/ChainSafe/gossamer/discussions/3646
+//
 //go:export Benchmark_run
 func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
 	memUtils := utils.NewMemoryTranslator()
@@ -477,11 +481,10 @@ func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
 
 			benchmark.DbResetTracker()
 			// Whitelist specific storage keys
-			accountKey, _ := hex.DecodeString("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
-			benchmark.DbWhitelistKey([]byte(accountKey))
 			benchmark.DbWhitelistKey([]byte(":transaction_level:"))
 			benchmark.DbWhitelistKey([]byte(":extrinsic_index"))
-			benchmark.DbWhitelistKey([]byte(":intrablock_entropy"))
+			accountKey, _ := hex.DecodeString("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
+			benchmark.DbWhitelistKey([]byte(accountKey))
 
 			// Reset the read/write counter so we don't count operations in the setup process.
 			benchmark.DbStartTracker()
