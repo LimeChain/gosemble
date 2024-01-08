@@ -86,8 +86,12 @@ func (m *SystemModule) Initialize(blockNumber sc.U64, parentHash primitives.Blak
 }
 
 func (m *SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error {
-	m.Called(weight, class)
-	return nil
+	args := m.Called(weight, class)
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) NoteFinishedInitialize() {
