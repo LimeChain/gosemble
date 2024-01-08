@@ -100,8 +100,13 @@ func (m *SystemModule) NoteExtrinsic(encodedExt []byte) error {
 }
 
 func (m *SystemModule) NoteAppliedExtrinsic(postInfo primitives.PostDispatchInfo, postDispatchErr error, info primitives.DispatchInfo) error {
-	m.Called(postInfo, postDispatchErr, info)
-	return nil
+	args := m.Called(postInfo, postDispatchErr, info)
+
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) Finalize() (primitives.Header, error) {
@@ -113,8 +118,12 @@ func (m *SystemModule) Finalize() (primitives.Header, error) {
 }
 
 func (m *SystemModule) NoteFinishedExtrinsics() error {
-	m.Called()
-	return nil
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) ResetEvents() {

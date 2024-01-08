@@ -144,11 +144,9 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) error {
 		//
 		// The entire block should be discarded if an inherent fails to apply. Otherwise
 		// it may open an attack vector.
-		isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
-		if err != nil {
+		if isMendatory, err := dispatchInfo.IsMendatory(); err != nil {
 			return err
-		}
-		if isMendatoryDispatch {
+		} else if isMendatory {
 			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
 		}
 	}
@@ -205,12 +203,9 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	m.logger.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 
-	isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
-	if err != nil {
+	if isMendatory, err := dispatchInfo.IsMendatory(); err != nil {
 		return primitives.ValidTransaction{}, err
-	}
-
-	if isMendatoryDispatch {
+	} else if isMendatory {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
@@ -360,8 +355,4 @@ func (m module) executeOnRuntimeUpgrade() primitives.Weight {
 
 func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
 	return digest.OnlyPreRuntimes()
-}
-
-func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) (sc.Bool, error) {
-	return dispatchInfo.Class.Is(primitives.DispatchClassMandatory)
 }
