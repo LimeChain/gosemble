@@ -63,7 +63,7 @@ func benchmarkCallBalancesForceFree(b *testing.B, n int64) {
 	callEnc, err := codec.Encode(call)
 	assert.NoError(b, err)
 
-	repeatsEnc, err := codec.Encode(uint8(20))
+	repeatsEnc, err := codec.Encode(uint8(b.N))
 	assert.NoError(b, err)
 
 	callEnc = append(repeatsEnc, callEnc...)
