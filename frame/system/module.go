@@ -606,7 +606,19 @@ func (m module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 	})
 	// Generate WeightsPerClass
-	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
+	weightPerClassMetadataId := mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
+
+	// Generate PerDispatchClass[Weight]
+	typesWeightId := mdGenerator.IdsMap()["Weight"]
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.Weight]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(typesWeightId, "T")})
+
+	// Generate PerDispatchClass[WeightPerClass]
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.WeightsPerClass]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(weightPerClassMetadataId, "T")})
+
+	// Generate BlockWeights
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockWeights{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, nil, nil)
+
+	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.RuntimeDbWeight{}), &sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, nil, nil)
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -663,45 +675,6 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataType(metadata.TypesVecBlockNumEventIndex, "Vec<BlockNumber, EventIndex>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleU32U32))),
-
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeight, "PerDispatchClass[Weight]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "normal", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "operational", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "mandatory", "T"),
-			},
-		),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
-		),
-		//primitives.NewMetadataTypeWithPath(metadata.TypesWeightPerClass, "WeightPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
-		//	sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_extrinsic", "Weight"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_extrinsic", "Option<Weight>"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_total", "Option<Weight>"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "reserved", "Option<Weight>"),
-		//	})),
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeightsPerClass, "PerDispatchClass<WeightPerClass>", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "normal", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "operational", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "mandatory", "T"),
-			}),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeightPerClass, "T")),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesBlockWeights,
-			"BlockWeights",
-			sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_block", "Weight"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "max_block", "Weight"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPerDispatchClassWeightsPerClass, "per_class", "PerDispatchClass<WeightPerClass>"),
-				})),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesDbWeight, "sp_weights RuntimeDbWeight", sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // read
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // write
-			})),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesBlockLength,
 			"frame_system limits BlockLength",

@@ -101,7 +101,10 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			metadataTypeDef := NewMetadataTypeDefinitionComposite(metadataFields)
 			metadataTypePath := sc.Sequence[sc.Str]{}
 			metadataTypeParams := sc.Sequence[MetadataTypeParameter]{}
+
 			metadataDocs := typeName
+			// When the type is Generic, the typeName contains it's package path which we don't want
+			metadataDocs = strings.Replace(metadataDocs, "github.com/LimeChain/gosemble/primitives/types.", "", 1)
 			if def != nil {
 				metadataTypeDef = *def
 			}
