@@ -38,14 +38,14 @@ func (m *StoredMap) CanDecProviders(who types.AccountId) (bool, error) {
 	return args.Get(0).(bool), args.Get(1).(error)
 }
 
-func (m *StoredMap) TryMutateExists(who types.AccountId, f func(who *types.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *StoredMap) TryMutateExists(who types.AccountId, f func(who *types.AccountData) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(who, f)
 
 	if args.Get(1) == nil {
-		return args.Get(0).(sc.Result[sc.Encodable]), nil
+		return args.Get(0).(sc.Encodable), nil
 	}
 
-	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
+	return args.Get(0).(sc.Encodable), args.Get(1).(error)
 }
 
 func (m *StoredMap) incProviders(who types.AccountId) (types.IncRefStatus, error) {

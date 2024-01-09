@@ -33,8 +33,9 @@ var (
 	baseWeight                    = primitives.WeightFromParts(124, 123)
 	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAccountId)
 	targetValue                   = sc.NewU128(5)
-	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) goscale.Result[github.com/LimeChain/goscale.Encodable]")
+	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) (goscale.Encodable, error)")
 	mockStoredMap                 *mocks.StoredMap
+	errPanic                      = errors.New("panic")
 )
 
 func Test_Call_ForceFree_new(t *testing.T) {
@@ -141,7 +142,7 @@ func Test_Call_ForceFree_PaysFee(t *testing.T) {
 func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	target := setupCallForceFree()
 	actual := sc.NewU128(1)
-	mutateResult := sc.Result[sc.Encodable]{HasError: false, Value: actual}
+	mutateResult := actual
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
 	event := newEventUnreserved(moduleId, targetAddressAccId, actual)
@@ -150,12 +151,11 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 	mockMutator.On("tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool).
-		Return(mutateResult)
+		Return(mutateResult, nil)
 	mockStoredMap.On("DepositEvent", event)
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
-
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	_, err = target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+	assert.Nil(t, err)
 	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
@@ -167,33 +167,21 @@ func Test_Call_ForceFree_Dispatch_Success(t *testing.T) {
 
 func Test_Call_ForceFree_Dispatch_InvalidOrigin(t *testing.T) {
 	target := setupCallForceFree()
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(targetAddress, targetValue))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
 func Test_Call_ForceFree_Dispatch_InvalidLookup(t *testing.T) {
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
-		},
-	}
 	target := setupCallForceFree()
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), targetValue))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), targetValue))
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), dispatchErr)
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddressAccId)
@@ -204,9 +192,9 @@ func Test_Call_ForceFree_Dispatch_InvalidLookup(t *testing.T) {
 func Test_Call_ForceFree_Dispatch_ZeroBalance(t *testing.T) {
 	target := setupCallForceFree()
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, constants.Zero))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, constants.Zero))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Nil(t, dispatchErr)
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
 	mockStoredMap.AssertNotCalled(t, "Get", targetAddressAccId)
@@ -222,9 +210,9 @@ func Test_Call_ForceFree_Dispatch_ZeroTotalStorageBalance(t *testing.T) {
 	assert.Nil(t, err)
 	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, nil)
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Nil(t, dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -237,12 +225,11 @@ func Test_Call_ForceFree_Dispatch_Other(t *testing.T) {
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	expectedErr := errors.New("error")
-	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, expectedErr)
+	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, errPanic)
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(expectedErr.Error())), result.Err.Error)
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errPanic.Error())), dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -250,19 +237,19 @@ func Test_Call_ForceFree_Dispatch_Other(t *testing.T) {
 
 func Test_Call_ForceFree_Dispatch_Mutation_Fails(t *testing.T) {
 	target := setupCallForceFree()
-	mutateResult := sc.Result[sc.Encodable]{HasError: true}
 
+	expectedErr := primitives.NewDispatchErrorOther(sc.Str(errPanic.Error()))
 	targetAddressAccId, err := targetAddress.AsAccountId()
 	assert.Nil(t, err)
 	mockStoredMap.On("Get", targetAddressAccId).Return(accountInfo, nil)
 	mockMutator.On("tryMutateAccount",
 		targetAddressAccId,
 		mockTypeMutateAccountDataBool,
-	).Return(mutateResult)
+	).Return(sc.Empty{}, errPanic)
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(targetAddress, targetValue))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Equal(t, expectedErr, dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", targetAddressAccId)
 	mockMutator.AssertCalled(t,
 		"tryMutateAccount",
@@ -278,7 +265,7 @@ func Test_removeReserveAndFree(t *testing.T) {
 		Free:     sc.NewU128(1),
 		Reserved: sc.NewU128(10),
 	}
-	expectedResult := sc.Result[sc.Encodable]{HasError: false, Value: value}
+	expectedResult := value
 
 	result := removeReserveAndFree(accountData, value)
 

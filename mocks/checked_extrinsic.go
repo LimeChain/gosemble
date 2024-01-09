@@ -10,14 +10,14 @@ type CheckedExtrinsic struct {
 	mock.Mock
 }
 
-func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], error) {
+func (c *CheckedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.PostDispatchInfo, error) {
 	args := c.Called(validator, info, length)
 
-	var arg0 primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
+	var arg0 primitives.PostDispatchInfo
 	var arg1 error
 
 	if args.Get(0) != nil {
-		arg0 = args.Get(0).(primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo])
+		arg0 = args.Get(0).(primitives.PostDispatchInfo)
 	}
 
 	if args.Get(1) != nil {

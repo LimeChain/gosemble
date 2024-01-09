@@ -65,6 +65,6 @@ func (e testExtraCheckEra) PreDispatchUnsigned(call Call, info *DispatchInfo, le
 	return err
 }
 
-func (e testExtraCheckEra) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
+func (e testExtraCheckEra) PostDispatch(pre sc.Option[Pre], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, dispatchErr error) error {
 	return nil
 }

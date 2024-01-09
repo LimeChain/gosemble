@@ -50,6 +50,10 @@ func (di DispatchInfo) Bytes() []byte {
 	return sc.EncodedBytes(di)
 }
 
+func (di DispatchInfo) IsMendatory() (sc.Bool, error) {
+	return di.Class.Is(DispatchClassMandatory)
+}
+
 // GetDispatchInfo returns the DispatchInfo of the given call.
 // Uses call's BaseWeight to calculate all the information in DispatchInfo
 func GetDispatchInfo(call Call) DispatchInfo {

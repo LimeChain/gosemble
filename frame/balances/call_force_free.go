@@ -91,29 +91,15 @@ func (_ callForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
-func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
 	amount := args[1].(sc.U128)
-
-	err := c.forceFree(origin, args[0].(types.MultiAddress), amount)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
-			},
-		}
-	}
-
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-		HasError: false,
-		Ok:       types.PostDispatchInfo{},
-	}
+	return types.PostDispatchInfo{}, c.forceFree(origin, args[0].(types.MultiAddress), amount)
 }
 
 // forceFree frees some balance from a user by force.
 // Can only be called by ROOT.
 // Consider Substrate fn force_unreserve
-func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) types.DispatchError {
+func (c callForceFree) forceFree(origin types.RawOrigin, who types.MultiAddress, amount sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -147,32 +133,29 @@ func (c callForceFree) force(who primitives.AccountId, value sc.U128) (sc.U128, 
 		return value, nil
 	}
 
-	result := c.accountMutator.tryMutateAccount(
+	result, err := c.accountMutator.tryMutateAccount(
 		who,
-		func(account *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			return removeReserveAndFree(account, value)
+		func(account *types.AccountData, _ bool) (sc.Encodable, error) {
+			return removeReserveAndFree(account, value), nil
 		},
 	)
 
-	if result.HasError {
-		return value, nil
+	if err != nil {
+		return sc.NewU128(0), err
 	}
 
-	actual := result.Value.(sc.U128)
+	actual := result.(primitives.Balance)
 	c.storedMap.DepositEvent(newEventUnreserved(c.ModuleId, who, actual))
 
 	return value.Sub(actual), nil
 }
 
 // removeReserveAndFree frees reserved value from the account.
-func removeReserveAndFree(account *types.AccountData, value sc.U128) sc.Result[sc.Encodable] {
+func removeReserveAndFree(account *types.AccountData, value sc.U128) primitives.Balance {
 	actual := sc.Min128(account.Reserved, value)
 	account.Reserved = account.Reserved.Sub(actual)
 
 	account.Free = sc.SaturatingAddU128(account.Free, actual)
 
-	return sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    actual,
-	}
+	return actual
 }

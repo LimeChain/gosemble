@@ -103,31 +103,17 @@ func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
-func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
 	newFree := sc.U128(args[1].(sc.Compact))
 	newReserved := sc.U128(args[2].(sc.Compact))
-
-	err := c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
-			},
-		}
-	}
-
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-		HasError: false,
-		Ok:       types.PostDispatchInfo{},
-	}
+	return types.PostDispatchInfo{}, c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
 }
 
 // setBalance sets the balance of a given account.
 // Changes free and reserve balance of `who`,
 // including the total issuance.
 // Can only be called by ROOT.
-func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) types.DispatchError {
+func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddress, newFree sc.U128, newReserved sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -144,17 +130,18 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 		newReserved = sc.NewU128(0)
 	}
 
-	result := c.accountMutator.tryMutateAccount(
+	result, err := c.accountMutator.tryMutateAccount(
 		address,
-		func(account *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-			return updateAccount(account, newFree, newReserved)
+		func(account *types.AccountData, _ bool) (sc.Encodable, error) {
+			oldFree, oldReserved := updateAccount(account, newFree, newReserved)
+			return sc.NewVaryingData(oldFree, oldReserved), nil
 		},
 	)
-	if result.HasError {
-		return result.Value.(types.DispatchError)
+	if err != nil {
+		return err
 	}
 
-	parsedResult := result.Value.(sc.VaryingData)
+	parsedResult := result.(sc.VaryingData)
 	oldFree := parsedResult[0].(types.Balance)
 	oldReserved := parsedResult[1].(types.Balance)
 
@@ -197,15 +184,12 @@ func (c callSetBalance) setBalance(origin types.RawOrigin, who types.MultiAddres
 }
 
 // updateAccount updates the reserved and free amounts and returns the old amounts
-func updateAccount(account *types.AccountData, newFree, newReserved sc.U128) sc.Result[sc.Encodable] {
-	oldFree := account.Free
-	oldReserved := account.Reserved
+func updateAccount(account *types.AccountData, newFree, newReserved sc.U128) (oldFree, oldReserved types.Balance) {
+	oldFree = account.Free
+	oldReserved = account.Reserved
 
 	account.Free = newFree
 	account.Reserved = newReserved
 
-	return sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    sc.NewVaryingData(oldFree, oldReserved),
-	}
+	return oldFree, oldReserved
 }

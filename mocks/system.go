@@ -87,12 +87,11 @@ func (m *SystemModule) Initialize(blockNumber sc.U64, parentHash primitives.Blak
 
 func (m *SystemModule) RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error {
 	args := m.Called(weight, class)
-
-	if args.Get(0) != nil {
-		return args.Get(0).(error)
+	if args.Get(0) == nil {
+		return nil
 	}
 
-	return nil
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) NoteFinishedInitialize() {
@@ -104,14 +103,14 @@ func (m *SystemModule) NoteExtrinsic(encodedExt []byte) error {
 	return nil
 }
 
-func (m *SystemModule) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
-	args := m.Called(r, info)
+func (m *SystemModule) NoteAppliedExtrinsic(postInfo primitives.PostDispatchInfo, postDispatchErr error, info primitives.DispatchInfo) error {
+	args := m.Called(postInfo, postDispatchErr, info)
 
-	if args.Get(0) != nil {
-		return args.Get(0).(error)
+	if args.Get(0) == nil {
+		return nil
 	}
 
-	return nil
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) Finalize() (primitives.Header, error) {
@@ -124,12 +123,11 @@ func (m *SystemModule) Finalize() (primitives.Header, error) {
 
 func (m *SystemModule) NoteFinishedExtrinsics() error {
 	args := m.Called()
-
-	if args.Get(0) != nil {
-		return args.Get(0).(error)
+	if args.Get(0) == nil {
+		return nil
 	}
 
-	return nil
+	return args.Get(0).(error)
 }
 
 func (m *SystemModule) ResetEvents() {
@@ -156,22 +154,30 @@ func (m *SystemModule) DepositEvent(event primitives.Event) {
 	m.Called(event)
 }
 
-func (m *SystemModule) Mutate(who primitives.AccountId, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m *SystemModule) Mutate(who primitives.AccountId, f func(who *primitives.AccountInfo) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(who, f)
-	return args.Get(0).(sc.Result[sc.Encodable])
+	if args[1] == nil {
+		return args[0].(sc.Encodable), nil
+	}
+
+	return args[0].(sc.Encodable), args[1].(error)
 }
 
-func (m *SystemModule) TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *SystemModule) TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(who, f)
 	if args.Get(1) == nil {
-		return args.Get(0).(sc.Result[sc.Encodable]), nil
+		return args.Get(0).(sc.Encodable), nil
 	}
-	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
+	return args.Get(0).(sc.Encodable), args.Get(1).(error)
 }
 
-func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId, f func(who *primitives.AccountInfo) sc.Result[sc.Encodable]) sc.Result[sc.Encodable] {
+func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId, f func(who *primitives.AccountInfo) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(who, f)
-	return args.Get(0).(sc.Result[sc.Encodable])
+	if args[1] == nil {
+		return args[0].(sc.Encodable), nil
+	}
+
+	return args[0].(sc.Encodable), args[1].(error)
 }
 
 func (m *SystemModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
@@ -290,12 +296,4 @@ func (m *SystemModule) StorageAllExtrinsicsLen() (sc.U32, error) {
 
 func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {
 	m.Called(value)
-}
-
-func (m *SystemModule) incProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
-	args := m.Called()
-	if args.Get(1) == nil {
-		return args.Get(0).(primitives.IncRefStatus), nil
-	}
-	return args.Get(0).(primitives.IncRefStatus), args.Get(1).(error)
 }

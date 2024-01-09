@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	sc "github.com/LimeChain/goscale"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -51,4 +52,34 @@ func Test_GetDispatchInfo(t *testing.T) {
 		Class:   NewDispatchClassNormal(),
 		PaysFee: PaysYes,
 	}, result)
+}
+
+func Test_IsMendatory(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		class       DispatchClass
+		expectedErr error
+		expectedRes bool
+	}{
+		{
+			name:        "is mendatory",
+			class:       NewDispatchClassMandatory(),
+			expectedRes: true,
+		},
+		{
+			name:  "not mendatory",
+			class: NewDispatchClassNormal(),
+		},
+		{
+			name:        "err invalid DispatchClass",
+			class:       DispatchClass{},
+			expectedErr: newTypeError("DispatchClass"),
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := DispatchInfo{Class: tt.class}.IsMendatory()
+			assert.Equal(t, tt.expectedErr, err)
+			assert.Equal(t, sc.Bool(tt.expectedRes), res)
+		})
+	}
 }

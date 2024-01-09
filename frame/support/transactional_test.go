@@ -1,14 +1,13 @@
 package support
 
 import (
-	"testing"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/log"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"testing"
 )
 
 var (
@@ -206,7 +205,7 @@ func Test_Transactional_WithStorageLayer_Commit(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, types.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return expect, nil
 	})
 
@@ -231,7 +230,7 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
 	mockStorageValue.On("Put", transactionLevel).Once()
 
-	res, err := target.WithStorageLayer(func() (sc.U32, types.DispatchError) {
+	res, err := target.WithStorageLayer(func() (sc.U32, error) {
 		return sc.U32(0), expect
 	})
 
@@ -246,11 +245,31 @@ func Test_Transactional_WithStorageLayer_Rollback(t *testing.T) {
 	mockStorageValue.AssertCalled(t, "Put", transactionLevel)
 }
 
-func setupTransactional() transactional[sc.U32, types.DispatchError] {
+func Test_Transactional_WithStorageLayer_Panics(t *testing.T) {
+	target := setupTransactional()
+
+	mockStorageValue.On("Get").Return(transactionLevel, nil).Once()
+	mockStorageValue.On("Put", transactionLevel+1).Once()
+	mockTransactionBroker.On("Start").Return()
+	mockTransactionBroker.On("Rollback").Return()
+	mockStorageValue.On("Get").Return(transactionLevel+1, nil).Once()
+	mockStorageValue.On("Put", transactionLevel).Once()
+
+	_, err := target.WithStorageLayer(func() (sc.U32, error) {
+		return sc.U32(0), errPanic
+	})
+
+	assert.Equal(t, types.NewDispatchErrorOther(sc.Str(errInvalidTransactionOutcome.Error())), err)
+	mockStorageValue.AssertCalled(t, "Get")
+	mockStorageValue.AssertCalled(t, "Put", transactionLevel+1)
+	mockTransactionBroker.AssertCalled(t, "Start")
+}
+
+func setupTransactional() transactional[sc.U32] {
 	mockStorageValue = new(mocks.StorageValue[sc.U32])
 	mockTransactionBroker = new(mocks.IoTransactionBroker)
 
-	target := NewTransactional[sc.U32, types.DispatchError](log.NewLogger()).(transactional[sc.U32, types.DispatchError])
+	target := NewTransactional[sc.U32](log.NewLogger()).(transactional[sc.U32])
 	target.storage = mockStorageValue
 	target.transactionBroker = mockTransactionBroker
 
