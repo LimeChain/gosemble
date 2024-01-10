@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -15,7 +16,7 @@ var (
 
 var (
 	lrui = LastRuntimeUpgradeInfo{
-		SpecVersion: sc.U32(1),
+		SpecVersion: sc.Compact{Number: sc.U32(1)},
 		SpecName:    "test-lrui-spec-name",
 	}
 )
@@ -34,6 +35,8 @@ func Test_DecodeLastRuntimeUpgradeInfo(t *testing.T) {
 
 	result, err := DecodeLastRuntimeUpgradeInfo(buffer)
 	assert.NoError(t, err)
+
+	fmt.Println("After Decode")
 
 	assert.Equal(t, lrui, result)
 }

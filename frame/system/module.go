@@ -620,6 +620,29 @@ func (m module) Metadata() primitives.MetadataModule {
 
 	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.RuntimeDbWeight{}), &sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, nil, nil)
 
+	//mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ValidTransaction{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"}, nil, nil)
+
+	//primitives.NewMetadataTypeWithPath(metadata.TypesValidTransaction, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
+	//	primitives.NewMetadataTypeDefinitionComposite(
+	//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionPriority"),
+	//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+	//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+	//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionLongevity"),
+	//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
+	//		},
+	//	)),
+
+	//mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.LastRuntimeUpgradeInfo{}), &sc.Sequence[sc.Str]{"frame_system", "LastRuntimeUpgradeInfo"}, nil, nil)
+	//
+	//primitives.NewMetadataTypeWithPath(metadata.TypesLastRuntimeUpgradeInfo,
+	//	"LastRuntimeUpgradeInfo",
+	//	sc.Sequence[sc.Str]{"frame_system", "LastRuntimeUpgradeInfo"}, primitives.NewMetadataTypeDefinitionComposite(
+	//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
+	//			primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU32),
+	//			primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString),
+	//		})),
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),

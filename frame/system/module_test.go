@@ -274,7 +274,7 @@ func Test_Module_StorageBlockNumberSet(t *testing.T) {
 
 func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
 	lrui := primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: 1,
+		SpecVersion: sc.Compact{Number: sc.U32(1)},
 		SpecName:    "test",
 	}
 	target := setupModule()
@@ -290,7 +290,7 @@ func Test_Module_StorageLastRuntimeUpgrade(t *testing.T) {
 
 func Test_Module_StorageLastRuntimeUpgradeSet(t *testing.T) {
 	lrui := primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: 1,
+		SpecVersion: sc.Compact{Number: sc.U32(1)},
 		SpecName:    "test",
 	}
 	target := setupModule()
@@ -1319,6 +1319,8 @@ func Test_Module_Metadata(t *testing.T) {
 
 	expectedTypesDbWeightId := expectedTypesBlockWeightsId + 1
 
+	//expectedTypesValidTransactionId := expectedTypesDbWeightId + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
 			"System calls",
@@ -1464,6 +1466,17 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Read"),  // read
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Write"), // write
 			})),
+
+		//primitives.NewMetadataTypeWithPath(expectedTypesValidTransactionId, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
+		//	primitives.NewMetadataTypeDefinitionComposite(
+		//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
+		//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionPriority"),
+		//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+		//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
+		//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionLongevity"),
+		//			primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
+		//		},
+		//	)),
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),

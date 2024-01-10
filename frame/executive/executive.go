@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	errInvalidParentHash  = errors.New("parent hash should be valid")
-	errInvalidDigestNum   = errors.New("number of digest must match the calculated")
-	errInvalidDigestItem  = errors.New("digest item must match that calculated")
-	errInvalidStorageRoot = errors.New("storage root must match that calculated")
-	errInvalidTxTrie      = errors.New("Transaction trie must be valid")
+	errInvalidParentHash      = errors.New("parent hash should be valid")
+	errInvalidDigestNum       = errors.New("number of digest must match the calculated")
+	errInvalidDigestItem      = errors.New("digest item must match that calculated")
+	errInvalidStorageRoot     = errors.New("storage root must match that calculated")
+	errInvalidTxTrie          = errors.New("Transaction trie must be valid")
+	errInvalidLastSpecVersion = errors.New("invalid last spec version number in runtime upgrade")
 )
 
 type Module interface {
@@ -304,11 +305,42 @@ func (m module) runtimeUpgrade() (sc.Bool, error) {
 		return false, err
 	}
 
-	if m.system.Version().SpecVersion > last.SpecVersion ||
+	//fmt.Println("last: ")
+	//fmt.Println(reflect.TypeOf(last.SpecVersion.Number))
+
+	//switch c.(type) {
+	//case sc.U32:
+	//	return false, errInvalidLastSpecVersion
+	//}
+
+	//n, ok := last.SpecVersion.Number.(sc.U32)
+	//
+	//if ok {
+	//	// return false, errInvalidLastSpecVersion
+	//}
+
+	//n += 1
+
+	//if !ok {
+	//	return false, errInvalidLastSpecVersion
+	//}
+	//specVersion := sc.U32(last.SpecVersion.Number.ToBigInt().Uint64())
+	//if !ok {
+	//	fmt.Println("SpecVersion: ")
+	//	fmt.Println(specVersion)
+	//	return false, errInvalidLastSpecVersion
+	//}
+
+	specVersion, ok := last.SpecVersion.Number.(sc.U32)
+	if !ok {
+		return false, errInvalidLastSpecVersion
+	}
+
+	if m.system.Version().SpecVersion > specVersion ||
 		last.SpecName != m.system.Version().SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{
-			SpecVersion: m.system.Version().SpecVersion,
+			SpecVersion: sc.Compact{Number: m.system.Version().SpecVersion},
 			SpecName:    m.system.Version().SpecName,
 		}
 		m.system.StorageLastRuntimeUpgradeSet(current)

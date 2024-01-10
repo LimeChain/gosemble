@@ -18,6 +18,7 @@ const (
 	moduleTypeName           = "Module"
 	hookOnChargeTypeName     = "OnChargeTransaction"
 	varyingDataTypeName      = "VaryingData"
+	primitivesPackagePath    = "github.com/LimeChain/gosemble/primitives/types."
 )
 
 type MetadataTypeGenerator struct {
@@ -103,8 +104,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			metadataTypeParams := sc.Sequence[MetadataTypeParameter]{}
 
 			metadataDocs := typeName
-			// When the type is Generic, the typeName contains it's package path which we don't want
-			metadataDocs = strings.Replace(metadataDocs, "github.com/LimeChain/gosemble/primitives/types.", "", 1)
+			metadataDocs = strings.Replace(metadataDocs, primitivesPackagePath, "", 1)
 			if def != nil {
 				metadataTypeDef = *def
 			}
@@ -126,7 +126,12 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 		}
 	case reflect.Slice:
 		sequenceName := "Sequence"
+		//sequenceType := valueType.Elem().Name()
+		//if strings.HasPrefix(sequenceType, "Sequence") { // We are dealing with double sequence (e.g. SequenceSequenceU8)
+		//
+		//}
 		sequenceType := sequenceName + valueType.Elem().Name()
+		//	fmt.Println("SequenceType: " + sequenceType)
 		sequenceTypeId, ok := g.metadataIds[sequenceType]
 		if !ok {
 			sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
@@ -214,8 +219,8 @@ func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
 }
 
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
-	newId := len(g.metadataIds) + 1
-	g.metadataIds[name] = newId
+	newId := len(g.MetadataIds) + 1
+	g.MetadataIds[name] = newId
 	return newId
 }
 
@@ -225,14 +230,14 @@ func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) 
 		if v.Type() == reflect.TypeOf(sc.Compact{}) {
 			switch field.Elem().Type() {
 			case reflect.TypeOf(*new(sc.U128)):
-				typeId, ok := g.metadataIds["CompactU128"]
+				typeId, ok := g.MetadataIds["CompactU128"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU128")
 					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
 				}
 				return typeId, true
 			case reflect.TypeOf(*new(sc.U64)):
-				typeId, ok := g.metadataIds["CompactU64"]
+				typeId, ok := g.MetadataIds["CompactU64"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU64")
 					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))

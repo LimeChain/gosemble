@@ -60,7 +60,7 @@ func Test_BlockExecution(t *testing.T) {
 	assert.NoError(t, err)
 
 	lrui := primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: constants.SpecVersion,
+		SpecVersion: sc.Compact{Number: sc.U32(constants.SpecVersion)},
 		SpecName:    constants.SpecName,
 	}
 	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
