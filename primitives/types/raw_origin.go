@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	sc "github.com/LimeChain/goscale"
 )
 
@@ -52,4 +54,20 @@ func (o RawOrigin) AsSigned() (AccountId, error) {
 	}
 
 	return o.VaryingData[1].(AccountId), nil
+}
+
+func DecodeRawOrigin(buffer *bytes.Buffer) (RawOrigin, error) {
+	b, err := sc.DecodeU8(buffer)
+	if err != nil {
+		return RawOrigin{}, err
+	}
+
+	switch b {
+	case RawOriginRoot:
+		return NewRawOriginRoot(), nil
+	case RawOriginNone:
+		return NewRawOriginNone(), nil
+	default:
+		return RawOrigin{}, newTypeError("RawOrigin")
+	}
 }

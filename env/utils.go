@@ -2,38 +2,38 @@
 
 package env
 
-func ExtBenchmarksTimeNowVersion1() int64 {
+func ExtBenchmarkingCurrentTimeVersion1() int64 {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbWhitelistKeyVersion1(key int64) {
+func ExtBenchmarkingSetWhitelistVersion1(key int64) {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbResetTrackerVersion1() {
+func ExtBenchmarkingResetReadWriteCountVersion1() {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbStartTrackerVersion1() {
+func ExtBenchmarkingStartDbTrackerVersion1() {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbStopTrackerVersion1() {
+func ExtBenchmarkingStopDbTrackerVersion1() {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbWipeVersion1() {
+func ExtBenchmarkingWipeDbVersion1() {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbCommitVersion1() {
+func ExtBenchmarkingCommitDbVersion1() {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbReadCountVersion1() int32 {
+func ExtBenchmarkingDbReadCountVersion1() int32 {
 	panic("not implemented")
 }
 
-func ExtBenchmarksDbWriteCountVersion1() int32 {
+func ExtBenchmarkingDbWriteCountVersion1() int32 {
 	panic("not implemented")
 }
