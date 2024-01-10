@@ -4,12 +4,10 @@ Targets WebAssembly MVP
 package main
 
 import (
-	"bytes"
-	"encoding/hex"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/api/account_nonce"
 	apiAura "github.com/LimeChain/gosemble/api/aura"
+	"github.com/LimeChain/gosemble/api/benchmarking"
 	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
 	"github.com/LimeChain/gosemble/api/core"
 	genesisbuilder "github.com/LimeChain/gosemble/api/genesis_builder"
@@ -27,7 +25,6 @@ import (
 	"github.com/LimeChain/gosemble/frame/balances"
 	"github.com/LimeChain/gosemble/frame/executive"
 	"github.com/LimeChain/gosemble/frame/grandpa"
-	"github.com/LimeChain/gosemble/frame/support"
 	"github.com/LimeChain/gosemble/frame/system"
 	sysExtensions "github.com/LimeChain/gosemble/frame/system/extensions"
 	tm "github.com/LimeChain/gosemble/frame/testable"
@@ -35,10 +32,8 @@ import (
 	"github.com/LimeChain/gosemble/frame/transaction_payment"
 	txExtensions "github.com/LimeChain/gosemble/frame/transaction_payment/extensions"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/benchmark"
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
-	"github.com/LimeChain/gosemble/utils"
 )
 
 const (
@@ -428,104 +423,13 @@ func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
 		BuildConfig(dataPtr, dataLen)
 }
 
-// The state implementation in Gossamer does not implement
-// caching and nested transactions (DbCommit, DbWipe)
-// https://github.com/ChainSafe/gossamer/discussions/3646
-//
 //go:export Benchmark_run
 func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
-	memUtils := utils.NewMemoryTranslator()
-	data := memUtils.GetWasmMemorySlice(dataPtr, dataLen)
-	buffer := bytes.NewBuffer(data)
-
-	// TODO:
-	// Pass the input params (components, values per component are set by default to 6)
-	// and execute on a range of components
-
-	repeatCount, err := sc.DecodeU8(buffer)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-
-	function, err := decoder.DecodeCall(buffer)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-
-	transactional := support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](logger)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 
-	dispatchInfo, err := primitives.PostDispatchInfo{}, primitives.DispatchError{}
-	measuredDurations := []int64{}
-
-	// Always do at least one internal repeat...
-	if repeatCount < 1 {
-		repeatCount = 1
-	}
-	for i := 0; i < int(repeatCount); i++ {
-		// Reset the state after each execution
-		dispatchInfo, err = transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, primitives.DispatchError) {
-			// Always reset the state after the benchmark
-			benchmark.DbWipe()
-
-			// TODO:
-			// Set up the externalities environment for the setup we want to
-			// benchmark.
-
-			// Sets the block number to 1 to allow emitting events
-			systemModule.StorageBlockNumberSet(1)
-
-			benchmark.DbCommit()
-			// Commit the externalities to the database, flushing the DB cache.
-			// This will enable worst case scenario for reading from the database. (commit_db)
-
-			benchmark.DbResetTracker()
-			// Whitelist specific storage keys
-			benchmark.DbWhitelistKey([]byte(":transaction_level:"))
-			benchmark.DbWhitelistKey([]byte(":extrinsic_index"))
-			accountKey, _ := hex.DecodeString("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da9de1e86a9a8c739864cf3cc5ec2bea59fd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
-			benchmark.DbWhitelistKey([]byte(accountKey))
-
-			// Reset the read/write counter so we don't count operations in the setup process.
-			benchmark.DbStartTracker()
-
-			// Calculate the diff caused by the benchmark.
-			start := benchmark.TimeNow()
-
-			// TODO: primitives.RawOriginFrom(maybeWho)
-			resWithInfo := function.Dispatch(primitives.NewRawOriginRoot(), function.Args())
-
-			end := benchmark.TimeNow()
-
-			// Calculate the diff caused by the benchmark.
-			measuredDurations = append(measuredDurations, end-start)
-			benchmark.DbStopTracker()
-
-			// Commit the changes to get proper write count
-			benchmark.DbCommit()
-
-			if resWithInfo.HasError {
-				return resWithInfo.Err.PostInfo, resWithInfo.Err.Error
-			}
-			return resWithInfo.Ok, nil
-		})
-	}
-
-	// Calculate the average time
-	var averageTime int64
-	for _, t := range measuredDurations {
-		averageTime += t
-	}
-	averageTime /= int64(len(measuredDurations))
-
-	// Return a benchmark result (module, function, time, db reads/writes)
-	var res []byte
-	res = append(res, repeatCount.Bytes()...)
-	res = append(res, function.ModuleIndex().Bytes()...)
-	res = append(res, function.FunctionIndex().Bytes()...)
-	res = append(res, sc.U64(averageTime).Bytes()...)
-	res = append(res, sc.U32(benchmark.DbReadCount()).Bytes()...)
-	res = append(res, sc.U32(benchmark.DbWriteCount()).Bytes()...)
-	res = append(res, dispatchInfo.Bytes()...)
-	return memUtils.BytesToOffsetAndSize(res)
+	return benchmarking.New(
+		systemModule,
+		decoder,
+		logger,
+	).Run(dataPtr, dataLen)
 }
