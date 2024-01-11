@@ -305,31 +305,9 @@ func (m module) runtimeUpgrade() (sc.Bool, error) {
 		return false, err
 	}
 
-	//fmt.Println("last: ")
-	//fmt.Println(reflect.TypeOf(last.SpecVersion.Number))
-
-	//switch c.(type) {
-	//case sc.U32:
-	//	return false, errInvalidLastSpecVersion
-	//}
-
-	//n, ok := last.SpecVersion.Number.(sc.U32)
-	//
-	//if ok {
-	//	// return false, errInvalidLastSpecVersion
-	//}
-
-	//n += 1
-
-	//if !ok {
-	//	return false, errInvalidLastSpecVersion
-	//}
-	//specVersion := sc.U32(last.SpecVersion.Number.ToBigInt().Uint64())
-	//if !ok {
-	//	fmt.Println("SpecVersion: ")
-	//	fmt.Println(specVersion)
-	//	return false, errInvalidLastSpecVersion
-	//}
+	if last.SpecVersion.Number == nil {
+		last.SpecVersion = sc.Compact{Number: sc.U32(0)}
+	}
 
 	specVersion, ok := last.SpecVersion.Number.(sc.U32)
 	if !ok {
