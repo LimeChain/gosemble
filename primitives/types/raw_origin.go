@@ -65,6 +65,12 @@ func DecodeRawOrigin(buffer *bytes.Buffer) (RawOrigin, error) {
 	switch b {
 	case RawOriginRoot:
 		return NewRawOriginRoot(), nil
+	case RawOriginSigned:
+		address, err := DecodeAccountId(buffer)
+		if err != nil {
+			return RawOrigin{}, err
+		}
+		return NewRawOriginSigned(address), nil
 	case RawOriginNone:
 		return NewRawOriginNone(), nil
 	default:
