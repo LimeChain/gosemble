@@ -144,9 +144,6 @@ func initializeModules() []primitives.Module {
 
 	testableModule := tm.New(TestableIndex, mdGenerator)
 
-	//addr := fmt.Sprintf("%p", &mdGenerator)
-	//log.NewLogger().Info("Addr in initializeModules: " + addr)
-
 	return []primitives.Module{
 		systemModule,
 		timestampModule,
@@ -173,9 +170,6 @@ func newSignedExtra() primitives.SignedExtra {
 		sysExtensions.NewCheckWeight(systemModule),
 		txExtensions.NewChargeTransactionPayment(systemModule, txPaymentModule, balancesModule),
 	}
-
-	//addr := fmt.Sprintf("%p", &mdGenerator)
-	//log.NewLogger().Info("Addr in signedExtra: " + addr)
 
 	return primitives.NewSignedExtra(extras, mdGenerator)
 }

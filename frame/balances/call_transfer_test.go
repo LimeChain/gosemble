@@ -136,6 +136,18 @@ func Test_Call_Transfer_Dispatch_BadOrigin(t *testing.T) {
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 }
 
+func Test_Call_Transfer_Dispatch_InvalidArgs(t *testing.T) {
+	target := setupCallTransfer()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("invalid compact value when dispatching call transfer"), dispatchErr)
+
+	_, dispatchErr = target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.Compact{}))
+
+	assert.Equal(t, errors.New("invalid compact number field when dispatching call transfer"), dispatchErr)
+}
+
 func Test_Call_Transfer_Dispatch_CannotLookup(t *testing.T) {
 	target := setupCallTransfer()
 

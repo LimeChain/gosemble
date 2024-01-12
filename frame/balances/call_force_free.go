@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -97,7 +98,10 @@ func (_ callForceFree) Docs() string {
 }
 
 func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	amount := args[1].(sc.U128)
+	amount, ok := args[1].(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid amount value when dispatching call force free")
+	}
 	return types.PostDispatchInfo{}, c.forceFree(origin, args[0].(types.MultiAddress), amount)
 }
 

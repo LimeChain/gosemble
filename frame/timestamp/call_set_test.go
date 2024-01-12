@@ -213,6 +213,19 @@ func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
 }
 
+func Test_Call_Set_Dispatch_InvalidArgs(t *testing.T) {
+	target := setUpCallSet()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("couldn't dispatch call set timestamp compact value"), dispatchErr)
+	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
+	mockStorageNow.AssertNotCalled(t, "Get")
+	mockStorageNow.AssertNotCalled(t, "Put")
+	mockStorageDidUpdate.AssertNotCalled(t, "Put")
+	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
+}
+
 func Test_Call_Set_Dispatch_InvalidStorageDidUpdate(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(true)

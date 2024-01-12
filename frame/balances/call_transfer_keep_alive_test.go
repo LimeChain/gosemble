@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -151,6 +152,27 @@ func Test_Call_TransferKeepAlive_Dispatch_BadOrigin(t *testing.T) {
 	)
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs(t *testing.T) {
+	target := setupCallTransferKeepAlive()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.NewU64(0)),
+	)
+
+	assert.Equal(t, errors.New("invalid compact value when dispatching call transfer keep alive"), dispatchErr)
+
+	_, dispatchErr = target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.Compact{}),
+	)
+
+	assert.Equal(t, errors.New("invalid compact number field when dispatching call transfer keep alive"), dispatchErr)
+
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

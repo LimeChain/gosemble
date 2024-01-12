@@ -178,6 +178,17 @@ func Test_Call_ForceFree_Dispatch_InvalidOrigin(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
+func Test_Call_ForceFree_Dispatch_InvalidArgs(t *testing.T) {
+	target := setupCallForceFree()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(targetAddress, sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("invalid amount value when dispatching call force free"), dispatchErr)
+	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
 func Test_Call_ForceFree_Dispatch_InvalidLookup(t *testing.T) {
 	target := setupCallForceFree()
 

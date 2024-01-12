@@ -106,7 +106,7 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) (primitives.PostDispatchInfo, error) {
 	valueTs, ok := args[0].(sc.Compact)
 	if !ok {
-		return primitives.PostDispatchInfo{}, errors.New("couldn't dispatch timestamp compact value")
+		return primitives.PostDispatchInfo{}, errors.New("couldn't dispatch call set timestamp compact value")
 	}
 	return primitives.PostDispatchInfo{}, c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }

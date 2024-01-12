@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -145,6 +146,25 @@ func Test_Call_ForceTransfer_Dispatch_InvalidBadOrigin(t *testing.T) {
 		sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_ForceTransfer_Dispatch_InvalidArgs(t *testing.T) {
+	target := setupCallForceTransfer()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, toAddress, sc.NewU128(0)))
+
+	assert.Equal(t, errors.New("invalid Compact value when dispatching call_force_transfer"), dispatchErr)
+
+	_, dispatchErr = target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, toAddress, sc.Compact{}))
+
+	assert.Equal(t, errors.New("invalid Compact field number when dispatching call_force_transfer"), dispatchErr)
+
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
