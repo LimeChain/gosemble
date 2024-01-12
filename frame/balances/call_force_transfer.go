@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -93,24 +94,16 @@ func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
-func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	value, _ := args[2].(sc.Compact)
-	valueU128 := value.Number.(sc.U128)
-
-	err := c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), valueU128)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
-			},
-		}
+func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
+	valueCompact, ok := args[2].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid Compact value when dispatching call_force_transfer")
 	}
-
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid Compact field number when dispatching call_force_transfer")
 	}
+	return types.PostDispatchInfo{}, c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
 }
 
 func (_ callForceTransfer) Docs() string {
@@ -119,7 +112,7 @@ func (_ callForceTransfer) Docs() string {
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.
 // Can only be called by ROOT.
-func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callForceTransfer) forceTransfer(origin types.RawOrigin, source types.MultiAddress, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsRootOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

@@ -40,10 +40,14 @@ func (m *Call) Args() sc.VaryingData {
 	return args.Get(0).(sc.VaryingData)
 }
 
-func (m *Call) Dispatch(origin types.RuntimeOrigin, a sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
+func (m *Call) Dispatch(origin types.RuntimeOrigin, a sc.VaryingData) (types.PostDispatchInfo, error) {
 	args := m.Called(origin, a)
 
-	return args.Get(0).(types.DispatchResultWithPostInfo[types.PostDispatchInfo])
+	if args.Get(1) == nil {
+		return args.Get(0).(types.PostDispatchInfo), nil
+	}
+
+	return args.Get(0).(types.PostDispatchInfo), args.Get(1).(error)
 }
 
 func (m *Call) BaseWeight() types.Weight {

@@ -10,12 +10,8 @@ type testCall struct {
 	Callable
 }
 
-func (c testCall) Dispatch(origin RuntimeOrigin, args sc.VaryingData) DispatchResultWithPostInfo[PostDispatchInfo] {
-	return DispatchResultWithPostInfo[PostDispatchInfo]{
-		HasError: false,
-		Ok:       PostDispatchInfo{},
-		Err:      DispatchErrorWithPostInfo[PostDispatchInfo]{},
-	}
+func (c testCall) Dispatch(origin RuntimeOrigin, args sc.VaryingData) (PostDispatchInfo, error) {
+	return PostDispatchInfo{}, nil
 }
 
 func (c testCall) BaseWeight() Weight {

@@ -75,8 +75,8 @@ func (m *SignedExtra) PreDispatchUnsigned(call types.Call, info *types.DispatchI
 	return nil
 }
 
-func (m *SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[types.Pre]], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, result *types.DispatchResult) error {
-	args := m.Called(pre, info, postInfo, length, result)
+func (m *SignedExtra) PostDispatch(pre sc.Option[sc.Sequence[types.Pre]], info *types.DispatchInfo, postInfo *types.PostDispatchInfo, length sc.Compact, dispatchErr error) error {
+	args := m.Called(pre, info, postInfo, length, dispatchErr)
 
 	if args.Get(0) != nil {
 		return args.Get(0).(error)

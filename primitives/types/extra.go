@@ -19,7 +19,7 @@ type SignedExtra interface {
 	ValidateUnsigned(call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
 	PreDispatch(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (sc.Sequence[Pre], error)
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
-	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
+	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, dispatchErr error) error
 
 	Metadata() sc.Sequence[MetadataSignedExtension]
 }
@@ -125,18 +125,18 @@ func (e signedExtra) PreDispatchUnsigned(call Call, info *DispatchInfo, length s
 	return nil
 }
 
-func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error {
+func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, dispatchErr error) error {
 	if pre.HasValue {
 		preValue := pre.Value
 		for i, extra := range e.extras {
-			err := extra.PostDispatch(sc.NewOption[Pre](preValue[i]), info, postInfo, length, result)
+			err := extra.PostDispatch(sc.NewOption[Pre](preValue[i]), info, postInfo, length, dispatchErr)
 			if err != nil {
 				return err
 			}
 		}
 	} else {
 		for _, extra := range e.extras {
-			err := extra.PostDispatch(sc.NewOption[Pre](nil), info, postInfo, length, result)
+			err := extra.PostDispatch(sc.NewOption[Pre](nil), info, postInfo, length, dispatchErr)
 			if err != nil {
 				return err
 			}

@@ -19,8 +19,11 @@ var (
 
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
-	mockTypeMutateAccountData             = mock.AnythingOfType("func(*types.AccountData) goscale.Result[github.com/LimeChain/goscale.Encodable]")
-	logger                                = log.NewLogger()
+)
+
+var (
+	mockTypeMutateAccountData = mock.AnythingOfType("func(*types.AccountData) (goscale.Encodable, error)")
+	logger                    = log.NewLogger()
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -57,9 +60,7 @@ func Test_Module_DepositIntoExisting_Success(t *testing.T) {
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
-	tryMutateResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{Value: targetValue}),
-	}
+	tryMutateResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), targetValue)
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -93,20 +94,18 @@ func Test_Module_DepositIntoExisting_ZeroValue(t *testing.T) {
 
 func Test_Module_DepositIntoExisting_TryMutateAccount_Fails(t *testing.T) {
 	target := setupModule()
-	expectError := primitives.NewDispatchErrorCannotLookup()
-	mockReturn := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    expectError,
-	}
+
+	expectedResult := sc.NewU128(1)
+	expectedErr := primitives.NewDispatchErrorCannotLookup()
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(mockReturn, nil)
+	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(expectedResult, expectedErr)
 
-	result, errDeposit := target.DepositIntoExisting(fromAddressId, targetValue)
-	assert.Equal(t, sc.U128{}, result)
-	assert.Equal(t, expectError, errDeposit)
+	_, errDeposit := target.DepositIntoExisting(fromAddressId, targetValue)
+
+	assert.Equal(t, expectedErr, errDeposit)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
@@ -116,9 +115,7 @@ func Test_Module_Withdraw_Success(t *testing.T) {
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
-	tryMutateResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
+	tryMutateResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), targetValue)
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -152,21 +149,17 @@ func Test_Module_Withdraw_ZeroValue(t *testing.T) {
 
 func Test_Module_Withdraw_TryMutateAccount_Fails(t *testing.T) {
 	target := setupModule()
-	expectError := primitives.NewDispatchErrorCannotLookup()
-	mockReturn := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    expectError,
-	}
+
+	expectedErr := primitives.NewDispatchErrorCannotLookup()
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(mockReturn, nil)
+	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(sc.NewU128(1), expectedErr)
 
-	result, errWithdraw := target.Withdraw(fromAddressId, targetValue, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
+	_, errWithdraw := target.Withdraw(fromAddressId, targetValue, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
-	assert.Equal(t, sc.U128{}, result)
-	assert.Equal(t, expectError, errWithdraw)
+	assert.Equal(t, expectedErr, errWithdraw)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
@@ -227,37 +220,31 @@ func Test_Module_tryMutateAccount_Success(t *testing.T) {
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
-	tryMutateResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
-	expected := sc.Result[sc.Encodable]{}
+	tryMutateResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.U128{})
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
 	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(tryMutateResult, nil)
 
-	result := target.tryMutateAccount(fromAddressId, func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
+	_, err = target.tryMutateAccount(fromAddressId, func(who *primitives.AccountData, _ bool) (sc.Encodable, error) { return nil, nil })
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 }
 
 func Test_Module_tryMutateAccount_TryMutateAccountWithDust_Fails(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    primitives.NewDispatchErrorCannotLookup(),
-	}
+	expectedErr := primitives.NewDispatchErrorCannotLookup()
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(expected, nil)
+	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(sc.NewU128(0), expectedErr)
 
-	result := target.tryMutateAccount(fromAddressId, func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
+	_, err = target.tryMutateAccount(fromAddressId, func(who *primitives.AccountData, _ bool) (sc.Encodable, error) { return nil, nil })
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
@@ -267,22 +254,19 @@ func Test_Module_tryMutateAccountWithDust_Success(t *testing.T) {
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
-	tryMutateResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
+	tryMutateResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.NewOption[sc.U128](nil))
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	expected := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.Result[sc.Encodable]{}, newDustCleaner(moduleId, fromAddressId, sc.NewOption[negativeImbalance](nil), mockStoredMap)),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), newDustCleaner(moduleId, fromAddressId, sc.NewOption[negativeImbalance](nil), mockStoredMap))
 
 	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(tryMutateResult, nil)
 
-	result := target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
+	result, err := target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) (sc.Encodable, error) { return nil, nil })
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 }
 
@@ -291,42 +275,36 @@ func Test_Module_tryMutateAccountWithDust_Success_Endowed(t *testing.T) {
 	mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 	target.storage.TotalIssuance = mockTotalIssuance
 
-	tryMutateResult := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.NewOption[sc.U128](targetValue), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
+	tryMutateResult := sc.NewVaryingData(sc.NewOption[sc.U128](targetValue), sc.NewOption[negativeImbalance](nil), sc.NewOption[sc.U128](targetValue))
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	expected := sc.Result[sc.Encodable]{
-		Value: sc.NewVaryingData(sc.Result[sc.Encodable]{}, newDustCleaner(moduleId, fromAddressId, sc.NewOption[negativeImbalance](nil), mockStoredMap)),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewOption[sc.U128](targetValue), newDustCleaner(moduleId, fromAddressId, sc.NewOption[negativeImbalance](nil), mockStoredMap))
 
 	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(tryMutateResult, nil)
 	mockStoredMap.On("DepositEvent", newEventEndowed(moduleId, fromAddressId, targetValue))
 
-	result := target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
+	result, err := target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) (sc.Encodable, error) { return nil, nil })
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 	mockStoredMap.AssertCalled(t, "DepositEvent", newEventEndowed(moduleId, fromAddressId, targetValue))
 }
 
 func Test_Module_tryMutateAccountWithDust_TryMutateExists_Fail(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    primitives.NewDispatchErrorCannotLookup(),
-	}
+	expectedErr := primitives.NewDispatchErrorCannotLookup()
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(expected, nil)
+	mockStoredMap.On("TryMutateExists", fromAddressId, mockTypeMutateAccountData).Return(sc.NewU128(1), expectedErr)
 
-	result := target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] { return sc.Result[sc.Encodable]{} })
+	_, err = target.tryMutateAccountWithDust(fromAddressId, func(who *primitives.AccountData, _ bool) (sc.Encodable, error) { return nil, nil })
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	mockStoredMap.AssertCalled(t, "TryMutateExists", fromAddressId, mockTypeMutateAccountData)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
@@ -335,20 +313,18 @@ func Test_Module_mutateAccount_Success(t *testing.T) {
 	target := setupModule()
 	target.storage.TotalIssuance = new(mocks.StorageValue[sc.U128])
 	maybeAccount := &primitives.AccountData{}
-	expected := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    sc.NewVaryingData(sc.NewOption[sc.U128](sc.NewU128(0)), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewOption[sc.U128](sc.NewU128(0)), sc.NewOption[negativeImbalance](nil), sc.U128{})
 
-	result := target.
+	result, err := target.
 		mutateAccount(
 			maybeAccount,
-			func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
-				return sc.Result[sc.Encodable]{}
+			func(who *primitives.AccountData, _ bool) (sc.Encodable, error) {
+				return sc.U128{}, nil
 			},
 		)
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 }
 
 func Test_Module_mutateAccount_f_result(t *testing.T) {
@@ -357,24 +333,17 @@ func Test_Module_mutateAccount_f_result(t *testing.T) {
 	maybeAccount := &primitives.AccountData{
 		Free: sc.NewU128(2),
 	}
-	e := primitives.NewDispatchErrorBadOrigin()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    e,
-	}
+	expectedErr := primitives.NewDispatchErrorBadOrigin()
 
-	result := target.
+	_, err := target.
 		mutateAccount(
 			maybeAccount,
-			func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
-				return sc.Result[sc.Encodable]{
-					HasError: true,
-					Value:    e,
-				}
+			func(who *primitives.AccountData, _ bool) (sc.Encodable, error) {
+				return nil, expectedErr
 			},
 		)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 }
 
 func Test_Module_mutateAccount_Success_NotNewAccount(t *testing.T) {
@@ -383,20 +352,18 @@ func Test_Module_mutateAccount_Success_NotNewAccount(t *testing.T) {
 	maybeAccount := &primitives.AccountData{
 		Free: sc.NewU128(2),
 	}
-	expected := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.Result[sc.Encodable]{}),
-	}
+	expectedResult := sc.NewVaryingData(sc.NewOption[sc.U128](nil), sc.NewOption[negativeImbalance](nil), sc.U128{})
 
-	result := target.
+	result, err := target.
 		mutateAccount(
 			maybeAccount,
-			func(who *primitives.AccountData, _ bool) sc.Result[sc.Encodable] {
-				return sc.Result[sc.Encodable]{}
+			func(who *primitives.AccountData, _ bool) (sc.Encodable, error) {
+				return sc.U128{}, nil
 			},
 		)
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 }
 
 func Test_Module_postMutation_Success(t *testing.T) {
@@ -441,9 +408,10 @@ func Test_Module_withdraw_Success(t *testing.T) {
 	mockStoredMap.On("Get", fromAddressId).Return(accountInfo, nil)
 	mockStoredMap.On("DepositEvent", newEventWithdraw(moduleId, fromAddressId, value))
 
-	result := target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
+	result, err := target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
-	assert.Equal(t, sc.Result[sc.Encodable]{Value: value}, result)
+	assert.NoError(t, err)
+	assert.Equal(t, value, result)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 	assert.Equal(t, sc.NewU128(2), fromAccountData.Free)
 	mockStoredMap.AssertCalled(t, "DepositEvent", newEventWithdraw(moduleId, fromAddressId, value))
@@ -451,22 +419,19 @@ func Test_Module_withdraw_Success(t *testing.T) {
 
 func Test_Module_withdraw_InsufficientBalance(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-			Index:   moduleId,
-			Err:     sc.U32(ErrorInsufficientBalance),
-			Message: sc.NewOption[sc.Str](nil),
-		}),
-	}
+	expectedErr := primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+		Index:   moduleId,
+		Err:     sc.U32(ErrorInsufficientBalance),
+		Message: sc.NewOption[sc.Str](nil),
+	})
 	value := sc.NewU128(10)
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	result := target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
+	_, err = target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
 	assert.Equal(t, sc.NewU128(5), fromAccountData.Free)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -474,21 +439,18 @@ func Test_Module_withdraw_InsufficientBalance(t *testing.T) {
 
 func Test_Module_withdraw_KeepAlive(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-			Index:   moduleId,
-			Err:     sc.U32(ErrorKeepAlive),
-			Message: sc.NewOption[sc.Str](nil),
-		}),
-	}
+	expectedErr := primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+		Index:   moduleId,
+		Err:     sc.U32(ErrorKeepAlive),
+		Message: sc.NewOption[sc.Str](nil),
+	})
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	result := target.withdraw(fromAddressId, targetValue, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
+	_, err = target.withdraw(fromAddressId, targetValue, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
 	assert.Equal(t, sc.NewU128(5), fromAccountData.Free)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -496,14 +458,11 @@ func Test_Module_withdraw_KeepAlive(t *testing.T) {
 
 func Test_Module_withdraw_CannotWithdraw(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-			Index:   moduleId,
-			Err:     sc.U32(ErrorLiquidityRestrictions),
-			Message: sc.NewOption[sc.Str](nil),
-		}),
-	}
+	expectedErr := primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+		Index:   moduleId,
+		Err:     sc.U32(ErrorLiquidityRestrictions),
+		Message: sc.NewOption[sc.Str](nil),
+	})
 	value := sc.NewU128(3)
 
 	frozenAccountInfo := primitives.AccountInfo{
@@ -518,9 +477,9 @@ func Test_Module_withdraw_CannotWithdraw(t *testing.T) {
 
 	mockStoredMap.On("Get", fromAddressId).Return(frozenAccountInfo, nil)
 
-	result := target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
+	_, err = target.withdraw(fromAddressId, value, fromAccountData, sc.U8(primitives.ReasonsFee), primitives.ExistenceRequirementKeepAlive)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 	assert.Equal(t, sc.NewU128(5), fromAccountData.Free)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
@@ -528,57 +487,50 @@ func Test_Module_withdraw_CannotWithdraw(t *testing.T) {
 
 func Test_Module_deposit_Success(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		Value: targetValue,
-	}
 
+	expectedResult := targetValue
 	toAddressId, err := toAddress.AsAccountId()
 	assert.Nil(t, err)
 
 	mockStoredMap.On("DepositEvent", newEventDeposit(moduleId, toAddressId, targetValue))
 
-	result := target.deposit(toAddressId, toAccountData, false, targetValue)
+	result, err := target.deposit(toAddressId, toAccountData, false, targetValue)
 
-	assert.Equal(t, expected, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	assert.Equal(t, sc.NewU128(6), toAccountData.Free)
 	mockStoredMap.AssertCalled(t, "DepositEvent", newEventDeposit(moduleId, toAddressId, targetValue))
 }
 
 func Test_Module_deposit_DeadAccount(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value: primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-			Index:   moduleId,
-			Err:     sc.U32(ErrorDeadAccount),
-			Message: sc.NewOption[sc.Str](nil),
-		}),
-	}
+	expectedErr := primitives.NewDispatchErrorModule(primitives.CustomModuleError{
+		Index:   moduleId,
+		Err:     sc.U32(ErrorDeadAccount),
+		Message: sc.NewOption[sc.Str](nil),
+	})
 
 	toAddressId, err := toAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	result := target.deposit(toAddressId, toAccountData, true, targetValue)
+	_, err = target.deposit(toAddressId, toAccountData, true, targetValue)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	assert.Equal(t, sc.NewU128(1), toAccountData.Free)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
 func Test_Module_deposit_ArithmeticOverflow(t *testing.T) {
 	target := setupModule()
-	expected := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    primitives.NewDispatchErrorArithmetic(primitives.NewArithmeticErrorOverflow()),
-	}
+	expectedErr := primitives.NewDispatchErrorArithmetic(primitives.NewArithmeticErrorOverflow())
 	toAccountData.Free = sc.MaxU128()
 
 	toAddressId, err := toAddress.AsAccountId()
 	assert.Nil(t, err)
 
-	result := target.deposit(toAddressId, toAccountData, false, targetValue)
+	_, err = target.deposit(toAddressId, toAccountData, false, targetValue)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, expectedErr, err)
 	assert.Equal(t, sc.MaxU128(), toAccountData.Free)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

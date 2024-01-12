@@ -8,5 +8,5 @@ type StoredMap interface {
 	EventDepositor
 	Get(key AccountId) (AccountInfo, error)
 	CanDecProviders(who AccountId) (bool, error)
-	TryMutateExists(who AccountId, f func(who *AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	TryMutateExists(who AccountId, f func(who *AccountData) (sc.Encodable, error)) (sc.Encodable, error)
 }

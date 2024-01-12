@@ -102,17 +102,14 @@ func (m Module) BuildConfig(config []byte) error {
 
 		totalIssuance = totalIssuance.Add(b.Balance)
 
-		result, err := m.Config.StoredMap.TryMutateExists(
+		_, err := m.Config.StoredMap.TryMutateExists(
 			b.AccountId,
-			func(maybeAccount *types.AccountData) sc.Result[sc.Encodable] {
-				return updateAccount(maybeAccount, b.Balance, sc.NewU128(0))
+			func(maybeAccount *types.AccountData) (sc.Encodable, error) {
+				oldFree, oldReserved := updateAccount(maybeAccount, b.Balance, sc.NewU128(0))
+				return sc.NewVaryingData(oldFree, oldReserved), nil
 			},
 		)
 		if err != nil {
-			return err
-		}
-		if result.HasError {
-			err, _ := result.Value.(error)
 			return err
 		}
 	}

@@ -2,6 +2,7 @@ package timestamp
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 	"time"
 
@@ -170,9 +171,9 @@ func Test_Call_Set_Dispatch_Success(t *testing.T) {
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
-	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	_, dispatchErr := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Nil(t, dispatchErr)
 	mockStorageDidUpdate.AssertCalled(t, "Exists")
 	mockStorageNow.AssertCalled(t, "Get")
 	mockStorageNow.AssertCalled(t, "Put", now)
@@ -188,9 +189,10 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 	mockStorageDidUpdate.On("Put", sc.Bool(true)).Return()
 	mockOnTimestampSet.On("OnTimestampSet", now).Return(nil)
 
-	result := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	result, dispatchErr := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Equal(t, primitives.PostDispatchInfo{}, result)
+	assert.Nil(t, dispatchErr)
 	mockStorageDidUpdate.AssertCalled(t, "Exists")
 	mockStorageNow.AssertCalled(t, "Get")
 	mockStorageNow.AssertCalled(t, "Put", now)
@@ -200,16 +202,10 @@ func Test_Call_Set_Dispatch_Success_ValidTimestamp(t *testing.T) {
 
 func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	target := setUpCallSet()
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
 	mockStorageNow.AssertNotCalled(t, "Get")
 	mockStorageNow.AssertNotCalled(t, "Put")
@@ -240,8 +236,8 @@ func Test_Call_Set_Dispatch_InvalidStorageDidUpdate(t *testing.T) {
 	target := setUpCallSet()
 	mockStorageDidUpdate.On("Exists").Return(true)
 
-	res := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampUpdatedOnce.Error())), res.Err.Error)
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampUpdatedOnce.Error())), err)
 
 	mockStorageNow.AssertNotCalled(t, "Get")
 	mockStorageNow.AssertNotCalled(t, "Put")
@@ -254,8 +250,8 @@ func Test_Call_Set_Dispatch_InvalidPreviousTimestamp(t *testing.T) {
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1000), nil)
 
-	res := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), res.Err.Error)
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), err)
 
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
@@ -267,9 +263,26 @@ func Test_Call_Set_Dispatch_InvalidLessThanMinPeriod(t *testing.T) {
 	mockStorageDidUpdate.On("Exists").Return(false)
 	mockStorageNow.On("Get").Return(sc.U64(1001), nil)
 
-	res := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
-	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), res.Err.Error)
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+	assert.Equal(t, primitives.NewDispatchErrorOther(sc.Str(errTimestampMinimumPeriod.Error())), err)
 
+	mockStorageNow.AssertNotCalled(t, "Put")
+	mockStorageDidUpdate.AssertNotCalled(t, "Put")
+	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
+}
+
+func Test_Call_Set_Dispatch_NowGet_Error(t *testing.T) {
+	target := setUpCallSet()
+
+	mockErr := errors.New("err")
+	expectedErr := primitives.NewDispatchErrorOther(sc.Str(mockErr.Error()))
+
+	mockStorageDidUpdate.On("Exists").Return(false)
+	mockStorageNow.On("Get").Return(sc.U64(1001), mockErr)
+
+	_, err := target.Dispatch(origin, sc.NewVaryingData(sc.ToCompact(now)))
+
+	assert.Equal(t, expectedErr, err)
 	mockStorageNow.AssertNotCalled(t, "Put")
 	mockStorageDidUpdate.AssertNotCalled(t, "Put")
 	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")

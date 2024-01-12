@@ -102,10 +102,6 @@ func Test_Call_TransferAll_PaysFee(t *testing.T) {
 
 func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	target := setupCallTransferAll()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -118,7 +114,7 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	mockMutator.On("tryMutateAccountWithDust",
 		toAddressId,
 		mockTypeMutateAccountDataBool,
-	).Return(sc.Result[sc.Encodable]{})
+	).Return(sc.Empty{}, nil)
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
@@ -130,12 +126,12 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 	).
 		Return()
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginSigned(fromAddressId),
 		sc.NewVaryingData(toAddress, sc.Bool(true)),
 	)
 
-	assert.Equal(t, expect, result)
+	assert.Nil(t, dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddressId)
 	mockMutator.AssertCalled(t,
@@ -156,19 +152,13 @@ func Test_Call_TransferAll_Dispatch_Success(t *testing.T) {
 
 func Test_Call_TransferAll_Dispatch_BadOrigin(t *testing.T) {
 	target := setupCallTransferAll()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(fromAddress, sc.Bool(true)),
 	)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "CanDecProviders", mock.Anything)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
@@ -177,24 +167,18 @@ func Test_Call_TransferAll_Dispatch_BadOrigin(t *testing.T) {
 
 func Test_Call_TransferAll_Dispatch_CannotLookup(t *testing.T) {
 	target := setupCallTransferAll()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorCannotLookup(),
-		},
-	}
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
 	mockStoredMap.On("Get", fromAddressId).Return(accountInfo, nil)
 	mockStoredMap.On("CanDecProviders", fromAddressId).Return(true, nil)
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginSigned(fromAddressId),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.Bool(true)),
 	)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, primitives.NewDispatchErrorCannotLookup(), dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddressId)
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
@@ -203,10 +187,6 @@ func Test_Call_TransferAll_Dispatch_CannotLookup(t *testing.T) {
 
 func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 	target := setupCallTransferAll()
-	expect := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
 
 	fromAddressId, err := fromAddress.AsAccountId()
 	assert.Nil(t, err)
@@ -220,7 +200,7 @@ func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 		"tryMutateAccountWithDust",
 		toAddressId,
 		mockTypeMutateAccountDataBool,
-	).Return(sc.Result[sc.Encodable]{})
+	).Return(sc.Empty{}, nil)
 	mockStoredMap.On(
 		"DepositEvent",
 		newEventTransfer(
@@ -231,11 +211,11 @@ func Test_Call_TransferAll_Dispatch_AllowDeath(t *testing.T) {
 		),
 	).Return()
 
-	result := target.Dispatch(
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginSigned(fromAddressId),
 		sc.NewVaryingData(toAddress, sc.Bool(false)))
 
-	assert.Equal(t, expect, result)
+	assert.Nil(t, dispatchErr)
 	mockStoredMap.AssertCalled(t, "Get", fromAddressId)
 	mockStoredMap.AssertCalled(t, "CanDecProviders", fromAddressId)
 	mockMutator.AssertCalled(t,

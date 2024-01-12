@@ -86,33 +86,21 @@ func (_ callRemark) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.PaysYes
 }
 
-func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
-	return remark(origin)
+func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (primitives.PostDispatchInfo, error) {
+	return primitives.PostDispatchInfo{}, remark(origin)
 }
 
 // remark makes some on-chain remark.
-func remark(origin primitives.RuntimeOrigin) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func remark(origin primitives.RuntimeOrigin) error {
 	_, err := EnsureSignedOrRoot(origin)
-	if err != nil {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-			HasError: true,
-			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-				Error: err,
-			},
-		}
-	}
-
-	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: false,
-		Ok:       primitives.PostDispatchInfo{},
-	}
+	return err
 }
 
 // EnsureSignedOrRoot ensures the origin represents either a signed extrinsic or the root.
 // Returns an empty Option if the origin is `Root`.
 // Returns an Option with the signer if the origin is signed.
 // Returns a `BadOrigin` error if neither of the above.
-func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], primitives.DispatchError) {
+func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], error) {
 	if origin.IsRootOrigin() {
 		return sc.NewOption[primitives.AccountId](nil), nil
 	} else if origin.IsSignedOrigin() {

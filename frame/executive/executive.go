@@ -24,7 +24,7 @@ var (
 type Module interface {
 	InitializeBlock(header primitives.Header) error
 	ExecuteBlock(block primitives.Block) error
-	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, error)
+	ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) error
 	FinalizeBlock() (primitives.Header, error)
 	ValidateTransaction(source primitives.TransactionSource, uxt primitives.UncheckedExtrinsic, blockHash primitives.Blake2bHash) (primitives.ValidTransaction, error)
 	OffchainWorker(header primitives.Header) error
@@ -110,7 +110,7 @@ func (m module) ExecuteBlock(block primitives.Block) error {
 //
 // This doesn't attempt to validate anything regarding the block, but it builds a list of uxt
 // hashes.
-func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.DispatchOutcome, error) {
+func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) error {
 	encoded := uxt.Bytes()
 	encodedLen := sc.ToCompact(len(encoded))
 
@@ -119,7 +119,7 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	// Verify that the signature is good.
 	checked, err := uxt.Check()
 	if err != nil {
-		return primitives.DispatchOutcome{}, err
+		return err
 	}
 
 	// We don't need to make sure to `note_extrinsic` only after we know it's going to be
@@ -132,36 +132,30 @@ func (m module) ApplyExtrinsic(uxt primitives.UncheckedExtrinsic) (primitives.Di
 	// Decode parameters and dispatch
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 	m.logger.Tracef("get_dispatch_info: weight ref time %d", dispatchInfo.Weight.RefTime)
-
 	unsignedValidator := extrinsic.NewUnsignedValidatorForChecked(m.runtimeExtrinsic)
 	res, err := checked.Apply(unsignedValidator, &dispatchInfo, encodedLen)
 	if err != nil {
-		return primitives.DispatchOutcome{}, err
+		_, isDispatchErr := err.(primitives.DispatchError)
+		if !isDispatchErr {
+			return err
+		}
+
+		// Mandatory(inherents) are not allowed to fail.
+		//
+		// The entire block should be discarded if an inherent fails to apply. Otherwise
+		// it may open an attack vector.
+		if isMendatory, err := dispatchInfo.IsMendatory(); err != nil {
+			return err
+		} else if isMendatory {
+			return primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
+		}
 	}
 
-	// Mandatory(inherents) are not allowed to fail.
-	//
-	// The entire block should be discarded if an inherent fails to apply. Otherwise
-	// it may open an attack vector.
-	isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
-	if err != nil {
-		return primitives.DispatchOutcome{}, err
+	if err := m.system.NoteAppliedExtrinsic(res, err, dispatchInfo); err != nil {
+		return err
 	}
 
-	if res.HasError && isMendatoryDispatch {
-		return primitives.DispatchOutcome{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadMandatory())
-	}
-
-	noteErr := m.system.NoteAppliedExtrinsic(&res, dispatchInfo)
-	if noteErr != nil {
-		return primitives.DispatchOutcome{}, noteErr
-	}
-
-	if res.HasError {
-		return primitives.NewDispatchOutcome(res.Err.Error)
-	}
-
-	return primitives.NewDispatchOutcome(nil)
+	return err
 }
 
 func (m module) FinalizeBlock() (primitives.Header, error) {
@@ -209,12 +203,9 @@ func (m module) ValidateTransaction(source primitives.TransactionSource, uxt pri
 	m.logger.Trace("dispatch_info")
 	dispatchInfo := primitives.GetDispatchInfo(checked.Function())
 
-	isMendatoryDispatch, err := isMandatoryDispatch(dispatchInfo)
-	if err != nil {
+	if isMendatory, err := dispatchInfo.IsMendatory(); err != nil {
 		return primitives.ValidTransaction{}, err
-	}
-
-	if isMendatoryDispatch {
+	} else if isMendatory {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionMandatoryValidation())
 	}
 
@@ -270,8 +261,8 @@ func (m module) idleAndFinalizeHook(blockNumber sc.U64) error {
 
 func (m module) executeExtrinsicsWithBookKeeping(block primitives.Block) error {
 	for _, ext := range block.Extrinsics() {
-		_, err := m.ApplyExtrinsic(ext)
-		if err != nil {
+
+		if err := m.ApplyExtrinsic(ext); err != nil {
 			return err
 		}
 	}
@@ -364,8 +355,4 @@ func (m module) executeOnRuntimeUpgrade() primitives.Weight {
 
 func extractPreRuntimeDigest(digest primitives.Digest) primitives.Digest {
 	return digest.OnlyPreRuntimes()
-}
-
-func isMandatoryDispatch(dispatchInfo primitives.DispatchInfo) (sc.Bool, error) {
-	return dispatchInfo.Class.Is(primitives.DispatchClassMandatory)
 }

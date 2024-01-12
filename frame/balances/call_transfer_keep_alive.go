@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -88,32 +89,24 @@ func (_ callTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
-func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	valueCompact, _ := args[1].(sc.Compact)
-	value := valueCompact.Number.(sc.U128)
-
-	err := c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
-			},
-		}
-	}
-
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-		HasError: false,
-		Ok:       types.PostDispatchInfo{},
-	}
-}
-
 func (_ callTransferKeepAlive) Docs() string {
 	return "Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."
 }
 
+func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
+	valueCompact, ok := args[1].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact value when dispatching call transfer keep alive")
+	}
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact number field when dispatching call transfer keep alive")
+	}
+	return types.PostDispatchInfo{}, c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
+}
+
 // transferKeepAlive is similar to transfer, but includes a check that the origin transactor will not be "killed".
-func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (c callTransferKeepAlive) transferKeepAlive(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}

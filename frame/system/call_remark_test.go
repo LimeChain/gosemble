@@ -147,24 +147,17 @@ func Test_Call_Remark_PaysFee(t *testing.T) {
 func Test_Call_Remark_Dispatch_Success(t *testing.T) {
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	result := call.Dispatch(primitives.NewRawOriginRoot(), nil)
+	_, dispatchErr := call.Dispatch(primitives.NewRawOriginRoot(), nil)
 
-	assert.Equal(t, primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, result)
+	assert.Nil(t, dispatchErr)
 }
 
 func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
-	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
-
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	result := call.Dispatch(primitives.NewRawOriginNone(), nil)
+	_, dispatchErr := call.Dispatch(primitives.NewRawOriginNone(), nil)
 
-	assert.Equal(t, expected, result)
+	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
 }
 
 func Test_EnsureSignedOrRoot_Root(t *testing.T) {

@@ -20,13 +20,12 @@ var (
 
 func Test_GenesisConfig_BuildConfig(t *testing.T) {
 	for _, tt := range []struct {
-		name                     string
-		gcJson                   string
-		expectedErr              error
-		shouldAssertCalled       bool
-		tryMutateExistsErr       error
-		tryMutateExistsResultErr error
-		balance                  sc.U128
+		name               string
+		gcJson             string
+		expectedErr        error
+		shouldAssertCalled bool
+		tryMutateExistsErr error
+		balance            sc.U128
 	}{
 		{
 			name:               "valid",
@@ -75,27 +74,13 @@ func Test_GenesisConfig_BuildConfig(t *testing.T) {
 			tryMutateExistsErr: errors.New("err"),
 			expectedErr:        errors.New("err"),
 		},
-		{
-			name:                     "TryMutateExists result errror",
-			gcJson:                   validGcJson,
-			tryMutateExistsResultErr: errors.New("err"),
-			expectedErr:              types.NewDispatchErrorOther(sc.Str(errors.New("err").Error())),
-		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			target := setupModule()
 			mockTotalIssuance := new(mocks.StorageValue[sc.U128])
 			target.storage.TotalIssuance = mockTotalIssuance
 
-			mockResult := sc.Result[sc.Encodable]{}
-			if tt.tryMutateExistsResultErr != nil {
-				mockResult = sc.Result[sc.Encodable]{
-					HasError: true,
-					Value:    types.NewDispatchErrorOther(sc.Str(tt.tryMutateExistsResultErr.Error())),
-				}
-			}
-
-			mockStoredMap.On("TryMutateExists", accId, mockTypeMutateAccountData).Return(mockResult, tt.tryMutateExistsErr)
+			mockStoredMap.On("TryMutateExists", accId, mockTypeMutateAccountData).Return(tt.balance, tt.tryMutateExistsErr)
 			mockTotalIssuance.On("Put", tt.balance).Return()
 
 			err := target.BuildConfig([]byte(tt.gcJson))

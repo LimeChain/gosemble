@@ -16,7 +16,7 @@ type checkedExtrinsic struct {
 	signer        sc.Option[primitives.AccountId]
 	function      primitives.Call
 	extra         primitives.SignedExtra
-	transactional support.Transactional[primitives.PostDispatchInfo, primitives.DispatchError]
+	transactional support.Transactional[primitives.PostDispatchInfo]
 }
 
 func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId], function primitives.Call, extra primitives.SignedExtra, logger log.WarnLogger) primitives.CheckedExtrinsic {
@@ -24,7 +24,7 @@ func NewCheckedExtrinsic(signer sc.Option[primitives.AccountId], function primit
 		signer:        signer,
 		function:      function,
 		extra:         extra,
-		transactional: support.NewTransactional[primitives.PostDispatchInfo, primitives.DispatchError](logger),
+		transactional: support.NewTransactional[primitives.PostDispatchInfo](logger),
 	}
 }
 
@@ -32,7 +32,7 @@ func (c checkedExtrinsic) Function() primitives.Call {
 	return c.function
 }
 
-func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], error) {
+func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *primitives.DispatchInfo, length sc.Compact) (primitives.PostDispatchInfo, error) {
 	var (
 		maybeWho sc.Option[primitives.AccountId]
 		maybePre sc.Option[sc.Sequence[primitives.Pre]]
@@ -42,7 +42,7 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		id := c.signer.Value
 		pre, err := c.extra.PreDispatch(id, c.function, info, length)
 		if err != nil {
-			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
+			return primitives.PostDispatchInfo{}, err
 		}
 		maybeWho, maybePre = sc.NewOption[primitives.AccountId](id), sc.NewOption[sc.Sequence[primitives.Pre]](pre)
 	} else {
@@ -56,48 +56,28 @@ func (c checkedExtrinsic) Apply(validator primitives.UnsignedValidator, info *pr
 		// perform the same validation as in `ValidateUnsigned`.
 		err := c.extra.PreDispatchUnsigned(c.function, info, length)
 		if err != nil {
-			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
+			return primitives.PostDispatchInfo{}, err
 		}
 
 		_, err = validator.PreDispatch(c.function)
 		if err != nil {
-			return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
+			return primitives.PostDispatchInfo{}, err
 		}
 
 		maybeWho, maybePre = sc.NewOption[primitives.AccountId](nil), sc.NewOption[sc.Sequence[primitives.Pre]](nil)
 	}
 
-	var resWithInfo primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]
-
-	dispatchInfo, err := c.transactional.WithStorageLayer(
-		func() (primitives.PostDispatchInfo, primitives.DispatchError) {
+	postInfo, err := c.transactional.WithStorageLayer(
+		func() (primitives.PostDispatchInfo, error) {
 			return c.dispatch(maybeWho)
 		},
 	)
 
-	if err != nil {
-		resWithInfo.HasError = true
-		resWithInfo.Err = primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			PostInfo: dispatchInfo,
-			Error:    err,
-		}
-	} else {
-		resWithInfo.Ok = dispatchInfo
+	if err := c.extra.PostDispatch(maybePre, info, &postInfo, length, err); err != nil {
+		return primitives.PostDispatchInfo{}, err
 	}
 
-	var postInfo primitives.PostDispatchInfo
-	if resWithInfo.HasError {
-		postInfo = resWithInfo.Err.PostInfo
-	} else {
-		postInfo = resWithInfo.Ok
-	}
-
-	dispatchResult, dispatchResultErr := primitives.NewDispatchResult(resWithInfo.Err)
-	if dispatchResultErr != nil {
-		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, err
-	}
-
-	return resWithInfo, c.extra.PostDispatch(maybePre, info, &postInfo, length, &dispatchResult)
+	return postInfo, err
 }
 
 func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, source primitives.TransactionSource, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
@@ -119,12 +99,6 @@ func (c checkedExtrinsic) Validate(validator primitives.UnsignedValidator, sourc
 	return valid.CombineWith(unsignedValidation), nil
 }
 
-func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId]) (primitives.PostDispatchInfo, primitives.DispatchError) {
-	resWithInfo := c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
-
-	if resWithInfo.HasError {
-		return resWithInfo.Err.PostInfo, resWithInfo.Err.Error
-	}
-
-	return resWithInfo.Ok, nil
+func (c checkedExtrinsic) dispatch(maybeWho sc.Option[primitives.AccountId]) (primitives.PostDispatchInfo, error) {
+	return c.function.Dispatch(primitives.RawOriginFrom(maybeWho), c.function.Args())
 }

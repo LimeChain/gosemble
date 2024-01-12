@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -91,24 +92,20 @@ func (_ callTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
-func (c callTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) types.DispatchResultWithPostInfo[types.PostDispatchInfo] {
-	valueCompact, _ := args[1].(sc.Compact)
-	value := valueCompact.Number.(sc.U128)
-
-	err := c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
-	if err != nil {
-		return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-			HasError: true,
-			Err: types.DispatchErrorWithPostInfo[types.PostDispatchInfo]{
-				Error: err,
-			},
-		}
+func (c callTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
+	valueCompact, ok := args[1].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact value when dispatching call transfer")
 	}
-
-	return types.DispatchResultWithPostInfo[types.PostDispatchInfo]{
-		HasError: false,
-		Ok:       types.PostDispatchInfo{},
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact number field when dispatching call transfer")
 	}
+	return types.PostDispatchInfo{}, c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
+}
+
+func (_ transfer) Docs() string {
+	return "Transfer some liquid free balance to another account."
 }
 
 type transfer struct {
@@ -130,7 +127,7 @@ func newTransfer(moduleId sc.U8, storedMap primitives.StoredMap, constants *cons
 // transfer transfers liquid free balance from `source` to `dest`.
 // Increases the free balance of `dest` and decreases the free balance of `origin` transactor.
 // Must be signed by the transactor.
-func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) types.DispatchError {
+func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, value sc.U128) error {
 	if !origin.IsSignedOrigin() {
 		return types.NewDispatchErrorBadOrigin()
 	}
@@ -150,18 +147,18 @@ func (t transfer) transfer(origin types.RawOrigin, dest types.MultiAddress, valu
 
 // trans transfers `value` free balance from `from` to `to`.
 // Does not do anything if value is 0 or `from` and `to` are the same.
-func (t transfer) trans(from types.AccountId, to types.AccountId, value sc.U128, existenceRequirement types.ExistenceRequirement) types.DispatchError {
+func (t transfer) trans(from types.AccountId, to types.AccountId, value sc.U128, existenceRequirement types.ExistenceRequirement) error {
 	if value.Eq(constants.Zero) || reflect.DeepEqual(from, to) {
 		return nil
 	}
 
-	result := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
-		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) sc.Result[sc.Encodable] {
+	_, err := t.accountMutator.tryMutateAccountWithDust(to, func(toAccount *types.AccountData, _ bool) (sc.Encodable, error) {
+		return t.accountMutator.tryMutateAccountWithDust(from, func(fromAccount *types.AccountData, _ bool) (sc.Encodable, error) {
 			return t.sanityChecks(from, fromAccount, toAccount, value, existenceRequirement)
 		})
 	})
-	if result.HasError {
-		return result.Value.(types.DispatchError)
+	if err != nil {
+		return err
 	}
 
 	t.storedMap.DepositEvent(newEventTransfer(t.moduleId, from, to, value))
@@ -175,70 +172,52 @@ func (t transfer) trans(from types.AccountId, to types.AccountId, value sc.U128,
 // `fromAccount` can withdraw `value`
 // the existence requirements for `fromAccount`
 // Updates the balances of `fromAccount` and `toAccount`.
-func (t transfer) sanityChecks(from types.AccountId, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) sc.Result[sc.Encodable] {
+func (t transfer) sanityChecks(from types.AccountId, fromAccount *types.AccountData, toAccount *types.AccountData, value sc.U128, existenceRequirement primitives.ExistenceRequirement) (sc.Encodable, error) {
 	fromFree, err := sc.CheckedSubU128(fromAccount.Free, value)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
-				Index:   t.moduleId,
-				Err:     sc.U32(ErrorInsufficientBalance),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, types.NewDispatchErrorModule(types.CustomModuleError{
+			Index:   t.moduleId,
+			Err:     sc.U32(ErrorInsufficientBalance),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 	fromAccount.Free = fromFree
 
 	toFree, err := sc.CheckedAddU128(toAccount.Free, value)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    types.NewDispatchErrorArithmetic(types.NewArithmeticErrorOverflow()),
-		}
+		return nil, types.NewDispatchErrorArithmetic(types.NewArithmeticErrorOverflow())
 	}
 	toAccount.Free = toFree
 
 	if toAccount.Total().Lt(t.constants.ExistentialDeposit) {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
-				Index:   t.moduleId,
-				Err:     sc.U32(ErrorExistentialDeposit),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, types.NewDispatchErrorModule(types.CustomModuleError{
+			Index:   t.moduleId,
+			Err:     sc.U32(ErrorExistentialDeposit),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 
-	dispatchErr := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free)
-	if dispatchErr != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    dispatchErr,
-		}
+	if err := t.accountMutator.ensureCanWithdraw(from, value, types.ReasonsAll, fromAccount.Free); err != nil {
+		return nil, err
 	}
 
 	canDecProviders, err := t.storedMap.CanDecProviders(from)
 	if err != nil {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value:    types.NewDispatchErrorOther(sc.Str(err.Error())),
-		}
+		return nil, types.NewDispatchErrorOther(sc.Str(err.Error()))
 	}
+
 	allowDeath := existenceRequirement == types.ExistenceRequirementAllowDeath
 	allowDeath = allowDeath && canDecProviders
 
 	if !(allowDeath || fromAccount.Total().Gt(t.constants.ExistentialDeposit)) {
-		return sc.Result[sc.Encodable]{
-			HasError: true,
-			Value: types.NewDispatchErrorModule(types.CustomModuleError{
-				Index:   t.moduleId,
-				Err:     sc.U32(ErrorKeepAlive),
-				Message: sc.NewOption[sc.Str](nil),
-			}),
-		}
+		return nil, types.NewDispatchErrorModule(types.CustomModuleError{
+			Index:   t.moduleId,
+			Err:     sc.U32(ErrorKeepAlive),
+			Message: sc.NewOption[sc.Str](nil),
+		})
 	}
 
-	return sc.Result[sc.Encodable]{}
+	return nil, nil
 }
 
 func (t transfer) reducibleBalance(who types.AccountId, keepAlive bool) (types.Balance, error) {
@@ -259,8 +238,4 @@ func (t transfer) reducibleBalance(who types.AccountId, keepAlive bool) (types.B
 
 	mustRemainToExist := sc.SaturatingSubU128(t.constants.ExistentialDeposit, accountData.Total().Sub(liquid))
 	return sc.SaturatingSubU128(liquid, mustRemainToExist), nil
-}
-
-func (_ transfer) Docs() string {
-	return "Transfer some liquid free balance to another account."
 }

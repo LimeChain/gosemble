@@ -9,9 +9,9 @@ import (
 )
 
 type accountMutator interface {
-	ensureCanWithdraw(who types.AccountId, amount sc.U128, reasons types.Reasons, newBalance sc.U128) types.DispatchError
-	tryMutateAccountWithDust(who types.AccountId, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
-	tryMutateAccount(who types.AccountId, f func(who *types.AccountData, bool bool) sc.Result[sc.Encodable]) sc.Result[sc.Encodable]
+	ensureCanWithdraw(who types.AccountId, amount sc.U128, reasons types.Reasons, newBalance sc.U128) error
+	tryMutateAccountWithDust(who types.AccountId, f func(who *types.AccountData, bool bool) (sc.Encodable, error)) (sc.Encodable, error)
+	tryMutateAccount(who types.AccountId, f func(who *types.AccountData, bool bool) (sc.Encodable, error)) (sc.Encodable, error)
 }
 
 type negativeImbalance struct {

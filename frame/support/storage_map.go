@@ -10,6 +10,6 @@ type StorageMap[K, V sc.Encodable] interface {
 	TakeBytes(k K) ([]byte, error)
 	Remove(k K)
 	Clear(limit sc.U32)
-	Mutate(k K, f func(v *V) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	TryMutateExists(k K, f func(option *sc.Option[V]) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	Mutate(k K, f func(v *V) (sc.Encodable, error)) (sc.Encodable, error)
+	TryMutateExists(k K, f func(option *sc.Option[V]) (sc.Encodable, error)) (sc.Encodable, error)
 }

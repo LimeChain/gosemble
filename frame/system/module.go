@@ -30,14 +30,14 @@ type Module interface {
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()
 	NoteExtrinsic(encodedExt []byte) error
-	NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error
+	NoteAppliedExtrinsic(postInfo primitives.PostDispatchInfo, postDispatchErr error, info primitives.DispatchInfo) error
 	Finalize() (primitives.Header, error)
 	NoteFinishedExtrinsics() error
 	ResetEvents()
 	Get(key primitives.AccountId) (primitives.AccountInfo, error)
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
-	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
+	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error)
 	Metadata() primitives.MetadataModule
 
 	BlockHashCount() sc.U64
@@ -256,25 +256,25 @@ func (m module) NoteExtrinsic(encodedExt []byte) error {
 // Emits an `ExtrinsicSuccess` or `ExtrinsicFailed` event depending on the outcome.
 // The emitted event contains the post-dispatch corrected weight including
 // the base-weight for its dispatch class.
-func (m module) NoteAppliedExtrinsic(r *primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo], info primitives.DispatchInfo) error {
+func (m module) NoteAppliedExtrinsic(postInfo primitives.PostDispatchInfo, postDispatchErr error, info primitives.DispatchInfo) error {
 	dispatchClass, err := m.BlockWeights().Get(info.Class)
 	if err != nil {
 		return err
 	}
 
 	baseWeight := dispatchClass.BaseExtrinsic
-	info.Weight = primitives.ExtractActualWeight(r, &info).SaturatingAdd(baseWeight)
-	info.PaysFee = primitives.ExtractActualPaysFee(r, &info)
+	info.Weight = postInfo.CalcActualWeight(&info).SaturatingAdd(baseWeight)
+	info.PaysFee = postInfo.Pays(&info)
 
-	if r.HasError {
+	if dispatchErr, ok := postDispatchErr.(primitives.DispatchError); ok {
 		blockNum, err := m.StorageBlockNumber()
-		m.logger.Tracef("Extrinsic failed at block(%d): {%v}", blockNum, r.Err)
+		m.logger.Tracef("Extrinsic failed at block(%d): {%v}", blockNum, dispatchErr)
 		if err != nil {
 			return err
 		}
 		m.logger.Tracef("Extrinsic failed at block(%d): {}", blockNum)
 
-		m.DepositEvent(newEventExtrinsicFailed(m.Index, r.Err.Error, info))
+		m.DepositEvent(newEventExtrinsicFailed(m.Index, dispatchErr, info))
 	} else {
 		m.DepositEvent(newEventExtrinsicSuccess(m.Index, info))
 	}
@@ -390,10 +390,10 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
-func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error) {
 	account, err := m.Get(who)
 	if err != nil {
-		return sc.Result[sc.Encodable]{}, err
+		return nil, err
 	}
 	wasProviding := false
 	if !reflect.DeepEqual(account.Data, primitives.AccountData{}) {
@@ -405,9 +405,9 @@ func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.Acc
 		someData = &account.Data
 	}
 
-	result := f(someData)
-	if result.HasError {
-		return result, nil
+	result, err := f(someData)
+	if err != nil {
+		return result, err
 	}
 
 	isProviding := !reflect.DeepEqual(*someData, primitives.AccountData{})
@@ -415,15 +415,12 @@ func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.Acc
 	if !wasProviding && isProviding {
 		_, err := m.incProviders(who)
 		if err != nil {
-			return sc.Result[sc.Encodable]{}, err
+			return nil, err
 		}
 	} else if wasProviding && !isProviding {
 		status, err := m.decProviders(who)
 		if err != nil {
-			return sc.Result[sc.Encodable]{
-				HasError: true,
-				Value:    err,
-			}, nil
+			return nil, err
 		}
 		if status == primitives.DecRefStatusExists {
 			return result, nil
@@ -432,25 +429,26 @@ func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.Acc
 		return result, nil
 	}
 
-	_, err = m.storage.Account.Mutate(who, func(a *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		return mutateAccount(a, someData)
+	_, err = m.storage.Account.Mutate(who, func(a *primitives.AccountInfo) (sc.Encodable, error) {
+		mutateAccount(a, someData)
+		return nil, nil
 	})
 	if err != nil {
-		return sc.Result[sc.Encodable]{}, err
+		return nil, err
 	}
 
 	return result, nil
 }
 
 func (m module) incProviders(who primitives.AccountId) (primitives.IncRefStatus, error) {
-	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) sc.Result[sc.Encodable] {
-		return m.incrementProviders(who, account)
+	result, err := m.storage.Account.Mutate(who, func(account *primitives.AccountInfo) (sc.Encodable, error) {
+		return m.incrementProviders(who, account), nil
 	})
 
-	return result.Value.(primitives.IncRefStatus), err
+	return result.(primitives.IncRefStatus), err
 }
 
-func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Option[primitives.AccountInfo]) (sc.Encodable, error) {
 	if maybeAccount.HasValue {
 		account := &maybeAccount.Value
 
@@ -462,67 +460,45 @@ func (m module) decrementProviders(who primitives.AccountId, maybeAccount *sc.Op
 		if account.Providers == 1 && account.Consumers == 0 && account.Sufficients == 0 {
 			m.onKilledAccount(who)
 			// No providers left (and no consumers) and no sufficients. Account dead.
-			return sc.Result[sc.Encodable]{
-				HasError: false,
-				Value:    primitives.DecRefStatusReaped,
-			}
+			return primitives.DecRefStatusReaped, nil
 		}
 		if account.Providers == 1 && account.Consumers > 0 {
 			// Cannot remove last provider if there are consumers.
-			return sc.Result[sc.Encodable]{
-				HasError: true,
-				Value:    primitives.NewDispatchErrorConsumerRemaining(),
-			}
+			return nil, primitives.NewDispatchErrorConsumerRemaining()
 		}
 		// Account will continue to exist as there is either > 1 provider or
 		// > 0 sufficients.
 		account.Providers = account.Providers - 1
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.DecRefStatusExists,
-		}
+		return primitives.DecRefStatusExists, nil
 	} else {
 		m.logger.Warn("Logic error: Account already dead when reducing provider")
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.DecRefStatusReaped,
-		}
+		return primitives.DecRefStatusReaped, nil
 	}
 }
 
-func (m module) incrementProviders(who primitives.AccountId, account *primitives.AccountInfo) sc.Result[sc.Encodable] {
+func (m module) incrementProviders(who primitives.AccountId, account *primitives.AccountInfo) primitives.IncRefStatus {
 	if account.Providers == 0 && account.Sufficients == 0 {
 		account.Providers = 1
 		m.onCreatedAccount(who)
 
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.IncRefStatusCreated,
-		}
+		return primitives.IncRefStatusCreated
 	} else {
 		account.Providers = sc.SaturatingAddU32(account.Providers, 1)
 
-		return sc.Result[sc.Encodable]{
-			HasError: false,
-			Value:    primitives.IncRefStatusExisted,
-		}
+		return primitives.IncRefStatusExisted
 	}
 }
 
-func (m module) decProviders(who primitives.AccountId) (primitives.DecRefStatus, primitives.DispatchError) {
-	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) sc.Result[sc.Encodable] {
+func (m module) decProviders(who primitives.AccountId) (primitives.DecRefStatus, error) {
+	result, err := m.storage.Account.TryMutateExists(who, func(maybeAccount *sc.Option[primitives.AccountInfo]) (sc.Encodable, error) {
 		return m.decrementProviders(who, maybeAccount)
 	})
 
 	if err != nil {
-		return primitives.DecRefStatus(0), primitives.NewDispatchErrorOther(sc.Str(err.Error()))
+		return primitives.DecRefStatus(0), err
 	}
 
-	if result.HasError {
-		return primitives.DecRefStatus(0), result.Value.(primitives.DispatchError)
-	}
-
-	return result.Value.(primitives.DecRefStatus), nil
+	return result.(primitives.DecRefStatus), nil
 }
 
 // depositEventIndexed Deposits an event into this block's event record adding this event
@@ -1098,12 +1074,10 @@ func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstan
 	}
 }
 
-func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) sc.Result[sc.Encodable] {
+func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) {
 	if data != nil {
 		account.Data = *data
 	} else {
 		account.Data = primitives.AccountData{}
 	}
-
-	return sc.Result[sc.Encodable]{}
 }

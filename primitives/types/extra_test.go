@@ -75,14 +75,13 @@ var (
 )
 
 var (
-	pre            = sc.Option[sc.Sequence[Pre]]{}
-	preWithValue   = sc.NewOption[sc.Sequence[Pre]](sc.Sequence[Pre]{Pre{}, Pre{}})
-	who            = AccountId{}
-	call           = testCall{}
-	info           = &DispatchInfo{}
-	length         = sc.Compact{}
-	postInfo       = &PostDispatchInfo{}
-	dispatchResult = &DispatchResult{}
+	pre          = sc.Option[sc.Sequence[Pre]]{}
+	preWithValue = sc.NewOption[sc.Sequence[Pre]](sc.Sequence[Pre]{Pre{}, Pre{}})
+	who          = AccountId{}
+	call         = testCall{}
+	info         = &DispatchInfo{}
+	length       = sc.Compact{}
+	postInfo     = &PostDispatchInfo{}
 
 	extraCheckOk1  = newTestExtraCheck(false, sc.U32(1))
 	extraCheckOk2  = newTestExtraCheck(false, sc.U32(3))
@@ -214,25 +213,25 @@ func Test_SignedExtra_PreDispatchUnsigned_Err(t *testing.T) {
 }
 
 func Test_SignedExtra_PostDispatch_Ok(t *testing.T) {
-	err := targetSignedExtraOk.PostDispatch(pre, info, postInfo, length, dispatchResult)
+	err := targetSignedExtraOk.PostDispatch(pre, info, postInfo, length, nil)
 
 	assert.Nil(t, err)
 }
 
 func Test_SignedExtra_PostDispatch_PreWithValue_Ok(t *testing.T) {
-	err := targetSignedExtraOk.PostDispatch(preWithValue, info, postInfo, length, dispatchResult)
+	err := targetSignedExtraOk.PostDispatch(preWithValue, info, postInfo, length, nil)
 
 	assert.Nil(t, err)
 }
 
 func Test_SignedExtra_PostDispatch_PreWithValue_Err(t *testing.T) {
-	err := targetSignedExtraErr.PostDispatch(preWithValue, info, postInfo, length, dispatchResult)
+	err := targetSignedExtraErr.PostDispatch(preWithValue, info, postInfo, length, nil)
 
 	assert.Equal(t, expectedTransactionValidityError, err)
 }
 
 func Test_SignedExtra_PostDispatch_Err(t *testing.T) {
-	err := targetSignedExtraErr.PostDispatch(pre, info, postInfo, length, dispatchResult)
+	err := targetSignedExtraErr.PostDispatch(pre, info, postInfo, length, nil)
 
 	assert.Equal(t, expectedTransactionValidityError, err)
 }

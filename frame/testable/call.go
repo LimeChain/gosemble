@@ -71,19 +71,18 @@ func (_ callTest) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 	return primitives.PaysYes
 }
 
-func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
+func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (primitives.PostDispatchInfo, error) {
 	storage := io.NewStorage()
 	storage.Set([]byte("testvalue"), []byte{1})
 
 	transactional := support.NewTransactional[primitives.PostDispatchInfo](log.NewLogger())
 	// TODO: handle err
-	// TODO: this call returns an error. To be further investigated
-	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, primitives.DispatchError) {
+	transactional.WithStorageLayer(func() (primitives.PostDispatchInfo, error) {
 		storage.Set([]byte("testvalue"), []byte{2})
 		return primitives.PostDispatchInfo{}, primitives.NewDispatchErrorOther("revert")
 	})
 
-	return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{Ok: primitives.PostDispatchInfo{}}
+	return primitives.PostDispatchInfo{}, nil
 }
 
 func (_ callTest) Docs() string {

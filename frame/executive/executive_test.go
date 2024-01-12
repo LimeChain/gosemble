@@ -2,7 +2,6 @@ package executive
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -58,12 +57,7 @@ var (
 		PaysFee: primitives.PaysYes,
 	}
 
-	dispatchResultWithPostInfo = &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
-		HasError: true,
-		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
-			Error: primitives.NewDispatchErrorBadOrigin(),
-		},
-	}
+	dispatchErr = primitives.NewDispatchErrorBadOrigin()
 
 	unsignedValidator primitives.UnsignedValidator
 
@@ -143,12 +137,13 @@ func setup() {
 	mockStorageBlockNumber = new(mocks.StorageValue[sc.U64])
 	mockStorageBlockWeight = new(mocks.StorageValue[primitives.ConsumedWeight])
 	mockIoHashing = new(mocks.IoHashing)
+	logger := log.NewLogger()
 
 	target = New(
 		mockSystemModule,
 		mockRuntimeExtrinsic,
 		mockOnRuntimeUpgradeHook,
-		log.NewLogger(),
+		logger,
 	).(module)
 	target.hashing = mockIoHashing
 
@@ -216,6 +211,49 @@ func Test_Executive_InitializeBlock_VersionNotUpgraded(t *testing.T) {
 	mockSystemModule.AssertCalled(t, "NoteFinishedInitialize")
 }
 
+func Test_Executive_InitializeBlock_RegisterExtraWeightUnchecked_Error(t *testing.T) {
+	setup()
+
+	mockSystemModule.On("ResetEvents").Return()
+	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo, nil)
+	mockSystemModule.On("Version").Return(*runtimeVersion)
+	mockSystemModule.On("Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.On("OnInitialize", header.Number).Return(primitives.WeightFromParts(3, 3), nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockSystemModule.On("RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory).Return(errPanic)
+
+	err := target.InitializeBlock(header)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "ResetEvents")
+	mockStorageLastRuntimeUpgradeInfo.AssertNotCalled(t, "Put", currentUpgradeInfo)
+	mockOnRuntimeUpgradeHook.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockRuntimeExtrinsic.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockSystemModule.AssertCalled(t, "Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.AssertCalled(t, "OnInitialize", header.Number)
+	mockSystemModule.AssertCalled(t, "RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory)
+}
+
+func Test_Executive_InitializeBlock_OnInitialize_Error(t *testing.T) {
+	setup()
+
+	mockSystemModule.On("ResetEvents").Return()
+	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo, nil)
+	mockSystemModule.On("Version").Return(*runtimeVersion)
+	mockSystemModule.On("Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.On("OnInitialize", header.Number).Return(primitives.WeightFromParts(3, 3), errPanic)
+
+	err := target.InitializeBlock(header)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "ResetEvents")
+	mockStorageLastRuntimeUpgradeInfo.AssertNotCalled(t, "Put", currentUpgradeInfo)
+	mockOnRuntimeUpgradeHook.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockRuntimeExtrinsic.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockSystemModule.AssertCalled(t, "Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.AssertCalled(t, "OnInitialize", header.Number)
+}
+
 func Test_Executive_ExecuteBlock_InvalidParentHash(t *testing.T) {
 	setup()
 
@@ -232,6 +270,7 @@ func Test_Executive_ExecuteBlock_InvalidParentHash(t *testing.T) {
 	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(invalidParentHash, nil)
 
 	err := target.ExecuteBlock(block)
+
 	assert.Equal(t, errInvalidParentHash, err)
 }
 
@@ -257,7 +296,55 @@ func Test_Executive_ExecuteBlock_InvalidInherentPosition(t *testing.T) {
 	mockRuntimeExtrinsic.On("EnsureInherentsAreFirst", block).Return(0)
 
 	err := target.ExecuteBlock(block)
-	assert.Equal(t, fmt.Errorf("invalid inherent position for extrinsic at index [%d]", 0), err)
+
+	assert.Equal(t, "invalid inherent position for extrinsic at index [0]", err.Error())
+}
+
+func Test_Executive_ExecuteBlock_StorageBlockHash_Error(t *testing.T) {
+	setup()
+
+	header := primitives.Header{
+		Number:     sc.U64(1),
+		ParentHash: blockHash,
+		Digest:     testDigest(),
+	}
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
+
+	mockSystemModule.On("ResetEvents").Return()
+	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo, nil)
+	mockSystemModule.On("Version").Return(*runtimeVersion)
+	mockSystemModule.On("Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.On("OnInitialize", header.Number).Return(primitives.WeightFromParts(3, 3), nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockSystemModule.On("RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory).Return(nil)
+	mockSystemModule.On("NoteFinishedInitialize")
+	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(blockHash, errPanic)
+
+	err := target.ExecuteBlock(block)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "StorageBlockHash", header.Number-1)
+}
+
+func Test_Executive_ExecuteBlock_InitializeBlock_Error(t *testing.T) {
+	setup()
+
+	header := primitives.Header{
+		Number:     sc.U64(0),
+		ParentHash: blockHash,
+		Digest:     testDigest(),
+	}
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
+
+	mockSystemModule.On("ResetEvents").Return()
+	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo, errPanic)
+
+	err := target.ExecuteBlock(block)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "StorageLastRuntimeUpgrade")
 }
 
 func Test_Executive_ExecuteBlock_Success(t *testing.T) {
@@ -310,6 +397,57 @@ func Test_Executive_ExecuteBlock_Success(t *testing.T) {
 	mockRuntimeExtrinsic.AssertCalled(t, "OnFinalize", blockNumber-1)
 	mockSystemModule.AssertCalled(t, "Finalize")
 }
+func Test_Executive_ExecuteBlock_Finalize_Error(t *testing.T) {
+	setup()
+
+	blockWeights := primitives.BlockWeights{
+		BaseBlock: primitives.WeightFromParts(1, 1),
+		MaxBlock:  primitives.WeightFromParts(6, 6),
+	}
+	header := primitives.Header{
+		Number:     sc.U64(0),
+		ParentHash: blockHash,
+		Digest:     testDigest(),
+	}
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{})
+
+	mockSystemModule.On("ResetEvents").Return()
+	mockSystemModule.On("StorageLastRuntimeUpgrade").Return(currentUpgradeInfo, nil)
+	mockSystemModule.On("Version").Return(*runtimeVersion)
+	mockSystemModule.On("Initialize", header.Number, header.ParentHash, header.Digest)
+	mockRuntimeExtrinsic.On("OnInitialize", header.Number).Return(primitives.WeightFromParts(3, 3), nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockSystemModule.On("RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory).Return(nil)
+	mockSystemModule.On("NoteFinishedInitialize")
+	mockSystemModule.On("StorageBlockHash", header.Number-1).Return(blockHash, nil)
+	mockRuntimeExtrinsic.On("EnsureInherentsAreFirst", block).Return(-1)
+	mockSystemModule.On("NoteFinishedExtrinsics").Return(nil)
+	mockSystemModule.On("StorageBlockWeight").Return(consumedWeight, nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockRuntimeExtrinsic.On("OnFinalize", blockNumber-1).Return(nil)
+	mockSystemModule.On("Finalize").Return(header, errPanic)
+
+	err := target.ExecuteBlock(block)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "ResetEvents")
+	mockSystemModule.AssertNotCalled(t, "StorageLastRuntimeUpgradeSet", currentUpgradeInfo)
+	mockOnRuntimeUpgradeHook.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockRuntimeExtrinsic.AssertNotCalled(t, "OnRuntimeUpgrade")
+	mockSystemModule.AssertCalled(t, "Initialize", header.Number, header.ParentHash, header.Digest)
+	mockSystemModule.AssertCalled(t, "RegisterExtraWeightUnchecked", primitives.WeightFromParts(4, 4), dispatchClassMandatory)
+	mockSystemModule.AssertCalled(t, "NoteFinishedInitialize")
+	mockSystemModule.AssertNotCalled(t, "StorageBlockHash", header.Number-1)
+	mockRuntimeExtrinsic.AssertCalled(t, "EnsureInherentsAreFirst", block)
+	mockSystemModule.AssertCalled(t, "NoteFinishedExtrinsics")
+	mockSystemModule.AssertCalled(t, "StorageBlockWeight")
+	mockSystemModule.AssertCalled(t, "BlockWeights")
+	mockRuntimeExtrinsic.AssertNotCalled(t, "OnIdle")
+	mockSystemModule.AssertNotCalled(t, "RegisterExtraWeightUnchecked")
+	mockRuntimeExtrinsic.AssertCalled(t, "OnFinalize", blockNumber-1)
+	mockSystemModule.AssertCalled(t, "Finalize")
+}
 
 func Test_Executive_ApplyExtrinsic_UnknownTransactionCannotLookupError(t *testing.T) {
 	setup()
@@ -317,10 +455,28 @@ func Test_Executive_ApplyExtrinsic_UnknownTransactionCannotLookupError(t *testin
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check").Return(nil, unknownTransactionCannotLookupError)
 
-	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
-
-	assert.Equal(t, defaultDispatchOutcome, outcome)
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
 	assert.Equal(t, unknownTransactionCannotLookupError, err)
+}
+
+func Test_Executive_ApplyExtrinsic_IsMendatory_Error(t *testing.T) {
+	setup()
+
+	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
+	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockCheckedExtrinsic.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{})
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
+	mockCheckedExtrinsic.On("Apply", mock.Anything, mock.Anything, mock.Anything).
+		Return(primitives.PostDispatchInfo{}, dispatchErr)
+
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+
+	mockCheckedExtrinsic.AssertCalled(t, "Apply", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_Executive_ApplyExtrinsic_InvalidTransactionExhaustsResourcesError(t *testing.T) {
@@ -336,14 +492,13 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionExhaustsResourcesError(t *t
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
 
 	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}, invalidTransactionExhaustsResourcesError)
+		Return(primitives.PostDispatchInfo{}, invalidTransactionExhaustsResourcesError)
 
-	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Equal(t, invalidTransactionExhaustsResourcesError, err)
 
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockSystemModule.AssertNotCalled(t, "NoteAppliedExtrinsic", mock.Anything, mock.Anything)
-	assert.Equal(t, defaultDispatchOutcome, outcome)
-	assert.Equal(t, invalidTransactionExhaustsResourcesError, err)
 }
 
 func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testing.T) {
@@ -363,102 +518,46 @@ func Test_Executive_ApplyExtrinsic_InvalidTransactionBadMandatoryError(t *testin
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).Return(*dispatchResultWithPostInfo, nil)
+	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).Return(primitives.PostDispatchInfo{}, dispatchErr)
 
-	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Equal(t, invalidTransactionBadMandatory, err)
 
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
 	mockSystemModule.AssertNotCalled(t, "NoteAppliedExtrinsic", mock.Anything, mock.Anything)
-	assert.Equal(t, defaultDispatchOutcome, outcome)
-	assert.Equal(t, invalidTransactionBadMandatory, err)
-}
-
-func Test_Executive_ApplyExtrinsic_Success_DispatchOutcomeErr(t *testing.T) {
-	setup()
-
-	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
-	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-
-	mockCheckedExtrinsic.On("Function").Return(mockCall)
-	mockCall.On("BaseWeight").Return(baseWeight)
-	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
-	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
-	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(*dispatchResultWithPostInfo, nil)
-	mockSystemModule.On("NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo).Return(nil)
-
-	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
-
-	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
-	dispatchOutcomeWithPostInfo, _ := primitives.NewDispatchOutcome(dispatchResultWithPostInfo.Err.Error)
-	assert.Equal(t, dispatchOutcomeWithPostInfo, outcome)
-	assert.NoError(t, err)
-}
-
-func Test_Executive_ApplyExtrinsic_Success_DispatchOutcomeNil(t *testing.T) {
-	setup()
-
-	dispatchResultOk := &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
-
-	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
-	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-
-	mockCheckedExtrinsic.On("Function").Return(mockCall)
-	mockCall.On("BaseWeight").Return(baseWeight)
-	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
-	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
-	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(*dispatchResultOk, nil)
-	mockSystemModule.On("NoteAppliedExtrinsic", dispatchResultOk, dispatchInfo).Return(nil)
-
-	outcome, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
-
-	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultOk, dispatchInfo)
-	dispatchOutcomeNil, _ := primitives.NewDispatchOutcome(nil)
-	assert.Equal(t, dispatchOutcomeNil, outcome)
-	assert.NoError(t, err)
-}
-
-func Test_Executive_ApplyExtrinsic_isMendatoryDispatch_Error(t *testing.T) {
-	setup()
-
-	dispatchResultOk := &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
-
-	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
-	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-
-	mockCheckedExtrinsic.On("Function").Return(mockCall)
-	mockCall.On("BaseWeight").Return(baseWeight)
-	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
-	mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{VaryingData: sc.NewVaryingData()})
-	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-	mockCheckedExtrinsic.On("Apply", unsignedValidator, mock.Anything, encodedExtrinsicLen).
-		Return(*dispatchResultOk, nil)
-
-	_, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
-	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
-
-	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check")
-	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockCheckedExtrinsic.AssertCalled(t, "Function")
-	mockCall.AssertCalled(t, "BaseWeight")
-	mockCall.AssertCalled(t, "WeighData", baseWeight)
-	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
-	mockCall.AssertCalled(t, "PaysFee", baseWeight)
-	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, mock.Anything, encodedExtrinsicLen)
 }
 
 func Test_Executive_ApplyExtrinsic_NoteAppliedExtrinsic_Error(t *testing.T) {
 	setup()
 
-	dispatchResultOk := &primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{}
+	dispatchInfo := primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(2, 2),
+		Class:   dispatchClassMandatory,
+		PaysFee: primitives.PaysYes,
+	}
+
+	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
+	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockCheckedExtrinsic.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
+	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).Return(primitives.PostDispatchInfo{}, nil)
+	mockSystemModule.On("NoteAppliedExtrinsic", mock.Anything, mock.Anything, mock.Anything).Return(errPanic)
+
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Equal(t, errPanic, err)
+
+	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_Executive_ApplyExtrinsic_Success_DispatchOutcomeErr(t *testing.T) {
+	setup()
+
+	postDispatchInfo := primitives.PostDispatchInfo{}
 
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
@@ -470,22 +569,38 @@ func Test_Executive_ApplyExtrinsic_NoteAppliedExtrinsic_Error(t *testing.T) {
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
 	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(*dispatchResultOk, nil)
-	mockSystemModule.On("NoteAppliedExtrinsic", dispatchResultOk, dispatchInfo).Return(errPanic)
+		Return(postDispatchInfo, dispatchErr)
+	mockSystemModule.On("NoteAppliedExtrinsic", postDispatchInfo, dispatchErr, dispatchInfo).Return(nil)
 
-	_, err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
-	assert.Equal(t, errPanic, err)
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Equal(t, dispatchErr, err)
 
-	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockCheckedExtrinsic.AssertCalled(t, "Function")
-	mockCall.AssertCalled(t, "BaseWeight")
-	mockCall.AssertCalled(t, "WeighData", baseWeight)
-	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
-	mockCall.AssertCalled(t, "PaysFee", baseWeight)
-	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, mock.Anything, encodedExtrinsicLen)
-	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultOk, dispatchInfo)
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", primitives.PostDispatchInfo{}, dispatchErr, dispatchInfo)
+}
+
+func Test_Executive_ApplyExtrinsic_Success_DispatchOutcomeNil(t *testing.T) {
+	setup()
+
+	postInfo := primitives.PostDispatchInfo{}
+
+	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
+	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+
+	mockCheckedExtrinsic.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
+	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
+		Return(postInfo, nil)
+	mockSystemModule.On("NoteAppliedExtrinsic", postInfo, nil, dispatchInfo).Return(nil)
+
+	err := target.ApplyExtrinsic(mockUncheckedExtrinsic)
+	assert.Nil(t, err)
+
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", postInfo, nil, dispatchInfo)
 }
 
 func Test_Executive_FinalizeBlock(t *testing.T) {
@@ -612,6 +727,60 @@ func Test_Executive_ValidateTransaction_InvalidTransactionMandatoryValidationErr
 	assert.Equal(t, invalidTransactionMandatoryValidation, err)
 }
 
+func Test_Executive_ValidateTransaction_IsMendatory_Error(t *testing.T) {
+	setup()
+
+	dispatchInfo := primitives.DispatchInfo{
+		Weight:  primitives.WeightFromParts(2, 2),
+		Class:   dispatchClassMandatory,
+		PaysFee: primitives.PaysYes,
+	}
+
+	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
+	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
+	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
+	mockCheckedExtrinsic.On("Function").Return(mockCall)
+	mockCall.On("BaseWeight").Return(baseWeight)
+	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
+	mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{})
+	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
+
+	outcome, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
+
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
+	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
+	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
+	mockUncheckedExtrinsic.AssertCalled(t, "Check")
+	mockCheckedExtrinsic.AssertCalled(t, "Function")
+	mockCall.AssertCalled(t, "BaseWeight")
+	mockCall.AssertCalled(t, "WeighData", baseWeight)
+	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
+	mockCall.AssertCalled(t, "PaysFee", baseWeight)
+	mockCheckedExtrinsic.AssertNotCalled(t, "Validate", unsignedValidator, txSource, &dispatchInfo, encodedExtrinsicLen)
+	assert.Equal(t, defaultValidTransaction, outcome)
+	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
+}
+
+func Test_Executive_ValidateTransaction_StorageBlockNumber_Error(t *testing.T) {
+	setup()
+
+	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, errPanic)
+	// mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
+	// mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
+	// mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
+	// mockCheckedExtrinsic.On("Function").Return(mockCall)
+	// mockCall.On("BaseWeight").Return(baseWeight)
+	// mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
+	// mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{})
+	// mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
+
+	_, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
+}
+
 func Test_Executive_ValidateTransaction(t *testing.T) {
 	setup()
 
@@ -641,44 +810,6 @@ func Test_Executive_ValidateTransaction(t *testing.T) {
 	mockCheckedExtrinsic.AssertCalled(t, "Validate", unsignedValidator, txSource, &dispatchInfo, encodedExtrinsicLen)
 	assert.Equal(t, defaultValidTransaction, outcome)
 	assert.Nil(t, err)
-}
-
-func Test_Executive_ValidateTransaction_StorageBlockNumber_Error(t *testing.T) {
-	setup()
-
-	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, errPanic)
-
-	_, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
-	assert.Equal(t, errPanic, err)
-
-	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
-}
-
-func Test_Executive_ValidateTransaction_isMendatoryDispatch_Error(t *testing.T) {
-	setup()
-
-	mockSystemModule.On("StorageBlockNumber").Return(blockNumber, nil)
-	mockSystemModule.On("Initialize", blockNumber+1, header.ParentHash, defaultDigest)
-	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
-	mockCheckedExtrinsic.On("Function").Return(mockCall)
-	mockCall.On("BaseWeight").Return(baseWeight)
-	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
-	mockCall.On("ClassifyDispatch", baseWeight).Return(primitives.DispatchClass{VaryingData: sc.NewVaryingData()})
-	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
-
-	_, err := target.ValidateTransaction(txSource, mockUncheckedExtrinsic, header.ParentHash)
-	assert.Equal(t, "not a valid 'DispatchClass' type", err.Error())
-
-	mockSystemModule.AssertCalled(t, "StorageBlockNumber")
-	mockSystemModule.AssertCalled(t, "Initialize", blockNumber+1, header.ParentHash, defaultDigest)
-	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
-	mockUncheckedExtrinsic.AssertCalled(t, "Check")
-	mockCheckedExtrinsic.AssertCalled(t, "Function")
-	mockCall.AssertCalled(t, "BaseWeight")
-	mockCall.AssertCalled(t, "WeighData", baseWeight)
-	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
-	mockCall.AssertCalled(t, "PaysFee", baseWeight)
 }
 
 func Test_Executive_OffchainWorker(t *testing.T) {
@@ -726,56 +857,68 @@ func Test_Executive_idleAndFinalizeHook_RegisterExtraWeightUnchecked_Error(t *te
 	mockSystemModule.AssertCalled(t, "RegisterExtraWeightUnchecked", mock.Anything, mock.Anything)
 }
 
-func Test_Executive_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error(t *testing.T) {
+func Test_Executive_idleAndFinalizeHook_OnFinalize_Error(t *testing.T) {
 	setup()
 
-	mockBlock := mocks.Block{}
+	// blockNumber := sc.U64(1)
+	mockSystemModule.On("StorageBlockWeight").Return(consumedWeight, nil)
+	mockSystemModule.On("BlockWeights").Return(blockWeights)
+	mockRuntimeExtrinsic.On("OnIdle", mock.Anything, mock.Anything).Return(baseWeight)
+	mockSystemModule.On("RegisterExtraWeightUnchecked", mock.Anything, mock.Anything).Return(nil)
+	mockRuntimeExtrinsic.On("OnFinalize", blockNumber).Return(errPanic)
 
-	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+	err := target.idleAndFinalizeHook(blockNumber)
+
+	assert.Equal(t, errPanic, err)
+	mockSystemModule.AssertCalled(t, "StorageBlockWeight")
+	mockSystemModule.AssertCalled(t, "BlockWeights")
+	mockRuntimeExtrinsic.AssertCalled(t, "OnIdle", mock.Anything, mock.Anything)
+	mockSystemModule.AssertCalled(t, "RegisterExtraWeightUnchecked", mock.Anything, mock.Anything)
+	mockRuntimeExtrinsic.AssertCalled(t, "OnFinalize", blockNumber)
+}
+
+func Test_executeExtrinsicsWithBookKeeping_ApplyExtrinsic_Error(t *testing.T) {
+	setup()
+
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
-	mockUncheckedExtrinsic.On("Check").Return(nil, unknownTransactionCannotLookupError)
+	mockUncheckedExtrinsic.On("Check").Return(nil, errPanic)
 
-	err := target.executeExtrinsicsWithBookKeeping(&mockBlock)
-	assert.Equal(t, unknownTransactionCannotLookupError, err)
+	err := target.executeExtrinsicsWithBookKeeping(block)
 
-	mockBlock.AssertCalled(t, "Extrinsics")
+	assert.Equal(t, errPanic, err)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
 	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 }
 
-func Test_Executive_executeExtrinsicsWithBookKeeping_NoteFinishedExtrinsics_Error(t *testing.T) {
+func Test_executeExtrinsicsWithBookKeepingNoteFinishedExtrinsics_Error(t *testing.T) {
 	setup()
+	postInfo := primitives.PostDispatchInfo{}
+	block := types.NewBlock(header, sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
+	expectedErr := unknownTransactionCannotLookupError
 
-	mockBlock := mocks.Block{}
-
-	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
 	mockUncheckedExtrinsic.On("Bytes").Return(encodedExtrinsic)
 	mockUncheckedExtrinsic.On("Check").Return(mockCheckedExtrinsic, nil)
 	mockSystemModule.On("NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
+
 	mockCheckedExtrinsic.On("Function").Return(mockCall)
 	mockCall.On("BaseWeight").Return(baseWeight)
 	mockCall.On("WeighData", baseWeight).Return(dispatchInfo.Weight)
 	mockCall.On("ClassifyDispatch", baseWeight).Return(dispatchInfo.Class)
 	mockCall.On("PaysFee", baseWeight).Return(dispatchInfo.PaysFee)
 	mockCheckedExtrinsic.On("Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen).
-		Return(*dispatchResultWithPostInfo, nil)
-	mockSystemModule.On("NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo).Return(nil)
-	mockSystemModule.On("NoteFinishedExtrinsics").Return(errPanic)
+		Return(postInfo, nil)
+	mockSystemModule.On("NoteAppliedExtrinsic", postInfo, nil, dispatchInfo).Return(nil)
+	mockSystemModule.On("NoteFinishedExtrinsics").Return(expectedErr)
 
-	err := target.executeExtrinsicsWithBookKeeping(&mockBlock)
-	assert.Equal(t, errPanic, err)
+	err := target.executeExtrinsicsWithBookKeeping(block)
 
-	mockBlock.AssertCalled(t, "Extrinsics")
+	assert.Equal(t, expectedErr, err)
 	mockUncheckedExtrinsic.AssertCalled(t, "Bytes")
 	mockUncheckedExtrinsic.AssertCalled(t, "Check")
 	mockSystemModule.AssertCalled(t, "NoteExtrinsic", mockUncheckedExtrinsic.Bytes())
-	mockCheckedExtrinsic.AssertCalled(t, "Function")
-	mockCall.AssertCalled(t, "BaseWeight")
-	mockCall.AssertCalled(t, "WeighData", baseWeight)
-	mockCall.AssertCalled(t, "ClassifyDispatch", baseWeight)
-	mockCall.AssertCalled(t, "PaysFee", baseWeight)
-	mockCheckedExtrinsic.AssertCalled(t, "Apply", unsignedValidator, &dispatchInfo, encodedExtrinsicLen)
-	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", dispatchResultWithPostInfo, dispatchInfo)
+	mockSystemModule.AssertCalled(t, "NoteAppliedExtrinsic", postInfo, nil, dispatchInfo)
 	mockSystemModule.AssertCalled(t, "NoteFinishedExtrinsics")
 }
 

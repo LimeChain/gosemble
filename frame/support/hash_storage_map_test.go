@@ -1,6 +1,7 @@
 package support
 
 import (
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -22,6 +23,7 @@ var (
 		append(keyValueHash, keyValue.Bytes()...)...)
 
 	mockHashing *mocks.IoHashing
+	errPanic    = errors.New("panic")
 )
 
 func Test_HashStorageMap_Get(t *testing.T) {
@@ -164,10 +166,7 @@ func Test_HashStorageMap_Clear(t *testing.T) {
 
 func Test_HashStorageMap_Mutate(t *testing.T) {
 	target := setupHashStorageMap()
-	expect := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    sc.NewU128(3),
-	}
+	expectedResult := sc.NewU128(3)
 
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
@@ -177,12 +176,12 @@ func Test_HashStorageMap_Mutate(t *testing.T) {
 			sc.BytesToSequenceU8(storageValue.Bytes())), nil)
 	mockStorage.On("Set", concatHashStorageMapKeyKey, storageValue.Bytes()).Return()
 
-	result, err := target.Mutate(keyValue, func(s *sc.U32) sc.Result[sc.Encodable] {
-		return expect
+	result, err := target.Mutate(keyValue, func(s *sc.U32) (sc.Encodable, error) {
+		return expectedResult, nil
 	})
-	assert.NoError(t, err)
 
-	assert.Equal(t, expect, result)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResult, result)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 4)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)
@@ -194,22 +193,43 @@ func Test_HashStorageMap_Mutate(t *testing.T) {
 
 func Test_HashStorageMap_Mutate_Error(t *testing.T) {
 	target := setupHashStorageMap()
-	expect := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    sc.NewU128(5),
-	}
+	expectedResult := sc.NewU128(5)
+	expectedErr := errPanic
 
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
 	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
-	result, err := target.Mutate(keyValue, func(s *sc.U32) sc.Result[sc.Encodable] {
-		return expect
+	result, err := target.Mutate(keyValue, func(s *sc.U32) (sc.Encodable, error) {
+		return expectedResult, errPanic
 	})
-	assert.NoError(t, err)
+	assert.Equal(t, expectedErr, err)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedResult, result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockHashing.AssertNumberOfCalls(t, "Twox64", 1)
+	mockHashing.AssertCalled(t, "Twox64", keyValue.Bytes())
+	mockStorage.AssertCalled(t, "Get", concatHashStorageMapKeyKey)
+}
+
+func Test_HashStorageMap_Mutate_Get_Error(t *testing.T) {
+	target := setupHashStorageMap()
+
+	expectedErr := errPanic
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), expectedErr)
+
+	_, err := target.Mutate(keyValue, func(s *sc.U32) (sc.Encodable, error) {
+		return nil, nil
+	})
+
+	assert.Equal(t, expectedErr, err)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)
@@ -221,10 +241,7 @@ func Test_HashStorageMap_Mutate_Error(t *testing.T) {
 func Test_HashStorageMap_TryMutateExists(t *testing.T) {
 	target := setupHashStorageMap()
 	expectOption := sc.NewOption[sc.U32](storageValue)
-	expect := sc.Result[sc.Encodable]{
-		HasError: false,
-		Value:    sc.NewU128(3),
-	}
+	expectedResult := sc.NewU128(3)
 
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
@@ -234,13 +251,13 @@ func Test_HashStorageMap_TryMutateExists(t *testing.T) {
 			sc.BytesToSequenceU8(storageValue.Bytes())), nil)
 	mockStorage.On("Set", concatHashStorageMapKeyKey, storageValue.Bytes()).Return()
 
-	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) sc.Result[sc.Encodable] {
+	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) (sc.Encodable, error) {
 		assert.Equal(t, &expectOption, option)
-		return expect
+		return expectedResult, nil
 	})
 	assert.NoError(t, err)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedResult, result)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 4)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)
@@ -253,23 +270,43 @@ func Test_HashStorageMap_TryMutateExists(t *testing.T) {
 func Test_HashStorageMap_TryMutateExists_Error(t *testing.T) {
 	target := setupHashStorageMap()
 	expectOption := sc.NewOption[sc.U32](sc.U32(0))
-	expect := sc.Result[sc.Encodable]{
-		HasError: true,
-		Value:    sc.NewU128(5),
-	}
+	expectResult := sc.NewU128(5)
+	expectedErr := errPanic
 
 	mockHashing.On("Twox128", prefix).Return(prefixHash)
 	mockHashing.On("Twox128", name).Return(nameHash)
 	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
 	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 
-	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) sc.Result[sc.Encodable] {
+	result, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) (sc.Encodable, error) {
 		assert.Equal(t, &expectOption, option)
-		return expect
+		return expectResult, expectedErr
 	})
-	assert.NoError(t, err)
 
-	assert.Equal(t, expect, result)
+	assert.Equal(t, expectedErr, err)
+	assert.Equal(t, expectResult, result)
+	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
+	mockHashing.AssertCalled(t, "Twox128", prefix)
+	mockHashing.AssertCalled(t, "Twox128", name)
+	mockHashing.AssertNumberOfCalls(t, "Twox64", 1)
+	mockHashing.AssertCalled(t, "Twox64", keyValue.Bytes())
+	mockStorage.AssertCalled(t, "Get", concatHashStorageMapKeyKey)
+}
+
+func Test_HashStorageMap_TryMutateExists_GetError(t *testing.T) {
+	target := setupHashStorageMap()
+	expectedErr := errPanic
+
+	mockHashing.On("Twox128", prefix).Return(prefixHash)
+	mockHashing.On("Twox128", name).Return(nameHash)
+	mockHashing.On("Twox64", keyValue.Bytes()).Return(keyValueHash)
+	mockStorage.On("Get", concatHashStorageMapKeyKey).Return(sc.NewOption[sc.Sequence[sc.U8]](nil), expectedErr)
+
+	_, err := target.TryMutateExists(keyValue, func(option *sc.Option[sc.U32]) (sc.Encodable, error) {
+		return nil, nil
+	})
+
+	assert.Equal(t, expectedErr, err)
 	mockHashing.AssertNumberOfCalls(t, "Twox128", 2)
 	mockHashing.AssertCalled(t, "Twox128", prefix)
 	mockHashing.AssertCalled(t, "Twox128", name)

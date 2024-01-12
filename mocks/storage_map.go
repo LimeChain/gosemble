@@ -48,18 +48,18 @@ func (m *StorageMap[K, V]) Clear(limit sc.U32) {
 	m.Called(limit)
 }
 
-func (m *StorageMap[K, V]) Mutate(k K, f func(value *V) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *StorageMap[K, V]) Mutate(k K, f func(value *V) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(k, f)
 	if args.Get(1) == nil {
-		return args.Get(0).(sc.Result[sc.Encodable]), nil
+		return args.Get(0).(sc.Encodable), nil
 	}
-	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
+	return args.Get(0).(sc.Encodable), args.Get(1).(error)
 }
 
-func (m *StorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (m *StorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(k, f)
 	if args.Get(1) == nil {
-		return args.Get(0).(sc.Result[sc.Encodable]), nil
+		return args.Get(0).(sc.Encodable), nil
 	}
-	return args.Get(0).(sc.Result[sc.Encodable]), args.Get(1).(error)
+	return args.Get(0).(sc.Encodable), args.Get(1).(error)
 }

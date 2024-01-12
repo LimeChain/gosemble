@@ -59,32 +59,32 @@ func (hsm HashStorageMap[K, V]) Clear(limit sc.U32) {
 	hsm.baseStorage.storage.ClearPrefix(append(prefixHash, nameHash...), sc.NewOption[sc.U32](limit).Bytes())
 }
 
-func (hsm HashStorageMap[K, V]) Mutate(k K, f func(*V) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (hsm HashStorageMap[K, V]) Mutate(k K, f func(*V) (sc.Encodable, error)) (sc.Encodable, error) {
 	v, err := hsm.Get(k)
 	if err != nil {
-		return sc.Result[sc.Encodable]{}, err
+		return nil, err
 	}
 
-	result := f(&v)
-	if !result.HasError {
+	result, err := f(&v)
+	if err == nil {
 		hsm.Put(k, v)
 	}
 
-	return result, nil
+	return result, err
 }
 
-func (hsm HashStorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error) {
+func (hsm HashStorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]) (sc.Encodable, error)) (sc.Encodable, error) {
 	// TODO: This should get the storage value and try to decode it. It should return an Option<value>
 	// If it cannot decode it, return Empty Option.
 	// If it can decode it, return Option with the value.
 	v, err := hsm.Get(k)
 	if err != nil {
-		return sc.Result[sc.Encodable]{}, err
+		return nil, err
 	}
 	option := sc.NewOption[V](v)
 
-	result := f(&option)
-	if !result.HasError {
+	result, err := f(&option)
+	if err == nil {
 		if option.HasValue {
 			hsm.Put(k, option.Value)
 		}
@@ -94,7 +94,7 @@ func (hsm HashStorageMap[K, V]) TryMutateExists(k K, f func(option *sc.Option[V]
 		// }
 	}
 
-	return result, nil
+	return result, err
 }
 
 func (hsm HashStorageMap[K, V]) key(key K) []byte {
