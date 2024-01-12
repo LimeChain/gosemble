@@ -37,11 +37,11 @@ func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	if err != nil {
 		return nil, err
 	}
-	newFree, err := sc.DecodeCompact[sc.Numeric](buffer)
+	newFree, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
-	newReserved, err := sc.DecodeCompact[sc.Numeric](buffer)
+	newReserved, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}

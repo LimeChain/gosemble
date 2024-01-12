@@ -147,7 +147,7 @@ func Test_Module_Item(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	mockRuntimeExtrinsic.On("Metadata", &mdGenerator).Return(mdModules14, mdExtrinsic)
+	mockRuntimeExtrinsic.On("Metadata").Return(mdModules14, mdExtrinsic)
 
 	builtMeta := target.buildMetadata()
 
@@ -161,7 +161,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	assert.Equal(t, ptrAndSize, result)
 
-	mockRuntimeExtrinsic.AssertCalled(t, "Metadata", &mdGenerator)
+	mockRuntimeExtrinsic.AssertCalled(t, "Metadata")
 	mockMemoryUtils.AssertCalled(t, "BytesToOffsetAndSize", bMetadata.Bytes())
 }
 
@@ -186,7 +186,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
-	mockRuntimeExtrinsic.On("Metadata", &mdGenerator).Return(mdModules14, mdExtrinsic)
+	mockRuntimeExtrinsic.On("Metadata").Return(mdModules14, mdExtrinsic)
 
 	metadataV14 := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -229,7 +229,7 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version15.Bytes())
 
-	mockRuntimeExtrinsic.On("MetadataLatest", &mdGenerator).Return(mdModules15, mdExtrinsic15, outerEnums, custom)
+	mockRuntimeExtrinsic.On("MetadataLatest").Return(mdModules15, mdExtrinsic15, outerEnums, custom)
 
 	metadataV15 := primitives.RuntimeMetadataV15{
 		Types:      metadataTypes,
@@ -294,7 +294,7 @@ func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{}, log.NewLogger())
+	target := New(mockRuntimeExtrinsic, []primitives.RuntimeApiModule{}, log.NewLogger(), mdGenerator)
 	target.memUtils = mockMemoryUtils
 
 	return target

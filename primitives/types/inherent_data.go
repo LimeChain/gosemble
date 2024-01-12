@@ -65,7 +65,7 @@ func (id *InherentData) Clear() {
 
 func DecodeInherentData(buffer *bytes.Buffer) (*InherentData, error) {
 	result := NewInherentData()
-	lenCompact, err := sc.DecodeCompact[sc.Numeric](buffer)
+	lenCompact, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return nil, err
 	}

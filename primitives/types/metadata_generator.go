@@ -16,13 +16,13 @@ const (
 )
 
 type MetadataTypeGenerator struct {
-	MetadataIds   map[string]int
 	MetadataTypes sc.Sequence[MetadataType]
+	metadataIds   map[string]int
 }
 
-func NewMetadataTypeGenerator() MetadataTypeGenerator {
-	return MetadataTypeGenerator{
-		MetadataIds:   BuildMetadataTypesIdsMap(),
+func NewMetadataTypeGenerator() *MetadataTypeGenerator {
+	return &MetadataTypeGenerator{
+		metadataIds:   BuildMetadataTypesIdsMap(),
 		MetadataTypes: sc.Sequence[MetadataType]{},
 	}
 }
@@ -49,8 +49,8 @@ func BuildMetadataTypesIdsMap() map[string]int {
 	}
 }
 
-func (g *MetadataTypeGenerator) IdsMap() map[string]int {
-	return g.MetadataIds
+func (g *MetadataTypeGenerator) GetIdsMap() map[string]int {
+	return g.metadataIds
 }
 
 func (g *MetadataTypeGenerator) GetMetadataTypes() sc.Sequence[MetadataType] {
@@ -58,38 +58,10 @@ func (g *MetadataTypeGenerator) GetMetadataTypes() sc.Sequence[MetadataType] {
 }
 
 func (g *MetadataTypeGenerator) AppendMetadataTypes(types sc.Sequence[MetadataType]) {
+	//for i := 0; i < len(types); i++ {
+	//	currentTypeId := types[i].Id.Number.ToBigInt().Int64()
+	//}
 	g.MetadataTypes = append(g.MetadataTypes, types...)
-}
-
-func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
-	newId := len(g.MetadataIds) + 1
-	g.MetadataIds[name] = newId
-	return newId
-}
-
-func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) {
-	field := v.FieldByName("Number")
-	if field.IsValid() {
-		if v.Type() == reflect.TypeOf(sc.Compact{}) {
-			switch field.Elem().Type() {
-			case reflect.TypeOf(*new(sc.U128)):
-				typeId, ok := g.MetadataIds["CompactU128"]
-				if !ok {
-					typeId = g.assignNewMetadataId("CompactU128")
-					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
-				}
-				return typeId, true
-			case reflect.TypeOf(*new(sc.U64)):
-				typeId, ok := g.MetadataIds["CompactU64"]
-				if !ok {
-					typeId = g.assignNewMetadataId("CompactU64")
-					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
-				}
-				return typeId, true
-			}
-		}
-	}
-	return -1, false
 }
 
 // BuildMetadataTypeRecursively Builds the metadata type (recursively) if it does not exist
@@ -100,7 +72,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 	var ok bool
 	switch valueType.Kind() {
 	case reflect.Struct:
-		typeId, ok = g.MetadataIds[typeName]
+		typeId, ok = g.metadataIds[typeName]
 		if !ok {
 			typeId, ok = g.isCompactVariation(v)
 			if ok {
@@ -115,7 +87,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 				if isIgnoredName(fieldName) || isIgnoredType(fieldTypeName) {
 					continue
 				}
-				fieldId, ok := g.MetadataIds[fieldTypeName]
+				fieldId, ok := g.metadataIds[fieldTypeName]
 				if !ok {
 					fieldId = g.BuildMetadataTypeRecursively(v.Field(i), nil, nil, nil)
 				}
@@ -142,30 +114,15 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 	case reflect.Slice:
 		sequenceName := "Sequence"
 		sequenceType := sequenceName + valueType.Elem().Name()
-		sequenceTypeId, ok := g.MetadataIds[sequenceType]
+		sequenceTypeId, ok := g.metadataIds[sequenceType]
 		if !ok {
 			sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
 		}
 		typeId = sequenceTypeId
 	case reflect.Array: // types U128 and U64
-		typeId = g.MetadataIds[typeName]
+		typeId = g.metadataIds[typeName]
 	}
 	return typeId
-}
-
-// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
-func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
-	input, _ = strings.CutPrefix(input, "call")
-	var result strings.Builder
-
-	for i, char := range input {
-		if i > 0 && 'A' <= char && char <= 'Z' {
-			result.WriteRune('_')
-		}
-		result.WriteRune(char)
-	}
-
-	return strings.ToLower(result.String())
 }
 
 // BuildCallsMetadata returns metadata calls type of a module
@@ -217,7 +174,7 @@ func (g *MetadataTypeGenerator) BuildErrorsMetadata(moduleName string, definitio
 	var ok bool
 	switch moduleName {
 	case "System":
-		errorsTypeId, ok = g.MetadataIds[moduleName+"Errors"]
+		errorsTypeId, ok = g.metadataIds[moduleName+"Errors"]
 		if !ok {
 			errorsTypeId = g.assignNewMetadataId(moduleName + "Errors")
 			g.MetadataTypes = append(g.MetadataTypes, NewMetadataTypeWithPath(errorsTypeId,
@@ -226,6 +183,52 @@ func (g *MetadataTypeGenerator) BuildErrorsMetadata(moduleName string, definitio
 		}
 	}
 	return errorsTypeId
+}
+
+func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
+	newId := len(g.metadataIds) + 1
+	g.metadataIds[name] = newId
+	return newId
+}
+
+func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) {
+	field := v.FieldByName("Number")
+	if field.IsValid() {
+		if v.Type() == reflect.TypeOf(sc.Compact{}) {
+			switch field.Elem().Type() {
+			case reflect.TypeOf(*new(sc.U128)):
+				typeId, ok := g.metadataIds["CompactU128"]
+				if !ok {
+					typeId = g.assignNewMetadataId("CompactU128")
+					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
+				}
+				return typeId, true
+			case reflect.TypeOf(*new(sc.U64)):
+				typeId, ok := g.metadataIds["CompactU64"]
+				if !ok {
+					typeId = g.assignNewMetadataId("CompactU64")
+					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
+				}
+				return typeId, true
+			}
+		}
+	}
+	return -1, false
+}
+
+// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
+func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
+	input, _ = strings.CutPrefix(input, "call")
+	var result strings.Builder
+
+	for i, char := range input {
+		if i > 0 && 'A' <= char && char <= 'Z' {
+			result.WriteRune('_')
+		}
+		result.WriteRune(char)
+	}
+
+	return strings.ToLower(result.String())
 }
 
 func isIgnoredType(t string) bool {

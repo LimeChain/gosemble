@@ -13,17 +13,19 @@ const (
 type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	functions map[sc.U8]primitives.Call
+	Index       sc.U8
+	functions   map[sc.U8]primitives.Call
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8) Module {
+func New(index sc.U8, mdGenerator *primitives.MetadataTypeGenerator) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	functions[functionTestIndex] = newCallTest(index, functionTestIndex)
 
 	return Module{
-		Index:     index,
-		functions: functions,
+		Index:       index,
+		functions:   functions,
+		mdGenerator: mdGenerator,
 	}
 }
 
@@ -47,8 +49,8 @@ func (m Module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	testableCallsMetadataId := mdGenerator.BuildCallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+func (m Module) Metadata() primitives.MetadataModule {
+	testableCallsMetadataId := m.mdGenerator.BuildCallsMetadata("Testable", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -71,7 +73,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index:     m.Index,
 	}
 
-	mdGenerator.AppendMetadataTypes(m.metadataTypes())
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

@@ -49,7 +49,7 @@ func newCallSetWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) p
 }
 
 func (c callSet) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	compact, err := sc.DecodeCompact[sc.Numeric](buffer)
+	compact, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,15 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo] {
-	valueTs, _ := args[0].(sc.Compact)
+	valueTs, ok := args[0].(sc.Compact)
+	if !ok {
+		return primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+			HasError: true,
+			Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+				Error: primitives.NewDispatchErrorOther("couldn't dispatch timestamp value to set"),
+			},
+		}
+	}
 	return c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
 }
 

@@ -65,7 +65,7 @@ func Test_Call_Set_NewSetCallWithArgs(t *testing.T) {
 
 func Test_Call_Set_DecodeArgs(t *testing.T) {
 	target := setUpCallSet()
-	compact := sc.ToCompact(5)
+	compact := sc.Compact{Number: sc.U64(5)}
 	buf := bytes.NewBuffer(compact.Bytes())
 
 	call, err := target.DecodeArgs(buf)
@@ -208,6 +208,25 @@ func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	}
 
 	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
+
+	assert.Equal(t, expected, result)
+	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
+	mockStorageNow.AssertNotCalled(t, "Get")
+	mockStorageNow.AssertNotCalled(t, "Put")
+	mockStorageDidUpdate.AssertNotCalled(t, "Put")
+	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
+}
+
+func Test_Call_Set_Dispatch_InvalidValueType(t *testing.T) {
+	target := setUpCallSet()
+	expected := primitives.DispatchResultWithPostInfo[primitives.PostDispatchInfo]{
+		HasError: true,
+		Err: primitives.DispatchErrorWithPostInfo[primitives.PostDispatchInfo]{
+			Error: primitives.NewDispatchErrorOther("couldn't dispatch timestamp value to set"),
+		},
+	}
+
+	result := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(now))
 
 	assert.Equal(t, expected, result)
 	mockStorageDidUpdate.AssertNotCalled(t, "Exists")

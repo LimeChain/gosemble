@@ -106,7 +106,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	buffer.Write([]byte{inherentExt[0]})
 
-	totalInherents, err := sc.DecodeCompact[sc.Numeric](buffer)
+	totalInherents, err := sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()
@@ -186,7 +186,7 @@ func Test_ExecuteBlock(t *testing.T) {
 
 	buffer.Write([]byte{inherentExt[0]})
 
-	totalInherents, err := sc.DecodeCompact[sc.Numeric](buffer)
+	totalInherents, err := sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), totalInherents.ToBigInt().Int64())
 	buffer.Reset()

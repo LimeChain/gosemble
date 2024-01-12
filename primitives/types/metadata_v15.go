@@ -205,7 +205,7 @@ func DecodeRuntimeApiMethodMetadata(buffer *bytes.Buffer) (RuntimeApiMethodMetad
 	if err != nil {
 		return RuntimeApiMethodMetadata{}, err
 	}
-	output, err := sc.DecodeCompact[sc.Numeric](buffer)
+	output, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeApiMethodMetadata{}, err
 	}

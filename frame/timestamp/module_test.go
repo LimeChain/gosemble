@@ -316,7 +316,7 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 }
 
 func Test_Module_Metadata(t *testing.T) {
-	expectedTimestampCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+	expectedTimestampCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
 	expectedCompactU64TypeId := expectedTimestampCallsMetadataId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
@@ -381,7 +381,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	target := setupModule()
 
-	resultMetadataModule := target.Metadata(&mdGenerator)
+	resultMetadataModule := target.Metadata()
 	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
@@ -396,7 +396,7 @@ func setupModule() Module {
 
 	config := NewConfig(mockOnTimestampSet, dbWeight, minimumPeriod)
 
-	target := New(moduleId, config)
+	target := New(moduleId, config, mdGenerator)
 	target.storage.DidUpdate = mockStorageDidUpdate
 	target.storage.Now = mockStorageNow
 

@@ -38,8 +38,8 @@ var (
 		extraCheckErr,
 	}
 
-	signedExtraWithOk  = NewSignedExtra(extraChecksWithOk1)
-	signedExtraWithErr = NewSignedExtra(extraChecksWithErr1)
+	signedExtraWithOk  = NewSignedExtra(extraChecksWithOk1, mdGenerator)
+	signedExtraWithErr = NewSignedExtra(extraChecksWithErr1, mdGenerator)
 )
 
 var (

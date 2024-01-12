@@ -35,20 +35,22 @@ type AuraModule interface {
 type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	index     sc.U8
-	config    *Config
-	storage   *storage
-	constants *consts
+	index       sc.U8
+	config      *Config
+	storage     *storage
+	constants   *consts
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenerator) Module {
 	storage := newStorage()
 
 	return Module{
-		index:     index,
-		config:    config,
-		storage:   storage,
-		constants: newConstants(config.DbWeight, config.MinimumPeriod),
+		index:       index,
+		config:      config,
+		storage:     storage,
+		constants:   newConstants(config.DbWeight, config.MinimumPeriod),
+		mdGenerator: mdGenerator,
 	}
 }
 
@@ -142,7 +144,7 @@ func (m Module) OnTimestampSet(now sc.U64) error {
 	return nil
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
+func (m Module) Metadata() primitives.MetadataModule {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:      m.name(),
 		Storage:   m.metadataStorage(),
@@ -155,8 +157,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		ErrorDef:  sc.NewOption[primitives.MetadataDefinitionVariant](nil),
 		Index:     m.index,
 	}
-
-	mdGenerator.AppendMetadataTypes(m.metadataTypes())
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

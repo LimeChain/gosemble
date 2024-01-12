@@ -11,8 +11,10 @@ import (
 )
 
 func Test_Metadata_Encoding_Success(t *testing.T) {
+	runtimeInstanceGossamer, _ := newTestRuntime(t)
+	gossamerMetadata := runtimeMetadata(t, runtimeInstanceGossamer)
+
 	runtime, _ := newTestRuntime(t)
-	gossamerMetadata := runtimeMetadata(t, runtime)
 
 	bMetadata, err := runtime.Metadata()
 	assert.NoError(t, err)
@@ -20,7 +22,7 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 	buffer := bytes.NewBuffer(bMetadata)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact[sc.Numeric](buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
@@ -62,8 +64,10 @@ func Test_Metadata_Versions_Correct_Versions(t *testing.T) {
 }
 
 func Test_Metadata_At_Version_14(t *testing.T) {
+	runtimeGossamer, _ := newTestRuntime(t)
+	gossamerMetadata := runtimeMetadata(t, runtimeGossamer)
+
 	runtime, _ := newTestRuntime(t)
-	gossamerMetadata := runtimeMetadata(t, runtime)
 
 	version14 := sc.U32(types.MetadataVersion14)
 
@@ -80,7 +84,7 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 	buffer := bytes.NewBuffer(metadataV14Bytes)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact[sc.Numeric](buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
@@ -116,7 +120,7 @@ func Test_Metadata_At_Version_15(t *testing.T) {
 	buffer := bytes.NewBuffer(metadataV15Bytes)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact[sc.Numeric](buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	bMetadataCopy := make([]byte, buffer.Len())

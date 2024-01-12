@@ -1256,7 +1256,7 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedSystemCallId := len(mdGenerator.IdsMap()) + 1
+	expectedSystemCallId := len(mdGenerator.GetIdsMap()) + 1
 
 	expectedSystemErrorsId := expectedSystemCallId + 1
 
@@ -1797,7 +1797,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	resultMetadataModule := target.Metadata(&mdGenerator)
+	resultMetadataModule := target.Metadata()
 	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
@@ -1817,7 +1817,7 @@ func testDigest() primitives.Digest {
 func setupModule() module {
 	config := NewConfig(blockHashCount, blockWeights, blockLength, dbWeight, version)
 
-	target := New(moduleId, config, log.NewLogger()).(module)
+	target := New(moduleId, config, mdGenerator, log.NewLogger()).(module)
 
 	initMockStorage()
 	target.storage.Account = mockStorageAccount

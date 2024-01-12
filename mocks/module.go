@@ -42,8 +42,8 @@ func (m *Module) ValidateUnsigned(txSource types.TransactionSource, call types.C
 	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
-func (m *Module) Metadata(mdGenerator *types.MetadataTypeGenerator) types.MetadataModule {
-	args := m.Called(mdGenerator)
+func (m *Module) Metadata() types.MetadataModule {
+	args := m.Called()
 
 	return args.Get(0).(types.MetadataModule)
 }

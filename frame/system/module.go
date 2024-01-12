@@ -38,7 +38,7 @@ type Module interface {
 	CanDecProviders(who primitives.AccountId) (bool, error)
 	DepositEvent(event primitives.Event)
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) sc.Result[sc.Encodable]) (sc.Result[sc.Encodable], error)
-	Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule
+	Metadata() primitives.MetadataModule
 
 	BlockHashCount() sc.U64
 	BlockLength() types.BlockLength
@@ -70,31 +70,33 @@ type Module interface {
 type module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	Config    *Config
-	storage   *storage
-	constants *consts
-	functions map[sc.U8]primitives.Call
-	trie      io.Trie
-	ioStorage io.Storage
-	logger    log.WarnLogger
+	Index       sc.U8
+	Config      *Config
+	storage     *storage
+	constants   *consts
+	functions   map[sc.U8]primitives.Call
+	trie        io.Trie
+	ioStorage   io.Storage
+	logger      log.WarnLogger
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8, config *Config, logger log.WarnLogger) Module {
+func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenerator, logger log.WarnLogger) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
 
 	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
 
 	return module{
-		Index:     index,
-		Config:    config,
-		storage:   newStorage(),
-		constants: constants,
-		functions: functions,
-		trie:      io.NewTrie(),
-		ioStorage: io.NewStorage(),
-		logger:    logger,
+		Index:       index,
+		Config:      config,
+		storage:     newStorage(),
+		constants:   constants,
+		functions:   functions,
+		trie:        io.NewTrie(),
+		ioStorage:   io.NewStorage(),
+		mdGenerator: mdGenerator,
+		logger:      logger,
 	}
 }
 
@@ -616,23 +618,23 @@ func (m module) errorsDefinition() *primitives.MetadataTypeDefinition {
 	return &def
 }
 
-func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
+func (m module) Metadata() primitives.MetadataModule {
 	// Build System Calls Metadata
-	metadataIdSystemCalls := mdGenerator.BuildCallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+	metadataIdSystemCalls := m.mdGenerator.BuildCallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	// Build System Errors Metadata
-	errorsMetadataId := mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
+	errorsMetadataId := m.mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
 
 	// Generate Extrinsic Phase Metadata
-	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).MetadataDefinition(), nil)
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).MetadataDefinition(), nil)
 	// Generate Block Metadata
-	mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
 		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 	})
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
-		Storage: m.metadataStorage(mdGenerator),
+		Storage: m.metadataStorage(),
 		Call:    sc.NewOption[sc.Compact](sc.ToCompact(metadataIdSystemCalls)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
@@ -667,7 +669,7 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	mdGenerator.AppendMetadataTypes(m.metadataTypes(mdGenerator))
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
@@ -675,8 +677,8 @@ func (m module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 	}
 }
 
-func (m module) metadataTypes(mdGenerator *primitives.MetadataTypeGenerator) sc.Sequence[primitives.MetadataType] {
-	typesPhaseId := mdGenerator.IdsMap()["ExtrinsicPhase"]
+func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
 
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
@@ -963,8 +965,8 @@ func (m module) metadataTypes(mdGenerator *primitives.MetadataTypeGenerator) sc.
 	}
 }
 
-func (m module) metadataStorage(mdGenerator *primitives.MetadataTypeGenerator) sc.Option[primitives.MetadataModuleStorage] {
-	typesPhaseId := mdGenerator.IdsMap()["ExtrinsicPhase"]
+func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
 
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),

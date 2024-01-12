@@ -31,17 +31,17 @@ type Module struct {
 	runtimeApiModules []primitives.RuntimeApiModule
 	runtimeExtrinsic  extrinsic.RuntimeExtrinsic
 	memUtils          utils.WasmMemoryTranslator
-	generator         primitives.MetadataTypeGenerator
+	generator         *primitives.MetadataTypeGenerator
 	logger            log.Logger
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primitives.RuntimeApiModule, logger log.Logger) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primitives.RuntimeApiModule, logger log.Logger, generator *primitives.MetadataTypeGenerator) Module {
 	return Module{
 		runtimeApiModules: runtimeApiModules,
 		runtimeExtrinsic:  runtimeExtrinsic,
 		memUtils:          utils.NewMemoryTranslator(),
 		logger:            logger,
-		generator:         primitives.NewMetadataTypeGenerator(),
+		generator:         generator,
 	}
 }
 
@@ -80,7 +80,7 @@ func (m Module) buildMetadata() primitives.Metadata {
 
 	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 
-	modules, extrinsic := m.runtimeExtrinsic.Metadata(&m.generator)
+	modules, extrinsic := m.runtimeExtrinsic.Metadata()
 
 	mdTypes := m.generator.GetMetadataTypes()
 	// append types to all
@@ -117,7 +117,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
-		modules, extrinsicV14 := m.runtimeExtrinsic.Metadata(&m.generator)
+		modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
 		types := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
@@ -133,7 +133,7 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		}
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
-		modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest(&m.generator)
+		modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
 		typesV15 := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{

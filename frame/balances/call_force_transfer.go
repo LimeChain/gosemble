@@ -35,7 +35,7 @@ func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, er
 	if err != nil {
 		return nil, err
 	}
-	value, err := sc.DecodeCompact[sc.Numeric](buffer)
+	value, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}

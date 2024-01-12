@@ -21,11 +21,11 @@ func (w Weight) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeWeight(buffer *bytes.Buffer) (Weight, error) {
-	refTime, err := sc.DecodeCompact[sc.Numeric](buffer)
+	refTime, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return Weight{}, err
 	}
-	proofSize, err := sc.DecodeCompact[sc.Numeric](buffer)
+	proofSize, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return Weight{}, err
 	}

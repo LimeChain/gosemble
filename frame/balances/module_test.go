@@ -586,11 +586,9 @@ func Test_Module_deposit_ArithmeticOverflow(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedBalancesCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+	expectedBalancesCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
 
 	expectedCompactU128TypeId := expectedBalancesCallsMetadataId + 1
-	//lg.Printf("expected Id calls: " + strconv.Itoa(expectedBalancesCallsMetadataId))
-	//lg.Printf("expected Id compact: " + strconv.Itoa(expectedCompactU128TypeId))
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(expectedCompactU128TypeId, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
@@ -877,7 +875,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	resultMetadataModule := target.Metadata(&mdGenerator)
+	resultMetadataModule := target.Metadata()
 	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
@@ -896,5 +894,5 @@ func setupModule() Module {
 		Free: sc.NewU128(1),
 	}
 
-	return New(moduleId, config, logger)
+	return New(moduleId, config, logger, mdGenerator)
 }

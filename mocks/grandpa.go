@@ -49,8 +49,8 @@ func (m *GrandpaModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
-func (m *GrandpaModule) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	args := m.Called(mdGenerator)
+func (m *GrandpaModule) Metadata() primitives.MetadataModule {
+	args := m.Called()
 	return args.Get(0).(primitives.MetadataModule)
 }
 

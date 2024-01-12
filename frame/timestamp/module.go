@@ -27,25 +27,27 @@ var (
 
 type Module struct {
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	Config    *Config
-	storage   *storage
-	constants *consts
-	functions map[sc.U8]primitives.Call
+	Index       sc.U8
+	Config      *Config
+	storage     *storage
+	constants   *consts
+	functions   map[sc.U8]primitives.Call
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenerator) Module {
 	functions := make(map[sc.U8]primitives.Call)
 	storage := newStorage()
 	constants := newConstants(config.DbWeight, config.MinimumPeriod)
 	functions[functionSetIndex] = newCallSet(index, functionSetIndex, storage, constants, config.OnTimestampSet)
 
 	return Module{
-		Index:     index,
-		Config:    config,
-		storage:   storage,
-		constants: constants,
-		functions: functions,
+		Index:       index,
+		Config:      config,
+		storage:     storage,
+		constants:   constants,
+		functions:   functions,
+		mdGenerator: mdGenerator,
 	}
 }
 
@@ -150,9 +152,8 @@ func (m Module) IsInherent(call primitives.Call) bool {
 	return call.ModuleIndex() == m.Index && call.FunctionIndex() == functionSetIndex
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-
-	timestampCallsMetadataId := mdGenerator.BuildCallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
+func (m Module) Metadata() primitives.MetadataModule {
+	timestampCallsMetadataId := m.mdGenerator.BuildCallsMetadata("Timestamp", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -181,7 +182,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index:    m.Index,
 	}
 
-	mdGenerator.AppendMetadataTypes(m.metadataTypes())
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

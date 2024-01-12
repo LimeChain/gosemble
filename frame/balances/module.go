@@ -28,22 +28,24 @@ const (
 type Module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	Index     sc.U8
-	Config    *Config
-	constants *consts
-	storage   *storage
-	functions map[sc.U8]primitives.Call
+	Index       sc.U8
+	Config      *Config
+	constants   *consts
+	storage     *storage
+	functions   map[sc.U8]primitives.Call
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8, config *Config, logger log.DebugLogger) Module {
+func New(index sc.U8, config *Config, logger log.DebugLogger, mdGenerator *primitives.MetadataTypeGenerator) Module {
 	constants := newConstants(config.DbWeight, config.MaxLocks, config.MaxReserves, config.ExistentialDeposit)
 	storage := newStorage()
 
 	module := Module{
-		Index:     index,
-		Config:    config,
-		constants: constants,
-		storage:   storage,
+		Index:       index,
+		Config:      config,
+		constants:   constants,
+		storage:     storage,
+		mdGenerator: mdGenerator,
 	}
 	functions := make(map[sc.U8]primitives.Call)
 	functions[functionTransferIndex] = newCallTransfer(index, functionTransferIndex, config.StoredMap, constants, module)
@@ -311,8 +313,8 @@ func (m Module) deposit(who primitives.AccountId, account *primitives.AccountDat
 	}
 }
 
-func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitives.MetadataModule {
-	metadataIdBalancesCalls := (*mdGenerator).BuildCallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+func (m Module) Metadata() primitives.MetadataModule {
+	metadataIdBalancesCalls := m.mdGenerator.BuildCallsMetadata("Balances", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
@@ -353,7 +355,7 @@ func (m Module) Metadata(mdGenerator *primitives.MetadataTypeGenerator) primitiv
 		Index: m.Index,
 	}
 
-	mdGenerator.AppendMetadataTypes(m.metadataTypes())
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
 
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,

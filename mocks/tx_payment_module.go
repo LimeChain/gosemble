@@ -81,8 +81,8 @@ func (m *TransactionPaymentModule) ValidateUnsigned(source types.TransactionSour
 	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) Metadata(mdGenerator *types.MetadataTypeGenerator) types.MetadataModule {
-	args := m.Called(mdGenerator)
+func (m *TransactionPaymentModule) Metadata() types.MetadataModule {
+	args := m.Called()
 	return args.Get(0).(types.MetadataModule)
 }
 

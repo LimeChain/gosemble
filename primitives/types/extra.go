@@ -21,17 +21,19 @@ type SignedExtra interface {
 	PreDispatchUnsigned(call Call, info *DispatchInfo, length sc.Compact) error
 	PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *DispatchInfo, postInfo *PostDispatchInfo, length sc.Compact, result *DispatchResult) error
 
-	Metadata(metadataGenerator *MetadataTypeGenerator) sc.Sequence[MetadataSignedExtension]
+	Metadata() sc.Sequence[MetadataSignedExtension]
 }
 
 // signedExtra contains an array of SignedExtension, iterated through during extrinsic execution.
 type signedExtra struct {
-	extras []SignedExtension
+	extras      []SignedExtension
+	mdGenerator *MetadataTypeGenerator
 }
 
-func NewSignedExtra(checks []SignedExtension) SignedExtra {
+func NewSignedExtra(checks []SignedExtension, mdGenerator *MetadataTypeGenerator) SignedExtra {
 	return signedExtra{
-		extras: checks,
+		extras:      checks,
+		mdGenerator: mdGenerator,
 	}
 }
 
@@ -144,20 +146,20 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 	return nil
 }
 
-func (e signedExtra) Metadata(metadataGenerator *MetadataTypeGenerator) sc.Sequence[MetadataSignedExtension] {
+func (e signedExtra) Metadata() sc.Sequence[MetadataSignedExtension] {
 	ids := sc.Sequence[sc.Compact]{}
 	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		extraMetadataId := generateExtraMetadata(extra, metadataGenerator, &extraTypes, &signedExtensions)
+		extraMetadataId := generateExtraMetadata(extra, e.mdGenerator, &extraTypes, &signedExtensions)
 		ids = append(ids, sc.ToCompact(extraMetadataId))
 	}
 
-	metadataGenerator.AppendMetadataTypes(extraTypes)
+	e.mdGenerator.AppendMetadataTypes(extraTypes)
 
 	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
-	metadataGenerator.AppendMetadataTypes(sc.Sequence[MetadataType]{signedExtraType})
+	e.mdGenerator.AppendMetadataTypes(sc.Sequence[MetadataType]{signedExtraType})
 
 	return signedExtensions
 }
@@ -195,14 +197,14 @@ func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc
 		for i := 0; i < numAdditionalSignedTypes; i++ {
 			currentType := additionalSignedField.Index(i).Elem()
 			currentTypeName := currentType.Type().Name()
-			currentTypeId, ok := metadataGenerator.IdsMap()[currentTypeName]
+			currentTypeId, ok := metadataGenerator.GetIdsMap()[currentTypeName]
 			if !ok {
 				currentTypeId = metadataGenerator.BuildMetadataTypeRecursively(currentType, nil, nil, nil)
 			}
 			resultTypeName = resultTypeName + currentTypeName
 			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
 		}
-		resultTypeId, ok := metadataGenerator.IdsMap()[resultTypeName]
+		resultTypeId, ok := metadataGenerator.GetIdsMap()[resultTypeName]
 		if !ok {
 			resultTypeId = metadataGenerator.assignNewMetadataId(resultTypeName)
 			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))

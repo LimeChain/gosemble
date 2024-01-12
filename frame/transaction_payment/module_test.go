@@ -178,7 +178,7 @@ func setup() {
 	mockNextFeeMultiplier = new(mocks.StorageValue[sc.U128])
 
 	config := NewConfig(operationalFeeMultiplier, weightToFee, lengthToFee, blockWeights)
-	target = New(moduleId, config).(module)
+	target = New(moduleId, config, mdGenerator).(module)
 	target.storage.NextFeeMultiplier = mockNextFeeMultiplier
 }
 
@@ -217,7 +217,7 @@ func Test_ValidateUnsigned(t *testing.T) {
 func Test_Metadata(t *testing.T) {
 	setup()
 
-	metadataModule := target.Metadata(&mdGenerator)
+	metadataModule := target.Metadata()
 	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)

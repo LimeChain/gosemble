@@ -40,8 +40,9 @@ func Test_Module_New(t *testing.T) {
 		storage: &storage{
 			mockStorageAuthorities,
 		},
-		logger:    logger,
-		functions: functions,
+		logger:      logger,
+		mdGenerator: mdGenerator,
+		functions:   functions,
 	}, target)
 }
 
@@ -130,7 +131,7 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	setup()
 
-	expectedGrandpaCallsMetadataId := len(mdGenerator.IdsMap()) + 1
+	expectedGrandpaCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParams(expectedGrandpaCallsMetadataId, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
@@ -186,7 +187,7 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	metadataModule := target.Metadata(&mdGenerator)
+	metadataModule := target.Metadata()
 	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, metadataTypes)
@@ -195,7 +196,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 func setup() {
 	mockStorageAuthorities = new(mocks.StorageValue[primitives.VersionedAuthorityList])
-	target = New(moduleId, logger)
+	target = New(moduleId, logger, mdGenerator)
 
 	target.storage.Authorities = mockStorageAuthorities
 }
