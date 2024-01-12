@@ -600,9 +600,7 @@ func (m module) Metadata() primitives.MetadataModule {
 	// Build System Errors Metadata
 	errorsMetadataId := m.mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
 
-	// Generate Extrinsic Phase Metadata
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).MetadataDefinition(), nil)
-	// Generate Block Metadata
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
 		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),

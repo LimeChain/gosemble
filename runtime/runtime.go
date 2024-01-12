@@ -181,8 +181,6 @@ func newSignedExtra() primitives.SignedExtra {
 }
 
 func runtimeApi() types.RuntimeApi {
-	//addr := fmt.Sprintf("%p", &mdGenerator)
-	//log.NewLogger().Info("Addr in runtimeApi: " + addr)
 	extra := newSignedExtra()
 	decoder := types.NewRuntimeDecoder(modules, extra, logger)
 	runtimeExtrinsic := extrinsic.New(modules, extra, mdGenerator, logger)
