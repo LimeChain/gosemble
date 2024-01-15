@@ -63,6 +63,8 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 
 	measuredDurations := []int64{}
 
+	benchmarking.StoreSnapshotDb()
+
 	// Always do at least one internal repeat.
 	repeats := int(benchmarkConfig.InternalRepeats)
 	if repeats < 1 {
@@ -72,6 +74,8 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 		// The dispatch call is executed in a transactional context,
 		// allowing to rollback and reset the state after each iteration.
 		// as an alternative of providing before hook.
+
+		benchmarking.RestoreSnapshotDb()
 
 		// Does nothing, for now
 		benchmarking.WipeDb()
@@ -101,30 +105,18 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 
 		benchmarking.StartDbTracker()
 
-		// Calculate the diff caused by the benchmark.
 		var start, end int64
 
-		_, _ = m.transactional.WithStorageLayer(
+		start = benchmarking.CurrentTime()
+		_, err := m.transactional.WithStorageLayer(
 			func() (primitives.PostDispatchInfo, error) {
-				start = benchmarking.CurrentTime()
-
-				postInfo, err := function.Dispatch(origin, args)
-				if err != nil {
-					m.logger.Critical(err.Error())
-				}
-
-				end = benchmarking.CurrentTime()
-
-				// Return an error to rollback to the initial state
-				// so each iteration starts from the same state.
-				if i == repeats {
-					// Do not revert the state on the last iteration, so
-					// the state is available for the validation.
-					return postInfo, nil
-				}
-				return postInfo, resetStateErr
+				return function.Dispatch(origin, args)
 			},
 		)
+		end = benchmarking.CurrentTime()
+		if err != nil {
+			m.logger.Critical(err.Error())
+		}
 
 		// Calculate the diff caused by the benchmark.
 		measuredDurations = append(measuredDurations, end-start)

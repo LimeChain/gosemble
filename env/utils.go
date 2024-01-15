@@ -37,3 +37,11 @@ func ExtBenchmarkingDbReadCountVersion1() int32 {
 func ExtBenchmarkingDbWriteCountVersion1() int32 {
 	panic("not implemented")
 }
+
+func ExtBenchmarkingStoreSnapshotDbVersion1() {
+	panic("not implemented")
+}
+
+func ExtBenchmarkingRestoreSnapshotDbVersion1() {
+	panic("not implemented")
+}

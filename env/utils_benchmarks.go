@@ -28,3 +28,9 @@ func ExtBenchmarkingDbReadCountVersion1() int32
 
 //go:wasmimport env ext_benchmarking_db_write_count_version_1
 func ExtBenchmarkingDbWriteCountVersion1() int32
+
+//go:wasmimport env ext_benchmarking_store_snapshot_db_version_1
+func ExtBenchmarkingStoreSnapshotDbVersion1()
+
+//go:wasmimport env ext_benchmarking_restore_snapshot_db_version_1
+func ExtBenchmarkingRestoreSnapshotDbVersion1()

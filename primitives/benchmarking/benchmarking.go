@@ -138,6 +138,14 @@ func StopDbTracker() {
 	env.ExtBenchmarkingStopDbTrackerVersion1()
 }
 
+func DbReadCount() int32 {
+	return env.ExtBenchmarkingDbReadCountVersion1()
+}
+
+func DbWriteCount() int32 {
+	return env.ExtBenchmarkingDbWriteCountVersion1()
+}
+
 func WipeDb() {
 	env.ExtBenchmarkingWipeDbVersion1()
 }
@@ -146,10 +154,10 @@ func CommitDb() {
 	env.ExtBenchmarkingCommitDbVersion1()
 }
 
-func DbReadCount() int32 {
-	return env.ExtBenchmarkingDbReadCountVersion1()
+func StoreSnapshotDb() {
+	env.ExtBenchmarkingStoreSnapshotDbVersion1()
 }
 
-func DbWriteCount() int32 {
-	return env.ExtBenchmarkingDbWriteCountVersion1()
+func RestoreSnapshotDb() {
+	env.ExtBenchmarkingRestoreSnapshotDbVersion1()
 }

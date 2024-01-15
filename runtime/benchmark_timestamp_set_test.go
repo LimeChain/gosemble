@@ -23,8 +23,6 @@ func benchmarkTimestampSet(b *testing.B) {
 
 	metadata := newBenchmarkingRuntimeMetadata(b, rt)
 
-	// TODO: switch to Gosemble types
-
 	// Setup the input params
 	now := uint64(time.Now().UnixMilli())
 	call, err := ctypes.NewCall(metadata, "Timestamp.set", ctypes.NewUCompactFromUInt(now))
