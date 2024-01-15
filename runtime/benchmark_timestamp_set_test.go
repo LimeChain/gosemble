@@ -21,7 +21,7 @@ func BenchmarkTimestampSetStep1(b *testing.B) {
 func benchmarkTimestampSet(b *testing.B) {
 	rt, storage := newBenchmarkingRuntime(b)
 
-	metadata := newBenchmarkingRuntimeMetadata(b, rt)
+	metadata := runtimeMetadata(b, rt)
 
 	// Setup the input params
 	now := uint64(time.Now().UnixMilli())
