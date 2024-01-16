@@ -14,8 +14,6 @@ import (
 	"github.com/LimeChain/gosemble/utils"
 )
 
-var resetStateErr = primitives.NewDispatchErrorOther(sc.Str("reset state error"))
-
 type Module struct {
 	systemModule  system.Module
 	transactional support.Transactional[primitives.PostDispatchInfo]
