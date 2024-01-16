@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 var (
@@ -100,4 +101,26 @@ func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityEr
 
 func (e TransactionValidityError) Bytes() []byte {
 	return sc.EncodedBytes(e)
+}
+
+func (e TransactionValidityError) MetadataDefinition() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"Invalid",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.TypesInvalidTransaction),
+				},
+				TransactionValidityErrorInvalidTransaction,
+				""),
+			NewMetadataDefinitionVariant(
+				"Unknown",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction),
+				},
+				TransactionValidityErrorUnknownTransaction,
+				""),
+		},
+	)
+	return &def
 }

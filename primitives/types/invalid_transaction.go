@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 const (
@@ -145,69 +146,70 @@ func (err InvalidTransaction) Error() string {
 	}
 }
 
-//func (err InvalidTransaction) MetadataDefinition() MetadataTypeDefinition {
-//	return NewMetadataTypeDefinitionVariant(
-//		sc.Sequence[MetadataDefinitionVariant]{
-//			NewMetadataDefinitionVariant(
-//				"Call",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionCall,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"Payment",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionPayment,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"Future",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionFuture,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"Stale",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionStale,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"BadProof",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionBadProof,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"AncientBirthBlock",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionAncientBirthBlock,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"ExhaustsResources",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionExhaustsResources,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"Custom",
-//				sc.Sequence[MetadataTypeDefinitionField]{
-//					NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
-//				},
-//				InvalidTransactionCustom,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"BadMandatory",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionBadMandatory,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"MandatoryValidation",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionMandatoryValidation,
-//				""),
-//			NewMetadataDefinitionVariant(
-//				"BadSigner",
-//				sc.Sequence[MetadataTypeDefinitionField]{},
-//				InvalidTransactionBadSigner,
-//				""),
-//		},
-//	)
-//}
+func (err InvalidTransaction) MetadataDefinition() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"Call",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionCall,
+				""),
+			NewMetadataDefinitionVariant(
+				"Payment",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionPayment,
+				""),
+			NewMetadataDefinitionVariant(
+				"Future",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionFuture,
+				""),
+			NewMetadataDefinitionVariant(
+				"Stale",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionStale,
+				""),
+			NewMetadataDefinitionVariant(
+				"BadProof",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionBadProof,
+				""),
+			NewMetadataDefinitionVariant(
+				"AncientBirthBlock",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionAncientBirthBlock,
+				""),
+			NewMetadataDefinitionVariant(
+				"ExhaustsResources",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionExhaustsResources,
+				""),
+			NewMetadataDefinitionVariant(
+				"Custom",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+				},
+				InvalidTransactionCustom,
+				""),
+			NewMetadataDefinitionVariant(
+				"BadMandatory",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionBadMandatory,
+				""),
+			NewMetadataDefinitionVariant(
+				"MandatoryValidation",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionMandatoryValidation,
+				""),
+			NewMetadataDefinitionVariant(
+				"BadSigner",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				InvalidTransactionBadSigner,
+				""),
+		},
+	)
+	return &def
+}
 
 func DecodeInvalidTransaction(buffer *bytes.Buffer) (InvalidTransaction, error) {
 	b, err := sc.DecodeU8(buffer)

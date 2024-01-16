@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 const (
@@ -85,4 +86,25 @@ func (r TransactionValidityResult) AsValidTransaction() (ValidTransaction, error
 	} else {
 		return ValidTransaction{}, newTypeError("ValidTransaction")
 	}
+}
+
+func (r TransactionValidityResult) MetadataDefinition() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"Ok",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
+				},
+				TransactionValidityResultValid,
+				""),
+			NewMetadataDefinitionVariant(
+				"Err",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
+				},
+				TransactionValidityResultError,
+				""),
+		})
+	return &def
 }

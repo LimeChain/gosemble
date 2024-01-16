@@ -175,7 +175,7 @@ func Test_Call_SetBalance_Dispatch_CannotLookup(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_SetBalance_Dispatch_InvalidArgs(t *testing.T) {
+func Test_Call_SetBalance_Dispatch_InvalidArg_Free_InvalidCompact(t *testing.T) {
 	target := setupCallSetBalance()
 
 	_, dispatchErr := target.Dispatch(
@@ -184,19 +184,45 @@ func Test_Call_SetBalance_Dispatch_InvalidArgs(t *testing.T) {
 
 	assert.Equal(t, errors.New("invalid free compact value when dispatching balance call set"), dispatchErr)
 
-	_, dispatchErr = target.Dispatch(
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
+	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_Dispatch_InvalidArg_Free_InvalidCompactNumber(t *testing.T) {
+	target := setupCallSetBalance()
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.Compact{}, sc.ToCompact(newReserved)))
 
 	assert.Equal(t, errors.New("invalid free compact number when dispatching balance call set"), dispatchErr)
 
-	_, dispatchErr = target.Dispatch(
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
+	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_Dispatch_InvalidArg_Reserved_InvalidCompact(t *testing.T) {
+	target := setupCallSetBalance()
+
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(newFree), sc.NewU128(0)))
 
 	assert.Equal(t, errors.New("invalid reserved compact value when dispatching balance call set"), dispatchErr)
 
-	_, dispatchErr = target.Dispatch(
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStorageTotalIssuance.AssertNotCalled(t, "Get")
+	mockStorageTotalIssuance.AssertNotCalled(t, "Put", mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_SetBalance_Dispatch_InvalidArg_Reserved_InvalidCompactNumber(t *testing.T) {
+	target := setupCallSetBalance()
+
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginRoot(),
 		sc.NewVaryingData(primitives.NewMultiAddress20(primitives.Address20{}), sc.ToCompact(newFree), sc.Compact{}))
 

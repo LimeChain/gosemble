@@ -48,8 +48,7 @@ var (
 )
 
 var (
-	metadataTypes = sc.Sequence[primitives.MetadataType]{}
-	metadataOne   = primitives.MetadataModule{
+	metadataOne = primitives.MetadataModule{
 		ModuleV14: primitives.MetadataModuleV14{
 			Name:      "moduleOne",
 			Storage:   sc.Option[primitives.MetadataModuleStorage]{},

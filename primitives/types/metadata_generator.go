@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/LimeChain/gosemble/primitives/log"
 )
 
 const (
@@ -18,7 +19,9 @@ const (
 	moduleTypeName           = "Module"
 	hookOnChargeTypeName     = "OnChargeTransaction"
 	varyingDataTypeName      = "VaryingData"
+	encodableTypeName        = "Encodable"
 	primitivesPackagePath    = "github.com/LimeChain/gosemble/primitives/types."
+	goscalePath              = "github.com/LimeChain/goscale."
 )
 
 type MetadataTypeGenerator struct {
@@ -36,7 +39,7 @@ func NewMetadataTypeGenerator() *MetadataTypeGenerator {
 func BuildMetadataTypesIdsMap() map[string]int {
 	return map[string]int{
 		"Bool":                       metadata.PrimitiveTypesBool,
-		"String":                     metadata.PrimitiveTypesString,
+		"Str":                        metadata.PrimitiveTypesString,
 		"U8":                         metadata.PrimitiveTypesU8,
 		"U16":                        metadata.PrimitiveTypesU16,
 		"U32":                        metadata.PrimitiveTypesU32,
@@ -52,6 +55,7 @@ func BuildMetadataTypesIdsMap() map[string]int {
 		"MultiAddress":               metadata.TypesMultiAddress,
 		"Header":                     metadata.Header,
 		"SequenceUncheckedExtrinsic": metadata.TypesSequenceUncheckedExtrinsics,
+		"SequenceSequence[U8]":       metadata.TypesSequenceSequenceU8,
 	}
 }
 
@@ -71,6 +75,7 @@ func (g *MetadataTypeGenerator) AppendMetadataTypes(types sc.Sequence[MetadataTy
 func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, path *sc.Sequence[sc.Str], def *MetadataTypeDefinition, params *sc.Sequence[MetadataTypeParameter]) int {
 	valueType := v.Type()
 	typeName := valueType.Name()
+	log.NewLogger().Info("Building metadata type: " + typeName)
 	var typeId int
 	var ok bool
 	switch valueType.Kind() {
@@ -79,6 +84,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 		if !ok {
 			typeId, ok = g.isCompactVariation(v)
 			if ok {
+				log.NewLogger().Info("IsCompactVariation")
 				return typeId
 			}
 			typeId = g.assignNewMetadataId(typeName)
@@ -90,6 +96,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 				if isIgnoredName(fieldName) || isIgnoredType(fieldTypeName) {
 					continue
 				}
+				log.NewLogger().Info("Current field type name: " + fieldTypeName)
 				fieldId, ok := g.metadataIds[fieldTypeName]
 				if !ok {
 					fieldId = g.BuildMetadataTypeRecursively(v.Field(i), nil, nil, nil)
@@ -105,6 +112,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 
 			metadataDocs := typeName
 			metadataDocs = strings.Replace(metadataDocs, primitivesPackagePath, "", 1)
+			metadataDocs = strings.Replace(metadataDocs, goscalePath, "", 1)
 			if def != nil {
 				metadataTypeDef = *def
 			}
@@ -123,20 +131,37 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			}
 			newMetadataType := NewMetadataTypeWithParams(typeId, metadataDocs, metadataTypePath, metadataTypeDef, metadataTypeParams)
 			g.MetadataTypes = append(g.MetadataTypes, newMetadataType)
+			log.NewLogger().Info("Built new type: " + metadataDocs)
 		}
 	case reflect.Slice:
-		sequenceName := "Sequence"
-		//sequenceType := valueType.Elem().Name()
-		//if strings.HasPrefix(sequenceType, "Sequence") { // We are dealing with double sequence (e.g. SequenceSequenceU8)
-		//
-		//}
-		sequenceType := sequenceName + valueType.Elem().Name()
-		//	fmt.Println("SequenceType: " + sequenceType)
-		sequenceTypeId, ok := g.metadataIds[sequenceType]
-		if !ok {
-			sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
+		sequenceType := valueType.Elem().Name()
+		if sequenceType == encodableTypeName { // TransactionSource (alias for sc.VaryingData)
+			typeId = g.assignNewMetadataId(typeName)
+			newMetadataType := NewMetadataTypeWithParams(typeId, typeName, *path, *def, sc.Sequence[MetadataTypeParameter]{})
+			g.MetadataTypes = append(g.MetadataTypes, newMetadataType)
+		} else {
+			sequenceName := "Sequence"
+			log.NewLogger().Info("SequenceType: " + sequenceType)
+			//sequenceSeq := valueType.Name()
+			//log.NewLogger().Info("SequenceSeq: " + sequenceSeq)
+			sequence := sequenceName + sequenceType
+			if strings.HasPrefix(sequenceType, "Sequence") { // We are dealing with double sequence (e.g. SequenceSequenceU8)
+				log.NewLogger().Info("Double Sequence")
+				sequence = strings.Replace(sequence, goscalePath, "", 1)
+			}
+			log.NewLogger().Info("Sequence Result: " + sequence)
+			//sequenceName = sequenceType
+			//log.NewLogger().Info("SequenceType: " + sequenceName)
+			sequenceTypeId, ok := g.metadataIds[sequence]
+			if !ok {
+				log.NewLogger().Info(sequence + " does not exist. Generating...")
+				if v.Kind() == reflect.Interface || v.Kind() == reflect.Pointer {
+					sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
+				}
+			}
+			typeId = sequenceTypeId
 		}
-		typeId = sequenceTypeId
+
 	case reflect.Array: // types U128 and U64
 		typeId = g.metadataIds[typeName]
 	}
@@ -219,28 +244,37 @@ func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
 }
 
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
-	newId := len(g.MetadataIds) + 1
-	g.MetadataIds[name] = newId
+	newId := len(g.metadataIds) + 1
+	g.metadataIds[name] = newId
 	return newId
 }
 
 func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) {
+	log.NewLogger().Info("IsCompactVariation(): " + v.String())
 	field := v.FieldByName("Number")
 	if field.IsValid() {
+		log.NewLogger().Info("Number field present")
 		if v.Type() == reflect.TypeOf(sc.Compact{}) {
 			switch field.Elem().Type() {
 			case reflect.TypeOf(*new(sc.U128)):
-				typeId, ok := g.MetadataIds["CompactU128"]
+				typeId, ok := g.metadataIds["CompactU128"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU128")
 					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
 				}
 				return typeId, true
 			case reflect.TypeOf(*new(sc.U64)):
-				typeId, ok := g.MetadataIds["CompactU64"]
+				typeId, ok := g.metadataIds["CompactU64"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU64")
 					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
+				}
+				return typeId, true
+			case reflect.TypeOf(*new(sc.U32)):
+				typeId, ok := g.metadataIds["CompactU32"]
+				if !ok {
+					typeId = g.assignNewMetadataId("CompactU32")
+					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU32", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))))
 				}
 				return typeId, true
 			}

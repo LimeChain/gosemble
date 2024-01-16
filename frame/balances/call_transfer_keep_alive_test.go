@@ -156,7 +156,7 @@ func Test_Call_TransferKeepAlive_Dispatch_BadOrigin(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs(t *testing.T) {
+func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs_InvalidCompact(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 
 	_, dispatchErr := target.Dispatch(
@@ -166,7 +166,14 @@ func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs(t *testing.T) {
 
 	assert.Equal(t, errors.New("invalid compact value when dispatching call transfer keep alive"), dispatchErr)
 
-	_, dispatchErr = target.Dispatch(
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs_InvalidCompactNumber(t *testing.T) {
+	target := setupCallTransferKeepAlive()
+
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(fromAddress, sc.Compact{}),
 	)
