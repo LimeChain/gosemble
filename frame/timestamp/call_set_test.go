@@ -23,6 +23,8 @@ var (
 	origin     = primitives.NewRawOriginNone()
 	now        = sc.U64(time.Unix(1, 0).UnixMilli())
 
+	argsBytesCallSet = sc.NewVaryingData(sc.Compact{Number: sc.NewU64(0)}).Bytes()
+
 	mockOnTimestampSet   *mocks.OnTimestampSet
 	mockStorageNow       *mocks.StorageValue[sc.U64]
 	mockStorageDidUpdate *mocks.StorageValue[sc.Bool]
@@ -38,7 +40,7 @@ func Test_Call_Set_NewSetCall(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionSetIndex,
-			Arguments:  nil,
+			Arguments:  sc.NewVaryingData(sc.Compact{Number: sc.NewU64(0)}),
 		},
 	}
 
@@ -64,7 +66,7 @@ func Test_Call_Set_NewSetCallWithArgs(t *testing.T) {
 
 func Test_Call_Set_DecodeArgs(t *testing.T) {
 	target := setUpCallSet()
-	compact := sc.ToCompact(sc.U8(5))
+	compact := sc.Compact{Number: sc.U64(5)}
 	buf := bytes.NewBuffer(compact.Bytes())
 
 	call, err := target.DecodeArgs(buf)
@@ -75,7 +77,7 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 
 func Test_Call_Set_Encode(t *testing.T) {
 	target := setUpCallSet()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionSetIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -86,11 +88,10 @@ func Test_Call_Set_Encode(t *testing.T) {
 
 func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 	target := setUpCallSet()
-	compact := sc.ToCompact(sc.U8(5))
 
-	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, compact.Bytes()...))
+	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...))
 
-	buf := bytes.NewBuffer(compact.Bytes())
+	buf := bytes.NewBuffer(argsBytesCallSet)
 
 	call, err := target.DecodeArgs(buf)
 	assert.Nil(t, err)
@@ -104,7 +105,7 @@ func Test_Call_Set_EncodeWithArgs(t *testing.T) {
 
 func Test_Call_Set_Bytes(t *testing.T) {
 	target := setUpCallSet()
-	expected := []byte{moduleId, functionSetIndex}
+	expected := append([]byte{moduleId, functionSetIndex}, argsBytesCallSet...)
 
 	assert.Equal(t, expected, target.Bytes())
 }
@@ -205,6 +206,19 @@ func Test_Call_Set_Dispatch_InvalidOrigin(t *testing.T) {
 	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.ToCompact(now)))
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
+	mockStorageNow.AssertNotCalled(t, "Get")
+	mockStorageNow.AssertNotCalled(t, "Put")
+	mockStorageDidUpdate.AssertNotCalled(t, "Put")
+	mockOnTimestampSet.AssertNotCalled(t, "OnTimestampSet")
+}
+
+func Test_Call_Set_Dispatch_InvalidArgs(t *testing.T) {
+	target := setUpCallSet()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginRoot(), sc.NewVaryingData(sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("couldn't dispatch call set timestamp compact value"), dispatchErr)
 	mockStorageDidUpdate.AssertNotCalled(t, "Exists")
 	mockStorageNow.AssertNotCalled(t, "Get")
 	mockStorageNow.AssertNotCalled(t, "Put")

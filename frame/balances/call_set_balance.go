@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/support"
@@ -21,6 +22,7 @@ func newCallSetBalance(moduleId sc.U8, functionId sc.U8, storedMap types.StoredM
 		Callable: types.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{Number: sc.U128{}}, sc.Compact{Number: sc.U128{}}),
 		},
 		constants:      constants,
 		storedMap:      storedMap,
@@ -36,11 +38,11 @@ func (c callSetBalance) DecodeArgs(buffer *bytes.Buffer) (types.Call, error) {
 	if err != nil {
 		return nil, err
 	}
-	newFree, err := sc.DecodeCompact(buffer)
+	newFree, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
-	newReserved, err := sc.DecodeCompact(buffer)
+	newReserved, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -104,9 +106,28 @@ func (_ callSetBalance) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callSetBalance) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	newFree := sc.U128(args[1].(sc.Compact))
-	newReserved := sc.U128(args[2].(sc.Compact))
+	compactFree, ok := args[1].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid free compact value when dispatching balance call set")
+	}
+	newFree, ok := compactFree.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid free compact number when dispatching balance call set")
+	}
+
+	compactReserved, ok := args[2].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid reserved compact value when dispatching balance call set")
+	}
+	newReserved, ok := compactReserved.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid reserved compact number when dispatching balance call set")
+	}
 	return types.PostDispatchInfo{}, c.setBalance(origin, args[0].(types.MultiAddress), newFree, newReserved)
+}
+
+func (_ callSetBalance) Docs() string {
+	return "Set the balances of a given account."
 }
 
 // setBalance sets the balance of a given account.

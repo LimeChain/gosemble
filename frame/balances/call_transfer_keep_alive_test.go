@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -11,12 +12,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	transferKeepAliveArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}).Bytes()
+)
+
 func Test_Call_TransferKeepAlive_new(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 	expected := callTransferKeepAlive{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferKeepAliveIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -42,7 +48,7 @@ func Test_Call_TransferKeepAlive_DecodeArgs(t *testing.T) {
 
 func Test_Call_TransferKeepAlive_Encode(t *testing.T) {
 	target := setupCallTransferKeepAlive()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferKeepAliveIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionTransferKeepAliveIndex}, transferKeepAliveArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -52,7 +58,7 @@ func Test_Call_TransferKeepAlive_Encode(t *testing.T) {
 }
 
 func Test_Call_TransferKeepAlive_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionTransferKeepAliveIndex}
+	expected := append([]byte{moduleId, functionTransferKeepAliveIndex}, transferKeepAliveArgsBytes...)
 
 	target := setupCallTransferKeepAlive()
 
@@ -146,6 +152,34 @@ func Test_Call_TransferKeepAlive_Dispatch_BadOrigin(t *testing.T) {
 	)
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs_InvalidCompact(t *testing.T) {
+	target := setupCallTransferKeepAlive()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.NewU64(0)),
+	)
+
+	assert.Equal(t, errors.New("invalid compact value when dispatching call transfer keep alive"), dispatchErr)
+
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_TransferKeepAlive_Dispatch_InvalidArgs_InvalidCompactNumber(t *testing.T) {
+	target := setupCallTransferKeepAlive()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, sc.Compact{}),
+	)
+
+	assert.Equal(t, errors.New("invalid compact number field when dispatching call transfer keep alive"), dispatchErr)
+
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

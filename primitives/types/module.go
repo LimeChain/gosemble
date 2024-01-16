@@ -14,7 +14,7 @@ type Module interface {
 	Functions() map[sc.U8]Call
 	PreDispatch(call Call) (sc.Empty, error)
 	ValidateUnsigned(source TransactionSource, call Call) (ValidTransaction, error)
-	Metadata() (sc.Sequence[MetadataType], MetadataModule)
+	Metadata() MetadataModule
 }
 
 func GetModule(moduleIndex sc.U8, modules []Module) (Module, error) {

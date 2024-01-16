@@ -23,6 +23,10 @@ const (
 )
 
 var (
+	mdGenerator = types.NewMetadataTypeGenerator()
+)
+
+var (
 	unknownTransactionNoUnsignedValidator = types.NewTransactionValidityError(types.NewUnknownTransactionNoUnsignedValidator())
 )
 
@@ -147,7 +151,7 @@ func setup(minimumPeriod sc.U64) {
 		allowMultipleBlocksPerSlot,
 		mockStorageDigest.Get,
 	)
-	module = New(moduleId, config)
+	module = New(moduleId, config, mdGenerator)
 	module.storage.CurrentSlot = mockStorageCurrentSlot
 	module.storage.Authorities = mockStorageAuthorities
 }
@@ -217,7 +221,9 @@ func Test_Aura_KeyTypeId(t *testing.T) {
 func Test_Aura_Metadata(t *testing.T) {
 	setup(timestampMinimumPeriod)
 
-	metadataTypes, metadataModule := module.Metadata()
+	metadataModule := module.Metadata()
+	metadataTypes := mdGenerator.GetMetadataTypes()
+
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataModule, metadataModule)
 }

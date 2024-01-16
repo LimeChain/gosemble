@@ -81,9 +81,9 @@ func (m *TransactionPaymentModule) ValidateUnsigned(source types.TransactionSour
 	return args.Get(0).(types.ValidTransaction), args.Get(1).(error)
 }
 
-func (m *TransactionPaymentModule) Metadata() (sc.Sequence[types.MetadataType], types.MetadataModule) {
+func (m *TransactionPaymentModule) Metadata() types.MetadataModule {
 	args := m.Called()
-	return args.Get(0).(sc.Sequence[types.MetadataType]), args.Get(1).(types.MetadataModule)
+	return args.Get(0).(types.MetadataModule)
 }
 
 func (m *TransactionPaymentModule) ComputeFee(len sc.U32, info types.DispatchInfo, tip types.Balance) (types.Balance, error) {

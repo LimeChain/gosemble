@@ -28,6 +28,7 @@ func newCallSet(moduleId sc.U8, functionId sc.U8, storage *storage, constants *c
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(sc.Compact{Number: sc.NewU64(0)}),
 		},
 		onTimestampSet: onTimestampSet,
 	}
@@ -48,7 +49,7 @@ func newCallSetWithArgs(moduleId sc.U8, functionId sc.U8, args sc.VaryingData) p
 }
 
 func (c callSet) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
-	compact, err := sc.DecodeCompact(buffer)
+	compact, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +104,15 @@ func (_ callSet) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (c callSet) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) (primitives.PostDispatchInfo, error) {
-	valueTs := sc.U128(args[0].(sc.Compact))
+	valueTs, ok := args[0].(sc.Compact)
+	if !ok {
+		return primitives.PostDispatchInfo{}, errors.New("couldn't dispatch call set timestamp compact value")
+	}
 	return primitives.PostDispatchInfo{}, c.set(origin, sc.U64(valueTs.ToBigInt().Uint64()))
+}
+
+func (c callSet) Docs() string {
+	return "Set the current time."
 }
 
 // set sets the current time.

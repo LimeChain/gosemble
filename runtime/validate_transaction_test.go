@@ -378,7 +378,7 @@ func Test_ValidateTransaction_NoUnsignedValidator(t *testing.T) {
 			args:     []any{alice, ctypes.NewBool(false)},
 		},
 		{
-			callName: "Balances.force_unreserve",
+			callName: "Balances.force_free",
 			args:     []any{alice, ctypes.NewU128(*big.NewInt(amount.Int64()))},
 		},
 	}

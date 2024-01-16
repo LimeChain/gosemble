@@ -34,6 +34,7 @@ var (
 	targetAddress                 = primitives.NewMultiAddressId(constants.ZeroAccountId)
 	targetValue                   = sc.NewU128(5)
 	mockTypeMutateAccountDataBool = mock.AnythingOfType("func(*types.AccountData, bool) (goscale.Encodable, error)")
+	argsBytesCallForceFree        = sc.NewVaryingData(primitives.MultiAddress{}, sc.U128{}).Bytes()
 	mockStoredMap                 *mocks.StoredMap
 	errPanic                      = errors.New("panic")
 )
@@ -44,6 +45,7 @@ func Test_Call_ForceFree_new(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceFreeIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.U128{}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -70,7 +72,7 @@ func Test_Call_ForceFree_DecodeArgs(t *testing.T) {
 
 func Test_Call_ForceFree_Encode(t *testing.T) {
 	target := setupCallForceFree()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionForceFreeIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionForceFreeIndex}, argsBytesCallForceFree...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -80,7 +82,7 @@ func Test_Call_ForceFree_Encode(t *testing.T) {
 }
 
 func Test_Call_ForceFree_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionForceFreeIndex}
+	expected := append([]byte{moduleId, functionForceFreeIndex}, argsBytesCallForceFree...)
 
 	target := setupCallForceFree()
 
@@ -171,6 +173,17 @@ func Test_Call_ForceFree_Dispatch_InvalidOrigin(t *testing.T) {
 	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(targetAddress, targetValue))
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
+	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_ForceFree_Dispatch_InvalidArgs(t *testing.T) {
+	target := setupCallForceFree()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(targetAddress, sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("invalid amount value when dispatching call force free"), dispatchErr)
 	mockStoredMap.AssertNotCalled(t, "Get", mock.Anything)
 	mockMutator.AssertNotCalled(t, "tryMutateAccount", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)

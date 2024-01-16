@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -18,6 +19,7 @@ func newCallTransferKeepAlive(moduleId sc.U8, functionId sc.U8, storedMap primit
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -30,7 +32,7 @@ func (c callTransferKeepAlive) DecodeArgs(buffer *bytes.Buffer) (primitives.Call
 	if err != nil {
 		return nil, err
 	}
-	value, err := sc.DecodeCompact(buffer)
+	value, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +89,19 @@ func (_ callTransferKeepAlive) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
+func (_ callTransferKeepAlive) Docs() string {
+	return "Same as the [`transfer`] call, but with a check that the transfer will not kill the origin account."
+}
+
 func (c callTransferKeepAlive) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	value := sc.U128(args[1].(sc.Compact))
+	valueCompact, ok := args[1].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact value when dispatching call transfer keep alive")
+	}
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact number field when dispatching call transfer keep alive")
+	}
 	return types.PostDispatchInfo{}, c.transferKeepAlive(origin, args[0].(types.MultiAddress), value)
 }
 

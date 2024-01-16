@@ -326,7 +326,7 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 
 	switch b {
 	case MetadataModuleStorageEntryDefinitionPlain:
-		key, err := sc.DecodeCompact(buffer)
+		key, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
@@ -336,11 +336,11 @@ func DecodeMetadataModuleStorageEntryDefinition(buffer *bytes.Buffer) (MetadataM
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
-		key, err := sc.DecodeCompact(buffer)
+		key, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
-		value, err := sc.DecodeCompact(buffer)
+		value, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataModuleStorageEntryDefinition{}, err
 		}
@@ -380,7 +380,7 @@ func DecodeMetadataModuleConstant(buffer *bytes.Buffer) (MetadataModuleConstant,
 	if err != nil {
 		return MetadataModuleConstant{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	t, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataModuleConstant{}, err
 	}

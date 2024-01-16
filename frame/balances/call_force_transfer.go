@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
@@ -18,6 +19,7 @@ func newCallForceTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, types.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -34,7 +36,7 @@ func (c callForceTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, er
 	if err != nil {
 		return nil, err
 	}
-	value, err := sc.DecodeCompact(buffer)
+	value, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +95,19 @@ func (_ callForceTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callForceTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	value := sc.U128(args[2].(sc.Compact))
+	valueCompact, ok := args[2].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid Compact value when dispatching call_force_transfer")
+	}
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid Compact field number when dispatching call_force_transfer")
+	}
 	return types.PostDispatchInfo{}, c.forceTransfer(origin, args[0].(types.MultiAddress), args[1].(types.MultiAddress), value)
+}
+
+func (_ callForceTransfer) Docs() string {
+	return "Exactly as `transfer`, except the origin must be root and the source account may be specified."
 }
 
 // forceTransfer transfers liquid free balance from `source` to `dest`.

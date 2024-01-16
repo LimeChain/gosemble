@@ -27,7 +27,7 @@ func (cn CheckNonce) Encode(buffer *bytes.Buffer) error {
 }
 
 func (cn *CheckNonce) Decode(buffer *bytes.Buffer) error {
-	compactNonce, err := sc.DecodeCompact(buffer)
+	compactNonce, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return err
 	}

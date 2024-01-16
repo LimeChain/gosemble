@@ -64,7 +64,7 @@ func DecodeRuntimeVersion(buffer *bytes.Buffer) (RuntimeVersion, error) {
 	rv.SpecVersion = specVersion
 	rv.ImplVersion = implVersion
 
-	compact, err := sc.DecodeCompact(buffer)
+	compact, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return RuntimeVersion{}, err
 	}

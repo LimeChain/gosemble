@@ -37,7 +37,7 @@ var (
 	extra = NewSignedExtra([]SignedExtension{
 		newTestExtraCheck(false, sc.U32(3)),
 		newTestExtraCheck(false, sc.U32(5)),
-	})
+	}, mdGenerator)
 
 	targetExtrinsicSignature = ExtrinsicSignature{
 		Signer:    signer,
@@ -67,6 +67,7 @@ func Test_DecodeExtrinsicSignature(t *testing.T) {
 			newTestExtraCheck(false, sc.U32(0)),
 			newTestExtraCheck(false, sc.U32(0)),
 		},
+		mdGenerator,
 	)
 
 	result, err := DecodeExtrinsicSignature(signedExtraTemplate, buffer)

@@ -91,6 +91,7 @@ var (
 
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	mdGenerator                           = primitives.NewMetadataTypeGenerator()
 	errPanic                              = errors.New("panic")
 )
 
@@ -1227,6 +1228,46 @@ func Test_Module_mutateAccount(t *testing.T) {
 	assert.Equal(t, expectAccountInfo, accountInfo)
 }
 
+func Test_Module_ErrorsDefinition(t *testing.T) {
+	target := setupModule()
+
+	expectDefinition := primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged."),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched."),
+		})
+
+	assert.Equal(t, &expectDefinition, target.errorsDefinition())
+}
+
 func Test_Module_mutateAccount_NilData(t *testing.T) {
 	accountInfo := &primitives.AccountInfo{
 		Nonce:       1,
@@ -1256,9 +1297,66 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
+	expectedSystemCallId := len(mdGenerator.GetIdsMap()) + 1
+
+	expectedSystemErrorsId := expectedSystemCallId + 1
+
+	expectedTypesPhaseId := expectedSystemErrorsId + 1
+
+	expectedTypesBlockId := expectedTypesPhaseId + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithPath(metadata.TypesPhase,
-			"frame_system Phase",
+		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
+			"System calls",
+			sc.Sequence[sc.Str]{"pallet_system", "pallet", "Call"},
+			primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"remark",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionRemarkIndex,
+						"Make some on-chain remark."),
+				}),
+			primitives.NewMetadataEmptyTypeParameter("T")),
+		primitives.NewMetadataTypeWithPath(expectedSystemErrorsId,
+			"frame_system pallet Error",
+			sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
+				sc.Sequence[primitives.MetadataDefinitionVariant]{
+					primitives.NewMetadataDefinitionVariant(
+						"InvalidSpecName",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorInvalidSpecName,
+						"The name of specification does not match between the current runtime and the new runtime."),
+					primitives.NewMetadataDefinitionVariant(
+						"SpecVersionNeedsToIncrease",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorSpecVersionNeedsToIncrease,
+						"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+					primitives.NewMetadataDefinitionVariant(
+						"FailedToExtractRuntimeVersion",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorFailedToExtractRuntimeVersion,
+						"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+					primitives.NewMetadataDefinitionVariant(
+						"NonDefaultComposite",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorNonDefaultComposite,
+						"Suicide called when the account has non-default composite data."),
+					primitives.NewMetadataDefinitionVariant(
+						"NonZeroRefCount",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorNonZeroRefCount,
+						"There is a non-zero reference count preventing the account from being purged."),
+					primitives.NewMetadataDefinitionVariant(
+						"CallFiltered",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+						ErrorCallFiltered,
+						"The origin filter prevent the call to be dispatched."),
+				})),
+		primitives.NewMetadataTypeWithPath(expectedTypesPhaseId,
+			"ExtrinsicPhase",
 			sc.Sequence[sc.Str]{"frame_system", "Phase"},
 			primitives.NewMetadataTypeDefinitionVariant(
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -1280,6 +1378,18 @@ func Test_Module_Metadata(t *testing.T) {
 						primitives.PhaseInitialization,
 						"Phase.Initialization"),
 				})),
+		primitives.NewMetadataTypeWithParams(expectedTypesBlockId, "block",
+			sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.Header, "header"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceUncheckedExtrinsics, "Vec<extrinsics>"),
+				}),
+			sc.Sequence[primitives.MetadataTypeParameter]{
+				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
+				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
+			},
+		),
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
@@ -1337,7 +1447,7 @@ func Test_Module_Metadata(t *testing.T) {
 			"frame_system EventRecord",
 			sc.Sequence[sc.Str]{"frame_system", "EventRecord"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPhase, "phase", "Phase"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(expectedTypesPhaseId, "phase", "Phase"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesRuntimeEvent, "event", "E"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesVecTopics, "topics", "Vec<T>"),
 			}),
@@ -1401,71 +1511,7 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString),
 				})),
 
-		primitives.NewMetadataTypeWithPath(metadata.TypesSystemErrors,
-			"frame_system pallet Error",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"InvalidSpecName",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorInvalidSpecName,
-						"The name of specification does not match between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"SpecVersionNeedsToIncrease",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorSpecVersionNeedsToIncrease,
-						"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"FailedToExtractRuntimeVersion",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorFailedToExtractRuntimeVersion,
-						"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonDefaultComposite",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonDefaultComposite,
-						"Suicide called when the account has non-default composite data."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonZeroRefCount",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonZeroRefCount,
-						"There is a non-zero reference count preventing the account from being purged."),
-					primitives.NewMetadataDefinitionVariant(
-						"CallFiltered",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorCallFiltered,
-						"The origin filter prevent the call to be dispatched."),
-				})),
-
-		primitives.NewMetadataTypeWithParam(metadata.SystemCalls,
-			"System calls",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Call"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"remark",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
-						},
-						functionRemarkIndex,
-						"Make some on-chain remark."),
-				}),
-			primitives.NewMetadataEmptyTypeParameter("T")),
-
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
-
-		primitives.NewMetadataTypeWithParams(metadata.TypesBlock, "Block",
-			sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.Header, "Header"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceUncheckedExtrinsics, "Vec<Extrinsic>"),
-				}),
-			sc.Sequence[primitives.MetadataTypeParameter]{
-				primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
-				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
-			},
-		),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionSource, "TransactionSource", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"},
 			primitives.NewMetadataTypeDefinitionVariant(
@@ -1718,16 +1764,16 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataModuleStorageEntry(
 					"ExecutionPhase",
 					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesPhase)),
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(expectedTypesPhaseId)),
 					"The execution phase of the block."),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(metadata.SystemCalls)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedSystemCallId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.SystemCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(expectedSystemCallId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<System, Runtime>"),
 				},
 				moduleId,
 				"Call.System"),
@@ -1774,12 +1820,12 @@ func Test_Module_Metadata(t *testing.T) {
 				"Get the chain's current version.",
 			),
 		},
-		Error: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesSystemErrors)),
+		Error: sc.NewOption[sc.Compact](sc.ToCompact(expectedSystemErrorsId)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesSystemErrors),
+					primitives.NewMetadataTypeDefinitionField(expectedSystemErrorsId),
 				},
 				moduleId,
 				"Errors.System"),
@@ -1792,7 +1838,8 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	resultTypes, resultMetadataModule := target.Metadata()
+	resultMetadataModule := target.Metadata()
+	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)
@@ -1811,7 +1858,7 @@ func testDigest() primitives.Digest {
 func setupModule() module {
 	config := NewConfig(blockHashCount, blockWeights, blockLength, dbWeight, version)
 
-	target := New(moduleId, config, log.NewLogger()).(module)
+	target := New(moduleId, config, mdGenerator, log.NewLogger()).(module)
 
 	initMockStorage()
 	target.storage.Account = mockStorageAccount

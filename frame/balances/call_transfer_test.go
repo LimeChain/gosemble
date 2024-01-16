@@ -27,6 +27,9 @@ var (
 			NewMultiAddressId(constants.OneAccountId)
 	toAddress = primitives.
 			NewMultiAddressId(constants.TwoAccountId)
+	argsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}).Bytes()
+
+	callTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}).Bytes()
 )
 
 func Test_Call_Transfer_New(t *testing.T) {
@@ -35,6 +38,7 @@ func Test_Call_Transfer_New(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionTransferIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -60,7 +64,7 @@ func Test_Call_Transfer_DecodeArgs(t *testing.T) {
 
 func Test_Call_Transfer_Encode(t *testing.T) {
 	target := setupCallTransfer()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionTransferIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionTransferIndex}, callTransferArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -70,7 +74,7 @@ func Test_Call_Transfer_Encode(t *testing.T) {
 }
 
 func Test_Call_Transfer_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionTransferIndex}
+	expected := append([]byte{moduleId, functionTransferIndex}, callTransferArgsBytes...)
 
 	target := setupCallTransfer()
 
@@ -130,6 +134,22 @@ func Test_Call_Transfer_Dispatch_BadOrigin(t *testing.T) {
 	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+}
+
+func Test_Call_Transfer_Dispatch_InvalidArg_InvalidCompactAmount(t *testing.T) {
+	target := setupCallTransfer()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.NewU64(0)))
+
+	assert.Equal(t, errors.New("invalid compact value when dispatching call transfer"), dispatchErr)
+}
+
+func Test_Call_Transfer_Dispatch_InvalidArg_InvalidCompactNumber(t *testing.T) {
+	target := setupCallTransfer()
+
+	_, dispatchErr := target.Dispatch(primitives.NewRawOriginNone(), sc.NewVaryingData(toAddress, sc.Compact{}))
+
+	assert.Equal(t, errors.New("invalid compact number field when dispatching call transfer"), dispatchErr)
 }
 
 func Test_Call_Transfer_Dispatch_CannotLookup(t *testing.T) {

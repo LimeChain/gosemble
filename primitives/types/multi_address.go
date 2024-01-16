@@ -113,7 +113,7 @@ func DecodeMultiAddress(buffer *bytes.Buffer) (MultiAddress, error) {
 		}
 		return NewMultiAddressId(accountId), nil
 	case MultiAddressIndex:
-		compact, err := sc.DecodeCompact(buffer)
+		compact, err := sc.DecodeCompact[sc.U32](buffer)
 		if err != nil {
 			return MultiAddress{}, err
 		}

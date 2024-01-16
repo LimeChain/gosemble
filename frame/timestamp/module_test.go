@@ -23,6 +23,7 @@ var (
 
 var (
 	errorCannotGetStorageValue = errors.New("cannot get storage value")
+	mdGenerator                = primitives.NewMetadataTypeGenerator()
 )
 
 func Test_Module_GetIndex(t *testing.T) {
@@ -315,13 +316,17 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 }
 
 func Test_Module_Metadata(t *testing.T) {
+	expectedTimestampCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
+	expectedCompactU64TypeId := expectedTimestampCallsMetadataId + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParam(metadata.TimestampCalls, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataType(expectedCompactU64TypeId, "CompactU64", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))),
+		primitives.NewMetadataTypeWithParam(expectedTimestampCallsMetadataId, "Timestamp calls", sc.Sequence[sc.Str]{"pallet_timestamp", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
 					"set",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesCompactU64, "now", "T::Moment"),
+						primitives.NewMetadataTypeDefinitionField(expectedCompactU64TypeId),
 					},
 					functionSetIndex,
 					"Set the current time."),
@@ -344,12 +349,12 @@ func Test_Module_Metadata(t *testing.T) {
 					"Did the timestamp get updated in this block?"),
 			},
 		}),
-		Call: sc.NewOption[sc.Compact](sc.ToCompact(metadata.TimestampCalls)),
+		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedTimestampCallsMetadataId)),
 		CallDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
 				name,
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TimestampCalls, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(expectedTimestampCallsMetadataId, "self::sp_api_hidden_includes_construct_runtime::hidden_include::dispatch\n::CallableCallFor<Timestamp, Runtime>"),
 				},
 				moduleId,
 				"Call.Timestamp"),
@@ -376,7 +381,8 @@ func Test_Module_Metadata(t *testing.T) {
 
 	target := setupModule()
 
-	resultTypes, resultMetadataModule := target.Metadata()
+	resultMetadataModule := target.Metadata()
+	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, resultTypes)
 	assert.Equal(t, expectMetadataModule, resultMetadataModule)
@@ -390,7 +396,7 @@ func setupModule() Module {
 
 	config := NewConfig(mockOnTimestampSet, dbWeight, minimumPeriod)
 
-	target := New(moduleId, config)
+	target := New(moduleId, config, mdGenerator)
 	target.storage.DidUpdate = mockStorageDidUpdate
 	target.storage.Now = mockStorageNow
 

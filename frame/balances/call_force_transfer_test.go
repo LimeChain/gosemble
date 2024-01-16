@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -11,12 +12,17 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	callForceTransferArgsBytes = sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}).Bytes()
+)
+
 func Test_Call_ForceTransfer_new(t *testing.T) {
 	target := setupCallForceTransfer()
 	expected := callForceTransfer{
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionForceTransferIndex,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: transfer{
 			moduleId:       moduleId,
@@ -45,7 +51,7 @@ func Test_Call_ForceTransfer_DecodeArgs(t *testing.T) {
 
 func Test_Call_ForceTransfer_Encode(t *testing.T) {
 	target := setupCallForceTransfer()
-	expectedBuffer := bytes.NewBuffer([]byte{moduleId, functionForceTransferIndex})
+	expectedBuffer := bytes.NewBuffer(append([]byte{moduleId, functionForceTransferIndex}, callForceTransferArgsBytes...))
 	buf := &bytes.Buffer{}
 
 	err := target.Encode(buf)
@@ -55,7 +61,7 @@ func Test_Call_ForceTransfer_Encode(t *testing.T) {
 }
 
 func Test_Call_ForceTransfer_Bytes(t *testing.T) {
-	expected := []byte{moduleId, functionForceTransferIndex}
+	expected := append([]byte{moduleId, functionForceTransferIndex}, callForceTransferArgsBytes...)
 
 	target := setupCallForceTransfer()
 
@@ -140,6 +146,33 @@ func Test_Call_ForceTransfer_Dispatch_InvalidBadOrigin(t *testing.T) {
 		sc.NewVaryingData(fromAddress, toAddress, sc.ToCompact(targetValue)))
 
 	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+}
+
+func Test_Call_ForceTransfer_Dispatch_InvalidArg_InvalidCompact(t *testing.T) {
+	target := setupCallForceTransfer()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, toAddress, sc.NewU128(0)))
+
+	assert.Equal(t, errors.New("invalid Compact value when dispatching call_force_transfer"), dispatchErr)
+
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+
+}
+
+func Test_Call_ForceTransfer_Dispatch_InvalidArg_InvalidCompactNumber(t *testing.T) {
+	target := setupCallForceTransfer()
+
+	_, dispatchErr := target.Dispatch(
+		primitives.NewRawOriginNone(),
+		sc.NewVaryingData(fromAddress, toAddress, sc.Compact{}))
+
+	assert.Equal(t, errors.New("invalid Compact field number when dispatching call_force_transfer"), dispatchErr)
+
 	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }

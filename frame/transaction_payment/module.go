@@ -20,18 +20,20 @@ type Module interface {
 type module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
-	index     sc.U8
-	config    *Config
-	constants *consts
-	storage   *storage
+	index       sc.U8
+	config      *Config
+	constants   *consts
+	storage     *storage
+	mdGenerator *primitives.MetadataTypeGenerator
 }
 
-func New(index sc.U8, config *Config) Module {
+func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenerator) Module {
 	return module{
-		index:     index,
-		config:    config,
-		constants: newConstants(config.OperationalFeeMultiplier),
-		storage:   newStorage(),
+		index:       index,
+		config:      config,
+		constants:   newConstants(config.OperationalFeeMultiplier),
+		storage:     newStorage(),
+		mdGenerator: mdGenerator,
 	}
 }
 
@@ -55,7 +57,7 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m module) Metadata() primitives.MetadataModule {
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -84,7 +86,9 @@ func (m module) Metadata() (sc.Sequence[primitives.MetadataType], primitives.Met
 		Index:    m.index,
 	}
 
-	return m.metadataTypes(), primitives.MetadataModule{
+	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
+
+	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
