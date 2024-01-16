@@ -37,13 +37,9 @@ func benchmarkSystemRemark(b *testing.B) {
 		Origin:          sc.NewOption[types.RawOrigin](types.NewRawOriginRoot()),
 	}
 
-	// Setup the state
-
 	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
 
 	assert.NoError(b, err)
-
-	// Validate the result/state
 
 	benchmarkResult, err := benchmarking.DecodeBenchmarkResult(bytes.NewBuffer(res))
 	assert.NoError(b, err)
