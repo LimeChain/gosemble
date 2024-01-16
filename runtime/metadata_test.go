@@ -11,10 +11,8 @@ import (
 )
 
 func Test_Metadata_Encoding_Success(t *testing.T) {
-	runtimeInstanceGossamer, _ := newTestRuntime(t)
-	gossamerMetadata := runtimeMetadata(t, runtimeInstanceGossamer)
-
 	runtime, _ := newTestRuntime(t)
+	gossamerMetadata := runtimeMetadata(t, runtime)
 
 	bMetadata, err := runtime.Metadata()
 	assert.NoError(t, err)
@@ -64,10 +62,8 @@ func Test_Metadata_Versions_Correct_Versions(t *testing.T) {
 }
 
 func Test_Metadata_At_Version_14(t *testing.T) {
-	runtimeGossamer, _ := newTestRuntime(t)
-	gossamerMetadata := runtimeMetadata(t, runtimeGossamer)
-
 	runtime, _ := newTestRuntime(t)
+	gossamerMetadata := runtimeMetadata(t, runtime)
 
 	version14 := sc.U32(types.MetadataVersion14)
 

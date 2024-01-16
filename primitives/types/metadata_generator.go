@@ -16,14 +16,14 @@ const (
 )
 
 type MetadataTypeGenerator struct {
-	MetadataTypes sc.Sequence[MetadataType]
+	metadataTypes sc.Sequence[MetadataType]
 	metadataIds   map[string]int
 }
 
 func NewMetadataTypeGenerator() *MetadataTypeGenerator {
 	return &MetadataTypeGenerator{
 		metadataIds:   BuildMetadataTypesIdsMap(),
-		MetadataTypes: sc.Sequence[MetadataType]{},
+		metadataTypes: sc.Sequence[MetadataType]{},
 	}
 }
 
@@ -54,14 +54,11 @@ func (g *MetadataTypeGenerator) GetIdsMap() map[string]int {
 }
 
 func (g *MetadataTypeGenerator) GetMetadataTypes() sc.Sequence[MetadataType] {
-	return g.MetadataTypes
+	return g.metadataTypes
 }
 
 func (g *MetadataTypeGenerator) AppendMetadataTypes(types sc.Sequence[MetadataType]) {
-	//for i := 0; i < len(types); i++ {
-	//	currentTypeId := types[i].Id.Number.ToBigInt().Int64()
-	//}
-	g.MetadataTypes = append(g.MetadataTypes, types...)
+	g.metadataTypes = append(g.metadataTypes, types...)
 }
 
 // BuildMetadataTypeRecursively Builds the metadata type (recursively) if it does not exist
@@ -109,14 +106,16 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 				metadataTypeParams = *params
 			}
 			newMetadataType := NewMetadataTypeWithParams(typeId, typeName, metadataTypePath, metadataTypeDef, metadataTypeParams)
-			g.MetadataTypes = append(g.MetadataTypes, newMetadataType)
+			g.metadataTypes = append(g.metadataTypes, newMetadataType)
 		}
 	case reflect.Slice:
 		sequenceName := "Sequence"
 		sequenceType := sequenceName + valueType.Elem().Name()
 		sequenceTypeId, ok := g.metadataIds[sequenceType]
 		if !ok {
-			sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
+			if v.Kind() == reflect.Interface || v.Kind() == reflect.Pointer {
+				sequenceTypeId = g.BuildMetadataTypeRecursively(v.Elem(), path, nil, nil)
+			}
 		}
 		typeId = sequenceTypeId
 	case reflect.Array: // types U128 and U64
@@ -163,7 +162,7 @@ func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunc
 
 	variant := NewMetadataTypeDefinitionVariant(functionVariants)
 
-	g.MetadataTypes = append(g.MetadataTypes, NewMetadataTypeWithParams(balancesCallsMetadataId, moduleName+" calls", sc.Sequence[sc.Str]{sc.Str("pallet_" + strings.ToLower(moduleName)), "pallet", "Call"}, variant, *params))
+	g.metadataTypes = append(g.metadataTypes, NewMetadataTypeWithParams(balancesCallsMetadataId, moduleName+" calls", sc.Sequence[sc.Str]{sc.Str("pallet_" + strings.ToLower(moduleName)), "pallet", "Call"}, variant, *params))
 
 	return balancesCallsMetadataId
 }
@@ -177,12 +176,17 @@ func (g *MetadataTypeGenerator) BuildErrorsMetadata(moduleName string, definitio
 		errorsTypeId, ok = g.metadataIds[moduleName+"Errors"]
 		if !ok {
 			errorsTypeId = g.assignNewMetadataId(moduleName + "Errors")
-			g.MetadataTypes = append(g.MetadataTypes, NewMetadataTypeWithPath(errorsTypeId,
+			g.metadataTypes = append(g.metadataTypes, NewMetadataTypeWithPath(errorsTypeId,
 				"frame_system pallet Error",
 				sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, *definition))
 		}
 	}
 	return errorsTypeId
+}
+
+func (g *MetadataTypeGenerator) ClearMetadata() {
+	g.metadataTypes = sc.Sequence[MetadataType]{}
+	g.metadataIds = BuildMetadataTypesIdsMap()
 }
 
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
@@ -200,14 +204,14 @@ func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) 
 				typeId, ok := g.metadataIds["CompactU128"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU128")
-					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
+					g.metadataTypes = append(g.metadataTypes, NewMetadataType(typeId, "CompactU128", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))))
 				}
 				return typeId, true
 			case reflect.TypeOf(*new(sc.U64)):
 				typeId, ok := g.metadataIds["CompactU64"]
 				if !ok {
 					typeId = g.assignNewMetadataId("CompactU64")
-					g.MetadataTypes = append(g.MetadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
+					g.metadataTypes = append(g.metadataTypes, NewMetadataType(typeId, "CompactU64", NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU64))))
 				}
 				return typeId, true
 			}

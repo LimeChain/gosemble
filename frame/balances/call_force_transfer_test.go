@@ -150,7 +150,7 @@ func Test_Call_ForceTransfer_Dispatch_InvalidBadOrigin(t *testing.T) {
 	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
 }
 
-func Test_Call_ForceTransfer_Dispatch_InvalidArgs(t *testing.T) {
+func Test_Call_ForceTransfer_Dispatch_InvalidArg_InvalidCompact(t *testing.T) {
 	target := setupCallForceTransfer()
 
 	_, dispatchErr := target.Dispatch(
@@ -159,7 +159,15 @@ func Test_Call_ForceTransfer_Dispatch_InvalidArgs(t *testing.T) {
 
 	assert.Equal(t, errors.New("invalid Compact value when dispatching call_force_transfer"), dispatchErr)
 
-	_, dispatchErr = target.Dispatch(
+	mockMutator.AssertNotCalled(t, "tryMutateAccountWithDust", mock.Anything, mock.Anything)
+	mockStoredMap.AssertNotCalled(t, "DepositEvent", mock.Anything)
+
+}
+
+func Test_Call_ForceTransfer_Dispatch_InvalidArg_InvalidCompactNumber(t *testing.T) {
+	target := setupCallForceTransfer()
+
+	_, dispatchErr := target.Dispatch(
 		primitives.NewRawOriginNone(),
 		sc.NewVaryingData(fromAddress, toAddress, sc.Compact{}))
 

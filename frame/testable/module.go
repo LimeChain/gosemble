@@ -73,14 +73,8 @@ func (m Module) Metadata() primitives.MetadataModule {
 		Index:     m.Index,
 	}
 
-	m.mdGenerator.AppendMetadataTypes(m.metadataTypes())
-
 	return primitives.MetadataModule{
 		Version:   primitives.ModuleVersion14,
 		ModuleV14: dataV14,
 	}
-}
-
-func (m Module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	return sc.Sequence[primitives.MetadataType]{}
 }
