@@ -102,3 +102,16 @@ test-coverage:
 
 benchmark:
 	@GOMAXPROCS=1 go test --tags=nonwasmenv -run=XXX -bench=. -benchtime=100x ./runtime/...
+repeat=20
+steps=50
+build=false
+build-docker=false
+# todo add flag for buildconfig path?
+benchmark-new:
+# @if [ $(build-docker) = true ]; then \
+# 	make build-docker-release TINYGO_BUILD_COMMAND_NODEBUG="$(TINYGO_BUILD_COMMAND_NODEBUG) --tags="benchmarks" -json > build/buildconfig.json"; \
+# elif [ $(build) = true ]; then \
+# 	make build-release TINYGO_BUILD_COMMAND_NODEBUG="$(TINYGO_BUILD_COMMAND_NODEBUG) --tags="benchmarks" -json > build/buildconfig.json"; \
+# fi; \
+	
+	@GOMAXPROCS=1 go test --tags="nonwasmenv" -run=XXX -bench=. -benchtime=$(repeat)x ./runtime/... -steps=$(steps) -BUILD_PATH=$(BUILD_PATH);
