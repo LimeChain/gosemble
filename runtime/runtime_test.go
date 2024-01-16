@@ -123,7 +123,12 @@ func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {
 	return runtime, &runtime.Context.Storage
 }
 
-func runtimeMetadata(t *testing.T, instance *wazero_runtime.Instance) *ctypes.Metadata {
+func newBenchmarkingRuntime(b *testing.B) (*wazero_runtime.Instance, *runtime.Storage) {
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
+	return runtime, &runtime.Context.Storage
+}
+
+func runtimeMetadata(t assert.TestingT, instance *wazero_runtime.Instance) *ctypes.Metadata {
 	bMetadata, err := instance.Metadata()
 	assert.NoError(t, err)
 

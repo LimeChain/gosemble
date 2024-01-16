@@ -7,6 +7,7 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/api/account_nonce"
 	apiAura "github.com/LimeChain/gosemble/api/aura"
+	"github.com/LimeChain/gosemble/api/benchmarking"
 	blockbuilder "github.com/LimeChain/gosemble/api/block_builder"
 	"github.com/LimeChain/gosemble/api/core"
 	genesisbuilder "github.com/LimeChain/gosemble/api/genesis_builder"
@@ -84,10 +85,12 @@ const (
 )
 
 var (
-	logger = log.NewLogger()
-	// Modules contains all the modules used by the runtime.
+	logger      = log.NewLogger()
 	mdGenerator = primitives.NewMetadataTypeGenerator()
-	modules     = initializeModules()
+	// Modules contains all the modules used by the runtime.
+	modules = initializeModules()
+	extra   = newSignedExtra()
+	decoder = types.NewRuntimeDecoder(modules, extra, logger)
 )
 
 func initializeModules() []primitives.Module {
@@ -175,8 +178,6 @@ func newSignedExtra() primitives.SignedExtra {
 }
 
 func runtimeApi() types.RuntimeApi {
-	extra := newSignedExtra()
-	decoder := types.NewRuntimeDecoder(modules, extra, logger)
 	runtimeExtrinsic := extrinsic.New(modules, extra, mdGenerator, logger)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
@@ -420,4 +421,15 @@ func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
 	return runtimeApi().
 		Module(genesisbuilder.ApiModuleName).(genesisbuilder.Module).
 		BuildConfig(dataPtr, dataLen)
+}
+
+//go:export Benchmark_run
+func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
+	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
+
+	return benchmarking.New(
+		systemModule,
+		decoder,
+		logger,
+	).Run(dataPtr, dataLen)
 }
