@@ -278,6 +278,8 @@ func (m Module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
+	//constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),

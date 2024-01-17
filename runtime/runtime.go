@@ -101,9 +101,11 @@ func initializeModules() []primitives.Module {
 		logger.Critical(err.Error())
 	}
 
+	blockHashCount := primitives.BlockHashCount{U64: constants.BlockHashCount}
+
 	systemModule := system.New(
 		SystemIndex,
-		system.NewConfig(constants.BlockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
+		system.NewConfig(blockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
 		mdGenerator,
 		logger,
 	)
@@ -357,6 +359,7 @@ func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) 
 
 //go:export Metadata_metadata
 func Metadata(_, _ int32) int64 {
+	mdGenerator.ClearMetadata()
 	return runtimeApi().
 		Module(metadata.ApiModuleName).(metadata.Module).
 		Metadata()
@@ -364,6 +367,7 @@ func Metadata(_, _ int32) int64 {
 
 //go:export Metadata_metadata_at_version
 func MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
+	mdGenerator.ClearMetadata()
 	return runtimeApi().
 		Module(metadata.ApiModuleName).(metadata.Module).
 		MetadataAtVersion(dataPtr, dataLen)

@@ -21,3 +21,7 @@ func (bl BlockLength) Encode(buffer *bytes.Buffer) error {
 func (bl BlockLength) Bytes() []byte {
 	return sc.EncodedBytes(bl)
 }
+
+func (bl BlockLength) Docs() string {
+	return "The maximum length of a block (in bytes)."
+}

@@ -14,8 +14,7 @@ import (
 var (
 	mdGenerator = NewMetadataTypeGenerator()
 
-	metadataIds = mdGenerator.GetIdsMap()
-	lastIndex   = len(metadataIds)
+	lastIndex = mdGenerator.GetMapLength()
 
 	mdGeneratorAll = NewMetadataTypeGenerator()
 
@@ -56,7 +55,7 @@ var (
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
-	expectedMetadataTypes = sc.Sequence[MetadataType]{ // TODO: Confirm that in such a case where we have repeating extras (so their metadata types will be equal), we don't expect to have duplicates in the returned MetadataTypes
+	expectedMetadataTypes = sc.Sequence[MetadataType]{ // TODO: Confirm that in such a case where we have repeating extras (so their metadata types will be equal), we don't expect to have duplicates in the returned metadataTypes
 		testExtraCheckMetadataType,
 		// testExtraCheckMetadataType,
 		signedExtraMetadataType,

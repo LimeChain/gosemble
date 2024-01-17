@@ -29,7 +29,7 @@ var (
 			FeeFrozen:  sc.NewU128(8),
 		},
 	}
-	blockHashCount = sc.U64(5)
+	blockHashCount = primitives.BlockHashCount{U64: sc.U64(5)}
 	blockWeights   = primitives.BlockWeights{
 		BaseBlock: primitives.Weight{
 			RefTime:   1,
@@ -1297,7 +1297,7 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedSystemCallId := len(mdGenerator.GetIdsMap()) + 1
+	expectedSystemCallId := mdGenerator.GetMapLength() + 1
 
 	expectedSystemErrorsId := expectedSystemCallId + 1
 
@@ -1338,6 +1338,14 @@ func Test_Module_Metadata(t *testing.T) {
 	expectedPerDispatchClassU32Id := expectedTransactionValidityResultId + 1
 
 	expectedTypesBlockLengthId := expectedPerDispatchClassU32Id + 1
+
+	expectedBlockHashCountId := expectedTypesBlockLengthId + 1
+
+	expectedRuntimeVersionId := expectedBlockHashCountId + 1
+
+	expectedApiItemId := expectedRuntimeVersionId + 1
+
+	expectedSequenceApiItemId := expectedApiItemId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
@@ -1665,6 +1673,30 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"), // max
 			})),
+		primitives.NewMetadataType(expectedBlockHashCountId,
+			"BlockHashCount",
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
+			})),
+		primitives.NewMetadataType(expectedApiItemId,
+			"ApiItem",
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Name"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "Version"),
+			})),
+		primitives.NewMetadataType(expectedSequenceApiItemId, "SequenceApiItem", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(expectedApiItemId))),
+		primitives.NewMetadataType(expectedRuntimeVersionId,
+			"RuntimeVersion",
+			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesString, "SpecName"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesString, "ImplName"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "AuthoringVersion"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "SpecVersion"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "ImplVersion"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedSequenceApiItemId, "Vec<Apis>"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "TransactionVersion"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU8, "StateVersion"),
+			})),
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
@@ -1852,32 +1884,32 @@ func Test_Module_Metadata(t *testing.T) {
 		),
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
+				"BlockHashCount",
+				sc.ToCompact(expectedBlockHashCountId),
+				sc.BytesToSequenceU8(blockHashCount.Bytes()),
+				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
+			),
+			primitives.NewMetadataModuleConstant(
 				"BlockWeights",
-				sc.ToCompact(metadata.TypesBlockWeights),
+				sc.ToCompact(expectedTypesBlockWeightsId),
 				sc.BytesToSequenceU8(blockWeights.Bytes()),
 				"Block & extrinsics weights: base values and limits.",
 			),
 			primitives.NewMetadataModuleConstant(
 				"BlockLength",
-				sc.ToCompact(metadata.TypesBlockLength),
+				sc.ToCompact(expectedTypesBlockLengthId),
 				sc.BytesToSequenceU8(blockLength.Bytes()),
 				"The maximum length of a block (in bytes).",
 			),
 			primitives.NewMetadataModuleConstant(
-				"BlockHashCount",
-				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(blockHashCount.Bytes()),
-				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
-			),
-			primitives.NewMetadataModuleConstant(
 				"DbWeight",
-				sc.ToCompact(metadata.TypesDbWeight),
+				sc.ToCompact(expectedTypesDbWeightId),
 				sc.BytesToSequenceU8(dbWeight.Bytes()),
 				"The weight of runtime database operations the runtime can invoke.",
 			),
 			primitives.NewMetadataModuleConstant(
 				"Version",
-				sc.ToCompact(metadata.TypesRuntimeVersion),
+				sc.ToCompact(expectedRuntimeVersionId),
 				sc.BytesToSequenceU8(version.Bytes()),
 				"Get the chain's current version.",
 			),

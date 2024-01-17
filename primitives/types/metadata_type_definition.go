@@ -17,6 +17,10 @@ const (
 	MetadataTypeDefinitionBitSequence
 )
 
+type Describer interface {
+	Docs() string
+}
+
 type MetadataTypeDefinition struct {
 	sc.VaryingData
 }

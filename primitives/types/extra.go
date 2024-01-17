@@ -197,14 +197,14 @@ func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc
 		for i := 0; i < numAdditionalSignedTypes; i++ {
 			currentType := additionalSignedField.Index(i).Elem()
 			currentTypeName := currentType.Type().Name()
-			currentTypeId, ok := metadataGenerator.GetIdsMap()[currentTypeName]
+			currentTypeId, ok := metadataGenerator.GetId(currentTypeName)
 			if !ok {
 				currentTypeId = metadataGenerator.BuildMetadataTypeRecursively(currentType, nil, nil, nil)
 			}
 			resultTypeName = resultTypeName + currentTypeName
 			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
 		}
-		resultTypeId, ok := metadataGenerator.GetIdsMap()[resultTypeName]
+		resultTypeId, ok := metadataGenerator.GetId(resultTypeName)
 		if !ok {
 			resultTypeId = metadataGenerator.assignNewMetadataId(resultTypeName)
 			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))

@@ -100,3 +100,7 @@ func DecodeRuntimeVersion(buffer *bytes.Buffer) (RuntimeVersion, error) {
 func (rv RuntimeVersion) Bytes() []byte {
 	return sc.EncodedBytes(rv)
 }
+
+func (rv RuntimeVersion) Docs() string {
+	return "Get the chain's current version."
+}

@@ -40,7 +40,7 @@ type Module interface {
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error)
 	Metadata() primitives.MetadataModule
 
-	BlockHashCount() sc.U64
+	BlockHashCount() types.BlockHashCount
 	BlockLength() types.BlockLength
 	BlockWeights() types.BlockWeights
 	DbWeight() types.RuntimeDbWeight
@@ -120,7 +120,7 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m module) BlockHashCount() sc.U64 {
+func (m module) BlockHashCount() types.BlockHashCount {
 	return m.constants.BlockHashCount
 }
 
@@ -333,7 +333,7 @@ func (m module) Finalize() (primitives.Header, error) {
 	}
 	buf.Reset()
 
-	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
+	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount.U64)
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
 	if toRemove != 0 {
 		m.storage.BlockHash.Remove(toRemove)
@@ -607,7 +607,7 @@ func (m module) Metadata() primitives.MetadataModule {
 	})
 	weightPerClassMetadataId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
 
-	typesWeightId := m.mdGenerator.GetIdsMap()["Weight"]
+	typesWeightId, _ := m.mdGenerator.GetId("Weight")
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.Weight]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(typesWeightId, "T")})
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.WeightsPerClass]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(weightPerClassMetadataId, "T")})
@@ -637,6 +637,8 @@ func (m module) Metadata() primitives.MetadataModule {
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockLength{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"}, nil, nil)
 
+	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -660,7 +662,7 @@ func (m module) Metadata() primitives.MetadataModule {
 				m.Index,
 				"Events.System"),
 		),
-		Constants: m.metadataConstants(),
+		Constants: constants,
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(errorsMetadataId)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
@@ -683,7 +685,7 @@ func (m module) Metadata() primitives.MetadataModule {
 }
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
+	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
 
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
@@ -758,7 +760,7 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 }
 
 func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
-	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
+	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
 
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
@@ -853,41 +855,6 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"The execution phase of the block."),
 		},
 	})
-}
-
-func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
-	return sc.Sequence[primitives.MetadataModuleConstant]{
-		primitives.NewMetadataModuleConstant(
-			"BlockWeights",
-			sc.ToCompact(metadata.TypesBlockWeights),
-			sc.BytesToSequenceU8(m.BlockWeights().Bytes()),
-			"Block & extrinsics weights: base values and limits.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockLength",
-			sc.ToCompact(metadata.TypesBlockLength),
-			sc.BytesToSequenceU8(m.BlockLength().Bytes()),
-			"The maximum length of a block (in bytes).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockHashCount",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.BlockHashCount().Bytes()),
-			"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"DbWeight",
-			sc.ToCompact(metadata.TypesDbWeight),
-			sc.BytesToSequenceU8(m.DbWeight().Bytes()),
-			"The weight of runtime database operations the runtime can invoke.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"Version",
-			sc.ToCompact(metadata.TypesRuntimeVersion),
-			sc.BytesToSequenceU8(m.Version().Bytes()),
-			"Get the chain's current version.",
-		),
-	}
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) {

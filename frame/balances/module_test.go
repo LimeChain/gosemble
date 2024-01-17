@@ -538,7 +538,7 @@ func Test_Module_deposit_ArithmeticOverflow(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	expectedBalancesCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
+	expectedBalancesCallsMetadataId := mdGenerator.GetMapLength() + 1
 
 	expectedCompactU128TypeId := expectedBalancesCallsMetadataId + 1
 
