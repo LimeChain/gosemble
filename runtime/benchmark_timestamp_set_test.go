@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO: add more steps or implement components
 func BenchmarkTimestampSetStep1(b *testing.B) {
 	benchmarkTimestampSet(b)
 }

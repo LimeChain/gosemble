@@ -147,16 +147,15 @@ func calculateAverageTime(durations []int64) int64 {
 }
 
 func (m Module) accountIdFrom(signature sc.Option[primitives.ExtrinsicSignature]) sc.Option[primitives.AccountId] {
-	var accountId = sc.NewOption[primitives.AccountId](nil)
 	if signature.HasValue {
 		id, err := signature.Value.Signer.AsAccountId()
 		if err != nil {
 			m.logger.Critical(err.Error())
 		}
-		accountId.Value = id
+		return sc.NewOption[primitives.AccountId](id)
 	}
 
-	return accountId
+	return sc.NewOption[primitives.AccountId](nil)
 }
 
 func (m Module) originFrom(benchmarkConfig benchmarking.BenchmarkConfig, accountId sc.Option[primitives.AccountId]) primitives.RawOrigin {
