@@ -36,9 +36,10 @@ func BenchmarkTimestampSet(b *testing.B) {
 			nil,
 			ctypes.NewUCompactFromUInt(now),
 		)
-		assert.NoError(b, err)
 
 		// assert
+		assert.NoError(b, err)
+
 		nowStorageValue, err := sc.DecodeU64(bytes.NewBuffer((*i.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
 		assert.NoError(b, err)
 		assert.Equal(b, sc.U64(now), nowStorageValue)

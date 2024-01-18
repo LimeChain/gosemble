@@ -55,3 +55,32 @@ is used to import necessary Polkadot Host functionality and interact with the Ru
 make test-unit
 make test-integration
 ```
+
+#### Benchmarking
+
+// todo quick intro to benchmarking in polkadot.
+
+// todo purpose of benchmarking - weights, which are essential part of the consensus
+
+// todo specifics of polkadot testing - linear components, instance, whitelisted keys, db reads/writes, etc
+
+// todo quick overview of example benchmark test in gosemble, point out important details - benchmarking tag, build_config.json which is generated when building with benchmark-test command through BUILD_RUNTIME flag, etc.
+
+Write benchmarks
+// todo example benchmark test
+
+Build benchmarking runtime
+
+```bash
+# build with local tinygo binary
+make build-benchmarking
+
+# build with docker
+make build-docker-benchmarking
+```
+
+Run benchmarks
+
+```bash
+make benchmark steps=5 
+```

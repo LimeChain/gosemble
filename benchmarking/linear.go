@@ -18,20 +18,24 @@ func NewLinear(min, max uint32) (*linear, error) {
 		return nil, fmt.Errorf("failed to initialize new linear component: linear component min value must be less than or equal to max value")
 	}
 
-	return &linear{min: min, max: max}, nil
+	// max is the default linear value
+	// learn more about linears and benchmark exxecution in substrate:
+	// https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/index.html
+	// https://docs.substrate.io/test/benchmark/
+	return &linear{min: min, max: max, value: max}, nil
 }
 
-// Current value for linear component. Modified for each step before testFn execution
+// Component value, modified for each step iteration
 func (l *linear) Value() uint32 {
 	return l.value
 }
 
-// Internal function that sets the linear value before executing testFn
+// Internal function used to set the linear value for each step iteration
 func (l *linear) setValue(value uint32) {
 	l.value = value
 }
 
-// Internal function that calculates linear values for given steps parameter
+// Internal function that calculates linear values for given steps
 func (l *linear) values(steps int) ([]uint32, error) {
 	stepSize := math.Max(float64(l.max-l.min)/float64(steps-1), 0)
 
@@ -47,38 +51,7 @@ func (l *linear) values(steps int) ([]uint32, error) {
 	return values, nil
 }
 
-// Internal function that calculates step values for provided linear components and steps and executes executeFn for each step
-func forEachStep(steps int, components *[]*linear, executeFn func(currentStep int, currentComponentIndex int)) error {
-	if len(*components) == 0 {
-		executeFn(0, 0)
-		return nil
-	}
-
-	// set all linear values to the max possible value
-	// learn more about linears and benchmark exxecution in substrate:
-	// https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/index.html
-	// https://docs.substrate.io/test/benchmark/
-	for i, linear := range *components {
-		(*components)[i].setValue(linear.max)
-	}
-
-	// iterate steps for each linear component
-	for currentComponentIndex, linear := range *components {
-		values, err := linear.values(steps)
-		if err != nil {
-			return err
-		}
-
-		for currentStep, v := range values {
-			linear.setValue(v)
-			executeFn(currentStep+1, currentComponentIndex)
-		}
-	}
-
-	return nil
-}
-
-// Internal function that returns current values for linear components
+// Internal function that returns all component values
 func componentValues(linearComponents []*linear) []uint32 {
 	values := make([]uint32, len(linearComponents))
 	for i, l := range linearComponents {
