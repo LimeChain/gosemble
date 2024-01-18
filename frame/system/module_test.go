@@ -1671,11 +1671,6 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"), // max
 			})),
-		//primitives.NewMetadataType(expectedBlockHashCountId,
-		//	"BlockHashCount",
-		//	primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
-		//	})),
 		primitives.NewMetadataType(expectedApiItemId,
 			"ApiItem",
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{

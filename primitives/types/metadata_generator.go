@@ -59,6 +59,11 @@ func BuildMetadataTypesIdsMap() map[string]int {
 	}
 }
 
+func (g *MetadataTypeGenerator) ClearMetadata() {
+	g.metadataTypes = sc.Sequence[MetadataType]{}
+	g.metadataIds = BuildMetadataTypesIdsMap()
+}
+
 func (g *MetadataTypeGenerator) GetIdsMap() map[string]int {
 	return g.metadataIds
 }
@@ -174,7 +179,6 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 
 // BuildCallsMetadata returns metadata calls type of a module
 func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunctions map[sc.U8]Call, params *sc.Sequence[MetadataTypeParameter]) int {
-	// fmt.Println("Building Call Metadata type for: " + moduleName)
 	balancesCallsMetadataId := g.assignNewMetadataId(moduleName + "Calls")
 
 	functionVariants := sc.Sequence[MetadataDefinitionVariant]{}
@@ -202,7 +206,7 @@ func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunc
 		}
 
 		functionVariant := NewMetadataDefinitionVariant(
-			g.constructFunctionName(functionName),
+			constructFunctionName(functionName),
 			fields,
 			sc.U8(i),
 			f.Docs())
@@ -284,26 +288,6 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 	return constants
 }
 
-func (g *MetadataTypeGenerator) ClearMetadata() {
-	g.metadataTypes = sc.Sequence[MetadataType]{}
-	g.metadataIds = BuildMetadataTypesIdsMap()
-}
-
-// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
-func (g *MetadataTypeGenerator) constructFunctionName(input string) string {
-	input, _ = strings.CutPrefix(input, "call")
-	var result strings.Builder
-
-	for i, char := range input {
-		if i > 0 && 'A' <= char && char <= 'Z' {
-			result.WriteRune('_')
-		}
-		result.WriteRune(char)
-	}
-
-	return strings.ToLower(result.String())
-}
-
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
 	newId := len(g.metadataIds) + 1
 	g.metadataIds[name] = newId
@@ -358,6 +342,21 @@ func optionTypeDefinition(typeName string, typeParameterId int) MetadataTypeDefi
 				indexOptionSome,
 				"Option<"+typeName+">(value)"),
 		})
+}
+
+// constructFunctionName constructs the formal name of a function call for the module metadata type given its struct name as an input (e.g. callTransferAll -> transfer_all)
+func constructFunctionName(input string) string {
+	input, _ = strings.CutPrefix(input, "call")
+	var result strings.Builder
+
+	for i, char := range input {
+		if i > 0 && 'A' <= char && char <= 'Z' {
+			result.WriteRune('_')
+		}
+		result.WriteRune(char)
+	}
+
+	return strings.ToLower(result.String())
 }
 
 func isIgnoredType(t string) bool {

@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -35,8 +34,6 @@ func Test_DecodeLastRuntimeUpgradeInfo(t *testing.T) {
 
 	result, err := DecodeLastRuntimeUpgradeInfo(buffer)
 	assert.NoError(t, err)
-
-	fmt.Println("After Decode")
 
 	assert.Equal(t, lrui, result)
 }
