@@ -77,6 +77,10 @@ build-dev: build-tinygo
 	@echo "Building \"runtime.wasm\""; \
 	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND) -o=$(BUILD_PATH) runtime/runtime.go
 
+build-benchmarks: build-tinygo
+	@echo "Building \"runtime.wasm\" (no-debug)"; \
+	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -tags benchmarks -o=$(BUILD_PATH) runtime/runtime.go
+
 start-network:
 	cp build/runtime.wasm polkadot-sdk/substrate/bin/node-template/runtime.wasm; \
 	cd polkadot-sdk/substrate/bin/node-template/node; \
@@ -95,3 +99,6 @@ test-integration:
 test-coverage:
 	@set -e; \
 	./scripts/coverage.sh
+
+benchmark:
+	@GOMAXPROCS=1 go test --tags=nonwasmenv -run=XXX -bench=. -benchtime=20000x ./runtime/...
