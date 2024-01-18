@@ -19,10 +19,10 @@ import (
 )
 
 func BenchmarkBalancesForceFreeStep1(b *testing.B) {
-	benchmarkBalancesForceFree(b, big.NewInt(5500), big.NewInt(5000))
+	benchmarkBalancesForceFree(b)
 }
 
-func benchmarkBalancesForceFree(b *testing.B, amount *big.Int, balance *big.Int) {
+func benchmarkBalancesForceFree(b *testing.B) {
 	rt, storage := newBenchmarkingRuntime(b)
 
 	metadata := runtimeMetadata(b, rt)
@@ -32,7 +32,7 @@ func benchmarkBalancesForceFree(b *testing.B, amount *big.Int, balance *big.Int)
 	assert.NoError(b, err)
 
 	// Create the call
-	call, err := ctypes.NewCall(metadata, "Balances.force_free", alice, ctypes.NewU128(*amount))
+	call, err := ctypes.NewCall(metadata, "Balances.force_free", alice, ctypes.NewU128(*big.NewInt(600000000)))
 	assert.NoError(b, err)
 
 	// Create the extrinsic
@@ -50,18 +50,32 @@ func benchmarkBalancesForceFree(b *testing.B, amount *big.Int, balance *big.Int)
 	}
 
 	// Setup the state
+	// This setup differs from the one in the Substrate, and the
+	// total (free + reserved) is less than the existential deposit,
+	// resulting in additional read/write for "Balances TotalIssuance" key
 	pubKey := signature.TestKeyringPairAlice.PublicKey
-	setAccountInfo(b, storage, pubKey, balance)
+	accountInfo := gossamertypes.AccountInfo{
+		Nonce:       0,
+		Consumers:   0,
+		Producers:   0,
+		Sufficients: 0,
+		Data: gossamertypes.AccountData{
+			Free:       scale.MustNewUint128(big.NewInt(500000000)),
+			Reserved:   scale.MustNewUint128(big.NewInt(500000000)),
+			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
+			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
+		},
+	}
+	setAccountInfo(b, storage, pubKey, accountInfo)
 
 	info := getAccountInfo(b, storage, pubKey)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(2500)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(2500)), info.Data.Free)
+	assert.Equal(b, scale.MustNewUint128(big.NewInt(500000000)), info.Data.Reserved)
+	assert.Equal(b, scale.MustNewUint128(big.NewInt(500000000)), info.Data.Free)
 
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyBlockNumberHash...)))     // 1 read/write
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyExecutionPhaseHash...)))  // 1 read
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventCountHash...)))      // 1 read/write
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventsHash...)))          // 1 read/write
-	(*storage).DbWhitelistKey(string(append(keyBalancesHash, keyTotalIssuanceHash...))) // 1 read/write
+	(*storage).DbWhitelistKey(string(append(keySystemHash, keyBlockNumberHash...)))    // 1 read/write
+	(*storage).DbWhitelistKey(string(append(keySystemHash, keyExecutionPhaseHash...))) // 1 read
+	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventCountHash...)))     // 1 read/write
+	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventsHash...)))         // 1 read/write
 
 	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
 
@@ -70,7 +84,7 @@ func benchmarkBalancesForceFree(b *testing.B, amount *big.Int, balance *big.Int)
 	// Validate the result/state
 	info = getAccountInfo(b, storage, pubKey)
 	assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(5000)), info.Data.Free)
+	assert.Equal(b, scale.MustNewUint128(big.NewInt(2*500000000)), info.Data.Free)
 
 	benchmarkResult, err := benchmarking.DecodeBenchmarkResult(bytes.NewBuffer(res))
 	assert.NoError(b, err)
@@ -88,23 +102,8 @@ func benchmarkBalancesForceFree(b *testing.B, amount *big.Int, balance *big.Int)
 	})
 }
 
-func setAccountInfo(b *testing.B, storage *runtime.Storage, account []byte, balance *big.Int) {
-	ed := big.NewInt(0).Div(balance, big.NewInt(2))
-
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(ed),
-			Reserved:   scale.MustNewUint128(ed),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-
-	bytesStorage, err := scale.Marshal(accountInfo)
+func setAccountInfo(b *testing.B, storage *runtime.Storage, account []byte, info gossamertypes.AccountInfo) {
+	bytesStorage, err := scale.Marshal(info)
 	assert.NoError(b, err)
 
 	err = (*storage).Put(accountStorageKey(account), bytesStorage)
