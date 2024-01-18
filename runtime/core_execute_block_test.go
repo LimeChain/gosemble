@@ -63,7 +63,7 @@ func Test_BlockExecution(t *testing.T) {
 		SpecVersion: sc.Compact{Number: sc.U32(constants.SpecVersion)},
 		SpecName:    constants.SpecName,
 	}
-	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
+	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntimeHash...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
 	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(keyExtrinsicIndex))
@@ -131,7 +131,7 @@ func Test_BlockExecution(t *testing.T) {
 
 	assert.Equal(t, header, resultHeader)
 
-	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdateHash...)))
 	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
 	assert.Equal(t, []byte(nil), (*storage).Get(keyExtrinsicIndex))
@@ -221,7 +221,7 @@ func Test_ExecuteBlock(t *testing.T) {
 	_, err = rt.Exec("Core_execute_block", encodedBlock)
 	assert.NoError(t, err)
 
-	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keyTimestampHash, keyTimestampDidUpdateHash...)))
 	assert.Equal(t, sc.U64(dateTime.UnixMilli()).Bytes(), (*storage).Get(append(keyTimestampHash, keyTimestampNowHash...)))
 
 	assert.Equal(t, []byte(nil), (*storage).Get(keyExtrinsicIndex))

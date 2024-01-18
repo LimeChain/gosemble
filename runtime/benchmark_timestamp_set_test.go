@@ -42,7 +42,7 @@ func benchmarkTimestampSet(b *testing.B) {
 	(*storage).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
 	assert.NoError(b, err)
 
-	(*storage).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdate...)))
+	(*storage).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdateHash...)))
 
 	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
 
@@ -53,7 +53,7 @@ func benchmarkTimestampSet(b *testing.B) {
 	assert.NoError(b, err)
 	assert.Equal(b, sc.U64(now), nowStorageValue)
 
-	didUpdateStorageValue, err := sc.DecodeBool(bytes.NewBuffer((*storage).Get(append(keyTimestampHash, keyTimestampDidUpdate...))))
+	didUpdateStorageValue, err := sc.DecodeBool(bytes.NewBuffer((*storage).Get(append(keyTimestampHash, keyTimestampDidUpdateHash...))))
 	assert.NoError(b, err)
 	assert.Equal(b, sc.Bool(true), didUpdateStorageValue)
 

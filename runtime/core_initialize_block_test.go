@@ -55,7 +55,7 @@ func Test_CoreInitializeBlock(t *testing.T) {
 		SpecVersion: sc.Compact{Number: sc.U32(constants.SpecVersion)},
 		SpecName:    constants.SpecName,
 	}
-	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntime...)))
+	assert.Equal(t, lrui.Bytes(), (*storage).Get(append(keySystemHash, keyLastRuntimeHash...)))
 
 	encExtrinsicIndex0, _ := scale.Marshal(uint32(0))
 	assert.Equal(t, encExtrinsicIndex0, (*storage).Get(keyExtrinsicIndex))
@@ -88,5 +88,5 @@ func Test_CoreInitializeBlock(t *testing.T) {
 		// initial weight 0 + on initialize aura weight + base ext weight + extra weight
 		Mandatory: types.Weight{RefTime: 135536000, ProofSize: 0},
 	}
-	assert.Equal(t, allConsumedWeight.Bytes(), (*storage).Get(append(keySystemHash, keyBlockWeight...)))
+	assert.Equal(t, allConsumedWeight.Bytes(), (*storage).Get(append(keySystemHash, keyBlockWeightHash...)))
 }
