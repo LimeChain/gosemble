@@ -41,7 +41,7 @@ func (rd runtimeDecoder) DecodeBlock(buffer *bytes.Buffer) (primitives.Block, er
 	if err != nil {
 		return nil, err
 	}
-	compact, err := sc.DecodeCompact(buffer)
+	compact, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLenCompact, err := sc.DecodeCompact(buffer)
+	expectedLenCompact, err := sc.DecodeCompact[sc.U64](buffer)
 	if err != nil {
 		return nil, err
 	}

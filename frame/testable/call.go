@@ -19,6 +19,7 @@ func newCallTest(moduleId, functionId sc.U8) primitives.Call {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
 	}
 
@@ -82,4 +83,8 @@ func (_ callTest) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (p
 	})
 
 	return primitives.PostDispatchInfo{}, nil
+}
+
+func (_ callTest) Docs() string {
+	return "Make test"
 }

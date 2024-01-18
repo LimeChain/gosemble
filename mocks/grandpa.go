@@ -49,9 +49,9 @@ func (m *GrandpaModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
-func (m *GrandpaModule) Metadata() (sc.Sequence[primitives.MetadataType], primitives.MetadataModule) {
+func (m *GrandpaModule) Metadata() primitives.MetadataModule {
 	args := m.Called()
-	return args.Get(0).(sc.Sequence[primitives.MetadataType]), args.Get(1).(primitives.MetadataModule)
+	return args.Get(0).(primitives.MetadataModule)
 }
 
 func (m *GrandpaModule) Authorities() (sc.Sequence[primitives.Authority], error) {

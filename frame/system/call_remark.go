@@ -18,6 +18,7 @@ func newCallRemark(moduleId sc.U8, functionId sc.U8) primitives.Call {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
 	}
 
@@ -107,4 +108,8 @@ func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.Accou
 	}
 
 	return sc.Option[primitives.AccountId]{}, primitives.NewDispatchErrorBadOrigin()
+}
+
+func (_ callRemark) Docs() string {
+	return "Make some on-chain remark."
 }

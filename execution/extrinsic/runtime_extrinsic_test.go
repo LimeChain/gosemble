@@ -16,21 +16,8 @@ import (
 )
 
 var (
-	metadataTypesIds = map[string]int{
-		"Bool":   metadata.PrimitiveTypesBool,
-		"String": metadata.PrimitiveTypesString,
-		"U8":     metadata.PrimitiveTypesU8,
-		"U16":    metadata.PrimitiveTypesU16,
-		"U32":    metadata.PrimitiveTypesU32,
-		"U64":    metadata.PrimitiveTypesU64,
-		"U128":   metadata.PrimitiveTypesU128,
-		"I8":     metadata.PrimitiveTypesI8,
-		"I16":    metadata.PrimitiveTypesI16,
-		"I32":    metadata.PrimitiveTypesI32,
-		"I64":    metadata.PrimitiveTypesI64,
-		"I128":   metadata.PrimitiveTypesI128,
-		"H256":   metadata.TypesH256,
-	}
+	mdGenerator       = primitives.NewMetadataTypeGenerator()
+	mdGeneratorLatest = primitives.NewMetadataTypeGenerator()
 )
 
 var (
@@ -61,8 +48,7 @@ var (
 )
 
 var (
-	metadataTypes = sc.Sequence[primitives.MetadataType]{}
-	metadataOne   = primitives.MetadataModule{
+	metadataOne = primitives.MetadataModule{
 		ModuleV14: primitives.MetadataModuleV14{
 			Name:      "moduleOne",
 			Storage:   sc.Option[primitives.MetadataModuleStorage]{},
@@ -134,7 +120,7 @@ var (
 )
 
 func Test_RuntimeExtrinsic_Module(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockModuleOne.On("GetIndex").Return(moduleOneId)
 
@@ -146,7 +132,7 @@ func Test_RuntimeExtrinsic_Module(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_Module_NotFound(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	invalidModuleId := sc.U8(6)
 
@@ -162,7 +148,7 @@ func Test_RuntimeExtrinsic_Module_NotFound(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CreateInherents(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	buffer := bytes.NewBuffer(bytesExtrinsicFormatVersion)
@@ -186,7 +172,7 @@ func Test_RuntimeExtrinsic_CreateInherents(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CreateInherents_Empty(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	emptyCall := sc.NewOption[primitives.Call](nil)
@@ -206,7 +192,7 @@ func Test_RuntimeExtrinsic_CreateInherents_Empty(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CreateInherents_CreateInherents_Error(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	emptyCall := sc.NewOption[primitives.Call](nil)
@@ -220,7 +206,7 @@ func Test_RuntimeExtrinsic_CreateInherents_CreateInherents_Error(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	expect := primitives.NewCheckInherentsResult()
@@ -245,7 +231,7 @@ func Test_RuntimeExtrinsic_CheckInherents(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	errInvalidTimestamp := primitives.NewTimestampErrorInvalid()
@@ -276,7 +262,7 @@ func Test_RuntimeExtrinsic_CheckInherents_FatalError(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_NoInherents(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	expect := primitives.NewCheckInherentsResult()
@@ -299,7 +285,7 @@ func Test_RuntimeExtrinsic_CheckInherents_NoInherents(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_Signed(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	expect := primitives.NewCheckInherentsResult()
@@ -317,7 +303,7 @@ func Test_RuntimeExtrinsic_CheckInherents_Signed(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_CheckInherent_Error(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 
@@ -338,7 +324,7 @@ func Test_RuntimeExtrinsic_CheckInherents_CheckInherent_Error(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_CheckInherents_PutError_InherentErrorInherentDataExists(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	inherentData := *primitives.NewInherentData()
 	errNonFatalTimestampErr := primitives.TimestampError{VaryingData: sc.NewVaryingData(sc.U8(99))}
@@ -369,7 +355,7 @@ func Test_RuntimeExtrinsic_CheckInherents_PutError_InherentErrorInherentDataExis
 }
 
 func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Signed(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
 	mockUncheckedExtrinsic.On("IsSigned").Return(true)
@@ -382,7 +368,7 @@ func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Signed(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Unsigned(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockBlock.On("Extrinsics").Return(sc.Sequence[primitives.UncheckedExtrinsic]{mockUncheckedExtrinsic})
 	mockUncheckedExtrinsic.On("IsSigned").Return(false)
@@ -401,7 +387,7 @@ func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_Unsigned(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_SignedBeforeUnsigned(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockSignedUncheckedExtrinsic := new(mocks.UncheckedExtrinsic)
 
@@ -427,7 +413,7 @@ func Test_RuntimeExtrinsic_EnsureInherentsAreFirst_SignedBeforeUnsigned(t *testi
 }
 
 func Test_RuntimeExtrinsic_OnInitialize(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	expect := weightOne.Add(weightTwo)
 
@@ -443,7 +429,7 @@ func Test_RuntimeExtrinsic_OnInitialize(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OnInitialize_Error(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockModuleOne.On("OnInitialize", blockNumber).Return(weightOne, errPanic)
 
@@ -454,7 +440,7 @@ func Test_RuntimeExtrinsic_OnInitialize_Error(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OnRuntimeUpgrade(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	expect := weightOne.Add(weightTwo)
 
@@ -469,7 +455,7 @@ func Test_RuntimeExtrinsic_OnRuntimeUpgrade(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OnFinalize(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockModuleOne.On("OnFinalize", blockNumber).Return(nil)
 	mockModuleTwo.On("OnFinalize", blockNumber).Return(nil)
@@ -481,7 +467,7 @@ func Test_RuntimeExtrinsic_OnFinalize(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OnFinalize_Error(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockModuleOne.On("OnFinalize", blockNumber).Return(errPanic)
 
@@ -492,7 +478,7 @@ func Test_RuntimeExtrinsic_OnFinalize_Error(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OnIdle(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	remainingWeight := primitives.WeightFromParts(10, 10)
 	secondAdjustedWeight := remainingWeight.Sub(weightOne)
@@ -508,7 +494,7 @@ func Test_RuntimeExtrinsic_OnIdle(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_OffchainWorker(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	mockModuleOne.On("OffchainWorker", blockNumber).Return()
 	mockModuleTwo.On("OffchainWorker", blockNumber).Return()
@@ -520,7 +506,7 @@ func Test_RuntimeExtrinsic_OffchainWorker(t *testing.T) {
 }
 
 func Test_RuntimeExtrinsic_Metadata(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGenerator)
 
 	expectTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(
@@ -567,22 +553,23 @@ func Test_RuntimeExtrinsic_Metadata(t *testing.T) {
 		metadataTwo.ModuleV14,
 	}
 
-	mockModuleOne.On("Metadata").Return(metadataTypes, metadataOne)
-	mockModuleTwo.On("Metadata").Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", metadataTypesIds).Return(metadataTypes, signedExtensions)
+	mockModuleOne.On("Metadata").Return(metadataOne)
+	mockModuleTwo.On("Metadata").Return(metadataTwo)
+	mockSignedExtra.On("Metadata").Return(signedExtensions)
 
-	resultTypes, resultModules, resultExtrinsic := target.Metadata(metadataTypesIds)
+	resultModules, resultExtrinsic := target.Metadata()
+	resultTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectTypes, resultTypes)
 	assert.Equal(t, expectModules, resultModules)
 	assert.Equal(t, expectExtrinsic, resultExtrinsic)
 	mockModuleOne.AssertCalled(t, "Metadata")
 	mockModuleTwo.AssertCalled(t, "Metadata")
-	mockSignedExtra.AssertCalled(t, "Metadata", metadataTypesIds)
+	mockSignedExtra.AssertCalled(t, "Metadata")
 }
 
 func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
-	target := setupRuntimeExtrinsic()
+	target := setupRuntimeExtrinsic(mdGeneratorLatest)
 
 	expectTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(
@@ -640,11 +627,12 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 		SignedExtensions: signedExtensions,
 	}
 
-	mockModuleOne.On("Metadata").Return(metadataTypes, metadataOne)
-	mockModuleTwo.On("Metadata").Return(metadataTypes, metadataTwo)
-	mockSignedExtra.On("Metadata", metadataTypesIds).Return(metadataTypes, signedExtensions)
+	mockModuleOne.On("Metadata").Return(metadataOne)
+	mockModuleTwo.On("Metadata").Return(metadataTwo)
+	mockSignedExtra.On("Metadata").Return(signedExtensions)
 
-	resultTypes, resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest(metadataTypesIds)
+	resultModules, resultExtrinsic, resultOuterEnums, resultCustom := target.MetadataLatest()
+	resultTypes := mdGeneratorLatest.GetMetadataTypes()
 
 	assert.Equal(t, expectTypes, resultTypes)
 	assert.Equal(t, expectModules, resultModules)
@@ -653,10 +641,10 @@ func Test_RuntimeExtrinsic_MetadataLatest(t *testing.T) {
 	assert.Equal(t, expectCustom, resultCustom)
 	mockModuleOne.AssertCalled(t, "Metadata")
 	mockModuleTwo.AssertCalled(t, "Metadata")
-	mockSignedExtra.AssertCalled(t, "Metadata", metadataTypesIds)
+	mockSignedExtra.AssertCalled(t, "Metadata")
 }
 
-func setupRuntimeExtrinsic() RuntimeExtrinsic {
+func setupRuntimeExtrinsic(mdGenerator *primitives.MetadataTypeGenerator) RuntimeExtrinsic {
 	mockSignedExtra = new(mocks.SignedExtra)
 
 	mockModuleOne = new(mocks.Module)
@@ -671,5 +659,5 @@ func setupRuntimeExtrinsic() RuntimeExtrinsic {
 		mockModuleTwo,
 	}
 
-	return New(modules, mockSignedExtra, log.NewLogger())
+	return New(modules, mockSignedExtra, mdGenerator, log.NewLogger())
 }

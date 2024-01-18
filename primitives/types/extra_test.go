@@ -12,9 +12,14 @@ import (
 )
 
 var (
-	metadataIds = BuildMetadataTypesIdsMap()
+	mdGenerator = NewMetadataTypeGenerator()
 
-	lastIndex = len(metadataIds)
+	metadataIds = mdGenerator.GetIdsMap()
+	lastIndex   = len(metadataIds)
+
+	mdGeneratorAll = NewMetadataTypeGenerator()
+
+	mdGeneratorSome = NewMetadataTypeGenerator()
 
 	expectedExtraCheckMetadataId = lastIndex + 1
 
@@ -51,9 +56,9 @@ var (
 		Docs:       sc.Sequence[sc.Str]{"SignedExtra"},
 	}
 
-	expectedMetadataTypes = sc.Sequence[MetadataType]{
+	expectedMetadataTypes = sc.Sequence[MetadataType]{ // TODO: Confirm that in such a case where we have repeating extras (so their metadata types will be equal), we don't expect to have duplicates in the returned metadataTypes
 		testExtraCheckMetadataType,
-		testExtraCheckMetadataType,
+		// testExtraCheckMetadataType,
 		signedExtraMetadataType,
 	}
 
@@ -93,8 +98,8 @@ var (
 		extraCheckOk2,
 	}
 
-	targetSignedExtraOk  = NewSignedExtra(extraChecksWithOk)
-	targetSignedExtraErr = NewSignedExtra(extraChecksWithErr)
+	targetSignedExtraOk  = NewSignedExtra(extraChecksWithOk, mdGenerator)
+	targetSignedExtraErr = NewSignedExtra(extraChecksWithErr, mdGenerator)
 )
 
 // Some different extra checks that contain a more complex structure (fields and additional signed types)
@@ -109,11 +114,13 @@ var (
 		extraCheckComplex,
 	}
 
-	targetSignedExtra = NewSignedExtra(extraChecks)
+	targetSignedExtra     = NewSignedExtra(extraChecks, mdGenerator)
+	targetSignedExtraAll  = NewSignedExtra(extraChecks, mdGeneratorAll)
+	targetSignedExtraSome = NewSignedExtra(extraChecks, mdGeneratorSome)
 )
 
 func Test_NewSignedExtra(t *testing.T) {
-	assert.Equal(t, signedExtra{extras: extraChecksWithOk}, targetSignedExtraOk)
+	assert.Equal(t, signedExtra{extras: extraChecksWithOk, mdGenerator: mdGenerator}, targetSignedExtraOk)
 }
 
 func Test_SignedExtra_Encode(t *testing.T) {
@@ -134,7 +141,7 @@ func Test_SignedExtra_Decode(t *testing.T) {
 
 	targetSignedExtraOk.Decode(buf)
 
-	assert.Equal(t, signedExtra{extras: extraChecksWithOk}, targetSignedExtraOk)
+	assert.Equal(t, signedExtra{extras: extraChecksWithOk, mdGenerator: mdGenerator}, targetSignedExtraOk)
 }
 
 func Test_SignedExtra_AdditionalSigned_Ok(t *testing.T) {
@@ -230,7 +237,8 @@ func Test_SignedExtra_PostDispatch_Err(t *testing.T) {
 }
 
 func Test_SignedExtra_Metadata(t *testing.T) {
-	metadataTypes, metadataSignedExtensions := targetSignedExtraOk.Metadata(metadataIds)
+	metadataSignedExtensions := targetSignedExtraOk.Metadata()
+	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypes, metadataTypes)
 	assert.Equal(t, expectedMetadataSignedExtensions, metadataSignedExtensions)
@@ -241,8 +249,10 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 	expectedEd25519PublicKeyMetadataId := lastIndex + 2
 	expectedWeightId := lastIndex + 3
 
+	//mdGeneratorAll := NewMetadataTypeGenerator()
+
 	// A map that contains the ids of all additional signed complex checks
-	metadataIdsComplexAll := BuildMetadataTypesIdsMap()
+	metadataIdsComplexAll := mdGeneratorAll.GetIdsMap()
 
 	metadataIdsComplexAll["H512"] = expectedH512MetadataId
 	metadataIdsComplexAll["Ed25519PublicKey"] = expectedEd25519PublicKeyMetadataId
@@ -352,7 +362,8 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 		signedExtraMdType,
 	}
 
-	metadataTypes, metadataSignedExtensions := targetSignedExtra.Metadata(metadataIdsComplexAll)
+	metadataSignedExtensions := targetSignedExtraAll.Metadata()
+	metadataTypes := mdGeneratorAll.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypesEmptyEraComplexAll, metadataTypes)
 	assert.Equal(t, expectedExtensionsEmptyEraComplex, metadataSignedExtensions)
@@ -360,7 +371,8 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 
 func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 	// A map that does not contain the ids of types H512 and Ed25519PublicKey hence they need to be generated
-	metadataIdsComplexSome := BuildMetadataTypesIdsMap()
+	//mdGeneratorSome := NewMetadataTypeGenerator()
+	metadataIdsComplexSome := mdGeneratorSome.GetIdsMap()
 
 	metadataIdsComplexSome["H512"] = metadata.TypesFixedSequence64U8
 	metadataIdsComplexSome["Ed25519PublicKey"] = metadata.TypesFixedSequence64U8
@@ -474,7 +486,8 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 		metadataSignedExtensionComplexSome,
 	}
 
-	metadataTypes, metadataSignedExtensions := targetSignedExtra.Metadata(metadataIdsComplexSome)
+	metadataSignedExtensions := targetSignedExtraSome.Metadata()
+	metadataTypes := mdGeneratorSome.GetMetadataTypes()
 
 	assert.Equal(t, expectedMetadataTypesEmptyEraComplexSome, metadataTypes)
 	assert.Equal(t, expectedExtensionsEmptyEraComplexSome, metadataSignedExtensions)

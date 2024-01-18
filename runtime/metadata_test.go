@@ -20,7 +20,7 @@ func Test_Metadata_Encoding_Success(t *testing.T) {
 	buffer := bytes.NewBuffer(bMetadata)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
@@ -80,7 +80,7 @@ func Test_Metadata_At_Version_14(t *testing.T) {
 	buffer := bytes.NewBuffer(metadataV14Bytes)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	// Copy bytes for assertion after re-encode.
@@ -116,7 +116,7 @@ func Test_Metadata_At_Version_15(t *testing.T) {
 	buffer := bytes.NewBuffer(metadataV15Bytes)
 
 	// Decode Compact Length
-	_, err = sc.DecodeCompact(buffer)
+	_, err = sc.DecodeCompact[sc.U128](buffer)
 	assert.Nil(t, err)
 
 	bMetadataCopy := make([]byte, buffer.Len())

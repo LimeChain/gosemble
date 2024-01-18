@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -79,4 +80,29 @@ func Test_DecodeExtrinsicPhase_Empty(t *testing.T) {
 
 	assert.Equal(t, io.EOF, err)
 	assert.Equal(t, ExtrinsicPhase{}, res)
+}
+
+func Test_ExtrinsicPhase_MetadataDefinition(t *testing.T) {
+	expect := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"ApplyExtrinsic",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32),
+				},
+				PhaseApplyExtrinsic,
+				"Phase.ApplyExtrinsic"),
+			NewMetadataDefinitionVariant(
+				"Finalization",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				PhaseFinalization,
+				"Phase.Finalization"),
+			NewMetadataDefinitionVariant(
+				"Initialization",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				PhaseInitialization,
+				"Phase.Initialization"),
+		})
+
+	assert.Equal(t, &expect, new(ExtrinsicPhase).MetadataDefinition())
 }

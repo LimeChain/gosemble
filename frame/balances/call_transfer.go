@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 	"reflect"
 
 	sc "github.com/LimeChain/goscale"
@@ -21,6 +22,7 @@ func newCallTransfer(moduleId sc.U8, functionId sc.U8, storedMap primitives.Stor
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(primitives.MultiAddress{}, sc.Compact{Number: sc.U128{}}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 	}
@@ -33,7 +35,7 @@ func (c callTransfer) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) 
 	if err != nil {
 		return nil, err
 	}
-	balance, err := sc.DecodeCompact(buffer)
+	balance, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +93,19 @@ func (_ callTransfer) PaysFee(baseWeight types.Weight) types.Pays {
 }
 
 func (c callTransfer) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	value := sc.U128(args[1].(sc.Compact))
+	valueCompact, ok := args[1].(sc.Compact)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact value when dispatching call transfer")
+	}
+	value, ok := valueCompact.Number.(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid compact number field when dispatching call transfer")
+	}
 	return types.PostDispatchInfo{}, c.transfer.transfer(origin, args[0].(types.MultiAddress), value)
+}
+
+func (_ transfer) Docs() string {
+	return "Transfer some liquid free balance to another account."
 }
 
 type transfer struct {

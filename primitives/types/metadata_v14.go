@@ -35,7 +35,7 @@ func DecodeRuntimeMetadataV14(buffer *bytes.Buffer) (RuntimeMetadataV14, error) 
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}
-	typeId, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeMetadataV14{}, err
 	}

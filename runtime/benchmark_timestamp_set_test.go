@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TODO: add more steps or implement components
 func BenchmarkTimestampSetStep1(b *testing.B) {
 	benchmarkTimestampSet(b)
 }
@@ -21,9 +20,7 @@ func BenchmarkTimestampSetStep1(b *testing.B) {
 func benchmarkTimestampSet(b *testing.B) {
 	rt, storage := newBenchmarkingRuntime(b)
 
-	metadata := newBenchmarkingRuntimeMetadata(b, rt)
-
-	// TODO: switch to Gosemble types
+	metadata := runtimeMetadata(b, rt)
 
 	// Setup the input params
 	now := uint64(time.Now().UnixMilli())

@@ -30,16 +30,18 @@ func NewChargeTransactionPayment(module system.Module, txPaymentModule transacti
 }
 
 func (ctp ChargeTransactionPayment) Encode(buffer *bytes.Buffer) error {
-	return sc.Compact(ctp.fee).Encode(buffer)
+	return sc.Compact{Number: ctp.fee}.Encode(buffer)
 }
 
 func (ctp *ChargeTransactionPayment) Decode(buffer *bytes.Buffer) error {
-	fee, err := sc.DecodeCompact(buffer)
+	fee, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return err
 	}
 
-	ctp.fee = sc.U128(fee)
+	feeU128, _ := fee.Number.(sc.U128)
+
+	ctp.fee = feeU128
 	return nil
 }
 

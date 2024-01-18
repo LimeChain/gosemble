@@ -41,7 +41,7 @@ func DecodeRuntimeMetadataV15(buffer *bytes.Buffer) (RuntimeMetadataV15, error) 
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
-	typeId, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeMetadataV15{}, err
 	}
@@ -126,15 +126,15 @@ func (oe OuterEnums) Encode(buffer *bytes.Buffer) error {
 }
 
 func DecodeOuterEnums(buffer *bytes.Buffer) (OuterEnums, error) {
-	callEnum, err := sc.DecodeCompact(buffer)
+	callEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
-	eventEnum, err := sc.DecodeCompact(buffer)
+	eventEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
-	errorEnum, err := sc.DecodeCompact(buffer)
+	errorEnum, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return OuterEnums{}, err
 	}
@@ -166,7 +166,7 @@ func DecodeRuntimeApiMethodParamMetadata(buffer *bytes.Buffer) (RuntimeApiMethod
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
-	typeId, err := sc.DecodeCompact(buffer)
+	typeId, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeApiMethodParamMetadata{}, err
 	}
@@ -205,7 +205,7 @@ func DecodeRuntimeApiMethodMetadata(buffer *bytes.Buffer) (RuntimeApiMethodMetad
 	if err != nil {
 		return RuntimeApiMethodMetadata{}, err
 	}
-	output, err := sc.DecodeCompact(buffer)
+	output, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return RuntimeApiMethodMetadata{}, err
 	}

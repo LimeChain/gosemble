@@ -16,6 +16,11 @@ import (
 const moduleId = sc.U8(3)
 
 var (
+	mdGenerator = primitives.NewMetadataTypeGenerator()
+	functions   = make(map[sc.U8]primitives.Call)
+)
+
+var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 )
 
@@ -35,7 +40,9 @@ func Test_Module_New(t *testing.T) {
 		storage: &storage{
 			mockStorageAuthorities,
 		},
-		logger: logger,
+		logger:      logger,
+		mdGenerator: mdGenerator,
+		functions:   functions,
 	}, target)
 }
 
@@ -124,8 +131,10 @@ func Test_Module_Authorities_DifferentVersion(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	setup()
 
+	expectedGrandpaCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
+
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataTypeWithParams(metadata.GrandpaCalls, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
+		primitives.NewMetadataTypeWithParams(expectedGrandpaCallsMetadataId, "Grandpa calls", sc.Sequence[sc.Str]{"pallet_grandpa", "pallet", "Call"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataEmptyTypeParameter("T"),
@@ -178,7 +187,8 @@ func Test_Module_Metadata(t *testing.T) {
 		ModuleV14: moduleV14,
 	}
 
-	metadataTypes, metadataModule := target.Metadata()
+	metadataModule := target.Metadata()
+	metadataTypes := mdGenerator.GetMetadataTypes()
 
 	assert.Equal(t, expectMetadataTypes, metadataTypes)
 	assert.Equal(t, expectMetadataModule, metadataModule)
@@ -186,7 +196,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 func setup() {
 	mockStorageAuthorities = new(mocks.StorageValue[primitives.VersionedAuthorityList])
-	target = New(moduleId, logger)
+	target = New(moduleId, logger, mdGenerator)
 
 	target.storage.Authorities = mockStorageAuthorities
 }

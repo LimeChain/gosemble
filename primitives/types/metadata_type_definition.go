@@ -73,7 +73,7 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionVariant(variants), nil
 	case MetadataTypeDefinitionSequence:
-		cmpct, err := sc.DecodeCompact(buffer)
+		cmpct, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -83,7 +83,7 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
-		id, err := sc.DecodeCompact(buffer)
+		id, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -101,17 +101,17 @@ func DecodeMetadataTypeDefinition(buffer *bytes.Buffer) (MetadataTypeDefinition,
 		}
 		return NewMetadataTypeDefinitionPrimitive(prim), nil
 	case MetadataTypeDefinitionCompact:
-		cmpct, err := sc.DecodeCompact(buffer)
+		cmpct, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
 		return NewMetadataTypeDefinitionCompact(cmpct), nil
 	case MetadataTypeDefinitionBitSequence:
-		storeOrder, err := sc.DecodeCompact(buffer)
+		storeOrder, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
-		orderType, err := sc.DecodeCompact(buffer)
+		orderType, err := sc.DecodeCompact[sc.U128](buffer)
 		if err != nil {
 			return MetadataTypeDefinition{}, err
 		}
@@ -169,7 +169,7 @@ func DecodeMetadataTypeDefinitionField(buffer *bytes.Buffer) (MetadataTypeDefini
 	if err != nil {
 		return MetadataTypeDefinitionField{}, err
 	}
-	t, err := sc.DecodeCompact(buffer)
+	t, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return MetadataTypeDefinitionField{}, err
 	}

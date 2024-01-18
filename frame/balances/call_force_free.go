@@ -2,6 +2,7 @@ package balances
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants"
@@ -21,6 +22,7 @@ func newCallForceFree(moduleId sc.U8, functionId sc.U8, storedMap primitives.Sto
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(types.MultiAddress{}, sc.U128{}),
 		},
 		transfer: newTransfer(moduleId, storedMap, constants, mutator),
 		logger:   logger,
@@ -91,8 +93,15 @@ func (_ callForceFree) PaysFee(baseWeight types.Weight) types.Pays {
 	return types.PaysYes
 }
 
+func (_ callForceFree) Docs() string {
+	return "Unreserve some balance from a user by force."
+}
+
 func (c callForceFree) Dispatch(origin types.RuntimeOrigin, args sc.VaryingData) (types.PostDispatchInfo, error) {
-	amount := args[1].(sc.U128)
+	amount, ok := args[1].(sc.U128)
+	if !ok {
+		return types.PostDispatchInfo{}, errors.New("invalid amount value when dispatching call force free")
+	}
 	return types.PostDispatchInfo{}, c.forceFree(origin, args[0].(types.MultiAddress), amount)
 }
 

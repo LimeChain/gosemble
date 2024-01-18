@@ -85,7 +85,8 @@ const (
 )
 
 var (
-	logger = log.NewLogger()
+	logger      = log.NewLogger()
+	mdGenerator = primitives.NewMetadataTypeGenerator()
 	// Modules contains all the modules used by the runtime.
 	modules = initializeModules()
 	extra   = newSignedExtra()
@@ -106,6 +107,7 @@ func initializeModules() []primitives.Module {
 	systemModule := system.New(
 		SystemIndex,
 		system.NewConfig(constants.BlockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
+		mdGenerator,
 		logger,
 	)
 
@@ -119,27 +121,31 @@ func initializeModules() []primitives.Module {
 			false,
 			systemModule.StorageDigest,
 		),
+		mdGenerator,
 	)
 
 	timestampModule := timestamp.New(
 		TimestampIndex,
 		timestamp.NewConfig(auraModule, DbWeight, TimestampMinimumPeriod),
+		mdGenerator,
 	)
 
-	grandpaModule := grandpa.New(GrandpaIndex, logger)
+	grandpaModule := grandpa.New(GrandpaIndex, logger, mdGenerator)
 
 	balancesModule := balances.New(
 		BalancesIndex,
 		balances.NewConfig(DbWeight, BalancesMaxLocks, BalancesMaxReserves, BalancesExistentialDeposit, systemModule),
 		logger,
+		mdGenerator,
 	)
 
 	tpmModule := transaction_payment.New(
 		TxPaymentsIndex,
 		transaction_payment.NewConfig(OperationalFeeMultiplier, WeightToFee, LengthToFee, blockWeights),
+		mdGenerator,
 	)
 
-	testableModule := tm.New(TestableIndex)
+	testableModule := tm.New(TestableIndex, mdGenerator)
 
 	return []primitives.Module{
 		systemModule,
@@ -168,11 +174,11 @@ func newSignedExtra() primitives.SignedExtra {
 		txExtensions.NewChargeTransactionPayment(systemModule, txPaymentModule, balancesModule),
 	}
 
-	return primitives.NewSignedExtra(extras)
+	return primitives.NewSignedExtra(extras, mdGenerator)
 }
 
 func runtimeApi() types.RuntimeApi {
-	runtimeExtrinsic := extrinsic.New(modules, extra, logger)
+	runtimeExtrinsic := extrinsic.New(modules, extra, mdGenerator, logger)
 	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
 	auraModule := primitives.MustGetModule(AuraIndex, modules).(aura.Module)
 	grandpaModule := primitives.MustGetModule(GrandpaIndex, modules).(grandpa.Module)
@@ -217,6 +223,7 @@ func runtimeApi() types.RuntimeApi {
 			offchainWorkerApi,
 		},
 		logger,
+		mdGenerator,
 	)
 
 	apis := []primitives.ApiModule{
@@ -351,6 +358,7 @@ func TransactionPaymentCallApiQueryCallFeeDetails(dataPtr int32, dataLen int32) 
 
 //go:export Metadata_metadata
 func Metadata(_, _ int32) int64 {
+	mdGenerator.ClearMetadata()
 	return runtimeApi().
 		Module(metadata.ApiModuleName).(metadata.Module).
 		Metadata()
@@ -358,6 +366,7 @@ func Metadata(_, _ int32) int64 {
 
 //go:export Metadata_metadata_at_version
 func MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
+	mdGenerator.ClearMetadata()
 	return runtimeApi().
 		Module(metadata.ApiModuleName).(metadata.Module).
 		MetadataAtVersion(dataPtr, dataLen)
