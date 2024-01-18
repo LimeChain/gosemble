@@ -20,7 +20,8 @@ const (
 	varyingDataTypeName      = "VaryingData"
 	encodableTypeName        = "Encodable"
 	primitivesPackagePath    = "github.com/LimeChain/gosemble/primitives/types."
-	goscalePath              = "github.com/LimeChain/goscale."
+	goscalePathTrim          = "github.com/LimeChain/goscale."
+	goscalePath              = "github.com/LimeChain/goscale"
 )
 
 type MetadataTypeGenerator struct {
@@ -117,7 +118,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 
 			metadataDocs := typeName
 			metadataDocs = strings.Replace(metadataDocs, primitivesPackagePath, "", 1)
-			metadataDocs = strings.Replace(metadataDocs, goscalePath, "", 1)
+			metadataDocs = strings.Replace(metadataDocs, goscalePathTrim, "", 1)
 			if def != nil {
 				metadataTypeDef = *def
 			}
@@ -147,7 +148,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 			sequenceName := "Sequence"
 			sequence := sequenceName + sequenceType
 			if strings.HasPrefix(sequenceType, "Sequence") { // We are dealing with double sequence (e.g. SequenceSequenceU8)
-				sequence = strings.Replace(sequence, goscalePath, "", 1)
+				sequence = strings.Replace(sequence, goscalePathTrim, "", 1)
 			}
 
 			sequenceTypeId, ok := g.metadataIds[sequenceType] // ApiItem
@@ -241,22 +242,32 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 		fieldValue := config.Field(i)
 		fieldName := configType.Field(i).Name
 		fieldTypeName := configType.Field(i).Type.Name()
-		fieldId, ok := g.metadataIds[fieldTypeName]
-		if !ok {
-			fieldId = g.BuildMetadataTypeRecursively(config.Field(i), nil, nil, nil)
-		}
 
+		var fieldId int
+		fieldValueNumFields := fieldValue.NumField()
 		valueEncodable, ok := fieldValue.Interface().(sc.Encodable)
-		if !ok {
-			f1 := fieldValue.Field(0)
-			valueEncodable, ok = f1.Interface().(sc.Encodable)
+		if ok && fieldValueNumFields == 1 {
+			encodableField := fieldValue.Field(0)
+			valueEncodable, ok = encodableField.Interface().(sc.Encodable)
+			if ok {
+				fieldPkgPath := encodableField.Type().PkgPath()
+				fieldId, ok = g.metadataIds[encodableField.Type().Name()]
+				if ok && fieldPkgPath != goscalePath {
+					fieldId, ok = g.metadataIds[fieldTypeName]
+					if !ok {
+						fieldId = g.BuildMetadataTypeRecursively(fieldValue, nil, nil, nil)
+					}
+				}
+			}
+		} else {
+			fieldId, ok = g.metadataIds[fieldTypeName]
 			if !ok {
-
+				fieldId = g.BuildMetadataTypeRecursively(config.Field(i), nil, nil, nil)
 			}
 		}
 
-		describerValue, ok := fieldValue.Interface().(Describer)
 		var docs string
+		describerValue, ok := fieldValue.Interface().(Describer)
 		if ok {
 			docs = describerValue.Docs()
 		}

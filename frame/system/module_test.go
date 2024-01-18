@@ -1339,9 +1339,7 @@ func Test_Module_Metadata(t *testing.T) {
 
 	expectedTypesBlockLengthId := expectedPerDispatchClassU32Id + 1
 
-	expectedBlockHashCountId := expectedTypesBlockLengthId + 1
-
-	expectedRuntimeVersionId := expectedBlockHashCountId + 1
+	expectedRuntimeVersionId := expectedTypesBlockLengthId + 1
 
 	expectedApiItemId := expectedRuntimeVersionId + 1
 
@@ -1673,11 +1671,11 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"), // max
 			})),
-		primitives.NewMetadataType(expectedBlockHashCountId,
-			"BlockHashCount",
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
-			})),
+		//primitives.NewMetadataType(expectedBlockHashCountId,
+		//	"BlockHashCount",
+		//	primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
+		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "U64"),
+		//	})),
 		primitives.NewMetadataType(expectedApiItemId,
 			"ApiItem",
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
@@ -1885,7 +1883,7 @@ func Test_Module_Metadata(t *testing.T) {
 		Constants: sc.Sequence[primitives.MetadataModuleConstant]{
 			primitives.NewMetadataModuleConstant(
 				"BlockHashCount",
-				sc.ToCompact(expectedBlockHashCountId),
+				sc.ToCompact(metadata.PrimitiveTypesU64),
 				sc.BytesToSequenceU8(blockHashCount.Bytes()),
 				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
 			),

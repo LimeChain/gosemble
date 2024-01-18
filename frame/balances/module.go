@@ -31,6 +31,7 @@ type Module struct {
 	Index       sc.U8
 	Config      *Config
 	constants   *consts
+	mdConstants *metadataConstants
 	storage     *storage
 	functions   map[sc.U8]primitives.Call
 	mdGenerator *primitives.MetadataTypeGenerator
@@ -41,9 +42,14 @@ func New(index sc.U8, config *Config, logger log.DebugLogger, mdGenerator *primi
 	storage := newStorage()
 
 	module := Module{
-		Index:       index,
-		Config:      config,
-		constants:   constants,
+		Index:     index,
+		Config:    config,
+		constants: constants,
+		mdConstants: &metadataConstants{
+			ExistentialDeposit: primitives.ExistentialDeposit{U128: constants.ExistentialDeposit},
+			MaxLocks:           primitives.MaxLocks{U32: constants.MaxLocks},
+			MaxReserves:        primitives.MaxReserves{U32: constants.MaxReserves},
+		},
 		storage:     storage,
 		mdGenerator: mdGenerator,
 	}
@@ -278,7 +284,7 @@ func (m Module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
-	//constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
+	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.mdConstants))
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -303,7 +309,7 @@ func (m Module) Metadata() primitives.MetadataModule {
 				m.Index,
 				"Events.Balances"),
 		),
-		Constants: m.metadataConstants(),
+		Constants: constants,
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
@@ -495,27 +501,4 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"The total units issued in the system."),
 		},
 	})
-}
-
-func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
-	return sc.Sequence[primitives.MetadataModuleConstant]{
-		primitives.NewMetadataModuleConstant(
-			"ExistentialDeposit",
-			sc.ToCompact(metadata.PrimitiveTypesU128),
-			sc.BytesToSequenceU8(m.constants.ExistentialDeposit.Bytes()),
-			"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
-		),
-		primitives.NewMetadataModuleConstant(
-			"MaxLocks",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.constants.MaxLocks.Bytes()),
-			"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"MaxReserves",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.constants.MaxReserves.Bytes()),
-			"The maximum number of named reserves that can exist on an account.",
-		),
-	}
 }

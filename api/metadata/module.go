@@ -282,19 +282,6 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 			},
 		)),
 
-		//primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassU32,
-		//	"PerDispatchClass[U32]",
-		//	sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"},
-		//	primitives.NewMetadataTypeDefinitionComposite(
-		//		sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		//			primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "normal", "T"),
-		//			primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "operational", "T"),
-		//			primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesU32, "mandatory", "T"),
-		//		},
-		//	),
-		//	primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T"),
-		//),
-
 		primitives.NewMetadataTypeWithPath(metadata.TypesSignatureEd25519, "SignatureEd25519", sc.Sequence[sc.Str]{"sp_core", "ed25519", "Signature"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesFixedSequence64U8, "[u8; 64]")},
