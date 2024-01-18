@@ -122,7 +122,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 		return typeId
 	case reflect.Slice:
 		return g.buildSequenceType(v, path, def)
-	case reflect.Array: // types U128 and U64
+	case reflect.Array:
 		return g.metadataIds[typeName]
 	default:
 		return typeId
