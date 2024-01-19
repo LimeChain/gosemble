@@ -23,13 +23,13 @@ func BenchmarkBalancesSetBalanceCreating(b *testing.B) {
 
 // Coming from ROOT account. This always kills an account.
 func BenchmarkBalancesSetBalanceKilling(b *testing.B) {
-	benchmarkInstance(b, BalancesSetBalance, value, 0)
+	benchmarkInstance(b, BalancesSetBalance, value, uint64(0))
 }
 
 func BalancesSetBalance(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
 	// Setup the input params
 	balance := args[0].(uint64)
-	amount := args[0].(uint64)
+	amount := args[1].(uint64)
 
 	call, err := ctypes.NewCall(metadata, "Balances.set_balance", aliceAddress, ctypes.NewUCompactFromUInt(amount), ctypes.NewUCompactFromUInt(amount))
 	assert.NoError(b, err)
