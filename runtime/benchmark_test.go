@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	existentialAmount = int64(BalancesExistentialDeposit.ToBigInt().Int64())
+	existentialAmount     = int64(BalancesExistentialDeposit.ToBigInt().Int64())
+	existentialMultiplier = int64(10)
 )
 
 func setAccountInfo(b *testing.B, storage *runtime.Storage, account []byte, info gossamertypes.AccountInfo) {
