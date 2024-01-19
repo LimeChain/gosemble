@@ -30,13 +30,14 @@ const WASM_RUNTIME = "../build/runtime.wasm"
 var (
 	keySystemHash, _             = common.Twox128Hash([]byte("System"))
 	keyAccountHash, _            = common.Twox128Hash([]byte("Account"))
+	keyAllExtrinsicsLenHash, _   = common.Twox128Hash([]byte("AllExtrinsicsLen"))
 	keyAuraHash, _               = common.Twox128Hash([]byte("Aura"))
 	keyAuthoritiesHash, _        = common.Twox128Hash([]byte("Authorities"))
-	keyBlockNumberHash, _        = common.Twox128Hash([]byte("Number"))
 	keyBlockHash, _              = common.Twox128Hash([]byte("BlockHash"))
 	keyCurrentSlotHash, _        = common.Twox128Hash([]byte("CurrentSlot"))
 	keyDigestHash, _             = common.Twox128Hash([]byte("Digest"))
-	keyAllExtrinsicsLenHash, _   = common.Twox128Hash([]byte("AllExtrinsicsLen"))
+	keyEventsHash, _             = common.Twox128Hash([]byte("Events"))
+	keyEventCountHash, _         = common.Twox128Hash([]byte("EventCount"))
 	keyExecutionPhaseHash, _     = common.Twox128Hash([]byte("ExecutionPhase"))
 	keyExtrinsicCountHash, _     = common.Twox128Hash([]byte("ExtrinsicCount"))
 	keyExtrinsicIndex            = []byte(":extrinsic_index")
@@ -53,8 +54,6 @@ var (
 	keyTotalIssuanceHash, _      = common.Twox128Hash([]byte("TotalIssuance"))
 	keyTransactionPaymentHash, _ = common.Twox128Hash([]byte("TransactionPayment"))
 	keyNextFeeMultiplierHash, _  = common.Twox128Hash([]byte("NextFeeMultiplier"))
-	keyEventsHash, _             = common.Twox128Hash([]byte("Events"))
-	keyEventCountHash, _         = common.Twox128Hash([]byte("EventCount"))
 )
 
 var (
