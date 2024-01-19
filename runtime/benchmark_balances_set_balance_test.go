@@ -16,11 +16,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkBalancesForceFree(b *testing.B) {
-	benchmarkBalancesForceFree(b)
+var value = uint64(existentialMultiplier * existentialAmount)
+
+// Coming from ROOT account. This always creates an account.
+func BenchmarkBalancesSetBalanceCreating(b *testing.B) {
+	benchmarkBalancesSetBalance(b, value, value)
 }
 
-func benchmarkBalancesForceFree(b *testing.B) {
+// Coming from ROOT account. This always kills an account.
+func BenchmarkBalancesSetBalanceKilling(b *testing.B) {
+	benchmarkBalancesSetBalance(b, value, 0)
+}
+
+func benchmarkBalancesSetBalance(b *testing.B, balance, amount uint64) {
 	rt, storage := newBenchmarkingRuntime(b)
 
 	metadata := runtimeMetadata(b, rt)
@@ -28,9 +36,10 @@ func benchmarkBalancesForceFree(b *testing.B) {
 	// Setup the input params
 	alice, err := ctypes.NewMultiAddressFromAccountID(signature.TestKeyringPairAlice.PublicKey)
 	assert.NoError(b, err)
+	aliceAccountId := alice.AsID.ToBytes()
 
 	// Create the call
-	call, err := ctypes.NewCall(metadata, "Balances.force_free", alice, ctypes.NewU128(*big.NewInt(2 * existentialAmount)))
+	call, err := ctypes.NewCall(metadata, "Balances.set_balance", alice, ctypes.NewUCompactFromUInt(amount), ctypes.NewUCompactFromUInt(amount))
 	assert.NoError(b, err)
 
 	// Create the extrinsic
@@ -48,24 +57,22 @@ func benchmarkBalancesForceFree(b *testing.B) {
 	}
 
 	// Setup the state
-	pubKey := signature.TestKeyringPairAlice.PublicKey
-	accountInfo := gossamertypes.AccountInfo{
+	aliceAccountInfo := gossamertypes.AccountInfo{
 		Nonce:       0,
 		Consumers:   0,
-		Producers:   0,
+		Producers:   1,
 		Sufficients: 0,
 		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(existentialAmount)),
-			Reserved:   scale.MustNewUint128(big.NewInt(existentialAmount)),
+			Free:       scale.MustNewUint128(big.NewInt(int64(balance))),
+			Reserved:   scale.MustNewUint128(big.NewInt(0)),
 			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
 		},
 	}
-	setAccountInfo(b, storage, pubKey, accountInfo)
+	setAccountInfo(b, storage, signature.TestKeyringPairAlice.PublicKey, aliceAccountInfo)
 
-	info := getAccountInfo(b, storage, pubKey)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(existentialAmount)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(existentialAmount)), info.Data.Free)
+	aliceInfo := getAccountInfo(b, storage, aliceAccountId)
+	assert.Equal(b, scale.MustNewUint128(big.NewInt(int64(balance))), aliceInfo.Data.Free)
 
 	(*storage).DbWhitelistKey(string(append(keySystemHash, keyNumberHash...)))         // 1 read/write
 	(*storage).DbWhitelistKey(string(append(keySystemHash, keyExecutionPhaseHash...))) // 1 read
@@ -77,9 +84,8 @@ func benchmarkBalancesForceFree(b *testing.B) {
 	assert.NoError(b, err)
 
 	// Validate the result/state
-	info = getAccountInfo(b, storage, pubKey)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(2*existentialAmount)), info.Data.Free)
+	aliceInfo = getAccountInfo(b, storage, aliceAccountId)
+	assert.Equal(b, scale.MustNewUint128(big.NewInt(int64(amount))), aliceInfo.Data.Free)
 
 	benchmarkResult, err := benchmarking.DecodeBenchmarkResult(bytes.NewBuffer(res))
 	assert.NoError(b, err)

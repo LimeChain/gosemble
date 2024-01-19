@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkTimestampSetStep1(b *testing.B) {
+func BenchmarkTimestampSet(b *testing.B) {
 	benchmarkTimestampSet(b)
 }
 

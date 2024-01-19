@@ -16,7 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkBalancesForceTransferStep1(b *testing.B) {
+// Benchmark extrinsic with the worst possible conditions:
+// * Transfer will kill the sender account.
+// * Transfer will create the recipient account.
+func BenchmarkBalancesForceTransfer(b *testing.B) {
 	benchmarkBalancesForceTransfer(b)
 }
 
