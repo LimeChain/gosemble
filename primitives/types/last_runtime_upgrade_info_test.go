@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -18,6 +19,11 @@ var (
 		SpecVersion: sc.Compact{Number: sc.U32(1)},
 		SpecName:    "test-lrui-spec-name",
 	}
+
+	lruiInvalidNumber = LastRuntimeUpgradeInfo{
+		SpecVersion: sc.Compact{Number: sc.U8(1)},
+		SpecName:    "test-lrui-spec-name",
+	}
 )
 
 func Test_LastRuntimeUpgradeInfo_Encode(t *testing.T) {
@@ -27,6 +33,13 @@ func Test_LastRuntimeUpgradeInfo_Encode(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectBytesLastRuntimeUpgradeInfo, buffer.Bytes())
+}
+
+func Test_LastRuntimeUpgradeInfo_Encode_InvalidSpecVersionNumber(t *testing.T) {
+	buffer := &bytes.Buffer{}
+
+	err := lruiInvalidNumber.Encode(buffer)
+	assert.Equal(t, err, errors.New("invalid SpecVersion of LastRuntimeUpgradeInfo"))
 }
 
 func Test_DecodeLastRuntimeUpgradeInfo(t *testing.T) {

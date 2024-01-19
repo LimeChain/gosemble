@@ -28,10 +28,6 @@ func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo,
 	if err != nil {
 		return LastRuntimeUpgradeInfo{}, err
 	}
-	_, ok := specVersion.Number.(sc.U32)
-	if !ok {
-		return LastRuntimeUpgradeInfo{}, errors.New("invalid Spec Version Number When Decoding LastRuntimeUpgradeInfo")
-	}
 	specName, err := sc.DecodeStr(buffer)
 	if err != nil {
 		return LastRuntimeUpgradeInfo{}, err

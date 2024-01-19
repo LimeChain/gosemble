@@ -131,7 +131,7 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 
 // BuildCallsMetadata returns metadata calls type of a module
 func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunctions map[sc.U8]Call, params *sc.Sequence[MetadataTypeParameter]) int {
-	balancesCallsMetadataId := g.assignNewMetadataId(moduleName + "Calls")
+	callsMetadataId := g.assignNewMetadataId(moduleName + "Calls")
 
 	functionVariants := sc.Sequence[MetadataDefinitionVariant]{}
 
@@ -167,9 +167,9 @@ func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunc
 
 	variant := NewMetadataTypeDefinitionVariant(functionVariants)
 
-	g.metadataTypes = append(g.metadataTypes, NewMetadataTypeWithParams(balancesCallsMetadataId, moduleName+" calls", sc.Sequence[sc.Str]{sc.Str("pallet_" + strings.ToLower(moduleName)), "pallet", "Call"}, variant, *params))
+	g.metadataTypes = append(g.metadataTypes, NewMetadataTypeWithParams(callsMetadataId, moduleName+" calls", sc.Sequence[sc.Str]{sc.Str("pallet_" + strings.ToLower(moduleName)), "pallet", "Call"}, variant, *params))
 
-	return balancesCallsMetadataId
+	return callsMetadataId
 }
 
 // BuildErrorsMetadata returns metadata errors type of a module
@@ -305,8 +305,7 @@ func (g *MetadataTypeGenerator) constructTypeFields(v reflect.Value) sc.Sequence
 func (g *MetadataTypeGenerator) constructOptionType(v reflect.Value, typeId int) int {
 	optionTypeName := v.FieldByName("Value").Type().Name()
 	typeParameterId, _ := g.GetId(optionTypeName)
-	metadataTypeParams := sc.Sequence[MetadataTypeParameter]{}
-	metadataTypeParams = append(metadataTypeParams, NewMetadataTypeParameter(typeParameterId, "T"))
+	metadataTypeParams := append(sc.Sequence[MetadataTypeParameter]{}, NewMetadataTypeParameter(typeParameterId, "T"))
 	metadataTypeDef := optionTypeDefinition(optionTypeName, typeParameterId)
 	metadataDocs := "Option<" + optionTypeName + ">"
 	metadataTypePath := sc.Sequence[sc.Str]{"Option"}

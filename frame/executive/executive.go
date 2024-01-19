@@ -309,10 +309,7 @@ func (m module) runtimeUpgrade() (sc.Bool, error) {
 		last.SpecVersion = sc.Compact{Number: sc.U32(0)}
 	}
 
-	specVersion, ok := last.SpecVersion.Number.(sc.U32)
-	if !ok {
-		return false, errInvalidLastSpecVersion
-	}
+	specVersion := last.SpecVersion.Number.(sc.U32)
 
 	if m.system.Version().SpecVersion > specVersion ||
 		last.SpecName != m.system.Version().SpecName {
