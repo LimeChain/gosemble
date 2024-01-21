@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	errInvalidParentHash  = errors.New("parent hash should be valid")
-	errInvalidDigestNum   = errors.New("number of digest must match the calculated")
-	errInvalidDigestItem  = errors.New("digest item must match that calculated")
-	errInvalidStorageRoot = errors.New("storage root must match that calculated")
-	errInvalidTxTrie      = errors.New("Transaction trie must be valid")
+	errInvalidParentHash      = errors.New("parent hash should be valid")
+	errInvalidDigestNum       = errors.New("number of digest must match the calculated")
+	errInvalidDigestItem      = errors.New("digest item must match that calculated")
+	errInvalidStorageRoot     = errors.New("storage root must match that calculated")
+	errInvalidTxTrie          = errors.New("Transaction trie must be valid")
+	errInvalidLastSpecVersion = errors.New("invalid last spec version number in runtime upgrade")
 )
 
 type Module interface {
@@ -304,11 +305,17 @@ func (m module) runtimeUpgrade() (sc.Bool, error) {
 		return false, err
 	}
 
-	if m.system.Version().SpecVersion > last.SpecVersion ||
+	if last.SpecVersion.Number == nil {
+		last.SpecVersion = sc.Compact{Number: sc.U32(0)}
+	}
+
+	specVersion := last.SpecVersion.Number.(sc.U32)
+
+	if m.system.Version().SpecVersion > specVersion ||
 		last.SpecName != m.system.Version().SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{
-			SpecVersion: m.system.Version().SpecVersion,
+			SpecVersion: sc.Compact{Number: m.system.Version().SpecVersion},
 			SpecName:    m.system.Version().SpecName,
 		}
 		m.system.StorageLastRuntimeUpgradeSet(current)

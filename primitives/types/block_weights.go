@@ -55,3 +55,7 @@ func (bw BlockWeights) Get(class DispatchClass) (*WeightsPerClass, error) {
 
 	return nil, newTypeError("DispatchClass")
 }
+
+func (bw BlockWeights) Docs() string {
+	return "Block & extrinsics weights: base values and limits."
+}

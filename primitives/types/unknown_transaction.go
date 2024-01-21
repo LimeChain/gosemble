@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/constants/metadata"
 )
 
 const (
@@ -70,4 +71,30 @@ func DecodeUnknownTransaction(buffer *bytes.Buffer) (UnknownTransaction, error) 
 	default:
 		return UnknownTransaction{}, newTypeError("UnknownTransaction")
 	}
+}
+
+func (err UnknownTransaction) MetadataDefinition() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"CannotLookup",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				UnknownTransactionCannotLookup,
+				""),
+			NewMetadataDefinitionVariant(
+				"NoUnsignedValidator",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				UnknownTransactionNoUnsignedValidator,
+				""),
+			NewMetadataDefinitionVariant(
+				"Custom",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
+				},
+				UnknownTransactionCustomUnknownTransaction,
+				""),
+		},
+	)
+
+	return &def
 }

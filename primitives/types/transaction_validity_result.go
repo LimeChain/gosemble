@@ -86,3 +86,25 @@ func (r TransactionValidityResult) AsValidTransaction() (ValidTransaction, error
 		return ValidTransaction{}, newTypeError("ValidTransaction")
 	}
 }
+
+func (r TransactionValidityResult) MetadataDefinition(typesValidTransactionId int, typesValidityErrorId int) *MetadataTypeDefinition {
+
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"Ok",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(typesValidTransactionId),
+				},
+				TransactionValidityResultValid,
+				""),
+			NewMetadataDefinitionVariant(
+				"Err",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(typesValidityErrorId),
+				},
+				TransactionValidityResultError,
+				""),
+		})
+	return &def
+}

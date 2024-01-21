@@ -11,7 +11,7 @@ import (
 var (
 	bytes69   = []byte{69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69, 69}
 	hash69, _ = types.NewBlake2bHash(sc.BytesToFixedSequenceU8(bytes69)...)
-	lrui      = types.LastRuntimeUpgradeInfo{SpecVersion: 2, SpecName: "test-spec"}
+	lrui      = types.LastRuntimeUpgradeInfo{SpecVersion: sc.Compact{Number: sc.U32(2)}, SpecName: "test-spec"}
 )
 
 func Test_CreateDefaultConfig(t *testing.T) {

@@ -106,7 +106,7 @@ func initializeModules() []primitives.Module {
 
 	systemModule := system.New(
 		SystemIndex,
-		system.NewConfig(constants.BlockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
+		system.NewConfig(primitives.BlockHashCount{U64: constants.BlockHashCount}, blockWeights, blockLength, DbWeight, *RuntimeVersion),
 		mdGenerator,
 		logger,
 	)

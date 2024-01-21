@@ -15,7 +15,7 @@ var (
 	mdGenerator = NewMetadataTypeGenerator()
 
 	metadataIds = mdGenerator.GetIdsMap()
-	lastIndex   = len(metadataIds)
+	lastIndex   = mdGenerator.GetLastAvailableIndex()
 
 	mdGeneratorAll = NewMetadataTypeGenerator()
 
@@ -58,7 +58,6 @@ var (
 
 	expectedMetadataTypes = sc.Sequence[MetadataType]{ // TODO: Confirm that in such a case where we have repeating extras (so their metadata types will be equal), we don't expect to have duplicates in the returned metadataTypes
 		testExtraCheckMetadataType,
-		// testExtraCheckMetadataType,
 		signedExtraMetadataType,
 	}
 
@@ -249,8 +248,6 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 	expectedEd25519PublicKeyMetadataId := lastIndex + 2
 	expectedWeightId := lastIndex + 3
 
-	//mdGeneratorAll := NewMetadataTypeGenerator()
-
 	// A map that contains the ids of all additional signed complex checks
 	metadataIdsComplexAll := mdGeneratorAll.GetIdsMap()
 
@@ -258,7 +255,7 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 	metadataIdsComplexAll["Ed25519PublicKey"] = expectedEd25519PublicKeyMetadataId
 	metadataIdsComplexAll["Weight"] = expectedWeightId
 
-	lastIndexComplexChecks := len(metadataIdsComplexAll)
+	lastIndexComplexChecks := mdGeneratorAll.GetLastAvailableIndex()
 
 	// expected metadata type ids in the order they will be generated when Metadata() is invoked
 	expectedEmptyCheckMetadataId := lastIndexComplexChecks + 1
@@ -371,13 +368,12 @@ func Test_SignedExtra_Metadata_Complex_All(t *testing.T) {
 
 func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 	// A map that does not contain the ids of types H512 and Ed25519PublicKey hence they need to be generated
-	//mdGeneratorSome := NewMetadataTypeGenerator()
 	metadataIdsComplexSome := mdGeneratorSome.GetIdsMap()
 
 	metadataIdsComplexSome["H512"] = metadata.TypesFixedSequence64U8
 	metadataIdsComplexSome["Ed25519PublicKey"] = metadata.TypesFixedSequence64U8
 
-	lastIndexComplexChecksSome := len(metadataIdsComplexSome)
+	lastIndexComplexChecksSome := mdGeneratorSome.GetLastAvailableIndex()
 
 	expectedEmptyCheckMetadataIdSome := lastIndexComplexChecksSome + 1
 	expectedCheckEraMetadataIdSome := lastIndexComplexChecksSome + 2

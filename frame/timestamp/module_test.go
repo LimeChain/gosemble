@@ -316,7 +316,7 @@ func Test_Module_CheckInherent_TooEarly(t *testing.T) {
 }
 
 func Test_Module_Metadata(t *testing.T) {
-	expectedTimestampCallsMetadataId := len(mdGenerator.GetIdsMap()) + 1
+	expectedTimestampCallsMetadataId := mdGenerator.GetLastAvailableIndex() + 1
 	expectedCompactU64TypeId := expectedTimestampCallsMetadataId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
