@@ -859,41 +859,6 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	})
 }
 
-func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
-	return sc.Sequence[primitives.MetadataModuleConstant]{
-		primitives.NewMetadataModuleConstant(
-			"BlockWeights",
-			sc.ToCompact(metadata.TypesBlockWeights),
-			sc.BytesToSequenceU8(m.BlockWeights().Bytes()),
-			"Block & extrinsics weights: base values and limits.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockLength",
-			sc.ToCompact(metadata.TypesBlockLength),
-			sc.BytesToSequenceU8(m.BlockLength().Bytes()),
-			"The maximum length of a block (in bytes).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockHashCount",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.BlockHashCount().Bytes()),
-			"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"DbWeight",
-			sc.ToCompact(metadata.TypesDbWeight),
-			sc.BytesToSequenceU8(m.DbWeight().Bytes()),
-			"The weight of runtime database operations the runtime can invoke.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"Version",
-			sc.ToCompact(metadata.TypesRuntimeVersion),
-			sc.BytesToSequenceU8(m.Version().Bytes()),
-			"Get the chain's current version.",
-		),
-	}
-}
-
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) {
 	if data != nil {
 		account.Data = *data
