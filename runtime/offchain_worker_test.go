@@ -75,7 +75,7 @@ func Test_Offchain_Worker(t *testing.T) {
 	assert.Equal(t, expectedStorageDigest, (*storage).Get(append(keySystemHash, keyDigestHash...)))
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(append(keySystemHash, keyParentHash...)))
 	assert.Equal(t, parentHash.ToBytes(), (*storage).Get(prevBlockHashKey))
-	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyBlockWeight...)))
+	assert.Equal(t, []byte(nil), (*storage).Get(append(keySystemHash, keyBlockWeightHash...)))
 
 	assert.Equal(t, expectedBlockHash.ToBytes(), (*storage).Get(blockHashKey))
 }
