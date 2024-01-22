@@ -89,8 +89,7 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 		benchmarking.CommitDb()
 
 		// Whitelist known storage keys.
-		benchmarking.SetWhitelist([]byte(":transaction_level:"))
-		benchmarking.SetWhitelist([]byte(":extrinsic_index"))
+		m.whitelistWellKnownKeys()
 
 		// Whitelist the signer account key.
 		keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
@@ -157,6 +156,27 @@ func (m Module) originAndMaybeAccount(benchmarkConfig benchmarking.BenchmarkConf
 	}
 
 	return origin, sc.NewOption[primitives.AccountId](nil)
+}
+
+func (m Module) whitelistWellKnownKeys() {
+	keySystemHash := m.hashing.Twox128([]byte("System"))
+	keyBlockWeight := m.hashing.Twox128([]byte("BlockWeight"))
+	keyExecutionPhaseHash := m.hashing.Twox128([]byte("ExecutionPhase"))
+	keyEventCountHash := m.hashing.Twox128([]byte("EventCount"))
+	keyEventsHash := m.hashing.Twox128([]byte("Events"))
+	keyNumberHash := m.hashing.Twox128([]byte("Number"))
+	keyTotalIssuanceHash := m.hashing.Twox128([]byte("TotalIssuance"))
+
+	benchmarking.SetWhitelist(append(keySystemHash, keyTotalIssuanceHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyBlockWeight...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyNumberHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyExecutionPhaseHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyEventCountHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyEventsHash...))
+
+	benchmarking.SetWhitelist([]byte(":transaction_level:"))
+	benchmarking.SetWhitelist([]byte(":extrinsic_index"))
+	benchmarking.SetWhitelist([]byte(":intrablock_entropy"))
 }
 
 func (m Module) accountStorageKeyFrom(address primitives.AccountId) []byte {

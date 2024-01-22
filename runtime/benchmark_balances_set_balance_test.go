@@ -54,12 +54,6 @@ func BalancesSetBalance(b *testing.B, rt *wazero_runtime.Instance, storage *runt
 	aliceInfo := getAccountInfo(b, storage, aliceAccountIdBytes)
 	assert.Equal(b, scale.MustNewUint128(big.NewInt(int64(balance))), aliceInfo.Data.Free)
 
-	// Whitelist the keys
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyNumberHash...)))         // 1 read/write
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyExecutionPhaseHash...))) // 1 read
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventCountHash...)))     // 1 read/write
-	(*storage).DbWhitelistKey(string(append(keySystemHash, keyEventsHash...)))         // 1 read/write
-
 	// Execute the call
 	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
 	assert.NoError(b, err)
