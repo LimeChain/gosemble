@@ -1,8 +1,13 @@
 package benchmarking
 
 import (
+	"errors"
 	"fmt"
 	"math"
+)
+
+var (
+	errInvalidValues = errors.New("failed to initialize new linear component: linear component min value must be less than or equal to max value")
 )
 
 type linear struct {
@@ -15,7 +20,7 @@ type linear struct {
 // is allowed to range from `0` to `1000`, inclusive.
 func NewLinear(min, max uint32) (*linear, error) {
 	if max < min {
-		return nil, fmt.Errorf("failed to initialize new linear component: linear component min value must be less than or equal to max value")
+		return nil, errInvalidValues
 	}
 
 	// max is the default linear value

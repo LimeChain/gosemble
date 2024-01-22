@@ -14,20 +14,12 @@ import (
 )
 
 func BenchmarkTimestampSet(b *testing.B) {
-	linear1, err := benchmarking.NewLinear(0, 1000)
-	assert.NoError(b, err)
-
-	linear2, err := benchmarking.NewLinear(0, 1000)
-	assert.NoError(b, err)
-
 	benchmarking.Run(b, "timestamp_set", func(i *benchmarking.Instance) *benchmarkingtypes.BenchmarkResult {
 		// arrange
 		(*i.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
 		(*i.Storage()).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdate...)))
 
 		now := uint64(time.Now().UnixMilli())
-		now += uint64(linear1.Value())
-		now += uint64(linear2.Value())
 
 		// act
 		benchmarkResult, err := i.ExecuteExtrinsic(
@@ -49,5 +41,5 @@ func BenchmarkTimestampSet(b *testing.B) {
 		assert.Equal(b, sc.Bool(true), didUpdateStorageValue)
 
 		return benchmarkResult
-	}, linear1, linear2)
+	})
 }

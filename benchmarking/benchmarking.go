@@ -16,22 +16,6 @@ var (
 	dbCache   *int = flag.Int("db-cache", 1024, "Limit the memory the database cache can use.")
 )
 
-// todo analysis
-// type benchmarkResult struct {
-// 	extrinsicTime uint64
-// 	reads, writes uint32
-// 	components    []uint32
-// }
-
-// func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, componentValues []uint32) benchmarkResult {
-// 	return benchmarkResult{
-// 		extrinsicTime: benchmarkRes.ExtrinsicTime.ToBigInt().Uint64(),
-// 		reads:         uint32(benchmarkRes.Reads),
-// 		writes:        uint32(benchmarkRes.Writes),
-// 		components:    componentValues,
-// 	}
-// }
-
 // Executes a benchmark test.
 // b is a go benchmark instance which must be provided by the calling test.
 // testFn is a closure function that defines the test. It accepts a benchmarking instance param which is used to setup storage and run extrinsics.
@@ -41,25 +25,36 @@ func Run(b *testing.B, name string, testFn func(i *Instance) *benchmarkingtypes.
 		b.Fatal("`steps` must be at least 2.")
 	}
 
+	results := []benchmarkResult{}
+
 	if len(components) == 0 {
-		runTestFn(b, testFn)
+		res := runTestFn(b, testFn)
+		results = append(results, newBenchmarkResult(res, []uint32{}))
 	}
 
 	// iterate components for each step
-	for cIndex := range components {
-		cValues, err := components[cIndex].values(*steps)
+	for i, component := range components {
+		cValues, err := component.values(*steps)
 		if err != nil {
 			b.Fatal(err)
 		}
 
-		for step, v := range cValues {
-			components[cIndex].setValue(v)
-			testName := fmt.Sprintf("Step %d/ComponentIndex %d/ComponentValues %d", step+1, cIndex, componentValues(components))
+		for y, v := range cValues {
+			component.setValue(v)
+
+			componentValues := componentValues(components)
+
+			testName := fmt.Sprintf("Step %d/ComponentIndex %d/ComponentValues %d", y+1, i, componentValues)
+
 			b.Run(testName, func(b *testing.B) {
-				runTestFn(b, testFn)
+				res := runTestFn(b, testFn)
+				results = append(results, newBenchmarkResult(res, componentValues))
 			})
 		}
 	}
+
+	// todo weights
+	fmt.Printf("min squares analysis: %v", minSquareAnalysis(results))
 }
 
 func runTestFn(b *testing.B, testFn func(i *Instance) *benchmarkingtypes.BenchmarkResult) benchmarkingtypes.BenchmarkResult {
