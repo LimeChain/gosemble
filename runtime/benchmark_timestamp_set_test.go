@@ -14,7 +14,7 @@ import (
 )
 
 func BenchmarkTimestampSet(b *testing.B) {
-	benchmarkInstance(b, TimestampSet, nil)
+	benchmarkInstance(b, TimestampSet)
 }
 
 func TimestampSet(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
