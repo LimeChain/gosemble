@@ -25,11 +25,7 @@ var (
 )
 
 func TestInstance(t *testing.T) {
-	t.Setenv("GOMAXPROCS", "1")
-
 	testing.Benchmark(func(b *testing.B) {
-		b.Setenv("GOMAXPROCS", "1")
-
 		runtime := wazero_runtime.NewBenchInstanceWithTrie(b, "../build/runtime.wasm", trie.NewEmptyTrie())
 		defer runtime.Stop()
 
@@ -52,8 +48,8 @@ func TestInstance(t *testing.T) {
 		)
 		assert.NoError(t, err)
 
-		br := *instance.benchmarkResult
-		assert.NotNil(t, *instance.benchmarkResult)
+		br := instance.benchmarkResult
+		assert.NotNil(t, br)
 		assert.Positive(t, br.ExtrinsicTime.ToBigInt().Uint64())
 		assert.Positive(t, br.Reads.ToBigInt().Uint64())
 		assert.Positive(t, br.Writes.ToBigInt().Uint64())

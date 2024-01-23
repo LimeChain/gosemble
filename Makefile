@@ -107,9 +107,9 @@ test-coverage:
 	@set -e; \
 	./scripts/coverage.sh
 
-repeat=20000
+repeat=20
 steps=50
-heap-pages=2048
+heap-pages=4096
 db-cache=1024
 benchmark:
 	@GOMAXPROCS=1 go test --tags="nonwasmenv" -run=XXX -bench=. -benchtime=$(repeat)x ./runtime/... -steps=$(steps) -repeat=$(repeat) -heap-pages=$(heap-pages) -db-cache=$(db-cache);

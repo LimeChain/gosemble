@@ -13,7 +13,7 @@ import (
 var (
 	steps     *int = flag.Int("steps", 50, "Select how many samples we should take across the variable components.")
 	repeat    *int = flag.Int("repeat", 20, "Select how many repetitions of this benchmark should run from within the wasm.")
-	heapPages *int = flag.Int("heap-pages", 2048, "Cache heap allocation pages.")
+	heapPages *int = flag.Int("heap-pages", 4096, "Cache heap allocation pages.")
 	dbCache   *int = flag.Int("db-cache", 1024, "Limit the memory the database cache can use.")
 )
 
@@ -37,12 +37,8 @@ func Run(b *testing.B, testFn func(i *Instance), components ...*linear) {
 
 	// iterate components for each step
 	for i, component := range components {
-		cValues, err := component.values(*steps)
-		if err != nil {
-			b.Fatal(err)
-		}
 
-		for y, v := range cValues {
+		for y, v := range component.values(*steps) {
 			component.setValue(v)
 
 			componentValues := componentValues(components)
@@ -56,13 +52,8 @@ func Run(b *testing.B, testFn func(i *Instance), components ...*linear) {
 		}
 	}
 
-	// todo weights
-	analysis, err := medianSlopesAnalysis(results)
-	if err != nil {
-		b.Fatalf("failed to analyze results: %v", err)
-	}
 	// todo output file path flag (fmt.Fprintf accepts writer as first arg)
-	fmt.Printf("median slope analysis: %#v\n", analysis)
+	fmt.Printf("median slope analysis: %#v\n", medianSlopesAnalysis(results))
 }
 
 func runTestFn(b *testing.B, testFn func(i *Instance)) benchmarkingtypes.BenchmarkResult {

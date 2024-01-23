@@ -2,7 +2,6 @@ package benchmarking
 
 import (
 	"errors"
-	"fmt"
 	"math"
 )
 
@@ -24,9 +23,6 @@ func NewLinear(min, max uint32) (*linear, error) {
 	}
 
 	// max is the default linear value
-	// learn more about linears and benchmark execution in substrate:
-	// https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/index.html
-	// https://docs.substrate.io/test/benchmark/
 	return &linear{min: min, max: max, value: max}, nil
 }
 
@@ -41,19 +37,16 @@ func (l *linear) setValue(value uint32) {
 }
 
 // Internal function that calculates linear values for given steps
-func (l *linear) values(steps int) ([]uint32, error) {
+func (l *linear) values(steps int) []uint32 {
 	stepSize := math.Max(float64(l.max-l.min)/float64(steps-1), 0)
 
 	values := make([]uint32, steps)
 	for step := 0; step < steps; step++ {
 		stepValue := uint32(float64(l.min) + stepSize*float64(step))
-		if stepValue < l.min || stepValue > l.max {
-			return []uint32{}, fmt.Errorf("failed to generate values for linear(min: %d, max: %d) at step %d/%d: linear value must not be lower than linear.min or higher than linear.max", l.min, l.max, step, steps)
-		}
 		values[step] = stepValue
 	}
 
-	return values, nil
+	return values
 }
 
 // Internal function that returns all component values

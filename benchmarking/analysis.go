@@ -1,7 +1,6 @@
 package benchmarking
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -9,10 +8,6 @@ import (
 	"strings"
 
 	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
-)
-
-var (
-	errZeroBenchmarkResults = errors.New("provided benchmark results must be more than 0.")
 )
 
 type benchmarkResult struct {
@@ -36,9 +31,9 @@ type analysis struct {
 	minimumExtrinsicTime, minimumReads, minimumWrites uint64
 }
 
-func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) {
+func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	if len(benchmarkResults) == 0 {
-		return analysis{}, errZeroBenchmarkResults
+		return analysis{}
 	}
 
 	if len(benchmarkResults[0].components) == 0 {
@@ -76,10 +71,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) 
 		// convert component values from string to []uint64
 		others := make([]float64, len(benchmarkResults[0].components))
 		for y, v := range strings.Split(highestCountKey[1:len(highestCountKey)-1], " ") {
-			num, errParse := strconv.ParseUint(v, 10, 64)
-			if errParse != nil {
-				return analysis{}, errParse
-			}
+			num, _ := strconv.ParseUint(v, 10, 64)
 			others[y] = float64(num)
 		}
 
@@ -243,13 +235,14 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) 
 	})
 	res.minimumWrites = benchmarkResults[0].writes
 
-	return res, nil
+	return res
 }
 
-func medianValuesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) {
+func medianValuesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	if len(benchmarkResults) == 0 {
-		return analysis{}, errZeroBenchmarkResults
+		return analysis{}
 	}
+
 	res := analysis{}
 
 	midIndex := len(benchmarkResults) / 2
@@ -278,5 +271,5 @@ func medianValuesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) 
 	res.baseWrites = benchmarkResults[midIndex].writes
 	res.minimumWrites = benchmarkResults[0].writes
 
-	return res, nil
+	return res
 }

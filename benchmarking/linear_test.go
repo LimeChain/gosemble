@@ -11,9 +11,7 @@ func TestLinearComponent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(10), l.Value())
 
-	values, err := l.values(5)
-	assert.NoError(t, err)
-	assert.Equal(t, []uint32{0, 2, 5, 7, 10}, values)
+	assert.Equal(t, []uint32{0, 2, 5, 7, 10}, l.values(5))
 
 	l.setValue(99)
 	assert.Equal(t, uint32(99), l.Value())

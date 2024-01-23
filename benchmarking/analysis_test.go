@@ -20,8 +20,7 @@ func TestMedianSlopesAnalysis(t *testing.T) {
 		{[]uint32{3, 10}, 14_000_000, 5, 20},
 	}
 
-	res, err := medianSlopesAnalysis(data)
-	assert.NoError(t, err)
+	res := medianSlopesAnalysis(data)
 
 	expectedAnalysis := analysis{
 		baseExtrinsicTime:    10_000_000_000,
@@ -36,10 +35,6 @@ func TestMedianSlopesAnalysis(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedAnalysis, res)
-
-	_, err = medianSlopesAnalysis([]benchmarkResult{})
-	assert.Equal(t, errZeroBenchmarkResults, err)
-
 }
 
 func TestMedianValuesAnalysis(t *testing.T) {
@@ -54,9 +49,6 @@ func TestMedianValuesAnalysis(t *testing.T) {
 		{[]uint32{}, 14_000_000, 5, 20},
 	}
 
-	medianSlopesRes, err := medianSlopesAnalysis(data)
-	assert.NoError(t, err)
-
 	expectedAnalysis := analysis{
 		baseExtrinsicTime:    13_500_000_000,
 		minimumExtrinsicTime: 11_500_000,
@@ -66,12 +58,9 @@ func TestMedianValuesAnalysis(t *testing.T) {
 		minimumWrites:        2,
 	}
 
+	medianSlopesRes := medianSlopesAnalysis(data)
 	assert.Equal(t, expectedAnalysis, medianSlopesRes)
 
-	medianValuesRes, err := medianValuesAnalysis(data)
-	assert.NoError(t, err)
+	medianValuesRes := medianValuesAnalysis(data)
 	assert.Equal(t, expectedAnalysis, medianValuesRes)
-
-	_, err = medianValuesAnalysis([]benchmarkResult{})
-	assert.Equal(t, errZeroBenchmarkResults, err)
 }
