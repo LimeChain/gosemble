@@ -8,8 +8,6 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	"github.com/LimeChain/gosemble/benchmarking"
 	"github.com/LimeChain/gosemble/primitives/types"
-
-	// "github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
 )

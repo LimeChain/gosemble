@@ -34,7 +34,6 @@ type Instance struct {
 	// Provides a runtime instance allowing test setup by modifying storage and others
 	runtime         *wazero_runtime.Instance
 	metadata        *ctypes.Metadata
-	version         runtime.Version
 	storage         *runtime.Storage
 	benchmarkResult *benchmarking.BenchmarkResult
 	repeats         int
@@ -57,15 +56,9 @@ func newBenchmarkingInstance(runtime *wazero_runtime.Instance, repeats int) (*In
 		return nil, fmt.Errorf("failed to decode metadata: %v", err)
 	}
 
-	version, err := runtime.Version()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get runtime version: %v", err)
-	}
-
 	return &Instance{
 		runtime:  runtime,
 		metadata: metadata,
-		version:  version,
 		storage:  &runtime.Context.Storage,
 		repeats:  repeats,
 	}, nil
@@ -74,16 +67,6 @@ func newBenchmarkingInstance(runtime *wazero_runtime.Instance, repeats int) (*In
 // Returns Storage instance which can be used to modify the state during benchmark tests
 func (i *Instance) Storage() *runtime.Storage {
 	return i.storage
-}
-
-// Returns runtime instance metadata
-func (i *Instance) RuntimeMetadata() *ctypes.Metadata {
-	return i.metadata
-}
-
-// Returns runtime instance version
-func (i *Instance) RuntimeVersion() runtime.Version {
-	return i.version
 }
 
 // Sets the specified account info for the specified public key
@@ -156,9 +139,9 @@ func (i *Instance) ExecuteExtrinsic(callName string, origin primitives.RawOrigin
 }
 
 // todo
-func (i *Instance) ExecuteBlock() error {
-	return nil
-}
+// func (i *Instance) ExecuteBlock() error {
+// 	return nil
+// }
 
 // Internal method that creates and encodes extrinsic
 func (i *Instance) newExtrinsic(callName string, args []interface{}) (sc.Sequence[sc.U8], error) {
