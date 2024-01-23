@@ -13,22 +13,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Benchmark extrinsic with the worst possible conditions:
+// Benchmark `transfer` extrinsic with the worst possible conditions:
 // * Transfer will kill the sender account.
 // * Transfer will create the recipient account.
-func BenchmarkBalancesForceTransfer(b *testing.B) {
-	benchmarkInstance(b, BalancesForceTransfer)
+func BenchmarkBalancesTransferAllowDeath(b *testing.B) {
+	benchmarkInstance(b, BalancesTransfer)
 }
 
-func BalancesForceTransfer(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
+func BalancesTransfer(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
 	// Setup the input params
 	balance := existentialMultiplier * existentialAmount
-	transferAmount := uint64(existentialAmount*(existentialMultiplier-1) + 1)
+	transferAmount := existentialAmount*(existentialMultiplier-1) + 1
 
-	call, err := ctypes.NewCall(metadata, "Balances.force_transfer", aliceAddress, bobAddress, ctypes.NewUCompactFromUInt(transferAmount))
+	call, err := ctypes.NewCall(metadata, "Balances.transfer", bobAddress, ctypes.NewUCompact(big.NewInt(transferAmount)))
 	assert.NoError(b, err)
 
-	benchmarkConfig := newExtrinsicCall(b, types.NewRawOriginRoot(), call)
+	benchmarkConfig := newExtrinsicCall(b, types.NewRawOriginSigned(aliceAccountId), call)
 
 	// Setup the state
 	aliceAccountInfo := gossamertypes.AccountInfo{
