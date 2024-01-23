@@ -15,37 +15,6 @@ var (
 	errZeroBenchmarkResults = errors.New("provided benchmark results must be more than 0.")
 )
 
-// todo other analysis types
-// todo enum for analysis types
-// todo all enum values to implement Analysis interface
-// todo implement benchmark flag for analysis choice
-// type analysisType int
-
-// const (
-// 	MinSquares analysisType = iota
-// 	MedianSlopes
-// )
-
-// func (a analysisType) Analysis(benchmarkResults []benchmarkResult) (extrinsicTime, reads, writes analysis, err error) {
-// 	if len(benchmarkResults) == 0 {
-// 		err = errZeroBenchmarkResults
-// 		return
-// 	}
-
-// 	if len(benchmarkResults[0].components) == 1 {
-// 		return medianValuesAnalysis(benchmarkResults)
-// 	}
-
-// 	switch a {
-// 	case MinSquares:
-// 		return minSquaresAnalysis(benchmarkResults)
-// 	case MedianSlopes:
-// 		return medianSlopesAnalysis(benchmarkResults)
-// 	default:
-// 		return
-// 	}
-// }
-
 type benchmarkResult struct {
 	components    []uint32
 	extrinsicTime uint64
@@ -72,7 +41,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) 
 		return analysis{}, errZeroBenchmarkResults
 	}
 
-	if len(benchmarkResults[0].components) == 1 {
+	if len(benchmarkResults[0].components) == 0 {
 		return medianValuesAnalysis(benchmarkResults)
 	}
 
@@ -277,17 +246,11 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) 
 	return res, nil
 }
 
-func minSquaresAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, reads, writes analysis, err error) {
-	// todo
-	return
-}
-
 func medianValuesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) {
-	res := analysis{}
-
 	if len(benchmarkResults) == 0 {
 		return analysis{}, errZeroBenchmarkResults
 	}
+	res := analysis{}
 
 	midIndex := len(benchmarkResults) / 2
 

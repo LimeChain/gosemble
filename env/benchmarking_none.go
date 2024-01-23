@@ -1,7 +1,5 @@
 //go:build !benchmarking
 
-// condition is not nonwasm, file is suffixed for readability
-
 package env
 
 func ExtBenchmarkingCurrentTimeVersion1() int64 {

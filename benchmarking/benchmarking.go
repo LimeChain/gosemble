@@ -57,12 +57,11 @@ func Run(b *testing.B, testFn func(i *Instance), components ...*linear) {
 	}
 
 	// todo weights
-	// todo analysisChoice flag
 	analysis, err := medianSlopesAnalysis(results)
 	if err != nil {
 		b.Fatalf("failed to analyze results: %v", err)
 	}
-	// todo output flag (fmt.Fprintf accepts writer as first arg)
+	// todo output file path flag (fmt.Fprintf accepts writer as first arg)
 	fmt.Printf("median slope analysis: %#v\n", analysis)
 }
 

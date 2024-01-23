@@ -67,5 +67,5 @@ func TestRun(t *testing.T) {
 	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
-	assert.Equal(t, "median slope analysis: benchmarking.analysis{baseExtrinsicTime:0x0, baseReads:0x32, baseWrites:0x0, slopesExtrinsicTime:[]uint64(nil), slopesReads:[]uint64(nil), slopesWrites:[]uint64(nil), minimumExtrinsicTime:0x0, minimumReads:0x1, minimumWrites:0x0}\n", string(out))
+	assert.Equal(t, "median slope analysis: benchmarking.analysis{baseExtrinsicTime:0x0, baseReads:0x0, baseWrites:0x0, slopesExtrinsicTime:[]uint64{0x0}, slopesReads:[]uint64{0x1}, slopesWrites:[]uint64{0x0}, minimumExtrinsicTime:0x0, minimumReads:0x1, minimumWrites:0x0}\n", string(out))
 }

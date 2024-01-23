@@ -24,7 +24,7 @@ func NewLinear(min, max uint32) (*linear, error) {
 	}
 
 	// max is the default linear value
-	// learn more about linears and benchmark exxecution in substrate:
+	// learn more about linears and benchmark execution in substrate:
 	// https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/index.html
 	// https://docs.substrate.io/test/benchmark/
 	return &linear{min: min, max: max, value: max}, nil

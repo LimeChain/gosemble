@@ -24,7 +24,6 @@ var (
 	errOnlyOneCall = errors.New("Only one extrinsic or block call is allowed per testFb.")
 )
 
-// todo copied from runtime/runtime_test.go
 var (
 	keySystemHash, _  = common.Twox128Hash([]byte("System"))
 	keyAccountHash, _ = common.Twox128Hash([]byte("Account"))
@@ -42,7 +41,6 @@ type Instance struct {
 }
 
 // Creates new benchmarking instance which is used as a param in testFn closure functions
-// todo describe repeats param better
 func newBenchmarkingInstance(runtime *wazero_runtime.Instance, repeats int) (*Instance, error) {
 	bMetadata, err := runtime.Metadata()
 	if err != nil {

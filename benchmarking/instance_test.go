@@ -20,32 +20,34 @@ var (
 )
 
 func TestInstance(t *testing.T) {
-	b := &testing.B{}
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, "../build/runtime.wasm", trie.NewEmptyTrie())
-	defer runtime.Stop()
+	testing.Benchmark(func(b *testing.B) {
+		runtime := wazero_runtime.NewBenchInstanceWithTrie(b, "../build/runtime.wasm", trie.NewEmptyTrie())
+		defer runtime.Stop()
 
-	instance, err := newBenchmarkingInstance(runtime, 1)
-	assert.NoError(t, err)
+		instance, err := newBenchmarkingInstance(runtime, 1)
+		assert.NoError(t, err)
 
-	(*instance.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
+		(*instance.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
 
-	nowStorageValue, err := sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
-	assert.NoError(b, err)
-	assert.Equal(b, sc.U64(0), nowStorageValue)
+		nowStorageValue, err := sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
+		assert.NoError(t, err)
+		assert.Equal(t, sc.U64(0), nowStorageValue)
 
-	now := uint64(time.Now().UnixMilli())
+		now := uint64(time.Now().UnixMilli())
 
-	err = instance.ExecuteExtrinsic(
-		"Timestamp.set",
-		primitives.NewRawOriginNone(),
-		ctypes.NewUCompactFromUInt(now),
-	)
-	assert.NoError(t, err)
-	assert.NotZero(t, instance.benchmarkResult.ExtrinsicTime)
-	assert.NotZero(t, instance.benchmarkResult.Reads)
-	assert.NotZero(t, instance.benchmarkResult.Writes)
+		err = instance.ExecuteExtrinsic(
+			"Timestamp.set",
+			primitives.NewRawOriginNone(),
+			ctypes.NewUCompactFromUInt(now),
+		)
+		assert.NoError(t, err)
+		assert.NotNil(t, instance.benchmarkResult)
+		assert.Positive(t, instance.benchmarkResult.ExtrinsicTime.ToBigInt().Uint64())
+		assert.Positive(t, instance.benchmarkResult.Reads.ToBigInt().Uint64())
+		assert.Positive(t, instance.benchmarkResult.Writes.ToBigInt().Uint64())
 
-	nowStorageValue, err = sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
-	assert.NoError(b, err)
-	assert.Equal(b, sc.U64(now), nowStorageValue)
+		nowStorageValue, err = sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
+		assert.NoError(t, err)
+		assert.Equal(t, sc.U64(now), nowStorageValue)
+	})
 }

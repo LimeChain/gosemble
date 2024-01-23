@@ -58,18 +58,20 @@ make test-integration
 
 #### Benchmarking
 
-// todo quick intro to benchmarking in polkadot.
+Read more about benchmarking in Polkadot:
 
-// todo purpose of benchmarking - weights, which are essential part of the consensus
+- https://docs.substrate.io/test/benchmark/
 
-// todo specifics of polkadot testing - linear components, instance, whitelisted keys, db reads/writes, etc
+- https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/
 
-// todo quick overview of example benchmark test in gosemble, point out important details - benchmarking tag, build_config.json which is generated when building with benchmark-test command through BUILD_RUNTIME flag, etc.
+Write benchmarks:
 
-Write benchmarks
-// todo example benchmark test
+- Example benchmark test:
+[runtime/benchmark_timestamp_set_test.go](./runtime/benchmark_timestamp_set_test.go)
+- Example benchmark test with linear components:
+[runtime/benchmark_system_remark_test.go](./runtime/benchmark_system_remark_test.go)
 
-Build benchmarking runtime
+Build benchmarking runtime:
 
 ```bash
 # build with local tinygo binary
@@ -79,8 +81,8 @@ make build-benchmarking
 make build-docker-benchmarking
 ```
 
-Run benchmarks
+Run benchmarks:
 
 ```bash
-make benchmark steps=5 
+make benchmark steps=5 repeat=100
 ```

@@ -5,52 +5,48 @@ import (
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/runtime"
-	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/pkg/scale"
+	"github.com/LimeChain/gosemble/benchmarking"
 	"github.com/LimeChain/gosemble/primitives/types"
+
+	// "github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkBalancesForceFree(b *testing.B) {
-	benchmarkInstance(b, BalancesForceFree)
-}
+	benchmarking.Run(b, func(i *benchmarking.Instance) {
+		// arrange
+		accountInfo := gossamertypes.AccountInfo{
+			Nonce:       0,
+			Consumers:   0,
+			Producers:   0,
+			Sufficients: 0,
+			Data: gossamertypes.AccountData{
+				Free:       scale.MustNewUint128(big.NewInt(existentialAmount)),
+				Reserved:   scale.MustNewUint128(big.NewInt(existentialAmount)),
+				MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
+				FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
+			},
+		}
 
-func BalancesForceFree(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
-	// Setup the input params
-	call, err := ctypes.NewCall(metadata, "Balances.force_free", aliceAddress, ctypes.NewU128(*big.NewInt(2 * existentialAmount)))
-	assert.NoError(b, err)
+		err := i.SetAccountInfo(aliceAccountIdBytes, accountInfo)
+		assert.NoError(b, err)
 
-	benchmarkConfig := newExtrinsicCall(b, types.NewRawOriginRoot(), call)
+		// act
+		err = i.ExecuteExtrinsic(
+			"Balances.force_free",
+			types.NewRawOriginRoot(),
+			aliceAddress,
+			ctypes.NewU128(*big.NewInt(2 * existentialAmount)),
+		)
 
-	// Setup the state
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(existentialAmount)),
-			Reserved:   scale.MustNewUint128(big.NewInt(existentialAmount)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-	setAccountInfo(b, storage, aliceAccountIdBytes, accountInfo)
+		// assert
+		assert.NoError(b, err)
 
-	info := getAccountInfo(b, storage, aliceAccountIdBytes)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(existentialAmount)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(existentialAmount)), info.Data.Free)
-
-	// Execute the call
-	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
-	assert.NoError(b, err)
-
-	// Validate the result
-	info = getAccountInfo(b, storage, aliceAccountIdBytes)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), info.Data.Reserved)
-	assert.Equal(b, scale.MustNewUint128(big.NewInt(2*existentialAmount)), info.Data.Free)
-
-	return call, res
+		existingAccountInfo, err := i.GetAccountInfo(aliceAccountIdBytes)
+		assert.NoError(b, err)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), existingAccountInfo.Data.Reserved)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(2*existentialAmount)), existingAccountInfo.Data.Free)
+	})
 }
