@@ -56,8 +56,7 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 
 	function := extrinsic.Function()
 	args := function.Args()
-	accountId := m.accountIdFrom(extrinsic.Signature())
-	origin := m.originFrom(benchmarkConfig, accountId)
+	origin, accountId := m.originAndMaybeAccount(benchmarkConfig)
 
 	measuredDurations := []int64{}
 
@@ -90,8 +89,7 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 		benchmarking.CommitDb()
 
 		// Whitelist known storage keys.
-		benchmarking.SetWhitelist([]byte(":transaction_level:"))
-		benchmarking.SetWhitelist([]byte(":extrinsic_index"))
+		m.whitelistWellKnownKeys()
 
 		// Whitelist the signer account key.
 		keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
@@ -146,35 +144,42 @@ func calculateAverageTime(durations []int64) int64 {
 	return sum / int64(len(durations))
 }
 
-func (m Module) accountIdFrom(signature sc.Option[primitives.ExtrinsicSignature]) sc.Option[primitives.AccountId] {
-	if signature.HasValue {
-		id, err := signature.Value.Signer.AsAccountId()
+func (m Module) originAndMaybeAccount(benchmarkConfig benchmarking.BenchmarkConfig) (primitives.RawOrigin, sc.Option[primitives.AccountId]) {
+	origin := benchmarkConfig.Origin
+
+	if origin.IsSignedOrigin() {
+		id, err := origin.AsSigned()
 		if err != nil {
 			m.logger.Critical(err.Error())
 		}
-		return sc.NewOption[primitives.AccountId](id)
+		return origin, sc.NewOption[primitives.AccountId](id)
 	}
 
-	return sc.NewOption[primitives.AccountId](nil)
+	return origin, sc.NewOption[primitives.AccountId](nil)
 }
 
-func (m Module) originFrom(benchmarkConfig benchmarking.BenchmarkConfig, accountId sc.Option[primitives.AccountId]) primitives.RawOrigin {
-	if benchmarkConfig.Origin.HasValue {
-		return benchmarkConfig.Origin.Value
-	} else {
-		return primitives.RawOriginFrom(accountId)
-	}
+func (m Module) whitelistWellKnownKeys() {
+	keySystemHash := m.hashing.Twox128([]byte("System"))
+	keyBlockWeight := m.hashing.Twox128([]byte("BlockWeight"))
+	keyExecutionPhaseHash := m.hashing.Twox128([]byte("ExecutionPhase"))
+	keyEventCountHash := m.hashing.Twox128([]byte("EventCount"))
+	keyEventsHash := m.hashing.Twox128([]byte("Events"))
+	keyNumberHash := m.hashing.Twox128([]byte("Number"))
+	keyTotalIssuanceHash := m.hashing.Twox128([]byte("TotalIssuance"))
+
+	benchmarking.SetWhitelist(append(keySystemHash, keyTotalIssuanceHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyBlockWeight...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyNumberHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyExecutionPhaseHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyEventCountHash...))
+	benchmarking.SetWhitelist(append(keySystemHash, keyEventsHash...))
+
+	benchmarking.SetWhitelist([]byte(":transaction_level:"))
+	benchmarking.SetWhitelist([]byte(":extrinsic_index"))
+	benchmarking.SetWhitelist([]byte(":intrablock_entropy"))
 }
 
 func (m Module) accountStorageKeyFrom(address primitives.AccountId) []byte {
-	// TODO:
-	// reuse already implemented storage keys generation ?
-	//
-	// support.NewHashStorageValue[primitives.AccountId](
-	// 	[]byte("System"),
-	// 	[]byte("Account"),
-	// 	primitives.DecodeAccountId,
-	// )
 	addressBytes := address.FixedSequence.Bytes()
 	keySystemHash := m.hashing.Twox128([]byte("System"))
 	keyAccountHash := m.hashing.Twox128([]byte("Account"))

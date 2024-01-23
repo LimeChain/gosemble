@@ -21,7 +21,7 @@ type BenchmarkConfig struct {
 	// The encoded name of the benchmark/extrinsic to run.
 	Extrinsic sc.Sequence[sc.U8]
 
-	Origin sc.Option[types.RawOrigin]
+	Origin types.RawOrigin
 
 	// The selected component values to use when running the benchmark.
 	// SelectedComponents Vec<(BenchmarkParameter, u32)>
@@ -51,9 +51,7 @@ func DecodeBenchmarkConfig(buffer *bytes.Buffer) (BenchmarkConfig, error) {
 		return BenchmarkConfig{}, err
 	}
 
-	origin, err := sc.DecodeOptionWith(buffer, func(buffer *bytes.Buffer) (types.RawOrigin, error) {
-		return types.DecodeRawOrigin(buffer)
-	})
+	origin, err := types.DecodeRawOrigin(buffer)
 	if err != nil {
 		return BenchmarkConfig{}, err
 	}

@@ -6,7 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// test taken from substrate: https://github.com/LimeChain/polkadot-sdk/blob/03841f6c0f51c6be6f491ce404e40d8323c994f1/substrate/frame/benchmarking/src/analysis.rs#L589
+// test taken from substrate:
+// https://github.com/LimeChain/polkadot-sdk/blob/03841f6c0f51c6be6f491ce404e40d8323c994f1/substrate/frame/benchmarking/src/analysis.rs#L589
 func TestMedianSlopesAnalysis(t *testing.T) {
 	data := []benchmarkResult{
 		{[]uint32{1, 5}, 11_500_000, 3, 10},
@@ -19,15 +20,20 @@ func TestMedianSlopesAnalysis(t *testing.T) {
 		{[]uint32{3, 10}, 14_000_000, 5, 20},
 	}
 
-	extrinsicTime, reads, writes, err := medianSlopesAnalysis(data)
+	res, err := medianSlopesAnalysis(data)
 	assert.NoError(t, err)
 
-	assert.Equal(t, uint64(10_000_000_000), extrinsicTime.base)
-	assert.Equal(t, []uint64{1_000_000_000, 100_000_000}, extrinsicTime.slopes)
+	expectedAnalysis := analysis{
+		baseExtrinsicTime:    10_000_000_000,
+		slopesExtrinsicTime:  []uint64{1_000_000_000, 100_000_000},
+		minimumExtrinsicTime: 11_500_000,
+		baseReads:            2,
+		slopesReads:          []uint64{1, 0},
+		minimumReads:         3,
+		baseWrites:           0,
+		slopesWrites:         []uint64{0, 2},
+		minimumWrites:        2,
+	}
 
-	assert.Equal(t, uint64(2), reads.base)
-	assert.Equal(t, []uint64{1, 0}, reads.slopes)
-
-	assert.Equal(t, uint64(0), writes.base)
-	assert.Equal(t, []uint64{0, 2}, writes.slopes)
+	assert.Equal(t, expectedAnalysis, res)
 }

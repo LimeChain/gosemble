@@ -112,4 +112,4 @@ steps=50
 heap-pages=2048
 db-cache=1024
 benchmark:
-	@GOMAXPROCS=1 go test --tags="nonwasmenv" -run=XXX -bench=. -benchtime=$(repeat)x ./runtime/... -steps=$(steps) -heap-pages=$(heap-pages) -db-cache=$(db-cache);
+	@GOMAXPROCS=1 go test --tags="nonwasmenv" -run=XXX -bench=. -benchtime=$(repeat)x ./runtime/... -steps=$(steps) -repeat=$(repeat) -heap-pages=$(heap-pages) -db-cache=$(db-cache);

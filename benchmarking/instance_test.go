@@ -35,16 +35,15 @@ func TestInstance(t *testing.T) {
 
 	now := uint64(time.Now().UnixMilli())
 
-	benchmarkResult, err := instance.ExecuteExtrinsic(
+	err = instance.ExecuteExtrinsic(
 		"Timestamp.set",
-		sc.NewOption[primitives.RawOrigin](primitives.NewRawOriginNone()),
-		nil,
+		primitives.NewRawOriginNone(),
 		ctypes.NewUCompactFromUInt(now),
 	)
 	assert.NoError(t, err)
-	assert.NotZero(t, benchmarkResult.ExtrinsicTime)
-	assert.NotZero(t, benchmarkResult.Reads)
-	assert.NotZero(t, benchmarkResult.Writes)
+	assert.NotZero(t, instance.benchmarkResult.ExtrinsicTime)
+	assert.NotZero(t, instance.benchmarkResult.Reads)
+	assert.NotZero(t, instance.benchmarkResult.Writes)
 
 	nowStorageValue, err = sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
 	assert.NoError(b, err)

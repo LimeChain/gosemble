@@ -62,17 +62,14 @@ func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, componen
 }
 
 type analysis struct {
-	base   uint64
-	slopes []uint64
-	names  []string
-	// todo value_dists: Option<Vec<(Vec<u32>, u128, u128)>>
-	minimum uint64
+	baseExtrinsicTime, baseReads, baseWrites          uint64
+	slopesExtrinsicTime, slopesReads, slopesWrites    []uint64
+	minimumExtrinsicTime, minimumReads, minimumWrites uint64
 }
 
-func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, reads, writes analysis, err error) {
+func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) {
 	if len(benchmarkResults) == 0 {
-		err = errZeroBenchmarkResults
-		return
+		return analysis{}, errZeroBenchmarkResults
 	}
 
 	if len(benchmarkResults[0].components) == 1 {
@@ -112,8 +109,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, re
 		for y, v := range strings.Split(highestCountKey[1:len(highestCountKey)-1], " ") {
 			num, errParse := strconv.ParseUint(v, 10, 64)
 			if errParse != nil {
-				err = errParse
-				return
+				return analysis{}, errParse
 			}
 			others[y] = float64(num)
 		}
@@ -227,40 +223,58 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, re
 		models[i].offsetWrites -= over.overWrites
 	}
 
+	// analysis
+	res := analysis{}
+
 	// extrinsic time
-	extrinsicTime.base = uint64((math.Max(models[0].offsetExtrinsicTime, 0) + 0.000_000_005) * 1000)
+	offsetExtrinsicTime := float64(0)
+	if len(models) > 0 {
+		offsetExtrinsicTime = models[0].offsetExtrinsicTime
+	}
+	res.baseExtrinsicTime = uint64((offsetExtrinsicTime + 0.000_000_005) * 1000)
+
 	for _, m := range models {
-		extrinsicTime.slopes = append(extrinsicTime.slopes, uint64((math.Max(m.slopeExtrinsicTime, 0)+0.000_000_005)*1000))
+		res.slopesExtrinsicTime = append(res.slopesExtrinsicTime, uint64((math.Max(m.slopeExtrinsicTime, 0)+0.000_000_005)*1000))
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].extrinsicTime < benchmarkResults[j].extrinsicTime
 	})
-	extrinsicTime.minimum = benchmarkResults[0].extrinsicTime
+	res.minimumExtrinsicTime = benchmarkResults[0].extrinsicTime
 
 	// reads
-	reads.base = uint64(math.Max(models[0].offsetReads, 0) + 0.000_000_005)
+	offsetReads := float64(0)
+	if len(models) > 0 {
+		offsetReads = models[0].offsetReads
+	}
+	res.baseReads = uint64(offsetReads + 0.000_000_005)
+
 	for _, m := range models {
-		reads.slopes = append(reads.slopes, uint64(math.Max(m.slopeReads, 0)+0.000_000_005))
+		res.slopesReads = append(res.slopesReads, uint64(math.Max(m.slopeReads, 0)+0.000_000_005))
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].reads < benchmarkResults[j].reads
 	})
-	reads.minimum = benchmarkResults[0].reads
+	res.minimumReads = benchmarkResults[0].reads
 
 	//  writes
-	writes.base = uint64(math.Max(models[0].offsetWrites, 0) + 0.000_000_005)
+	offsetWrites := float64(0)
+	if len(models) > 0 {
+		offsetWrites = models[0].offsetWrites
+	}
+	res.baseWrites = uint64(offsetWrites + 0.000_000_005)
+
 	for _, m := range models {
-		writes.slopes = append(writes.slopes, uint64(math.Max(m.slopeWrites, 0)+0.000_000_005))
+		res.slopesWrites = append(res.slopesWrites, uint64(math.Max(m.slopeWrites, 0)+0.000_000_005))
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].writes < benchmarkResults[j].writes
 	})
-	writes.minimum = benchmarkResults[0].writes
+	res.minimumWrites = benchmarkResults[0].writes
 
-	return
+	return res, nil
 }
 
 func minSquaresAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, reads, writes analysis, err error) {
@@ -268,7 +282,13 @@ func minSquaresAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, read
 	return
 }
 
-func medianValuesAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, reads, writes analysis, err error) {
+func medianValuesAnalysis(benchmarkResults []benchmarkResult) (analysis, error) {
+	res := analysis{}
+
+	if len(benchmarkResults) == 0 {
+		return analysis{}, errZeroBenchmarkResults
+	}
+
 	midIndex := len(benchmarkResults) / 2
 
 	// extrinsic time
@@ -276,24 +296,24 @@ func medianValuesAnalysis(benchmarkResults []benchmarkResult) (extrinsicTime, re
 		return benchmarkResults[i].extrinsicTime < benchmarkResults[j].extrinsicTime
 	})
 
-	extrinsicTime.base = benchmarkResults[midIndex].extrinsicTime * 1000
-	extrinsicTime.minimum = benchmarkResults[0].extrinsicTime
+	res.baseExtrinsicTime = benchmarkResults[midIndex].extrinsicTime * 1000
+	res.minimumExtrinsicTime = benchmarkResults[0].extrinsicTime
 
 	// reads
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].reads < benchmarkResults[j].reads
 	})
 
-	reads.base = benchmarkResults[midIndex].reads
-	reads.minimum = benchmarkResults[0].reads
+	res.baseReads = benchmarkResults[midIndex].reads
+	res.minimumReads = benchmarkResults[0].reads
 
 	// writes
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].writes < benchmarkResults[j].writes
 	})
 
-	writes.base = benchmarkResults[midIndex].writes
-	writes.minimum = benchmarkResults[0].writes
+	res.baseWrites = benchmarkResults[midIndex].writes
+	res.minimumWrites = benchmarkResults[0].writes
 
-	return
+	return res, nil
 }

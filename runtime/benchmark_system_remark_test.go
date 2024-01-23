@@ -1,16 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"testing"
 
-	sc "github.com/LimeChain/goscale"
+	"github.com/ChainSafe/gossamer/lib/runtime"
+	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/frame/system"
-	"github.com/LimeChain/gosemble/primitives/benchmarking"
 	"github.com/LimeChain/gosemble/primitives/types"
-	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
-	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,119 +16,74 @@ var blockLength, _ = system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrin
 
 // TODO: implement components instead
 func BenchmarkSystemRemarkStep1(b *testing.B) {
-	benchmarkSystemRemark(b, 0)
+	benchmarkInstance(b, SystemRemark, 0)
 }
 
 func BenchmarkSystemRemarkStep2(b *testing.B) {
-	benchmarkSystemRemark(b, 1)
+	benchmarkInstance(b, SystemRemark, 1)
 }
 
 func BenchmarkSystemRemarkStep3(b *testing.B) {
-	benchmarkSystemRemark(b, 8)
+	benchmarkInstance(b, SystemRemark, 8)
 }
 
 func BenchmarkSystemRemarkStep4(b *testing.B) {
-	benchmarkSystemRemark(b, 32)
+	benchmarkInstance(b, SystemRemark, 32)
 }
 
 func BenchmarkSystemRemarkStep5(b *testing.B) {
-	benchmarkSystemRemark(b, 64)
+	benchmarkInstance(b, SystemRemark, 64)
 }
 
 func BenchmarkSystemRemarkStep6(b *testing.B) {
-	benchmarkSystemRemark(b, 128)
+	benchmarkInstance(b, SystemRemark, 128)
 }
 
 func BenchmarkSystemRemarkStep7(b *testing.B) {
-	benchmarkSystemRemark(b, 256)
+	benchmarkInstance(b, SystemRemark, 256)
 }
 
 func BenchmarkSystemRemarkStep8(b *testing.B) {
-	benchmarkSystemRemark(b, 512)
+	benchmarkInstance(b, SystemRemark, 512)
 }
 
 func BenchmarkSystemRemarkStep9(b *testing.B) {
-	benchmarkSystemRemark(b, 1024)
+	benchmarkInstance(b, SystemRemark, 1024)
 }
 
 func BenchmarkSystemRemarkStep10(b *testing.B) {
-	benchmarkSystemRemark(b, 128*1024)
+	benchmarkInstance(b, SystemRemark, 128*1024)
 }
 
 func BenchmarkSystemRemarkStep11(b *testing.B) {
-	benchmarkSystemRemark(b, 256*1024)
+	benchmarkInstance(b, SystemRemark, 256*1024)
 }
 
 func BenchmarkSystemRemarkStep12(b *testing.B) {
-	benchmarkSystemRemark(b, 512*1024)
+	benchmarkInstance(b, SystemRemark, 512*1024)
 }
 
 func BenchmarkSystemRemarkStep13(b *testing.B) {
-	benchmarkSystemRemark(b, 1024*1024)
+	benchmarkInstance(b, SystemRemark, 1024*1024)
 }
 
 func BenchmarkSystemRemarkStep14(b *testing.B) {
-	benchmarkSystemRemark(b, blockLength.Max.Normal) // 3932100
+	benchmarkInstance(b, SystemRemark, int(blockLength.Max.Normal)) // 3932100
 }
 
-func benchmarkSystemRemark(b *testing.B, size sc.U32) {
-	rt, _ := newBenchmarkingRuntime(b)
-
-	runtimeVersion, err := rt.Version()
-	assert.NoError(b, err)
-
-	metadata := runtimeMetadata(b, rt)
-
+func SystemRemark(b *testing.B, rt *wazero_runtime.Instance, storage *runtime.Storage, metadata *ctypes.Metadata, args ...interface{}) (ctypes.Call, []byte) {
 	// Setup the input params
-	message := make([]byte, size)
+	size := args[0].(int)
 
-	// Create the call
+	message := make([]byte, size)
 	call, err := ctypes.NewCall(metadata, "System.remark", message)
 	assert.NoError(b, err)
 
-	extrinsic := ctypes.NewExtrinsic(call)
+	benchmarkConfig := newExtrinsicCall(b, types.NewRawOriginSigned(aliceAccountId), call)
 
-	o := ctypes.SignatureOptions{
-		BlockHash:          ctypes.Hash(parentHash),
-		Era:                ctypes.ExtrinsicEra{IsImmortalEra: true},
-		GenesisHash:        ctypes.Hash(parentHash),
-		Nonce:              ctypes.NewUCompactFromUInt(0),
-		SpecVersion:        ctypes.U32(runtimeVersion.SpecVersion),
-		Tip:                ctypes.NewUCompactFromUInt(0),
-		TransactionVersion: ctypes.U32(runtimeVersion.TransactionVersion),
-	}
-
-	// Sign the transaction using Alice's default account
-	err = extrinsic.Sign(signature.TestKeyringPairAlice, o)
-	assert.NoError(b, err)
-
-	encodedExtrinsic := bytes.Buffer{}
-	encoder := cscale.NewEncoder(&encodedExtrinsic)
-	err = extrinsic.Encode(*encoder)
-	assert.NoError(b, err)
-
-	benchmarkConfig := benchmarking.BenchmarkConfig{
-		InternalRepeats: sc.U32(b.N),
-		Extrinsic:       sc.BytesToSequenceU8(encodedExtrinsic.Bytes()),
-		Origin:          sc.NewOption[types.RawOrigin](nil),
-	}
-
+	// Execute the call
 	res, err := rt.Exec("Benchmark_run", benchmarkConfig.Bytes())
-
 	assert.NoError(b, err)
 
-	benchmarkResult, err := benchmarking.DecodeBenchmarkResult(bytes.NewBuffer(res))
-	assert.NoError(b, err)
-
-	// Report the results
-	b.ReportMetric(float64(call.CallIndex.SectionIndex), "module")
-	b.ReportMetric(float64(call.CallIndex.MethodIndex), "function")
-	b.ReportMetric(float64(b.N), "repeats")
-	b.ReportMetric(float64(benchmarkResult.ExtrinsicTime.ToBigInt().Int64()), "time")
-	b.ReportMetric(float64(benchmarkResult.Reads), "reads")
-	b.ReportMetric(float64(benchmarkResult.Writes), "writes")
-
-	b.Cleanup(func() {
-		rt.Stop()
-	})
+	return call, res
 }

@@ -1,20 +1,79 @@
 package main
 
 import (
+	"bytes"
 	"math/big"
 	"testing"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/lib/runtime"
+	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/pkg/scale"
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/benchmarking"
+	"github.com/LimeChain/gosemble/primitives/types"
+	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
+	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
+)
+
+// TODO: switch to Gosemble types
+
+var (
+	aliceAddress, _     = ctypes.NewMultiAddressFromHexAccountID("0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
+	aliceAccountIdBytes = aliceAddress.AsID.ToBytes()
+	aliceAccountId, _   = types.NewAccountId(sc.BytesToSequenceU8(aliceAccountIdBytes)...)
+
+	bobAddress, _     = ctypes.NewMultiAddressFromHexAccountID("0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22")
+	bobAccountIdBytes = bobAddress.AsID.ToBytes()
 )
 
 var (
 	existentialAmount     = int64(BalancesExistentialDeposit.ToBigInt().Int64())
 	existentialMultiplier = int64(10)
 )
+
+// todo delete and use benchmarking pkg instead
+func benchmarkInstance(
+	b *testing.B,
+	fn func(*testing.B, *wazero_runtime.Instance, *runtime.Storage, *ctypes.Metadata, ...interface{}) (ctypes.Call, []byte),
+	args ...interface{},
+) {
+	rt, storage := newBenchmarkingRuntime(b)
+	metadata := runtimeMetadata(b, rt)
+
+	call, res := fn(b, rt, storage, metadata, args...)
+
+	benchmarkResult, err := benchmarking.DecodeBenchmarkResult(bytes.NewBuffer(res))
+	assert.NoError(b, err)
+
+	b.ReportMetric(float64(call.CallIndex.SectionIndex), "module")
+	b.ReportMetric(float64(call.CallIndex.MethodIndex), "function")
+	b.ReportMetric(float64(b.N), "repeats")
+	b.ReportMetric(float64(benchmarkResult.ExtrinsicTime.ToBigInt().Int64()), "time")
+	b.ReportMetric(float64(benchmarkResult.Reads), "reads")
+	b.ReportMetric(float64(benchmarkResult.Writes), "writes")
+
+	b.Cleanup(func() {
+		rt.Stop()
+	})
+}
+
+func newExtrinsicCall(b *testing.B, origin types.RawOrigin, call ctypes.Call) *benchmarking.BenchmarkConfig {
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	encodedExtrinsic := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&encodedExtrinsic)
+	err := extrinsic.Encode(*encoder)
+	assert.NoError(b, err)
+
+	return &benchmarking.BenchmarkConfig{
+		InternalRepeats: sc.U32(b.N),
+		Extrinsic:       sc.BytesToSequenceU8(encodedExtrinsic.Bytes()),
+		Origin:          origin,
+	}
+}
 
 func setAccountInfo(b *testing.B, storage *runtime.Storage, account []byte, info gossamertypes.AccountInfo) {
 	bytesStorage, err := scale.Marshal(info)

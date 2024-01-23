@@ -7,25 +7,23 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/benchmarking"
-	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkTimestampSet(b *testing.B) {
-	benchmarking.Run(b, "timestamp_set", func(i *benchmarking.Instance) *benchmarkingtypes.BenchmarkResult {
+func BenchmarkTimestampSetNew(b *testing.B) {
+	benchmarking.Run(b, func(i *benchmarking.Instance) {
 		// arrange
 		(*i.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
-		(*i.Storage()).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdate...)))
+		(*i.Storage()).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdateHash...)))
 
 		now := uint64(time.Now().UnixMilli())
 
 		// act
-		benchmarkResult, err := i.ExecuteExtrinsic(
+		err := i.ExecuteExtrinsic(
 			"Timestamp.set",
-			sc.NewOption[primitives.RawOrigin](primitives.NewRawOriginNone()),
-			nil,
+			primitives.NewRawOriginNone(),
 			ctypes.NewUCompactFromUInt(now),
 		)
 
@@ -36,10 +34,8 @@ func BenchmarkTimestampSet(b *testing.B) {
 		assert.NoError(b, err)
 		assert.Equal(b, sc.U64(now), nowStorageValue)
 
-		didUpdateStorageValue, err := sc.DecodeBool(bytes.NewBuffer((*i.Storage()).Get(append(keyTimestampHash, keyTimestampDidUpdate...))))
+		didUpdateStorageValue, err := sc.DecodeBool(bytes.NewBuffer((*i.Storage()).Get(append(keyTimestampHash, keyTimestampDidUpdateHash...))))
 		assert.NoError(b, err)
 		assert.Equal(b, sc.Bool(true), didUpdateStorageValue)
-
-		return benchmarkResult
 	})
 }
