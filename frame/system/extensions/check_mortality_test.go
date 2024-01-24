@@ -62,6 +62,18 @@ func Test_CheckMortality_Bytes(t *testing.T) {
 	assert.Equal(t, era.Bytes(), result)
 }
 
+func Test_CheckMortality_DeepCopy(t *testing.T) {
+	era := primitives.NewImmortalEra()
+	target := setupCheckMortality()
+	target.era = era
+
+	result := target.DeepCopy()
+	assert.Equal(t, &target, result)
+
+	target.era = primitives.NewMortalEra(1, 1)
+	assert.NotEqual(t, &target, result)
+}
+
 func Test_CheckMortality_AdditionalSigned_Success(t *testing.T) {
 	hash := primitives.Blake2bHash{
 		FixedSequence: sc.BytesToFixedSequenceU8(

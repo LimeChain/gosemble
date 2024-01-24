@@ -30,6 +30,13 @@ func (csv CheckSpecVersion) Bytes() []byte {
 	return sc.EncodedBytes(csv)
 }
 
+func (csv CheckSpecVersion) DeepCopy() primitives.SignedExtension {
+	return CheckSpecVersion{
+		systemModule:                  csv.systemModule,
+		typesInfoAdditionalSignedData: csv.typesInfoAdditionalSignedData,
+	}
+}
+
 func (csv CheckSpecVersion) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(csv.systemModule.Version().SpecVersion), nil
 }

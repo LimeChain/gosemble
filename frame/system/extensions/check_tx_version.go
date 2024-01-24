@@ -30,6 +30,13 @@ func (ctv CheckTxVersion) Bytes() []byte {
 	return sc.EncodedBytes(ctv)
 }
 
+func (ctv CheckTxVersion) DeepCopy() primitives.SignedExtension {
+	return CheckTxVersion{
+		systemModule:                  ctv.systemModule,
+		typesInfoAdditionalSignedData: ctv.typesInfoAdditionalSignedData,
+	}
+}
+
 func (ctv CheckTxVersion) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(ctv.systemModule.Version().TransactionVersion), nil
 }

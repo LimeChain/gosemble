@@ -39,6 +39,14 @@ func (cn CheckNonce) Bytes() []byte {
 	return sc.EncodedBytes(cn)
 }
 
+func (cn CheckNonce) DeepCopy() primitives.SignedExtension {
+	return &CheckNonce{
+		nonce:                         cn.nonce,
+		systemModule:                  cn.systemModule,
+		typesInfoAdditionalSignedData: cn.typesInfoAdditionalSignedData,
+	}
+}
+
 func (cn CheckNonce) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return sc.NewVaryingData(), nil
 }

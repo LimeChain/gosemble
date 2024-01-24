@@ -35,6 +35,13 @@ func (cw CheckWeight) Bytes() []byte {
 	return sc.EncodedBytes(cw)
 }
 
+func (cw CheckWeight) DeepCopy() primitives.SignedExtension {
+	return CheckWeight{
+		systemModule:                  cw.systemModule,
+		typesInfoAdditionalSignedData: cw.typesInfoAdditionalSignedData,
+	}
+}
+
 func (cw CheckWeight) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	return primitives.AdditionalSigned{}, nil
 }

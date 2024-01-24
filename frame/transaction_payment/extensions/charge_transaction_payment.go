@@ -53,6 +53,15 @@ func (ctp ChargeTransactionPayment) AdditionalSigned() (primitives.AdditionalSig
 	return sc.NewVaryingData(), nil
 }
 
+func (ctp ChargeTransactionPayment) DeepCopy() primitives.SignedExtension {
+	return &ChargeTransactionPayment{
+		fee:                 ctp.fee,
+		systemModule:        ctp.systemModule,
+		txPaymentModule:     ctp.txPaymentModule,
+		onChargeTransaction: ctp.onChargeTransaction,
+	}
+}
+
 func (ctp ChargeTransactionPayment) Validate(who primitives.AccountId, call primitives.Call, info *primitives.DispatchInfo, length sc.Compact) (primitives.ValidTransaction, error) {
 	finalFee, _, err := ctp.withdrawFee(who, call, info, length)
 	if err != nil {
