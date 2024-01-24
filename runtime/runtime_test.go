@@ -192,7 +192,7 @@ func getQueryInfo(t *testing.T, runtime *wazero_runtime.Instance, extrinsic []by
 	return dispatchInfo
 }
 
-func timestampExtrinsicBytes(t *testing.T, metadata *ctypes.Metadata, time uint64) []byte {
+func timestampExtrinsicBytes(t assert.TestingT, metadata *ctypes.Metadata, time uint64) []byte {
 	call, err := ctypes.NewCall(metadata, "Timestamp.set", ctypes.NewUCompactFromUInt(time))
 	assert.NoError(t, err)
 
