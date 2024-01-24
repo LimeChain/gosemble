@@ -34,7 +34,7 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 }
 
 func (cn CheckNonZeroAddress) DeepCopy() primitives.SignedExtension {
-	return CheckNonZeroAddress{
+	return &CheckNonZeroAddress{
 		typesInfoAdditionalSignedData: cn.typesInfoAdditionalSignedData,
 	}
 }

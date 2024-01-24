@@ -88,7 +88,7 @@ func Test_CheckGenesis_DeepCopy(t *testing.T) {
 	assert.Equal(t, &target, result)
 
 	target.typesInfoAdditionalSignedData = nil
-	assert.NotEqual(t, target, result)
+	assert.NotEqual(t, &target, result)
 }
 
 func Test_CheckGenesis_Validate(t *testing.T) {

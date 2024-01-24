@@ -101,7 +101,7 @@ func Test_CheckCheckWeight_DeepCopy(t *testing.T) {
 	assert.Equal(t, &target, result)
 
 	target.typesInfoAdditionalSignedData = nil
-	assert.NotEqual(t, target, result)
+	assert.NotEqual(t, &target, result)
 }
 
 func Test_CheckWeight_Validate(t *testing.T) {

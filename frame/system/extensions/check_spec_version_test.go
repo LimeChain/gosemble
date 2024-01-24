@@ -64,7 +64,7 @@ func Test_CheckSpecVersion_DeepCopy(t *testing.T) {
 	assert.Equal(t, &target, result)
 
 	target.typesInfoAdditionalSignedData = nil
-	assert.NotEqual(t, target, result)
+	assert.NotEqual(t, &target, result)
 }
 
 func Test_CheckSpecVersion_Validate(t *testing.T) {
