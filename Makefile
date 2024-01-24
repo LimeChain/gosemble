@@ -16,6 +16,7 @@ TINYGO_BUILD_COMMAND = tinygo build -gc=$(GC) -target=$(TARGET)
 
 RUNTIME_BUILD_NODEBUG = "WASMOPT="$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
 RUNTIME_BUILD = "WASMOPT="$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND) -o=$(SRC_DIR)/$(BUILD_PATH) $(SRC_DIR)/runtime/"
+RUNTIME_BUILD_BENCHMARKING = "WASMOPT="$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -tags=benchmarking -o=$(SRC_DIR)/build/runtime.wasm $(SRC_DIR)/runtime/"
 
 clear-wasi-libc:
 	@cd tinygo/lib/wasi-libc && \
@@ -36,6 +37,12 @@ build-docker-dev: clear-binaryen
 	$(DOCKER_BUILD_TINYGO);
 	$(DOCKER_RUN_TINYGO) $(RUNTIME_BUILD); \
 	echo "Build - tinygo version: ${VERSION}, gc: ${GC}"
+	
+build-docker-benchmarking: clear-binaryen
+	@set -e; \
+	$(DOCKER_BUILD_TINYGO);
+	$(DOCKER_RUN_TINYGO) $(RUNTIME_BUILD_BENCHMARKING); \
+	echo "Build - tinygo version: ${VERSION}, gc: ${GC} (no debug) (benchmarking)"
 
 build-wasi-libc: clear-wasi-libc
 	@cd tinygo/lib/wasi-libc && \
@@ -77,9 +84,9 @@ build-dev: build-tinygo
 	@echo "Building \"runtime.wasm\""; \
 	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND) -o=$(BUILD_PATH) runtime/runtime.go
 
-build-benchmarks: build-tinygo
+build-benchmarking: build-tinygo
 	@echo "Building \"runtime.wasm\" (no-debug)"; \
-	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -tags benchmarks -o=$(BUILD_PATH) runtime/runtime.go
+	WASMOPT="$(CURRENT_DIR)/$(WASMOPT_PATH)" $(TINYGO_BUILD_COMMAND_NODEBUG) -tags benchmarking -o=$(BUILD_PATH) runtime/runtime.go
 
 start-network:
 	cp build/runtime.wasm polkadot-sdk/substrate/bin/node-template/runtime.wasm; \
@@ -100,5 +107,9 @@ test-coverage:
 	@set -e; \
 	./scripts/coverage.sh
 
+repeat=20
+steps=50
+heap-pages=4096
+db-cache=1024
 benchmark:
-	@GOMAXPROCS=1 go test --tags=nonwasmenv -run=XXX -bench=. -benchtime=2000x ./runtime/...
+	@GOMAXPROCS=1 go test --tags="nonwasmenv" -run=XXX -bench=. -benchtime=$(repeat)x ./runtime/... -steps=$(steps) -repeat=$(repeat) -heap-pages=$(heap-pages) -db-cache=$(db-cache);
