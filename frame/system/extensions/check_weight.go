@@ -36,7 +36,7 @@ func (cw CheckWeight) Bytes() []byte {
 }
 
 func (cw CheckWeight) DeepCopy() primitives.SignedExtension {
-	return CheckWeight{
+	return &CheckWeight{
 		systemModule:                  cw.systemModule,
 		typesInfoAdditionalSignedData: cw.typesInfoAdditionalSignedData,
 	}

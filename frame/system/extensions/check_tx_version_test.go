@@ -61,7 +61,7 @@ func Test_CheckTxVersion_DeepCopy(t *testing.T) {
 
 	result := target.DeepCopy()
 
-	assert.Equal(t, target, result)
+	assert.Equal(t, &target, result)
 }
 
 func Test_CheckTxVersion_Validate(t *testing.T) {

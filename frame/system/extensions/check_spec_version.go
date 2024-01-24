@@ -31,7 +31,7 @@ func (csv CheckSpecVersion) Bytes() []byte {
 }
 
 func (csv CheckSpecVersion) DeepCopy() primitives.SignedExtension {
-	return CheckSpecVersion{
+	return &CheckSpecVersion{
 		systemModule:                  csv.systemModule,
 		typesInfoAdditionalSignedData: csv.typesInfoAdditionalSignedData,
 	}

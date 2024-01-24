@@ -31,7 +31,7 @@ func (ctv CheckTxVersion) Bytes() []byte {
 }
 
 func (ctv CheckTxVersion) DeepCopy() primitives.SignedExtension {
-	return CheckTxVersion{
+	return &CheckTxVersion{
 		systemModule:                  ctv.systemModule,
 		typesInfoAdditionalSignedData: ctv.typesInfoAdditionalSignedData,
 	}

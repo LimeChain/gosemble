@@ -34,7 +34,7 @@ func (cg CheckGenesis) Bytes() []byte {
 }
 
 func (cg CheckGenesis) DeepCopy() primitives.SignedExtension {
-	return CheckGenesis{
+	return &CheckGenesis{
 		module:                        cg.module,
 		typesInfoAdditionalSignedData: cg.typesInfoAdditionalSignedData,
 	}
