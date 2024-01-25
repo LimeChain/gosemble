@@ -26,6 +26,11 @@ func (m *SignedExtra) Decode(buffer *bytes.Buffer) {
 	m.Called(buffer)
 }
 
+func (m *SignedExtra) DeepCopy() types.SignedExtra {
+	args := m.Called()
+	return args.Get(0).(types.SignedExtra)
+}
+
 func (m *SignedExtra) AdditionalSigned() (types.AdditionalSigned, error) {
 	args := m.Called()
 

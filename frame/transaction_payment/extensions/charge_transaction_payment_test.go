@@ -111,6 +111,17 @@ func Test_Bytes(t *testing.T) {
 	assert.Equal(t, []byte{0xfd, 0xff}, targetChargeTxPayment.Bytes())
 }
 
+func Test_ChargeTransactionPayment_DeepCopy(t *testing.T) {
+	setup(sc.NewU128(16383))
+
+	result := targetChargeTxPayment.DeepCopy()
+
+	assert.Equal(t, &targetChargeTxPayment, result)
+
+	targetChargeTxPayment.fee = sc.NewU128(5)
+	assert.NotEqual(t, &targetChargeTxPayment, result)
+}
+
 func Test_AdditionalSigned(t *testing.T) {
 	setup(sc.NewU128(0))
 

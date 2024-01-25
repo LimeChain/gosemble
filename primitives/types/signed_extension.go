@@ -13,6 +13,8 @@ type SignedExtension interface {
 
 	Decode(buffer *bytes.Buffer) error
 
+	DeepCopy() SignedExtension
+
 	// Unique identifier of this signed extension.
 	//
 	// This will be exposed in the metadata to identify the signed extension used

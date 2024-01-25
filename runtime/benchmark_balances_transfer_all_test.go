@@ -12,17 +12,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkBalancesForceFree(b *testing.B) {
+// Benchmark `transfer_all` with the worst possible condition:
+// * The recipient account is created
+// * The sender is killed
+func BenchmarkBalancesTransferAllAllowDeath(b *testing.B) {
 	benchmarking.Run(b, func(i *benchmarking.Instance) {
 		// arrange
+		balance := existentialMultiplier * existentialAmount
+
 		accountInfo := gossamertypes.AccountInfo{
 			Nonce:       0,
 			Consumers:   0,
-			Producers:   0,
+			Producers:   1,
 			Sufficients: 0,
 			Data: gossamertypes.AccountData{
-				Free:       scale.MustNewUint128(big.NewInt(existentialAmount)),
-				Reserved:   scale.MustNewUint128(big.NewInt(existentialAmount)),
+				Free:       scale.MustNewUint128(big.NewInt(balance)),
+				Reserved:   scale.MustNewUint128(big.NewInt(0)),
 				MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 				FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
 			},
@@ -33,18 +38,21 @@ func BenchmarkBalancesForceFree(b *testing.B) {
 
 		// act
 		err = i.ExecuteExtrinsic(
-			"Balances.force_free",
-			types.NewRawOriginRoot(),
-			aliceAddress,
-			ctypes.NewU128(*big.NewInt(2 * existentialAmount)),
+			"Balances.transfer_all",
+			types.NewRawOriginSigned(aliceAccountId),
+			bobAddress,
+			ctypes.NewBool(false),
 		)
 
 		// assert
 		assert.NoError(b, err)
 
-		existingAccountInfo, err := i.GetAccountInfo(aliceAccountIdBytes)
+		senderInfo, err := i.GetAccountInfo(aliceAccountIdBytes)
 		assert.NoError(b, err)
-		assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), existingAccountInfo.Data.Reserved)
-		assert.Equal(b, scale.MustNewUint128(big.NewInt(2*existentialAmount)), existingAccountInfo.Data.Free)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(int64(0))), senderInfo.Data.Free)
+
+		recipientInfo, err := i.GetAccountInfo(bobAccountIdBytes)
+		assert.NoError(b, err)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(balance)), recipientInfo.Data.Free)
 	})
 }

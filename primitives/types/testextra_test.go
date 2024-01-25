@@ -53,6 +53,14 @@ func (e *testExtraCheck) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
+func (e testExtraCheck) DeepCopy() SignedExtension {
+	return &testExtraCheck{
+		hasError:                      e.hasError,
+		value:                         e.value,
+		typesInfoAdditionalSignedData: e.typesInfoAdditionalSignedData,
+	}
+}
+
 func (e testExtraCheck) AdditionalSigned() (AdditionalSigned, error) {
 	if e.hasError {
 		return nil, unknownTransactionCustomUnknownTransaction

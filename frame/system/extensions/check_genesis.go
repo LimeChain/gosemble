@@ -33,6 +33,13 @@ func (cg CheckGenesis) Bytes() []byte {
 	return sc.EncodedBytes(cg)
 }
 
+func (cg CheckGenesis) DeepCopy() primitives.SignedExtension {
+	return &CheckGenesis{
+		module:                        cg.module,
+		typesInfoAdditionalSignedData: cg.typesInfoAdditionalSignedData,
+	}
+}
+
 func (cg CheckGenesis) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	hash, err := cg.module.StorageBlockHash(0)
 	if err != nil {

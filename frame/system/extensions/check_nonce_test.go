@@ -66,6 +66,19 @@ func Test_CheckNonce_Bytes(t *testing.T) {
 	assert.Equal(t, sc.ToCompact(nonce).Bytes(), result)
 }
 
+func Test_CheckNonce_DeepCopy(t *testing.T) {
+	nonce := sc.U32(1)
+	target := setupCheckNonce()
+	target.nonce = nonce
+
+	result := target.DeepCopy()
+
+	assert.Equal(t, &target, result)
+
+	target.nonce = 120
+	assert.NotEqual(t, &target, result)
+}
+
 func Test_CheckNonce_AdditionalSigned(t *testing.T) {
 	target := setupCheckNonce()
 

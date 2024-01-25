@@ -77,10 +77,12 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 		return nil, errInvalidExtrinsicVersion
 	}
 
+	extra := rd.extra.DeepCopy()
+
 	var extSignature sc.Option[primitives.ExtrinsicSignature]
 	isSigned := version&ExtrinsicBitSigned != 0
 	if isSigned {
-		sig, err := primitives.DecodeExtrinsicSignature(rd.extra, buffer)
+		sig, err := primitives.DecodeExtrinsicSignature(extra, buffer)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +101,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 		return nil, errInvalidLengthPrefix
 	}
 
-	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, rd.extra, rd.logger), nil
+	return NewUncheckedExtrinsic(sc.U8(version), extSignature, function, extra, rd.logger), nil
 }
 
 func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, error) {

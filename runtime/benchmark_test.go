@@ -1,54 +1,23 @@
 package main
 
 import (
-	"math/big"
-	"testing"
+	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/primitives/types"
+	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
+)
 
-	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/common"
-	"github.com/ChainSafe/gossamer/lib/runtime"
-	"github.com/ChainSafe/gossamer/pkg/scale"
-	"github.com/stretchr/testify/assert"
+// TODO: switch to Gosemble types
+
+var (
+	aliceAddress, _     = ctypes.NewMultiAddressFromHexAccountID("0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d")
+	aliceAccountIdBytes = aliceAddress.AsID.ToBytes()
+	aliceAccountId, _   = types.NewAccountId(sc.BytesToSequenceU8(aliceAccountIdBytes)...)
+
+	bobAddress, _     = ctypes.NewMultiAddressFromHexAccountID("0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22")
+	bobAccountIdBytes = bobAddress.AsID.ToBytes()
 )
 
 var (
-	existentialAmount = int64(BalancesExistentialDeposit.ToBigInt().Int64())
+	existentialAmount     = int64(BalancesExistentialDeposit.ToBigInt().Int64())
+	existentialMultiplier = int64(10)
 )
-
-func setAccountInfo(b *testing.B, storage *runtime.Storage, account []byte, info gossamertypes.AccountInfo) {
-	bytesStorage, err := scale.Marshal(info)
-	assert.NoError(b, err)
-
-	err = (*storage).Put(accountStorageKey(account), bytesStorage)
-	assert.NoError(b, err)
-}
-
-func getAccountInfo(b *testing.B, storage *runtime.Storage, account []byte) *gossamertypes.AccountInfo {
-	accountInfo := gossamertypes.AccountInfo{
-		Nonce:       0,
-		Consumers:   0,
-		Producers:   0,
-		Sufficients: 0,
-		Data: gossamertypes.AccountData{
-			Free:       scale.MustNewUint128(big.NewInt(0)),
-			Reserved:   scale.MustNewUint128(big.NewInt(0)),
-			MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
-			FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
-		},
-	}
-
-	bytesStorage := (*storage).Get(accountStorageKey(account))
-
-	err := scale.Unmarshal(bytesStorage, &accountInfo)
-	assert.NoError(b, err)
-
-	return &accountInfo
-}
-
-func accountStorageKey(account []byte) []byte {
-	aliceHash, _ := common.Blake2b128(account)
-	keyStorageAccount := append(keySystemHash, keyAccountHash...)
-	keyStorageAccount = append(keyStorageAccount, aliceHash...)
-	keyStorageAccount = append(keyStorageAccount, account...)
-	return keyStorageAccount
-}

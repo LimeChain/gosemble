@@ -55,3 +55,34 @@ is used to import necessary Polkadot Host functionality and interact with the Ru
 make test-unit
 make test-integration
 ```
+
+#### Benchmarking
+
+Read more about benchmarking in Polkadot:
+
+- https://docs.substrate.io/test/benchmark/
+
+- https://paritytech.github.io/polkadot-sdk/master/frame_benchmarking/v2/
+
+Write benchmarks:
+
+- Example benchmark test:
+[runtime/benchmark_timestamp_set_test.go](./runtime/benchmark_timestamp_set_test.go)
+- Example benchmark test with linear components:
+[runtime/benchmark_system_remark_test.go](./runtime/benchmark_system_remark_test.go)
+
+Build benchmarking runtime:
+
+```bash
+# build with local tinygo binary
+make build-benchmarking
+
+# build with docker
+make build-docker-benchmarking
+```
+
+Run benchmarks:
+
+```bash
+make benchmark steps=5 repeat=100
+```

@@ -40,6 +40,14 @@ func (e *testExtraCheckEra) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
+func (e *testExtraCheckEra) DeepCopy() SignedExtension {
+	return &testExtraCheckEra{
+		module:                        e.module,
+		era:                           e.era,
+		typesInfoAdditionalSignedData: e.typesInfoAdditionalSignedData,
+	}
+}
+
 func (e testExtraCheckEra) AdditionalSigned() (AdditionalSigned, error) {
 	return sc.NewVaryingData(H256{}), nil
 }

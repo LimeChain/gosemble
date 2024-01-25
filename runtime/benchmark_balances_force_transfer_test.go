@@ -12,17 +12,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkBalancesForceFree(b *testing.B) {
+// Benchmark extrinsic with the worst possible conditions:
+// * Transfer will kill the sender account.
+// * Transfer will create the recipient account.
+func BenchmarkBalancesForceTransfer(b *testing.B) {
 	benchmarking.Run(b, func(i *benchmarking.Instance) {
 		// arrange
+		balance := existentialMultiplier * existentialAmount
+		transferAmount := uint64(existentialAmount*(existentialMultiplier-1) + 1)
+
 		accountInfo := gossamertypes.AccountInfo{
 			Nonce:       0,
 			Consumers:   0,
 			Producers:   0,
 			Sufficients: 0,
 			Data: gossamertypes.AccountData{
-				Free:       scale.MustNewUint128(big.NewInt(existentialAmount)),
-				Reserved:   scale.MustNewUint128(big.NewInt(existentialAmount)),
+				Free:       scale.MustNewUint128(big.NewInt(balance)),
+				Reserved:   scale.MustNewUint128(big.NewInt(0)),
 				MiscFrozen: scale.MustNewUint128(big.NewInt(0)),
 				FreeFrozen: scale.MustNewUint128(big.NewInt(0)),
 			},
@@ -33,18 +39,22 @@ func BenchmarkBalancesForceFree(b *testing.B) {
 
 		// act
 		err = i.ExecuteExtrinsic(
-			"Balances.force_free",
+			"Balances.force_transfer",
 			types.NewRawOriginRoot(),
 			aliceAddress,
-			ctypes.NewU128(*big.NewInt(2 * existentialAmount)),
+			bobAddress,
+			ctypes.NewUCompactFromUInt(transferAmount),
 		)
 
 		// assert
 		assert.NoError(b, err)
 
-		existingAccountInfo, err := i.GetAccountInfo(aliceAccountIdBytes)
+		senderInfo, err := i.GetAccountInfo(aliceAccountIdBytes)
 		assert.NoError(b, err)
-		assert.Equal(b, scale.MustNewUint128(big.NewInt(0)), existingAccountInfo.Data.Reserved)
-		assert.Equal(b, scale.MustNewUint128(big.NewInt(2*existentialAmount)), existingAccountInfo.Data.Free)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(balance-int64(transferAmount))), senderInfo.Data.Free)
+
+		recipientInfo, err := i.GetAccountInfo(bobAccountIdBytes)
+		assert.NoError(b, err)
+		assert.Equal(b, scale.MustNewUint128(big.NewInt(int64(transferAmount))), recipientInfo.Data.Free)
 	})
 }

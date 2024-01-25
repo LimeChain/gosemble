@@ -1,4 +1,4 @@
-//go:build benchmarks
+//go:build benchmarking
 
 package env
 

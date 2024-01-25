@@ -30,6 +30,12 @@ func (e *testExtraCheckEmpty) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
+func (e *testExtraCheckEmpty) DeepCopy() SignedExtension {
+	return &testExtraCheckEmpty{
+		typesInfoAdditionalSignedData: e.typesInfoAdditionalSignedData,
+	}
+}
+
 func (e testExtraCheckEmpty) ModulePath() string {
 	pkgPath := reflect.TypeOf(e).PkgPath()
 	_, pkgPath, _ = strings.Cut(pkgPath, basePath)
