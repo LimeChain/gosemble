@@ -92,9 +92,6 @@ var (
 var (
 	unknownTransactionNoUnsignedValidator = primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 	mdGenerator                           = primitives.NewMetadataTypeGenerator()
-	runtimeVersionId                      = mdGenerator.AddIdToMap("RuntimeVersion")
-	_                                     = mdGenerator.AddIdToMap("Sequence[ApiItem]")
-	_                                     = mdGenerator.AddIdToMap("ApiItem")
 	errPanic                              = errors.New("panic")
 )
 
@@ -1669,25 +1666,6 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"), // max
 			})),
-		//primitives.NewMetadataType(expectedApiItemId,
-		//	"ApiItem",
-		//	primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceU8, "Name"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "Version"),
-		//	})),
-		//primitives.NewMetadataType(expectedSequenceApiItemId, "SequenceApiItem", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(expectedApiItemId))),
-		//primitives.NewMetadataType(expectedRuntimeVersionId,
-		//	"RuntimeVersion",
-		//	primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesString, "SpecName"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesString, "ImplName"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "AuthoringVersion"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "SpecVersion"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "ImplVersion"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(expectedSequenceApiItemId, "Vec<Apis>"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "TransactionVersion"),
-		//		primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU8, "StateVersion"),
-		//	})),
 
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
@@ -1889,7 +1867,7 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 			primitives.NewMetadataModuleConstant(
 				"BlockHashCount",
-				sc.ToCompact(metadata.PrimitiveTypesU64),
+				sc.ToCompact(metadata.PrimitiveTypesU32),
 				sc.BytesToSequenceU8(blockHashCount.Bytes()),
 				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
 			),
@@ -1901,7 +1879,7 @@ func Test_Module_Metadata(t *testing.T) {
 			),
 			primitives.NewMetadataModuleConstant(
 				"Version",
-				sc.ToCompact(runtimeVersionId),
+				sc.ToCompact(metadata.TypesRuntimeVersion),
 				sc.BytesToSequenceU8(version.Bytes()),
 				"Get the chain's current version.",
 			),

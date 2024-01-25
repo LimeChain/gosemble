@@ -2,7 +2,6 @@ package metadata
 
 import (
 	"bytes"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -86,14 +85,6 @@ func (m Module) buildMetadata() primitives.Metadata {
 
 	// append types to all
 	metadataTypes = append(metadataTypes, mdTypes...)
-
-	log.NewLogger().Info("Total Len metadata: " + strconv.Itoa(len(metadataTypes)))
-
-	log.NewLogger().Info("MetadataTypes: \n")
-
-	for _, t := range metadataTypes {
-		log.NewLogger().Info("ID: " + strconv.Itoa(int(t.Id.Number.ToBigInt().Int64())) + " , Type: " + string(t.Docs[0]))
-	}
 
 	runtimeV14Metadata := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -248,10 +239,6 @@ func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
 	typesCompactU32, _ := m.generator.GetId("CompactU32")
 	txValidityError, _ := m.generator.GetId("TransactionValidityError")
 
-	log.NewLogger().Info("WeightId in MdModule: " + strconv.Itoa(typesWeightId))
-	log.NewLogger().Info("CompactU32 in MdModule: " + strconv.Itoa(typesCompactU32))
-	log.NewLogger().Info("TxValidityError in MdModule: " + strconv.Itoa(txValidityError))
-
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesFixedSequence4U8, "[4]byte", primitives.NewMetadataTypeDefinitionFixedSequence(4, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesFixedSequence8U8, "[8]byte", primitives.NewMetadataTypeDefinitionFixedSequence(8, sc.ToCompact(metadata.PrimitiveTypesU8))),
@@ -261,8 +248,6 @@ func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataType(metadata.TypesFixedSequence65U8, "[65]byte", primitives.NewMetadataTypeDefinitionFixedSequence(65, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesSequenceU8, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesSequenceU32, "[]uint32", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		//primitives.NewMetadataType(metadata.TypesCompactU32, "CompactU32", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		//primitives.NewMetadataType(metadata.TypesCompactU128, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
 
 		primitives.NewMetadataType(metadata.TypesFixedU128, "FixedU128", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{

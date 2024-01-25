@@ -1,13 +1,10 @@
 package transaction_payment
 
 import (
-	"strconv"
-
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/hooks"
-	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -99,8 +96,6 @@ func (m module) Metadata() primitives.MetadataModule {
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	typesWeightId, _ := m.mdGenerator.GetId("Weight")
-
-	log.NewLogger().Info("Weight in TxPaymentModule: " + strconv.Itoa(typesWeightId))
 
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(

@@ -15,17 +15,19 @@ const (
 )
 
 type ChargeTransactionPayment struct {
-	fee                 primitives.Balance
-	systemModule        system.Module
-	txPaymentModule     transaction_payment.Module
-	onChargeTransaction hooks.OnChargeTransaction
+	fee                           primitives.Balance
+	systemModule                  system.Module
+	txPaymentModule               transaction_payment.Module
+	onChargeTransaction           hooks.OnChargeTransaction
+	typesInfoAdditionalSignedData sc.VaryingData
 }
 
 func NewChargeTransactionPayment(module system.Module, txPaymentModule transaction_payment.Module, currencyAdapter primitives.CurrencyAdapter) primitives.SignedExtension {
 	return &ChargeTransactionPayment{
-		systemModule:        module,
-		txPaymentModule:     txPaymentModule,
-		onChargeTransaction: newChargeTransaction(currencyAdapter),
+		systemModule:                  module,
+		txPaymentModule:               txPaymentModule,
+		onChargeTransaction:           newChargeTransaction(currencyAdapter),
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
 	}
 }
 

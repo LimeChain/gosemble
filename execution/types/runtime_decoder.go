@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -64,7 +63,7 @@ func (rd runtimeDecoder) DecodeUncheckedExtrinsic(buffer *bytes.Buffer) (primiti
 	// This is a little more complicated than usual since the binary format must be compatible
 	// with SCALE's generic `Vec<u8>` type. Basically this just means accepting that there
 	// will be a prefix of vector length.
-	expectedLenCompact, err := sc.DecodeCompact[sc.U64](buffer)
+	expectedLenCompact, err := sc.DecodeCompact[sc.U128](buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -119,8 +118,6 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, erro
 	if err != nil {
 		return nil, err
 	}
-
-	log.NewLogger().Info("Modules len: " + strconv.Itoa(len(rd.modules)))
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {

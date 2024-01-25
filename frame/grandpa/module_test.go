@@ -17,7 +17,6 @@ const moduleId = sc.U8(3)
 
 var (
 	mdGenerator = primitives.NewMetadataTypeGenerator()
-	functions   = make(map[sc.U8]primitives.Call)
 )
 
 var (
@@ -42,7 +41,6 @@ func Test_Module_New(t *testing.T) {
 		},
 		logger:      logger,
 		mdGenerator: mdGenerator,
-		functions:   functions,
 	}, target)
 }
 

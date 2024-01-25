@@ -2,7 +2,6 @@ package tagged_transaction_queue
 
 import (
 	"bytes"
-	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -93,8 +92,6 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	transactionSourceId, _ := m.mdGenerator.GetId("TransactionSource")
 	resultValidityTxId, _ := m.mdGenerator.GetId("TransactionValidityResult")
-	log.NewLogger().Info("TransactionSource in TaggedTransactionQueue" + strconv.Itoa(transactionSourceId))
-	log.NewLogger().Info("TransactionValidityResult in TaggedTransactionQueue" + strconv.Itoa(resultValidityTxId))
 
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{

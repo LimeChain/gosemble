@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"strconv"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -353,8 +352,6 @@ func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
 	blockId, _ := target.mdGenerator.GetId("block")
-
-	log.NewLogger().Info("BlockId in Api/BlockBuilder: " + strconv.Itoa(blockId))
 
 	expect := primitives.RuntimeApiMetadata{
 		Name: ApiModuleName,

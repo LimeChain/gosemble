@@ -642,12 +642,6 @@ func (m module) Metadata() primitives.MetadataModule {
 
 	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
 
-	//log.NewLogger().Info("Check MapIds: \n")
-	//
-	//for k, v := range m.mdGenerator.GetIdsMap() {
-	//	log.NewLogger().Info(k + ":" + strconv.Itoa(v))
-	//}
-
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -769,14 +763,9 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 }
 
 func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
-	//log.NewLogger().Info("\n")
 	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
-	//log.NewLogger().Info("TypesPhase in System: " + strconv.Itoa(typesPhaseId) + "\n")
 	perDispatchClassWeightId, _ := m.mdGenerator.GetId("PerDispatchClassWeight")
-	//log.NewLogger().Info("PerDispatchClassWeight in System: " + strconv.Itoa(perDispatchClassWeightId) + "\n")
-
 	lastRuntimeUpgradeInfoId, _ := m.mdGenerator.GetId("LastRuntimeUpgradeInfo")
-	//.NewLogger().Info("LastRuntimeUpgradeInfo in System: " + strconv.Itoa(lastRuntimeUpgradeInfoId))
 
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
