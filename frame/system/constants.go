@@ -5,18 +5,18 @@ import (
 )
 
 type consts struct {
-	BlockHashCount types.BlockHashCount
 	BlockWeights   types.BlockWeights
 	BlockLength    types.BlockLength
+	BlockHashCount types.BlockHashCount
 	DbWeight       types.RuntimeDbWeight
 	Version        types.RuntimeVersion
 }
 
 func newConstants(blockHashCount types.BlockHashCount, blockWeights types.BlockWeights, blockLength types.BlockLength, dbWeight types.RuntimeDbWeight, version types.RuntimeVersion) *consts {
 	return &consts{
-		blockHashCount,
 		blockWeights,
 		blockLength,
+		blockHashCount,
 		dbWeight,
 		version,
 	}

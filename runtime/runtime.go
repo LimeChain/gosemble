@@ -196,9 +196,9 @@ func runtimeApi() types.RuntimeApi {
 		grandpaModule,
 	}
 
-	coreApi := core.New(executiveModule, decoder, RuntimeVersion, logger)
-	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder, logger)
-	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder, logger)
+	coreApi := core.New(executiveModule, decoder, RuntimeVersion, mdGenerator, logger)
+	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder, mdGenerator, logger)
+	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder, mdGenerator, logger)
 	auraApi := apiAura.New(auraModule, logger)
 	grandpaApi := apiGrandpa.New(grandpaModule, logger)
 	accountNonceApi := account_nonce.New(systemModule, logger)

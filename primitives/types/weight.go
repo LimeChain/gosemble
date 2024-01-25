@@ -137,6 +137,10 @@ func (w Weight) AnyGt(otherW Weight) bool {
 	return w.RefTime > otherW.RefTime || w.ProofSize > otherW.ProofSize
 }
 
+func (w Weight) Path() sc.Sequence[sc.Str] {
+	return sc.Sequence[sc.Str]{"sp_weights", "weight_v2", "Weight"}
+}
+
 // Construct [`Weight`] from weight parts, namely reference time and proof size weights.
 func WeightFromParts(refTime sc.U64, proofSize sc.U64) Weight {
 	return Weight{refTime, proofSize}

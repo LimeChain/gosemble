@@ -2,6 +2,7 @@ package tagged_transaction_queue
 
 import (
 	"bytes"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -23,18 +24,20 @@ type TaggedTransactionQueue interface {
 }
 
 type Module struct {
-	executive executive.Module
-	decoder   types.RuntimeDecoder
-	memUtils  utils.WasmMemoryTranslator
-	logger    log.Logger
+	executive   executive.Module
+	decoder     types.RuntimeDecoder
+	memUtils    utils.WasmMemoryTranslator
+	mdGenerator *primitives.MetadataTypeGenerator
+	logger      log.Logger
 }
 
-func New(executive executive.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+func New(executive executive.Module, decoder types.RuntimeDecoder, mdGenerator *primitives.MetadataTypeGenerator, logger log.Logger) Module {
 	return Module{
-		executive: executive,
-		decoder:   decoder,
-		memUtils:  utils.NewMemoryTranslator(),
-		logger:    logger,
+		executive:   executive,
+		decoder:     decoder,
+		memUtils:    utils.NewMemoryTranslator(),
+		mdGenerator: mdGenerator,
+		logger:      logger,
 	}
 }
 
@@ -88,13 +91,18 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 }
 
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	transactionSourceId, _ := m.mdGenerator.GetId("TransactionSource")
+	resultValidityTxId, _ := m.mdGenerator.GetId("TransactionValidityResult")
+	log.NewLogger().Info("TransactionSource in TaggedTransactionQueue" + strconv.Itoa(transactionSourceId))
+	log.NewLogger().Info("TransactionValidityResult in TaggedTransactionQueue" + strconv.Itoa(resultValidityTxId))
+
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
 			Name: "validate_transaction",
 			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 				primitives.RuntimeApiMethodParamMetadata{
 					Name: "source",
-					Type: sc.ToCompact(metadata.TypesTransactionSource),
+					Type: sc.ToCompact(transactionSourceId),
 				},
 				primitives.RuntimeApiMethodParamMetadata{
 					Name: "tx",
@@ -105,7 +113,7 @@ func (m Module) Metadata() primitives.RuntimeApiMetadata {
 					Type: sc.ToCompact(metadata.TypesH256),
 				},
 			},
-			Output: sc.ToCompact(metadata.TypesResultValidityTransaction),
+			Output: sc.ToCompact(resultValidityTxId),
 			Docs: sc.Sequence[sc.Str]{" Validate the transaction.",
 				"",
 				" This method is invoked by the transaction pool to learn details about given transaction.",

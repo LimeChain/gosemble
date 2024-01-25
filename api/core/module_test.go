@@ -39,6 +39,7 @@ var (
 	mockExecutive      *mocks.Executive
 	mockRuntimeDecoder *mocks.RuntimeDecoder
 	mockMemoryUtils    *mocks.MemoryTranslator
+	mdGenerator        = primitives.NewMetadataTypeGenerator()
 )
 
 func Test_Module_Name(t *testing.T) {
@@ -192,6 +193,9 @@ func Test_Module_ExecuteBlock_ExecuteBlock_Panics(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
+	//runtimeVersionId, _ := target.mdGenerator.GetId("RuntimeVersion")
+	blockId, _ := target.mdGenerator.GetId("block")
+
 	expect := primitives.RuntimeApiMetadata{
 		Name: ApiModuleName,
 		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
@@ -206,7 +210,7 @@ func Test_Module_Metadata(t *testing.T) {
 				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 					primitives.RuntimeApiMethodParamMetadata{
 						Name: "block",
-						Type: sc.ToCompact(metadata.TypesBlock),
+						Type: sc.ToCompact(blockId),
 					},
 				},
 				Output: sc.ToCompact(metadata.TypesEmptyTuple),
@@ -235,7 +239,7 @@ func setup() Module {
 	mockRuntimeDecoder = new(mocks.RuntimeDecoder)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockExecutive, mockRuntimeDecoder, version, log.NewLogger())
+	target := New(mockExecutive, mockRuntimeDecoder, version, mdGenerator, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

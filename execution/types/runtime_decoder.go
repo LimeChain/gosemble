@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/log"
@@ -116,6 +117,8 @@ func (rd runtimeDecoder) DecodeCall(buffer *bytes.Buffer) (primitives.Call, erro
 	if err != nil {
 		return nil, err
 	}
+
+	log.NewLogger().Info("Modules len: " + strconv.Itoa(len(rd.modules)))
 
 	function, ok := module.Functions()[functionIndex]
 	if !ok {

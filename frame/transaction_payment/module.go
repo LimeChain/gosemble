@@ -1,10 +1,13 @@
 package transaction_payment
 
 import (
+	"strconv"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/frame/transaction_payment/types"
 	"github.com/LimeChain/gosemble/hooks"
+	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
@@ -95,6 +98,10 @@ func (m module) Metadata() primitives.MetadataModule {
 }
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
+	typesWeightId, _ := m.mdGenerator.GetId("Weight")
+
+	log.NewLogger().Info("Weight in TxPaymentModule: " + strconv.Itoa(typesWeightId))
+
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -125,12 +132,12 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesTransactionPaymentRuntimeDispatchInfo, "pallet_transaction_payment types RuntimeDispatchInfo", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "RuntimeDispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(typesWeightId, "Weight"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesDispatchClass, "Class"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
-				primitives.NewMetadataTypeParameter(metadata.TypesWeight, "Weight"),
+				primitives.NewMetadataTypeParameter(typesWeightId, "Weight"),
 			}),
 
 		// type 910

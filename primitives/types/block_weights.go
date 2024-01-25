@@ -12,7 +12,7 @@ type BlockWeights struct {
 	// Maximal total weight consumed by all kinds of extrinsics (without `reserved` space).
 	MaxBlock Weight
 	// Weight limits for extrinsics of given dispatch class.
-	PerClass PerDispatchClass[WeightsPerClass]
+	PerClass PerDispatchClassWeightsPerClass
 }
 
 func (bw BlockWeights) Encode(buffer *bytes.Buffer) error {

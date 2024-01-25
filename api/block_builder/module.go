@@ -31,15 +31,17 @@ type Module struct {
 	executive        executive.Module
 	decoder          types.RuntimeDecoder
 	memUtils         utils.WasmMemoryTranslator
+	mdGenerator      *primitives.MetadataTypeGenerator
 	logger           log.Logger
 }
 
-func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module, decoder types.RuntimeDecoder, mdGenerator *primitives.MetadataTypeGenerator, logger log.Logger) Module {
 	return Module{
 		runtimeExtrinsic: runtimeExtrinsic,
 		executive:        executive,
 		decoder:          decoder,
 		memUtils:         utils.NewMemoryTranslator(),
+		mdGenerator:      mdGenerator,
 		logger:           logger,
 	}
 }
@@ -160,6 +162,8 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 }
 
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	blockId, _ := m.mdGenerator.GetId("block")
+
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
 			Name: "apply_extrinsic",
@@ -197,7 +201,7 @@ func (m Module) Metadata() primitives.RuntimeApiMetadata {
 			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 				primitives.RuntimeApiMethodParamMetadata{
 					Name: "block",
-					Type: sc.ToCompact(metadata.TypesBlock),
+					Type: sc.ToCompact(blockId),
 				},
 				primitives.RuntimeApiMethodParamMetadata{
 					Name: "data",

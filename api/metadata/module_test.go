@@ -180,13 +180,21 @@ func Test_Module_Metadata_Versions(t *testing.T) {
 func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 	target := setup()
 
-	metadataTypes := getAllMetadataTypes(&target)
-
 	version14 := sc.U32(primitives.MetadataVersion14)
 
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version14.Bytes())
 
+	runtimeTypes := target.runtimeTypes()
+
 	mockRuntimeExtrinsic.On("Metadata").Return(mdModules14, mdExtrinsic)
+
+	metadataTypes := append(primitiveTypes(), target.basicTypes()...)
+
+	metadataTypes = append(metadataTypes, runtimeTypes...)
+
+	generatorTypes := mdGenerator.GetMetadataTypes()
+
+	metadataTypes = append(metadataTypes, generatorTypes...)
 
 	metadataV14 := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -213,7 +221,7 @@ func Test_Module_Metadata_AtVersion_14(t *testing.T) {
 func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	target := setup()
 
-	metadataTypes := getAllMetadataTypes(&target)
+	runtimeTypes := target.runtimeTypes()
 
 	version15 := sc.U32(primitives.MetadataVersion15)
 
@@ -230,6 +238,14 @@ func Test_Module_Metadata_AtVersion_15(t *testing.T) {
 	mockMemoryUtils.On("GetWasmMemorySlice", dataPtr, dataLen).Return(version15.Bytes())
 
 	mockRuntimeExtrinsic.On("MetadataLatest").Return(mdModules15, mdExtrinsic15, outerEnums, custom)
+
+	metadataTypes := append(primitiveTypes(), target.basicTypes()...)
+
+	metadataTypes = append(metadataTypes, runtimeTypes...)
+
+	generatorTypes := mdGenerator.GetMetadataTypes()
+
+	metadataTypes = append(metadataTypes, generatorTypes...)
 
 	metadataV15 := primitives.RuntimeMetadataV15{
 		Types:      metadataTypes,
@@ -301,7 +317,7 @@ func setup() Module {
 }
 
 func getAllMetadataTypes(target *Module) sc.Sequence[primitives.MetadataType] {
-	metadataTypes := append(primitiveTypes(), basicTypes()...)
+	metadataTypes := append(primitiveTypes(), target.basicTypes()...)
 
 	metadataTypes = append(metadataTypes, target.runtimeTypes()...)
 

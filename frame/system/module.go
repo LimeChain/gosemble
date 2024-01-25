@@ -610,9 +610,10 @@ func (m module) Metadata() primitives.MetadataModule {
 	weightPerClassMetadataId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
 
 	typesWeightId, _ := m.mdGenerator.GetId("Weight")
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.Weight]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(typesWeightId, "T")})
 
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[primitives.WeightsPerClass]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(weightPerClassMetadataId, "T")})
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeight{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(typesWeightId, "T")})
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(weightPerClassMetadataId, "T")})
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockWeights{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, nil, nil)
 
@@ -635,11 +636,17 @@ func (m module) Metadata() primitives.MetadataModule {
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.TransactionValidityResult{}), &sc.Sequence[sc.Str]{"Result"}, new(primitives.TransactionValidityResult).MetadataDefinition(validTransactionMdId, validityErrorMdId), nil)
 
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClass[sc.U32]{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T")})
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassU32{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T")})
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockLength{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"}, nil, nil)
 
 	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
+
+	//log.NewLogger().Info("Check MapIds: \n")
+	//
+	//for k, v := range m.mdGenerator.GetIdsMap() {
+	//	log.NewLogger().Info(k + ":" + strconv.Itoa(v))
+	//}
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -762,7 +769,14 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 }
 
 func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
+	//log.NewLogger().Info("\n")
 	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
+	//log.NewLogger().Info("TypesPhase in System: " + strconv.Itoa(typesPhaseId) + "\n")
+	perDispatchClassWeightId, _ := m.mdGenerator.GetId("PerDispatchClassWeight")
+	//log.NewLogger().Info("PerDispatchClassWeight in System: " + strconv.Itoa(perDispatchClassWeightId) + "\n")
+
+	lastRuntimeUpgradeInfoId, _ := m.mdGenerator.GetId("LastRuntimeUpgradeInfo")
+	//.NewLogger().Info("LastRuntimeUpgradeInfo in System: " + strconv.Itoa(lastRuntimeUpgradeInfoId))
 
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
@@ -785,7 +799,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"BlockWeight",
 				primitives.MetadataModuleStorageEntryModifierDefault,
 				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.TypesPerDispatchClassWeight)),
+					sc.ToCompact(perDispatchClassWeightId)),
 				"The current weight for the block."),
 			primitives.NewMetadataModuleStorageEntry(
 				"AllExtrinsicsLen",
@@ -848,7 +862,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 			primitives.NewMetadataModuleStorageEntry(
 				"LastRuntimeUpgrade",
 				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesLastRuntimeUpgradeInfo)),
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(lastRuntimeUpgradeInfoId)),
 				"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
 			primitives.NewMetadataModuleStorageEntry(
 				"ExecutionPhase",

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"strconv"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -32,6 +33,7 @@ var (
 	mockRuntimeDecoder   *mocks.RuntimeDecoder
 	mockRuntimeExtrinsic *mocks.RuntimeExtrinsic
 	mockMemoryUtils      *mocks.MemoryTranslator
+	mdGenerator          = primitives.NewMetadataTypeGenerator()
 )
 
 func Test_Module_Name(t *testing.T) {
@@ -350,6 +352,10 @@ func Test_Module_CheckInherents_CheckInherents_Panics(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
+	blockId, _ := target.mdGenerator.GetId("block")
+
+	log.NewLogger().Info("BlockId in Api/BlockBuilder: " + strconv.Itoa(blockId))
+
 	expect := primitives.RuntimeApiMetadata{
 		Name: ApiModuleName,
 		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
@@ -389,7 +395,7 @@ func Test_Module_Metadata(t *testing.T) {
 				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 					primitives.RuntimeApiMethodParamMetadata{
 						Name: "block",
-						Type: sc.ToCompact(metadata.TypesBlock),
+						Type: sc.ToCompact(blockId),
 					},
 					primitives.RuntimeApiMethodParamMetadata{
 						Name: "data",
@@ -412,7 +418,7 @@ func setup() Module {
 	mockRuntimeExtrinsic = new(mocks.RuntimeExtrinsic)
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 
-	target := New(mockRuntimeExtrinsic, mockExecutive, mockRuntimeDecoder, log.NewLogger())
+	target := New(mockRuntimeExtrinsic, mockExecutive, mockRuntimeDecoder, mdGenerator, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

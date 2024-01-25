@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"bytes"
+	"strconv"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
@@ -76,15 +77,23 @@ func (m Module) Metadata() int64 {
 
 // TODO: logic is very similar to MetadataAtVersion (for v14). Should be refactored at some point
 func (m Module) buildMetadata() primitives.Metadata {
-	metadataTypes := append(primitiveTypes(), basicTypes()...)
-
-	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
-
 	modules, extrinsic := m.runtimeExtrinsic.Metadata()
 
+	metadataTypes := append(primitiveTypes(), m.basicTypes()...)
+	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
+
 	mdTypes := m.generator.GetMetadataTypes()
+
 	// append types to all
 	metadataTypes = append(metadataTypes, mdTypes...)
+
+	log.NewLogger().Info("Total Len metadata: " + strconv.Itoa(len(metadataTypes)))
+
+	log.NewLogger().Info("MetadataTypes: \n")
+
+	for _, t := range metadataTypes {
+		log.NewLogger().Info("ID: " + strconv.Itoa(int(t.Id.Number.ToBigInt().Int64())) + " , Type: " + string(t.Docs[0]))
+	}
 
 	runtimeV14Metadata := primitives.RuntimeMetadataV14{
 		Types:     metadataTypes,
@@ -111,13 +120,11 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		m.logger.Critical(err.Error())
 	}
 
-	metadataTypes := append(primitiveTypes(), basicTypes()...)
-
-	metadataTypes = append(metadataTypes, m.runtimeTypes()...)
-
 	switch version {
 	case sc.U32(primitives.MetadataVersion14):
 		modules, extrinsicV14 := m.runtimeExtrinsic.Metadata()
+		metadataTypes := append(primitiveTypes(), m.basicTypes()...)
+		metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 		types := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, types...)
 		metadataV14 := primitives.RuntimeMetadataV14{
@@ -134,6 +141,8 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 		return m.memUtils.BytesToOffsetAndSize(optionMd.Bytes())
 	case sc.U32(primitives.MetadataVersion15):
 		modulesV15, extrinsicV15, outerEnums, custom := m.runtimeExtrinsic.MetadataLatest()
+		metadataTypes := append(primitiveTypes(), m.basicTypes()...)
+		metadataTypes = append(metadataTypes, m.runtimeTypes()...)
 		typesV15 := m.generator.GetMetadataTypes()
 		metadataTypes = append(metadataTypes, typesV15...)
 		metadataV15 := primitives.RuntimeMetadataV15{
@@ -234,7 +243,15 @@ func primitiveTypes() sc.Sequence[primitives.MetadataType] {
 	}
 }
 
-func basicTypes() sc.Sequence[primitives.MetadataType] {
+func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
+	typesWeightId, _ := m.generator.GetId("Weight")
+	typesCompactU32, _ := m.generator.GetId("CompactU32")
+	txValidityError, _ := m.generator.GetId("TransactionValidityError")
+
+	log.NewLogger().Info("WeightId in MdModule: " + strconv.Itoa(typesWeightId))
+	log.NewLogger().Info("CompactU32 in MdModule: " + strconv.Itoa(typesCompactU32))
+	log.NewLogger().Info("TxValidityError in MdModule: " + strconv.Itoa(txValidityError))
+
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesFixedSequence4U8, "[4]byte", primitives.NewMetadataTypeDefinitionFixedSequence(4, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesFixedSequence8U8, "[8]byte", primitives.NewMetadataTypeDefinitionFixedSequence(8, sc.ToCompact(metadata.PrimitiveTypesU8))),
@@ -244,8 +261,8 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 		primitives.NewMetadataType(metadata.TypesFixedSequence65U8, "[65]byte", primitives.NewMetadataTypeDefinitionFixedSequence(65, sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesSequenceU8, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU8))),
 		primitives.NewMetadataType(metadata.TypesSequenceU32, "[]uint32", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		primitives.NewMetadataType(metadata.TypesCompactU32, "CompactU32", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
-		primitives.NewMetadataType(metadata.TypesCompactU128, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
+		//primitives.NewMetadataType(metadata.TypesCompactU32, "CompactU32", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU32))),
+		//primitives.NewMetadataType(metadata.TypesCompactU128, "CompactU128", primitives.NewMetadataTypeDefinitionCompact(sc.ToCompact(metadata.PrimitiveTypesU128))),
 
 		primitives.NewMetadataType(metadata.TypesFixedU128, "FixedU128", primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
@@ -343,7 +360,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Index",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU32, "AccountIndex"),
+						primitives.NewMetadataTypeDefinitionFieldWithName(typesCompactU32, "AccountIndex"),
 					},
 					primitives.MultiAddressIndex,
 					"MultiAddress.Index"),
@@ -400,7 +417,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesDispatchInfo, "DispatchInfo", sc.Sequence[sc.Str]{"frame_support", "dispatch", "DispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "weight", "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithNames(typesWeightId, "weight", "Weight"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesDispatchClass, "class", "DispatchClass"),
 				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPays, "pays_fee", "Pays"),
 			},
@@ -643,7 +660,7 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "Hash::Output"), // parent_hash
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesCompactU32, "Number"), // number
+					primitives.NewMetadataTypeDefinitionFieldWithName(typesCompactU32, "Number"),          // number
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "Hash::Output"), // state_root
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesH256, "Hash::Output"), // extrinsics_root
 					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesDigest, "Digest"),     // digest
@@ -713,13 +730,13 @@ func basicTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataDefinitionVariant(
 					"Err",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
+						primitives.NewMetadataTypeDefinitionField(txValidityError),
 					},
 					resultErrIdx, ""),
 			}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.TypesResultEmptyTuple, "T"),
-				primitives.NewMetadataTypeParameter(metadata.TypesTransactionValidityError, "E"),
+				primitives.NewMetadataTypeParameter(txValidityError, "E"),
 			}),
 		primitives.NewMetadataType(metadata.TypesSequenceUncheckedExtrinsics, "[]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.UncheckedExtrinsic))),
 		//type 876
