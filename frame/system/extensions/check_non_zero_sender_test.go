@@ -53,6 +53,17 @@ func Test_CheckNonZeroAddress_Bytes(t *testing.T) {
 	assert.Equal(t, []byte(nil), result)
 }
 
+func Test_CheckNonZeroAddress_DeepCopy(t *testing.T) {
+	target := setupCheckNonZeroSender()
+
+	result := target.DeepCopy()
+
+	assert.Equal(t, &target, result)
+
+	target.typesInfoAdditionalSignedData = nil
+	assert.NotEqual(t, &target, result)
+}
+
 func Test_CheckNonZeroAddress_Validate_Success(t *testing.T) {
 	target := setupCheckNonZeroSender()
 

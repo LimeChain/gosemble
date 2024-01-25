@@ -36,6 +36,14 @@ func (cm CheckMortality) Bytes() []byte {
 	return sc.EncodedBytes(cm)
 }
 
+func (cm CheckMortality) DeepCopy() primitives.SignedExtension {
+	return &CheckMortality{
+		era:                           cm.era,
+		systemModule:                  cm.systemModule,
+		typesInfoAdditionalSignedData: cm.typesInfoAdditionalSignedData,
+	}
+}
+
 func (cm CheckMortality) AdditionalSigned() (primitives.AdditionalSigned, error) {
 	current, err := cm.systemModule.StorageBlockNumber()
 	if err != nil {

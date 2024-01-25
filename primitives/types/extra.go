@@ -13,6 +13,7 @@ type SignedExtra interface {
 	sc.Encodable
 
 	Decode(buffer *bytes.Buffer)
+	DeepCopy() SignedExtra
 
 	AdditionalSigned() (AdditionalSigned, error)
 	Validate(who AccountId, call Call, info *DispatchInfo, length sc.Compact) (ValidTransaction, error)
@@ -54,6 +55,18 @@ func (e signedExtra) Bytes() []byte {
 func (e signedExtra) Decode(buffer *bytes.Buffer) {
 	for _, extra := range e.extras {
 		extra.Decode(buffer)
+	}
+}
+
+func (e signedExtra) DeepCopy() SignedExtra {
+	var extras []SignedExtension
+	for _, extra := range e.extras {
+		extras = append(extras, extra.DeepCopy())
+	}
+
+	return signedExtra{
+		extras:      extras,
+		mdGenerator: e.mdGenerator,
 	}
 }
 

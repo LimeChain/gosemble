@@ -33,6 +33,12 @@ func (c CheckNonZeroAddress) Bytes() []byte {
 	return sc.EncodedBytes(c)
 }
 
+func (cn CheckNonZeroAddress) DeepCopy() primitives.SignedExtension {
+	return &CheckNonZeroAddress{
+		typesInfoAdditionalSignedData: cn.typesInfoAdditionalSignedData,
+	}
+}
+
 func (c CheckNonZeroAddress) Validate(who primitives.AccountId, _call primitives.Call, _info *primitives.DispatchInfo, _length sc.Compact) (primitives.ValidTransaction, error) {
 	if reflect.DeepEqual(who, constants.ZeroAccountId) {
 		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadSigner())

@@ -47,6 +47,16 @@ func (e *testExtraCheckComplex) Decode(buffer *bytes.Buffer) error {
 	return nil
 }
 
+func (e *testExtraCheckComplex) DeepCopy() SignedExtension {
+	return &testExtraCheckComplex{
+		module:                        e.module,
+		era:                           e.era,
+		hash:                          e.hash,
+		value:                         e.value,
+		typesInfoAdditionalSignedData: e.typesInfoAdditionalSignedData,
+	}
+}
+
 func (e testExtraCheckComplex) AdditionalSigned() (AdditionalSigned, error) {
 	return sc.NewVaryingData(H256{}, sc.U32(0), sc.U64(0), H512{}, Ed25519PublicKey{}), nil
 }

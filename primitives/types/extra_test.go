@@ -144,6 +144,13 @@ func Test_SignedExtra_Decode(t *testing.T) {
 	assert.Equal(t, signedExtra{extras: extraChecksWithOk, mdGenerator: mdGenerator}, targetSignedExtraOk)
 }
 
+func Test_SignedExtra_DeepCopy(t *testing.T) {
+	target := NewSignedExtra(extraChecks, mdGenerator)
+
+	result := target.DeepCopy()
+	assert.Equal(t, result, target)
+}
+
 func Test_SignedExtra_AdditionalSigned_Ok(t *testing.T) {
 	result, err := targetSignedExtraOk.AdditionalSigned()
 

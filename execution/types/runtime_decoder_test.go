@@ -92,6 +92,7 @@ func Test_RuntimeDecoder_DecodeBlock_Single_Extrinsic(t *testing.T) {
 
 	decodeBlockBuff := bytes.NewBuffer(decodeBlockBytes)
 
+	mockSignedExtra.On("DeepCopy").Return(mockSignedExtra)
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
@@ -142,6 +143,7 @@ func Test_RuntimeDecoder_DecodeBlock_Multiple_Extrinsics(t *testing.T) {
 
 	buff := bytes.NewBuffer(decodeBlockBytes)
 
+	mockSignedExtra.On("DeepCopy").Return(mockSignedExtra)
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockSignedExtra.On("Decode", mock.Anything).Return()
 	mockModuleOne.On("Functions").Return(moduleFunctions)
@@ -185,6 +187,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Unsigned(t *testing.T) {
 
 	buff := bytes.NewBuffer(unsignedExtrBytes)
 
+	mockSignedExtra.On("DeepCopy").Return(mockSignedExtra)
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
@@ -214,6 +217,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_Signed(t *testing.T) {
 
 	moduleFunctions[0] = mockCallOne
 
+	mockSignedExtra.On("DeepCopy").Return(mockSignedExtra)
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
@@ -261,6 +265,7 @@ func Test_RuntimeDecoder_DecodeUncheckedExtrinsic_InvalidLengthPrefix(t *testing
 
 	moduleFunctions[0] = mockCallOne
 
+	mockSignedExtra.On("DeepCopy").Return(mockSignedExtra)
 	mockModuleOne.On("GetIndex").Return(moduleOneIdx)
 	mockModuleOne.On("Functions").Return(moduleFunctions)
 	mockCallOne.On("DecodeArgs", buff).Return(mockCallOne, nil)
