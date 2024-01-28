@@ -25,10 +25,6 @@ type Locator interface {
 	Path() sc.Sequence[sc.Str]
 }
 
-type GenericMetadata interface {
-	GetMetadata(typeId int, generator *MetadataTypeGenerator) MetadataType
-}
-
 type MetadataTypeDefinition struct {
 	sc.VaryingData
 }

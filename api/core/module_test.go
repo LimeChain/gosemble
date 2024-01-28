@@ -193,7 +193,6 @@ func Test_Module_ExecuteBlock_ExecuteBlock_Panics(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
-	//runtimeVersionId, _ := target.mdGenerator.GetId("RuntimeVersion")
 	blockId, _ := target.mdGenerator.GetId("block")
 
 	expect := primitives.RuntimeApiMetadata{

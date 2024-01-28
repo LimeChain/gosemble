@@ -102,15 +102,6 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 	if ok {
 		return typeId
 	}
-	if v.CanInterface() {
-		md, ok := v.Interface().(GenericMetadata)
-		if ok {
-			typeId = g.assignNewMetadataId(typeName)
-			mdType := md.GetMetadata(typeId, g)
-			g.metadataTypes = append(g.metadataTypes, mdType)
-			return typeId
-		}
-	}
 	switch valueType.Kind() {
 	case reflect.Struct:
 		typeId, ok = g.isCompactVariation(v)
@@ -269,14 +260,6 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 	}
 
 	return constants
-}
-
-// AddIdToMap only used for testing purposes
-func (g *MetadataTypeGenerator) AddIdToMap(name string) int {
-	g.lastAvailableIndex = g.lastAvailableIndex + 1
-	newId := g.lastAvailableIndex
-	g.metadataIds[name] = newId
-	return newId
 }
 
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
