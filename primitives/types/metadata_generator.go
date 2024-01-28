@@ -125,13 +125,6 @@ func (g *MetadataTypeGenerator) BuildMetadataTypeRecursively(v reflect.Value, pa
 		}
 		if path != nil {
 			metadataTypePath = *path
-		} else {
-			if v.CanInterface() {
-				locatorValue, ok := v.Interface().(Locator)
-				if ok {
-					metadataTypePath = locatorValue.Path()
-				}
-			}
 		}
 		if params != nil {
 			metadataTypeParams = *params
