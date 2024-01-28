@@ -95,8 +95,6 @@ func (m module) Metadata() primitives.MetadataModule {
 }
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	typesWeightId, _ := m.mdGenerator.GetId("Weight")
-
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
@@ -127,12 +125,12 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesTransactionPaymentRuntimeDispatchInfo, "pallet_transaction_payment types RuntimeDispatchInfo", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "RuntimeDispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(typesWeightId, "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Weight"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesDispatchClass, "Class"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
-				primitives.NewMetadataTypeParameter(typesWeightId, "Weight"),
+				primitives.NewMetadataTypeParameter(metadata.TypesWeight, "Weight"),
 			}),
 
 		// type 910

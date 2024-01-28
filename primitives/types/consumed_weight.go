@@ -10,7 +10,7 @@ import (
 type ConsumedWeight PerDispatchClassWeight
 
 func (cw ConsumedWeight) Encode(buffer *bytes.Buffer) error {
-	return PerDispatchClass[Weight](cw).Encode(buffer)
+	return PerDispatchClassWeight(cw).Encode(buffer)
 }
 
 func DecodeConsumedWeight(buffer *bytes.Buffer) (ConsumedWeight, error) {

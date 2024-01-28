@@ -15,35 +15,6 @@ type PerDispatchClassU32 struct {
 	Mandatory sc.U32
 }
 
-func (pw PerDispatchClassU32) GetMetadata(typeId int, generator *MetadataTypeGenerator) MetadataType {
-	typesU32Id, _ := generator.GetId("U32")
-
-	return NewMetadataTypeWithPath(typeId,
-		"PerDispatchClass[U32]",
-		sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"},
-		NewMetadataTypeDefinitionComposite(
-			sc.Sequence[MetadataTypeDefinitionField]{
-				NewMetadataTypeDefinitionFieldWithName(typesU32Id, "normal"),
-				NewMetadataTypeDefinitionFieldWithName(typesU32Id, "operational"),
-				NewMetadataTypeDefinitionFieldWithName(typesU32Id, "mandatory"),
-			},
-		),
-	)
-
-	//return NewMetadataTypeWithParam(typeId,
-	//	"PerDispatchClass[U32]",
-	//	sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"},
-	//	NewMetadataTypeDefinitionComposite(
-	//		sc.Sequence[MetadataTypeDefinitionField]{
-	//			NewMetadataTypeDefinitionFieldWithNames(typesU32Id, "normal", "T"),
-	//			NewMetadataTypeDefinitionFieldWithNames(typesU32Id, "operational", "T"),
-	//			NewMetadataTypeDefinitionFieldWithNames(typesU32Id, "mandatory", "T"),
-	//		},
-	//	),
-	//	NewMetadataTypeParameter(typesU32Id, "T"),
-	//)
-}
-
 func (pdc PerDispatchClassU32) Encode(buffer *bytes.Buffer) error {
 	return sc.EncodeEach(buffer,
 		pdc.Normal,

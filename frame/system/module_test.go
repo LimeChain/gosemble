@@ -1297,8 +1297,6 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
-	// expectedRuntimeVersionId := mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.RuntimeVersion{}), &sc.Sequence[sc.Str]{"sp_version", "RuntimeVersion"}, nil, nil)
-
 	expectedSystemCallId := mdGenerator.GetLastAvailableIndex() + 1
 
 	expectedSystemErrorsId := expectedSystemCallId + 1
@@ -1307,13 +1305,11 @@ func Test_Module_Metadata(t *testing.T) {
 
 	expectedTypesBlockId := expectedTypesPhaseId + 1
 
-	expectedTypesWeightPerClassId := expectedTypesBlockId + 1 // 138
+	expectedTypesWeightPerClassId := expectedTypesBlockId + 1
 
-	expectedTypesWeightId := expectedTypesWeightPerClassId + 1 // 139
+	expectedTypesOptionWeightId := expectedTypesWeightPerClassId + 1
 
-	expectedTypesOptionWeightId := expectedTypesWeightId + 1 // 140
-
-	expectedPerDispatchClassWeightId := expectedTypesOptionWeightId + 1 // 141
+	expectedPerDispatchClassWeightId := expectedTypesOptionWeightId + 1
 
 	expectedPerDispatchClassWeightPerClassId := expectedPerDispatchClassWeightId + 1
 
@@ -1340,12 +1336,6 @@ func Test_Module_Metadata(t *testing.T) {
 	expectedPerDispatchClassU32Id := expectedTransactionValidityResultId + 1
 
 	expectedTypesBlockLengthId := expectedPerDispatchClassU32Id + 1
-
-	//expectedRuntimeVersionId := expectedTypesBlockLengthId + 1
-
-	//expectedApiItemId := expectedRuntimeVersionId + 1
-	//
-	//expectedSequenceApiItemId := expectedApiItemId + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataTypeWithParam(expectedSystemCallId,
@@ -1432,12 +1422,6 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 			},
 		),
-		primitives.NewMetadataTypeWithPath(expectedTypesWeightId, "Weight", sc.Sequence[sc.Str]{"sp_weights", "weight_v2", "Weight"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "RefTime"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "ProofSize"),
-			},
-		)),
 		primitives.NewMetadataTypeWithParam(expectedTypesOptionWeightId, "Option<Weight>", sc.Sequence[sc.Str]{"Option"}, primitives.NewMetadataTypeDefinitionVariant(
 			sc.Sequence[primitives.MetadataDefinitionVariant]{
 				primitives.NewMetadataDefinitionVariant(
@@ -1448,44 +1432,44 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataDefinitionVariant(
 					"Some",
 					sc.Sequence[primitives.MetadataTypeDefinitionField]{
-						primitives.NewMetadataTypeDefinitionField(expectedTypesWeightId),
+						primitives.NewMetadataTypeDefinitionField(metadata.TypesWeight),
 					},
 					1,
 					"Option<Weight>(value)"),
 			}),
-			primitives.NewMetadataTypeParameter(expectedTypesWeightId, "T"),
+			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
 		),
 		primitives.NewMetadataTypeWithPath(expectedTypesWeightPerClassId, "WeightsPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "BaseExtrinsic"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "BaseExtrinsic"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "MaxExtrinsic"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "MaxTotal"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesOptionWeightId, "Reserved"),
 			})),
-		primitives.NewMetadataTypeWithPath(expectedPerDispatchClassWeightId, "PerDispatchClass[Weight]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataTypeWithPath(expectedPerDispatchClassWeightId, "PerDispatchClassWeight", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "normal"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "operational"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "mandatory"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Normal"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Operational"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Mandatory"),
 			})),
-		primitives.NewMetadataTypeWithPath(expectedPerDispatchClassWeightPerClassId, "PerDispatchClass[WeightPerClass]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
+		primitives.NewMetadataTypeWithPath(expectedPerDispatchClassWeightPerClassId, "PerDispatchClassWeightsPerClass", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "normal"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "operational"),
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "mandatory"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "Normal"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "Operational"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightPerClassId, "Mandatory"),
 			})),
 		primitives.NewMetadataTypeWithPath(expectedTypesBlockWeightsId,
 			"BlockWeights",
 			sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "BaseBlock"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(expectedTypesWeightId, "MaxBlock"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "BaseBlock"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "MaxBlock"),
 					primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassWeightPerClassId, "PerClass"),
 				})),
 		primitives.NewMetadataTypeWithPath(expectedTypesDbWeightId, "RuntimeDbWeight", sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Read"),  // read
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Write"), // write
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Read"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "Write"),
 			})),
 
 		primitives.NewMetadataTypeWithPath(expectedTypesValidTransactionId, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
@@ -1650,13 +1634,13 @@ func Test_Module_Metadata(t *testing.T) {
 						""),
 				})),
 		primitives.NewMetadataTypeWithPath(expectedPerDispatchClassU32Id,
-			"PerDispatchClass[U32]",
+			"PerDispatchClassU32",
 			sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"},
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "normal"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "operational"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "mandatory"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "Normal"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "Operational"),
+					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU32, "Mandatory"),
 				},
 			),
 		),
@@ -1664,7 +1648,7 @@ func Test_Module_Metadata(t *testing.T) {
 			"BlockLength",
 			sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"},
 			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"), // max
+				primitives.NewMetadataTypeDefinitionFieldWithName(expectedPerDispatchClassU32Id, "Max"),
 			})),
 
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,

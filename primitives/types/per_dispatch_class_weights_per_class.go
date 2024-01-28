@@ -15,25 +15,6 @@ type PerDispatchClassWeightsPerClass struct {
 	Mandatory WeightsPerClass
 }
 
-func (pdc PerDispatchClassWeightsPerClass) GetMetadata(typeId int, generator *MetadataTypeGenerator) MetadataType {
-	typesWeightsPerClassId, _ := generator.GetId("WeightsPerClass")
-
-	return NewMetadataTypeWithPath(typeId, "PerDispatchClass[WeightPerClass]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, NewMetadataTypeDefinitionComposite(
-		sc.Sequence[MetadataTypeDefinitionField]{
-			NewMetadataTypeDefinitionFieldWithName(typesWeightsPerClassId, "normal"),
-			NewMetadataTypeDefinitionFieldWithName(typesWeightsPerClassId, "operational"),
-			NewMetadataTypeDefinitionFieldWithName(typesWeightsPerClassId, "mandatory"),
-		}))
-
-	//return NewMetadataTypeWithParam(typeId, "PerDispatchClass[WeightPerClass]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, NewMetadataTypeDefinitionComposite(
-	//	sc.Sequence[MetadataTypeDefinitionField]{
-	//		NewMetadataTypeDefinitionFieldWithNames(typesWeightsPerClassId, "normal", "T"),
-	//		NewMetadataTypeDefinitionFieldWithNames(typesWeightsPerClassId, "operational", "T"),
-	//		NewMetadataTypeDefinitionFieldWithNames(typesWeightsPerClassId, "mandatory", "T"),
-	//	}),
-	//	NewMetadataTypeParameter(typesWeightsPerClassId, "T"))
-}
-
 func (pdc PerDispatchClassWeightsPerClass) Encode(buffer *bytes.Buffer) error {
 	return sc.EncodeEach(buffer,
 		pdc.Normal,

@@ -63,6 +63,7 @@ func BuildMetadataTypesIdsMap() map[string]int {
 		"SequenceUncheckedExtrinsic": metadata.TypesSequenceUncheckedExtrinsics,
 		"SequenceSequenceU8":         metadata.TypesSequenceSequenceU8,
 		"RuntimeVersion":             metadata.TypesRuntimeVersion,
+		"Weight":                     metadata.TypesWeight,
 	}
 }
 
@@ -270,15 +271,15 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 	return constants
 }
 
-func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
+// AddIdToMap only used for testing purposes
+func (g *MetadataTypeGenerator) AddIdToMap(name string) int {
 	g.lastAvailableIndex = g.lastAvailableIndex + 1
 	newId := g.lastAvailableIndex
 	g.metadataIds[name] = newId
 	return newId
 }
 
-// AddIdToMap only used for testing purposes
-func (g *MetadataTypeGenerator) AddIdToMap(name string) int {
+func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
 	g.lastAvailableIndex = g.lastAvailableIndex + 1
 	newId := g.lastAvailableIndex
 	g.metadataIds[name] = newId
@@ -290,7 +291,7 @@ func (g *MetadataTypeGenerator) buildSequenceType(v reflect.Value, path *sc.Sequ
 	typeName := valueType.Name()
 	sequenceType := valueType.Elem().Name()
 	var typeId int
-	if sequenceType == encodableTypeName { // TransactionSource (alias for sc.VaryingData)
+	if sequenceType == encodableTypeName { // (all types that are new types for sc.VaryingData)
 		typeId = g.assignNewMetadataId(typeName)
 		newMetadataType := NewMetadataTypeWithParams(typeId, typeName, *path, *def, sc.Sequence[MetadataTypeParameter]{})
 		g.metadataTypes = append(g.metadataTypes, newMetadataType)

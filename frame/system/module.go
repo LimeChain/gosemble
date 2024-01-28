@@ -607,13 +607,11 @@ func (m module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 	})
 
-	weightPerClassMetadataId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
 
-	typesWeightId, _ := m.mdGenerator.GetId("Weight")
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeight{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
 
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeight{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(typesWeightId, "T")})
-
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(weightPerClassMetadataId, "T")})
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockWeights{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, nil, nil)
 
@@ -636,7 +634,7 @@ func (m module) Metadata() primitives.MetadataModule {
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.TransactionValidityResult{}), &sc.Sequence[sc.Str]{"Result"}, new(primitives.TransactionValidityResult).MetadataDefinition(validTransactionMdId, validityErrorMdId), nil)
 
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassU32{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU32, "T")})
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassU32{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockLength{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"}, nil, nil)
 

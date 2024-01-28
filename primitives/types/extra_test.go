@@ -14,8 +14,7 @@ import (
 var (
 	mdGenerator = NewMetadataTypeGenerator()
 
-	metadataIds = mdGenerator.GetIdsMap()
-	lastIndex   = mdGenerator.GetLastAvailableIndex()
+	lastIndex = mdGenerator.GetLastAvailableIndex()
 
 	mdGeneratorAll = NewMetadataTypeGenerator()
 
@@ -113,7 +112,6 @@ var (
 		extraCheckComplex,
 	}
 
-	targetSignedExtra     = NewSignedExtra(extraChecks, mdGenerator)
 	targetSignedExtraAll  = NewSignedExtra(extraChecks, mdGeneratorAll)
 	targetSignedExtraSome = NewSignedExtra(extraChecks, mdGeneratorSome)
 )
@@ -386,8 +384,7 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 	expectedCheckEraMetadataIdSome := lastIndexComplexChecksSome + 2
 	expectedEraMetadataIdSome := lastIndexComplexChecksSome + 3
 	expectedExtraCheckComplexIdSome := lastIndexComplexChecksSome + 4
-	expectedWeightIdSome := lastIndexComplexChecksSome + 5
-	expectedTupleAdditionalSignedMetadataIdSome := lastIndexComplexChecksSome + 6
+	expectedTupleAdditionalSignedMetadataIdSome := lastIndexComplexChecksSome + 5
 
 	testExtraCheckEmptyMetadataTypeSome := MetadataType{
 		Id:         sc.ToCompact(expectedEmptyCheckMetadataIdSome),
@@ -419,11 +416,6 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 		}),
 	)
 
-	weightMetadataTypeSome := NewMetadataType(expectedWeightIdSome, "Weight", NewMetadataTypeDefinitionComposite(sc.Sequence[MetadataTypeDefinitionField]{
-		NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "RefTime"),
-		NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "ProofSize"),
-	}))
-
 	tupleAdditionalSignedMetadataTypeSome := NewMetadataType(expectedTupleAdditionalSignedMetadataIdSome, "H256U32U64H512Ed25519PublicKeyWeight",
 		NewMetadataTypeDefinitionTuple(sc.Sequence[sc.Compact]{
 			sc.ToCompact(metadata.TypesH256),
@@ -431,7 +423,7 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 			sc.ToCompact(metadata.PrimitiveTypesU64),
 			sc.ToCompact(metadata.TypesFixedSequence64U8),
 			sc.ToCompact(metadata.TypesFixedSequence64U8),
-			sc.ToCompact(expectedWeightIdSome)}))
+			sc.ToCompact(metadata.TypesWeight)}))
 
 	testExtraCheckComplexMetadataTypeSome := MetadataType{
 		Id:     sc.ToCompact(expectedExtraCheckComplexIdSome),
@@ -460,7 +452,6 @@ func Test_SignedExtra_Metadata_Complex_Some(t *testing.T) {
 		eraMetadataTypeSome,
 		testExtraCheckEraMetadataTypeSome,
 		testExtraCheckComplexMetadataTypeSome,
-		weightMetadataTypeSome,
 		tupleAdditionalSignedMetadataTypeSome,
 		signedExtraMdTypeSome,
 	}
