@@ -24,10 +24,6 @@ var (
 	dataLen    = int32(1)
 	ptrAndSize = int64(5)
 
-	mdTypes = sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(1, "Test Metadata type", primitives.NewMetadataTypeDefinitionPrimitive(primitives.MetadataDefinitionPrimitiveBoolean)),
-	}
-
 	mdModules14 = sc.Sequence[primitives.MetadataModuleV14]{
 		primitives.MetadataModuleV14{
 			Name:      "Aura",

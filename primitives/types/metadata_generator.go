@@ -6,6 +6,7 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
+	"github.com/iancoleman/strcase"
 )
 
 const (
@@ -262,6 +263,17 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 	return constants
 }
 
+// BuildExtraMetadata generates the metadata for a signed extension. Returns the metadata id for the extra
+func (g *MetadataTypeGenerator) BuildExtraMetadata(extraValue reflect.Value, extensions *sc.Sequence[MetadataSignedExtension]) int {
+	extra := extraValue.Interface().(SignedExtension)
+
+	extraTypeName := extraValue.Elem().Type().Name()
+	extraMetadataId := g.BuildMetadataTypeRecursively(extraValue.Elem(), &sc.Sequence[sc.Str]{sc.Str(extra.ModulePath()), "extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)}, nil, nil)
+	g.constructSignedExtension(extraValue, extraMetadataId, extensions)
+
+	return extraMetadataId
+}
+
 func (g *MetadataTypeGenerator) assignNewMetadataId(name string) int {
 	g.lastAvailableIndex = g.lastAvailableIndex + 1
 	newId := g.lastAvailableIndex
@@ -376,6 +388,45 @@ func (g *MetadataTypeGenerator) isCompactVariation(v reflect.Value) (int, bool) 
 		}
 	}
 	return -1, false
+}
+
+// constructSignedExtension Iterates through the elements of the typesInfoAdditionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
+func (g *MetadataTypeGenerator) constructSignedExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension]) {
+	var resultTypeName string
+	var resultTupleIds sc.Sequence[sc.Compact]
+
+	extraType := extra.Elem().Type
+	extraName := extraType().Name()
+
+	additionalSignedField := extra.Elem().FieldByName(additionalSignedTypeName)
+
+	if additionalSignedField.IsValid() {
+		numAdditionalSignedTypes := additionalSignedField.Len()
+		if numAdditionalSignedTypes == 0 {
+			*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, metadata.TypesEmptyTuple))
+			return
+		}
+		for i := 0; i < numAdditionalSignedTypes; i++ {
+			currentType := additionalSignedField.Index(i).Elem()
+			currentTypeName := currentType.Type().Name()
+			currentTypeId, ok := g.GetId(currentTypeName)
+			if !ok {
+				currentTypeId = g.BuildMetadataTypeRecursively(currentType, nil, nil, nil)
+			}
+			resultTypeName = resultTypeName + currentTypeName
+			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
+		}
+		resultTypeId, ok := g.GetId(resultTypeName)
+		if !ok {
+			resultTypeId = g.assignNewMetadataId(resultTypeName)
+			g.metadataTypes = append(g.metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
+		}
+		*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, resultTypeId))
+	}
+}
+
+func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact]) MetadataType {
+	return NewMetadataType(typeId, typeName, NewMetadataTypeDefinitionTuple(tupleIds))
 }
 
 func optionTypeDefinition(typeName string, typeParameterId int) MetadataTypeDefinition {
