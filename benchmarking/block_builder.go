@@ -50,6 +50,7 @@ func (bb *BlockBuilder) StartSimulation(blockNumber uint) error {
 	return nil
 }
 
+// ApplyInherentExtrinsics converts the inherent data to extrinsics and adds them to the simulated block.
 func (bb *BlockBuilder) ApplyInherentExtrinsics() error {
 	inherentExt, err := bb.instance.runtime.InherentExtrinsics(bb.inherentData)
 	if err != nil {

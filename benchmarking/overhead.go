@@ -67,7 +67,7 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) Ove
 		b.Fatal(err)
 	}
 
-	// Create the stats
+	// Create the Empty block stats
 	baseStats, err := NewOverheadStats(baseResults)
 	if err != nil {
 		b.Fatal(err)
@@ -87,13 +87,16 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) Ove
 	}
 
 	for i, extrinsicResult := range extrinsicResults {
+		// Subtract the base stats
 		extrinsicResult = math.Max(extrinsicResult-baseStats.Mean, 0)
 
+		// Divide by the total extrinsics
 		extrinsicResult = math.Ceil(extrinsicResult / float64(totalExtrinsics))
 
 		extrinsicResults[i] = extrinsicResult
 	}
 
+	// Create the stats
 	stats, err := NewOverheadStats(extrinsicResults)
 	if err != nil {
 		b.Fatal(err)
