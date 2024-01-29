@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
+	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -16,6 +18,7 @@ import (
 	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
+	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/types/codec"
 )
@@ -25,9 +28,14 @@ var (
 )
 
 var (
+	blockNumber = uint(1)
+	dateTime    = uint64(time.Date(2023, time.January, 2, 3, 4, 5, 6, time.UTC).UnixMilli())
+	parentHash  = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
+)
+
+var (
 	keySystemHash, _  = common.Twox128Hash([]byte("System"))
 	keyAccountHash, _ = common.Twox128Hash([]byte("Account"))
-	parentHash        = common.MustHexToHash("0x0f6d3477739f8a65886135f58c83ff7c2d4a8300a010dfc8b4c5d65ba37920bb")
 )
 
 type Instance struct {
@@ -35,6 +43,7 @@ type Instance struct {
 	runtime         *wazero_runtime.Instance
 	metadata        *ctypes.Metadata
 	storage         *runtime.Storage
+	version         runtime.Version
 	benchmarkResult *benchmarking.BenchmarkResult
 	repeats         int
 }
@@ -56,10 +65,16 @@ func newBenchmarkingInstance(runtime *wazero_runtime.Instance, repeats int) (*In
 		return nil, fmt.Errorf("failed to decode metadata: %v", err)
 	}
 
+	version, err := runtime.Version()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get version: %v", err)
+	}
+
 	return &Instance{
 		runtime:  runtime,
 		metadata: metadata,
 		storage:  &runtime.Context.Storage,
+		version:  version,
 		repeats:  repeats,
 	}, nil
 }
@@ -164,10 +179,66 @@ func (i *Instance) newExtrinsic(callName string, args []interface{}) (sc.Sequenc
 	return sc.BytesToSequenceU8(encodedExtrinsic.Bytes()), nil
 }
 
+func (i *Instance) newSignedExtrinsic(signer signature.KeyringPair, signatureOptions ctypes.SignatureOptions, callName string, args ...interface{}) ([]byte, error) {
+	// Create the call
+	call, err := ctypes.NewCall(i.metadata, callName, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new call: %v", err)
+	}
+
+	// Create the extrinsic
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	// Sign the extrinsic
+	err = extrinsic.Sign(signer, signatureOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	// Encode the extrinsic
+	encodedExtrinsic := bytes.Buffer{}
+	encoder := cscale.NewEncoder(&encodedExtrinsic)
+	if err := extrinsic.Encode(*encoder); err != nil {
+		return nil, err
+	}
+
+	return encodedExtrinsic.Bytes(), nil
+}
+
+func (i *Instance) BuildGenesisConfig() error {
+	genesisConfig := []byte("{\"system\":{},\"aura\":{\"authorities\":[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\"]},\"grandpa\":{\"authorities\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1]]},\"balances\":{\"balances\":[[\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",1000000000000000000]]},\"transactionPayment\":{\"multiplier\":\"2\"}}")
+
+	result, err := i.runtime.Exec("GenesisBuilder_build_config", sc.BytesToSequenceU8(genesisConfig).Bytes())
+	if err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual([]byte{0}, result) {
+		return fmt.Errorf("failed to build genesis config: [%v]", result)
+	}
+
+	return nil
+}
+
 func accountStorageKey(account []byte) []byte {
 	pubKey, _ := common.Blake2b128(account)
 	keyStorageAccount := append(keySystemHash, keyAccountHash...)
 	keyStorageAccount = append(keyStorageAccount, pubKey...)
 	keyStorageAccount = append(keyStorageAccount, account...)
 	return keyStorageAccount
+}
+
+func timestampInherentData(dateTime uint64) ([]byte, error) {
+	idata := gossamertypes.NewInherentData()
+	err := idata.SetInherent(gossamertypes.Timstap0, dateTime)
+	if err != nil {
+		return nil, err
+	}
+
+	ienc, err := idata.Encode()
+	if err != nil {
+		return nil, err
+	}
+
+	return ienc, err
 }
