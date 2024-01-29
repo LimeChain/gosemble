@@ -8,7 +8,7 @@ import (
 	"github.com/ChainSafe/gossamer/lib/trie"
 )
 
-func BenchmarkBlockExecutionWeight(t *testing.B) {
+func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 	config := OverheadConfig{
 		Warmup: 10,
 		Repeat: 100,
@@ -29,11 +29,11 @@ func BenchmarkBlockExecutionWeight(t *testing.B) {
 	// TODO: Generate weight files
 }
 
-func BenchmarkBaseExtrinsicWeight(t *testing.B) {
+func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	config := OverheadConfig{
 		Warmup:         10,
 		Repeat:         100,
-		MaxExtPerBlock: 2,
+		MaxExtPerBlock: 500,
 	}
 
 	// todo set heapPages and dbCache when Gossamer starts supporting db caching
