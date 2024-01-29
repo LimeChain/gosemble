@@ -10,7 +10,6 @@ import (
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	"github.com/centrifuge/go-substrate-rpc-client/v4/signature"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -23,7 +22,7 @@ type OverheadConfig struct {
 	MaxExtPerBlock int
 }
 
-func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) {
+func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) OverheadStats {
 	err := instance.BuildGenesisConfig()
 	if err != nil {
 		b.Fatal(err)
@@ -36,18 +35,21 @@ func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) {
 	}
 
 	// Measure the block
-	results := measureBlock(b, instance, config, block)
+	results, err := measureBlock(instance, config, block)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	// Create the stats
 	stats, err := NewOverheadStats(results)
 	if err != nil {
-		panic(err)
+		b.Fatal(err)
 	}
-	fmt.Println("result stats")
-	fmt.Println(stats)
+
+	return stats
 }
 
-func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) {
+func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) OverheadStats {
 	err := instance.BuildGenesisConfig()
 	if err != nil {
 		b.Fatal(err)
@@ -60,12 +62,15 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) {
 	}
 
 	// Measure the Empty block
-	baseResults := measureBlock(b, instance, config, baseEmptyBlock)
+	baseResults, err := measureBlock(instance, config, baseEmptyBlock)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	// Create the stats
 	baseStats, err := NewOverheadStats(baseResults)
 	if err != nil {
-		panic(err)
+		b.Fatal(err)
 	}
 
 	// Build a Block with maximum possible Extrinsics
@@ -76,7 +81,10 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) {
 	totalExtrinsics := len(block.Body)
 
 	// Measure the block
-	extrinsicResults := measureBlock(b, instance, config, block)
+	extrinsicResults, err := measureBlock(instance, config, block)
+	if err != nil {
+		b.Fatal(err)
+	}
 
 	for i, extrinsicResult := range extrinsicResults {
 		extrinsicResult = math.Max(extrinsicResult-baseStats.Mean, 0)
@@ -88,10 +96,9 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) {
 
 	stats, err := NewOverheadStats(extrinsicResults)
 	if err != nil {
-		panic(err)
+		b.Fatal(err)
 	}
-	fmt.Println("result stats")
-	fmt.Println(stats)
+	return stats
 }
 
 func buildBlock(instance *Instance, hasExtrinsics bool, maxExtrinsicsPerBlock int) (gossamertypes.Block, error) {
@@ -150,9 +157,11 @@ func buildBlock(instance *Instance, hasExtrinsics bool, maxExtrinsicsPerBlock in
 	return block, nil
 }
 
-func measureBlock(t *testing.B, instance *Instance, config OverheadConfig, block gossamertypes.Block) []float64 {
+func measureBlock(instance *Instance, config OverheadConfig, block gossamertypes.Block) ([]float64, error) {
 	encodedBlock, err := scale.Marshal(block)
-	assert.Nil(t, err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode block: [%v]", err)
+	}
 
 	// Store the DB Snapshot with only Genesis Block
 	(*instance.storage).DbStoreSnapshot()
@@ -161,7 +170,9 @@ func measureBlock(t *testing.B, instance *Instance, config OverheadConfig, block
 	for i := 0; i < config.Warmup; i++ {
 		(*instance.storage).DbRestoreSnapshot()
 		_, err := instance.runtime.Exec("Core_execute_block", encodedBlock)
-		assert.NoError(t, err)
+		if err != nil {
+			return nil, fmt.Errorf("failed to warmup execute block: [%v]", err)
+		}
 	}
 
 	var results []float64
@@ -171,10 +182,15 @@ func measureBlock(t *testing.B, instance *Instance, config OverheadConfig, block
 
 		start := time.Now().UnixNano()
 		_, err := instance.runtime.Exec("Core_execute_block", encodedBlock)
-		assert.NoError(t, err)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute block: [%v]", err)
+		}
 		end := time.Now().UnixNano()
 		results = append(results, float64(end-start))
 	}
 
-	return results
+	// Restore the DB Snapshot
+	(*instance.storage).DbRestoreSnapshot()
+
+	return results, nil
 }

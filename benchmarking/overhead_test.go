@@ -1,6 +1,7 @@
 package benchmarking
 
 import (
+	"fmt"
 	"testing"
 
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
@@ -22,7 +23,9 @@ func BenchmarkBlockExecutionWeight(t *testing.B) {
 		t.Fatalf("failed to create benchmarking instance: [%v]", err)
 	}
 
-	benchBlock(t, instance, config)
+	stats := benchBlock(t, instance, config)
+	fmt.Println("result stats")
+	fmt.Println(stats)
 	// TODO: Generate weight files
 }
 
@@ -42,6 +45,8 @@ func BenchmarkBaseExtrinsicWeight(t *testing.B) {
 		t.Fatalf("failed to create benchmarking instance: [%v]", err)
 	}
 
-	benchExtrinsic(t, instance, config)
+	stats := benchExtrinsic(t, instance, config)
+	fmt.Println("result stats")
+	fmt.Println(stats)
 	// TODO: Generate weight files
 }
