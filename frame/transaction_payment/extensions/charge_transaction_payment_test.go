@@ -397,3 +397,15 @@ func Test_getPriority(t *testing.T) {
 	mockTxPaymentModule.AssertNotCalled(t, "OperationalFeeMultiplier")
 	assert.Equal(t, sc.U64(11), priority)
 }
+
+func Test_NewChargeTxPayment(t *testing.T) {
+	mockSystemModule = new(mocks.SystemModule)
+	expected := &ChargeTransactionPayment{
+		systemModule:                  mockSystemModule,
+		txPaymentModule:               mockTxPaymentModule,
+		onChargeTransaction:           newChargeTransaction(mockCurrencyAdapterForChargeTxPayment),
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
+	txPayment := NewChargeTransactionPayment(mockSystemModule, mockTxPaymentModule, mockCurrencyAdapterForChargeTxPayment)
+	assert.Equal(t, txPayment, expected)
+}

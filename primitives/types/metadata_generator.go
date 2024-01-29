@@ -239,11 +239,6 @@ func (g *MetadataTypeGenerator) BuildModuleConstants(config reflect.Value) sc.Se
 		if ok {
 			docs = describerValue.Docs()
 		}
-
-		if fieldName == "BlockHashCount" {
-			fieldId = metadata.PrimitiveTypesU32
-		}
-
 		constant := NewMetadataModuleConstant(
 			fieldName,
 			sc.ToCompact(fieldId),

@@ -334,7 +334,7 @@ func (m module) Finalize() (primitives.Header, error) {
 	}
 	buf.Reset()
 
-	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount.U64)
+	toRemove := sc.SaturatingSubU64(blockNumber, sc.U64(m.constants.BlockHashCount.U32))
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
 	if toRemove != 0 {
 		m.storage.BlockHash.Remove(toRemove)

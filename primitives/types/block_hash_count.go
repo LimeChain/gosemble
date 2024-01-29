@@ -3,7 +3,7 @@ package types
 import sc "github.com/LimeChain/goscale"
 
 type BlockHashCount struct {
-	sc.U64
+	sc.U32
 }
 
 func (rv BlockHashCount) Docs() string {

@@ -3,6 +3,7 @@ package system
 import (
 	"errors"
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -151,7 +152,7 @@ func Test_Module_ValidateUnsigned(t *testing.T) {
 }
 
 func Test_Module_BlockHashCount(t *testing.T) {
-	assert.Equal(t, blockHashCount, setupModule().BlockHashCount().U64)
+	assert.Equal(t, blockHashCount, sc.U64(setupModule().BlockHashCount().U32))
 }
 
 func Test_Module_BlockLength(t *testing.T) {
@@ -1852,7 +1853,7 @@ func Test_Module_Metadata(t *testing.T) {
 			primitives.NewMetadataModuleConstant(
 				"BlockHashCount",
 				sc.ToCompact(metadata.PrimitiveTypesU32),
-				sc.BytesToSequenceU8(blockHashCount.Bytes()),
+				sc.BytesToSequenceU8(sc.U32(blockHashCount).Bytes()),
 				"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
 			),
 			primitives.NewMetadataModuleConstant(
@@ -1903,8 +1904,55 @@ func testDigest() primitives.Digest {
 	return primitives.NewDigest(items)
 }
 
+func Test_Clear_Metadata(t *testing.T) {
+	target := setupModule()
+
+	target.Metadata()
+
+	target.mdGenerator.ClearMetadata()
+
+	types := target.mdGenerator.GetMetadataTypes()
+
+	ids := target.mdGenerator.GetIdsMap()
+
+	assert.Equal(t, sc.Sequence[primitives.MetadataType]{}, types)
+	assert.Equal(t, ids, primitives.BuildMetadataTypesIdsMap())
+}
+
+func Test_Build_Module_Constants(t *testing.T) {
+	target := setupModule()
+	expectedBlockWeightsId := target.mdGenerator.GetLastAvailableIndex() + 1
+
+	type testConsts struct {
+		BlockWeights   primitives.BlockWeights
+		RuntimeVersion primitives.RuntimeVersion
+	}
+
+	c := testConsts{
+		BlockWeights:   blockWeights,
+		RuntimeVersion: version,
+	}
+
+	expectedConstants := sc.Sequence[primitives.MetadataModuleConstant]{
+		primitives.NewMetadataModuleConstant(
+			"BlockWeights",
+			sc.ToCompact(expectedBlockWeightsId),
+			sc.BytesToSequenceU8(blockWeights.Bytes()),
+			"Block & extrinsics weights: base values and limits.",
+		),
+		primitives.NewMetadataModuleConstant(
+			"RuntimeVersion",
+			sc.ToCompact(metadata.TypesRuntimeVersion),
+			sc.BytesToSequenceU8(version.Bytes()),
+			"Get the chain's current version.",
+		),
+	}
+	result := target.mdGenerator.BuildModuleConstants(reflect.ValueOf(c))
+	assert.Equal(t, expectedConstants, result)
+}
+
 func setupModule() module {
-	config := NewConfig(primitives.BlockHashCount{U64: blockHashCount}, blockWeights, blockLength, dbWeight, version)
+	config := NewConfig(primitives.BlockHashCount{U32: sc.U32(blockHashCount)}, blockWeights, blockLength, dbWeight, version)
 
 	target := New(moduleId, config, mdGenerator, log.NewLogger()).(module)
 
