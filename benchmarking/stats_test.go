@@ -6,9 +6,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_OverheadStats(t *testing.T) {
+func Test_StatsResult(t *testing.T) {
 	input := []float64{1, 2, 3}
-	expect := OverheadStats{
+	expect := StatsResult{
 		Sum:    6,
 		Min:    1,
 		Max:    3,
@@ -20,7 +20,7 @@ func Test_OverheadStats(t *testing.T) {
 		P75:    2.5,
 	}
 
-	target, err := NewOverheadStats(input)
+	target, err := NewStatsResult(input)
 	assert.Nil(t, err)
 
 	assert.Equal(t, expect, target)

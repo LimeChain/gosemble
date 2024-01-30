@@ -84,7 +84,7 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	// TODO: Generate weight files
 }
 
-func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) OverheadStats {
+func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) StatsResult {
 	// Build the block
 	block, err := buildBlock(instance, false, config.MaxExtPerBlock)
 	if err != nil {
@@ -98,7 +98,7 @@ func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) Overhea
 	}
 
 	// Create the stats
-	stats, err := NewOverheadStats(results)
+	stats, err := NewStatsResult(results)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) Overhea
 	return stats
 }
 
-func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) OverheadStats {
+func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) StatsResult {
 	// Build an Empty block
 	baseEmptyBlock, err := buildBlock(instance, false, config.MaxExtPerBlock)
 	if err != nil {
@@ -120,7 +120,7 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) Ove
 	}
 
 	// Create the Empty block stats
-	baseStats, err := NewOverheadStats(baseResults)
+	baseStats, err := NewStatsResult(baseResults)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) Ove
 	}
 
 	// Create the stats
-	stats, err := NewOverheadStats(extrinsicResults)
+	stats, err := NewStatsResult(extrinsicResults)
 	if err != nil {
 		b.Fatal(err)
 	}
