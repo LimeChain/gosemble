@@ -74,7 +74,7 @@ func (bb *BlockBuilder) ApplyInherentExtrinsics() error {
 }
 
 // AddExtrinsic adds an extrinsic to the simulated block.
-// Returns true of the applied extrinsic has reached the ExhaustsResource to the simulated block.
+// Returns true if the extrinsics application has reached the ExhaustsResource to the simulated block.
 func (bb *BlockBuilder) AddExtrinsic(extrinsic []byte) (bool, error) {
 	result, err := bb.instance.runtime.Exec("BlockBuilder_apply_extrinsic", extrinsic)
 	if err != nil {
@@ -82,7 +82,7 @@ func (bb *BlockBuilder) AddExtrinsic(extrinsic []byte) (bool, error) {
 	}
 
 	if reflect.DeepEqual(applyExtrinsicResultOutcome.Bytes(), result) {
-		extrinsic := extrinsic[2:] // Exclude len of Extrinsic as it is added later on
+		extrinsic := extrinsic[2:] // Exclude len of Extrinsic as it is added later in the Block encoding
 		bb.extrinsics = append(bb.extrinsics, extrinsic)
 	} else if reflect.DeepEqual(applyExtrinsicResultExhaustsResourcesErr.Bytes(), result) {
 		fmt.Println("Reached Exhausts Resources")
