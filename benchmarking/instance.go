@@ -36,6 +36,7 @@ var (
 var (
 	keySystemHash, _  = common.Twox128Hash([]byte("System"))
 	keyAccountHash, _ = common.Twox128Hash([]byte("Account"))
+	keyNumberHash, _  = common.Twox128Hash([]byte("Number"))
 )
 
 type Instance struct {

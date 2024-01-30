@@ -30,8 +30,7 @@ func NewBlockBuilder(instance *Instance, inherentData []byte) BlockBuilder {
 	}
 }
 
-// StartSimulation begins a block simulations.
-// Create a snapshot of the DB.
+// StartSimulation begins a block simulation by creating a snapshot of the DB and initialising the block.
 func (bb *BlockBuilder) StartSimulation(blockNumber uint) error {
 	(*bb.instance.storage).DbStoreSnapshot()
 	bb.extrinsics = nil
