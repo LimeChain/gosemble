@@ -1,7 +1,6 @@
 ignore:
   - "env"
   - "mocks"
-  - "primitives/benchmarking"
 
 coverage:
   precision: 2
