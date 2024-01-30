@@ -21,6 +21,10 @@ var (
 	overheadMaxExtPerBlock = flag.Int("overhead.maxExtPerBlock", 500, "Maximum number of extrinsics per block")
 )
 
+var (
+	signer = signature.TestKeyringPairAlice
+)
+
 type OverheadConfig struct {
 	Warmup         int
 	Repeat         int
@@ -79,10 +83,6 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	fmt.Println(stats)
 	// TODO: Generate weight files
 }
-
-var (
-	signer = signature.TestKeyringPairAlice
-)
 
 func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) OverheadStats {
 	// Build the block
