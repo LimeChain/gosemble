@@ -232,7 +232,7 @@ func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(or
 }
 
 func (m Module) originAndMaybeAccount(benchmarkConfig benchmarking.BenchmarkConfig) (primitives.RawOrigin, sc.Option[primitives.AccountId]) {
-	// TODO: pass origin as an option value
+	// TODO: pass the origin as an option
 	origin := benchmarkConfig.Origin
 
 	if origin.IsSignedOrigin() {

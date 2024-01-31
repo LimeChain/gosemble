@@ -16,7 +16,7 @@ import (
 // * Transfer will kill the sender account.
 // * Transfer will create the recipient account.
 func BenchmarkBalancesTransferAllowDeath(b *testing.B) {
-	benchmarking.Run(b, func(i *benchmarking.Instance) {
+	benchmarking.RunDispatchCall(b, func(i *benchmarking.Instance) {
 		// arrange
 		balance := existentialMultiplier * existentialAmount
 		transferAmount := existentialAmount*(existentialMultiplier-1) + 1
