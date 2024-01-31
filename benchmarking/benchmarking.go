@@ -73,7 +73,7 @@ func runTestFn(b *testing.B, testFn func(i *Instance)) benchmarkingtypes.Benchma
 		b.Fatal("No valid extrinsic or block call could be found in testFn")
 	}
 
-	b.ReportMetric(float64(benchmarkResult.ExtrinsicTime.ToBigInt().Int64()), "time")
+	b.ReportMetric(float64(benchmarkResult.Time.ToBigInt().Int64()), "time")
 	b.ReportMetric(float64(benchmarkResult.Reads), "reads")
 	b.ReportMetric(float64(benchmarkResult.Writes), "writes")
 

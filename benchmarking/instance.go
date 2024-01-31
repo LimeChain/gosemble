@@ -135,11 +135,11 @@ func (i *Instance) ExecuteExtrinsic(callName string, origin primitives.RawOrigin
 
 	benchmarkConfig := benchmarkingtypes.BenchmarkConfig{
 		InternalRepeats: sc.U32(i.repeats),
-		Extrinsic:       extrinsic,
+		Benchmark:       extrinsic,
 		Origin:          origin,
 	}
 
-	res, err := i.runtime.Exec("Benchmark_run", benchmarkConfig.Bytes())
+	res, err := i.runtime.Exec("Benchmark_dispatch", benchmarkConfig.Bytes())
 	if err != nil {
 		return err
 	}

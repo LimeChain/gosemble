@@ -19,7 +19,7 @@ type BenchmarkConfig struct {
 	// Module sc.Sequence[sc.U8]
 
 	// The encoded name of the benchmark/extrinsic to run.
-	Extrinsic sc.Sequence[sc.U8]
+	Benchmark sc.Sequence[sc.U8]
 
 	Origin types.RawOrigin
 
@@ -36,7 +36,7 @@ type BenchmarkConfig struct {
 func (bc BenchmarkConfig) Encode(buffer *bytes.Buffer) {
 	bc.InternalRepeats.Encode(buffer)
 	bc.Origin.Encode(buffer)
-	bc.Extrinsic.Encode(buffer)
+	bc.Benchmark.Encode(buffer)
 }
 
 func (bc BenchmarkConfig) Bytes() []byte {
@@ -63,7 +63,7 @@ func DecodeBenchmarkConfig(buffer *bytes.Buffer) (BenchmarkConfig, error) {
 
 	return BenchmarkConfig{
 		InternalRepeats: internalRepeats,
-		Extrinsic:       extrinsic,
+		Benchmark:       extrinsic,
 		Origin:          origin,
 	}, nil
 }
@@ -73,7 +73,7 @@ func DecodeBenchmarkConfig(buffer *bytes.Buffer) (BenchmarkConfig, error) {
 // used for that benchmark result.
 type BenchmarkResult struct {
 	// Components Vec<(BenchmarkParameter, sc.U32)>
-	ExtrinsicTime sc.U128
+	Time sc.U128
 	// StorageRootTime sc.U128
 	Reads sc.U32
 	// RepeatReads sc.U32
@@ -84,7 +84,7 @@ type BenchmarkResult struct {
 }
 
 func (br BenchmarkResult) Encode(buffer *bytes.Buffer) {
-	br.ExtrinsicTime.Encode(buffer)
+	br.Time.Encode(buffer)
 	br.Reads.Encode(buffer)
 	br.Writes.Encode(buffer)
 }
@@ -96,7 +96,7 @@ func (br BenchmarkResult) Bytes() []byte {
 }
 
 func DecodeBenchmarkResult(buffer *bytes.Buffer) (BenchmarkResult, error) {
-	extrinsicTime, err := sc.DecodeU128(buffer)
+	time, err := sc.DecodeU128(buffer)
 	if err != nil {
 		return BenchmarkResult{}, err
 	}
@@ -109,9 +109,9 @@ func DecodeBenchmarkResult(buffer *bytes.Buffer) (BenchmarkResult, error) {
 		return BenchmarkResult{}, err
 	}
 	return BenchmarkResult{
-		ExtrinsicTime: extrinsicTime,
-		Reads:         reads,
-		Writes:        writes,
+		Time:   time,
+		Reads:  reads,
+		Writes: writes,
 	}, nil
 }
 

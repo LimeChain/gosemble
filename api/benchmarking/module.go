@@ -15,6 +15,7 @@ import (
 )
 
 type Module struct {
+	modules       []primitives.Module
 	systemModule  system.Module
 	transactional support.Transactional[primitives.PostDispatchInfo]
 	decoder       types.RuntimeDecoder
@@ -23,8 +24,11 @@ type Module struct {
 	logger        log.Logger
 }
 
-func New(systemModule system.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+func New(systemIndex sc.U8, modules []primitives.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+	systemModule := primitives.MustGetModule(systemIndex, modules).(system.Module)
+
 	return Module{
+		modules:       modules,
 		systemModule:  systemModule,
 		decoder:       decoder,
 		transactional: support.NewTransactional[primitives.PostDispatchInfo](logger),
@@ -39,7 +43,7 @@ func New(systemModule system.Module, decoder types.RuntimeDecoder, logger log.Lo
 // in Gossamer supports caching and nested transactions.
 // https://github.com/ChainSafe/gossamer/discussions/3646
 
-func (m Module) Run(dataPtr int32, dataLen int32) int64 {
+func (m Module) ExecuteDispatch(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
@@ -48,7 +52,7 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 		m.logger.Critical(err.Error())
 	}
 
-	opaqueExtrinsic := sc.SequenceU8ToBytes(benchmarkConfig.Extrinsic)
+	opaqueExtrinsic := sc.SequenceU8ToBytes(benchmarkConfig.Benchmark)
 	extrinsic, err := m.decoder.DecodeUncheckedExtrinsic(bytes.NewBuffer(opaqueExtrinsic))
 	if err != nil {
 		m.logger.Critical(err.Error())
@@ -128,12 +132,150 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 	extrinsicTime := calculateAverageTime(measuredDurations)
 
 	benchmarkResult := benchmarking.BenchmarkResult{
-		ExtrinsicTime: sc.NewU128(extrinsicTime),
-		Reads:         sc.U32(benchmarking.DbReadCount()),
-		Writes:        sc.U32(benchmarking.DbWriteCount()),
+		Time:   sc.NewU128(extrinsicTime),
+		Reads:  sc.U32(benchmarking.DbReadCount()),
+		Writes: sc.U32(benchmarking.DbWriteCount()),
 	}.Bytes()
 
 	return m.memUtils.BytesToOffsetAndSize(benchmarkResult)
+}
+
+func (m Module) ExecuteHook(dataPtr int32, dataLen int32) int64 {
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(data)
+
+	benchmarkConfig, err := benchmarking.DecodeBenchmarkConfig(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(benchmarkConfig.Benchmark))
+
+	hook, err := sc.DecodeStr(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	arg0, err := sc.DecodeU64(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	arg1, err := primitives.DecodeWeight(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	measuredDurations := []int64{}
+
+	benchmarking.StoreSnapshotDb()
+
+	// Always do at least one internal repeat.
+	repeats := int(benchmarkConfig.InternalRepeats)
+	if repeats < 1 {
+		repeats = 1
+	}
+	for i := 1; i <= repeats; i++ {
+		// The dispatch call is executed in a transactional context,
+		// allowing to rollback and reset the state after each iteration.
+		// as an alternative of providing before hook.
+
+		benchmarking.RestoreSnapshotDb()
+
+		// Does nothing, for now
+		benchmarking.WipeDb()
+
+		// Set up the externalities environment for the setup we want to
+		// benchmark.
+
+		// Sets the block number to 1 to allow emitting events
+		m.systemModule.StorageBlockNumberSet(1)
+
+		// Commit the externalities to the database, flushing the DB cache.
+		// This will enable worst case scenario for reading from the database.
+		// Does nothing, for now
+		benchmarking.CommitDb()
+
+		// Whitelist known storage keys.
+		m.whitelistWellKnownKeys()
+
+		// Reset the read/write counter so we don't count
+		// operations in the setup process.
+		benchmarking.ResetReadWriteCount()
+
+		benchmarking.StartDbTracker()
+
+		var start, end int64
+
+		// Benchmark the comulative time of dispatchable module hooks.
+		switch hook {
+		case "on_initialize":
+			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
+				_, err := module.OnInitialize(arg0)
+				return err
+			}, m.logger)
+		case "on_runtime_upgrade":
+			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnRuntimeUpgrade()
+				return nil
+			}, m.logger)
+		case "on_finalize":
+			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
+				err := module.OnFinalize(arg0)
+				return err
+			}, m.logger)
+		case "on_idle":
+			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnIdle(arg0, arg1)
+				return nil
+			}, m.logger)
+		default:
+			m.logger.Critical("unsupported hook")
+		}
+
+		// Calculate the diff caused by the benchmark.
+		measuredDurations = append(measuredDurations, end-start)
+
+		benchmarking.StopDbTracker()
+
+		// Commit the changes to get proper write count.
+		// Does nothing, for now
+		benchmarking.CommitDb()
+	}
+
+	// Calculate the average time.
+	hooksTime := calculateAverageTime(measuredDurations)
+
+	benchmarkResult := benchmarking.BenchmarkResult{
+		Time:   sc.NewU128(hooksTime),
+		Reads:  sc.U32(benchmarking.DbReadCount()),
+		Writes: sc.U32(benchmarking.DbWriteCount()),
+	}.Bytes()
+
+	return m.memUtils.BytesToOffsetAndSize(benchmarkResult)
+}
+
+func executeHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) (int64, int64) {
+	var start, end int64
+
+	for _, module := range modules {
+		if start == 0 || end == 0 {
+			start = benchmarking.CurrentTime()
+			end = start
+		}
+
+		t0 := benchmarking.CurrentTime()
+		err := hookFn(module)
+		t1 := benchmarking.CurrentTime()
+		elapsed := t1 - t0
+		end += elapsed
+
+		if err != nil {
+			logger.Critical(err.Error())
+		}
+	}
+
+	return start, end
 }
 
 func calculateAverageTime(durations []int64) int64 {

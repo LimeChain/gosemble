@@ -423,13 +423,22 @@ func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
 		BuildConfig(dataPtr, dataLen)
 }
 
-//go:export Benchmark_run
-func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
-	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
-
+//go:export Benchmark_dispatch
+func BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	return benchmarking.New(
-		systemModule,
+		SystemIndex,
+		modules,
 		decoder,
 		logger,
-	).Run(dataPtr, dataLen)
+	).ExecuteDispatch(dataPtr, dataLen)
+}
+
+//go:export Benchmark_hook
+func BenchmarkHook(dataPtr int32, dataLen int32) int64 {
+	return benchmarking.New(
+		SystemIndex,
+		modules,
+		decoder,
+		logger,
+	).ExecuteHook(dataPtr, dataLen)
 }
