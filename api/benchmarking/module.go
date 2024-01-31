@@ -43,31 +43,133 @@ func New(systemIndex sc.U8, modules []primitives.Module, decoder types.RuntimeDe
 // in Gossamer supports caching and nested transactions.
 // https://github.com/ChainSafe/gossamer/discussions/3646
 
-func (m Module) ExecuteDispatch(dataPtr int32, dataLen int32) int64 {
+func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
-	benchmarkConfig, err := benchmarking.DecodeBenchmarkConfig(buffer)
+	config, err := benchmarking.DecodeBenchmarkConfig(buffer)
 	if err != nil {
 		m.logger.Critical(err.Error())
 	}
 
-	opaqueExtrinsic := sc.SequenceU8ToBytes(benchmarkConfig.Benchmark)
-	extrinsic, err := m.decoder.DecodeUncheckedExtrinsic(bytes.NewBuffer(opaqueExtrinsic))
+	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(config.Benchmark))
+	extrinsic, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		m.logger.Critical(err.Error())
 	}
-
 	function := extrinsic.Function()
 	args := function.Args()
-	origin, accountId := m.originAndMaybeAccount(benchmarkConfig)
+
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) int64 {
+		var start, end int64
+
+		start = benchmarking.CurrentTime()
+		_, err := m.transactional.WithStorageLayer(
+			func() (primitives.PostDispatchInfo, error) {
+				return function.Dispatch(origin, args)
+			},
+		)
+		end = benchmarking.CurrentTime()
+		if err != nil {
+			m.logger.Critical(err.Error())
+		}
+
+		return end - start
+	})
+
+	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
+}
+
+func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(data)
+
+	config, err := benchmarking.DecodeBenchmarkConfig(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(config.Benchmark))
+	hook, err := sc.DecodeStr(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+	arg0, err := sc.DecodeU64(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+	arg1, err := primitives.DecodeWeight(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) int64 {
+		var elapsed int64
+
+		// Benchmark the comulative time of dispatchable module hooks.
+		switch hook {
+		case "on_initialize":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_, err := module.OnInitialize(arg0)
+				return err
+			}, m.logger)
+		case "on_runtime_upgrade":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnRuntimeUpgrade()
+				return nil
+			}, m.logger)
+		case "on_finalize":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				err := module.OnFinalize(arg0)
+				return err
+			}, m.logger)
+		case "on_idle":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnIdle(arg0, arg1)
+				return nil
+			}, m.logger)
+		default:
+			m.logger.Critical("unsupported hook")
+		}
+
+		return elapsed
+	})
+
+	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
+}
+
+func measureHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) int64 {
+	var start, end int64
+
+	for _, module := range modules {
+		if start == 0 || end == 0 {
+			start = benchmarking.CurrentTime()
+			end = start
+		}
+
+		t0 := benchmarking.CurrentTime()
+		err := hookFn(module)
+		t1 := benchmarking.CurrentTime()
+		elapsed := t1 - t0
+		end += elapsed
+
+		if err != nil {
+			logger.Critical(err.Error())
+		}
+	}
+
+	return end - start
+}
+
+func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(origin primitives.RawOrigin) int64) benchmarking.BenchmarkResult {
+	origin, accountId := m.originAndMaybeAccount(config)
 
 	measuredDurations := []int64{}
 
 	benchmarking.StoreSnapshotDb()
 
 	// Always do at least one internal repeat.
-	repeats := int(benchmarkConfig.InternalRepeats)
+	repeats := int(config.InternalRepeats)
 	if repeats < 1 {
 		repeats = 1
 	}
@@ -96,8 +198,10 @@ func (m Module) ExecuteDispatch(dataPtr int32, dataLen int32) int64 {
 		m.whitelistWellKnownKeys()
 
 		// Whitelist the signer account key.
-		keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
-		benchmarking.SetWhitelist(keyStorageAccount)
+		if accountId.HasValue {
+			keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
+			benchmarking.SetWhitelist(keyStorageAccount)
+		}
 
 		// Reset the read/write counter so we don't count
 		// operations in the setup process.
@@ -105,21 +209,10 @@ func (m Module) ExecuteDispatch(dataPtr int32, dataLen int32) int64 {
 
 		benchmarking.StartDbTracker()
 
-		var start, end int64
-
-		start = benchmarking.CurrentTime()
-		_, err := m.transactional.WithStorageLayer(
-			func() (primitives.PostDispatchInfo, error) {
-				return function.Dispatch(origin, args)
-			},
-		)
-		end = benchmarking.CurrentTime()
-		if err != nil {
-			m.logger.Critical(err.Error())
-		}
+		elapsed := fn(origin)
 
 		// Calculate the diff caused by the benchmark.
-		measuredDurations = append(measuredDurations, end-start)
+		measuredDurations = append(measuredDurations, elapsed)
 
 		benchmarking.StopDbTracker()
 
@@ -129,164 +222,17 @@ func (m Module) ExecuteDispatch(dataPtr int32, dataLen int32) int64 {
 	}
 
 	// Calculate the average time.
-	extrinsicTime := calculateAverageTime(measuredDurations)
+	time := calculateAverageTime(measuredDurations)
 
-	benchmarkResult := benchmarking.BenchmarkResult{
-		Time:   sc.NewU128(extrinsicTime),
+	return benchmarking.BenchmarkResult{
+		Time:   sc.NewU128(time),
 		Reads:  sc.U32(benchmarking.DbReadCount()),
 		Writes: sc.U32(benchmarking.DbWriteCount()),
-	}.Bytes()
-
-	return m.memUtils.BytesToOffsetAndSize(benchmarkResult)
-}
-
-func (m Module) ExecuteHook(dataPtr int32, dataLen int32) int64 {
-	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
-	buffer := bytes.NewBuffer(data)
-
-	benchmarkConfig, err := benchmarking.DecodeBenchmarkConfig(buffer)
-	if err != nil {
-		m.logger.Critical(err.Error())
 	}
-
-	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(benchmarkConfig.Benchmark))
-
-	hook, err := sc.DecodeStr(buffer)
-	if err != nil {
-		m.logger.Critical(err.Error())
-	}
-
-	arg0, err := sc.DecodeU64(buffer)
-	if err != nil {
-		m.logger.Critical(err.Error())
-	}
-
-	arg1, err := primitives.DecodeWeight(buffer)
-	if err != nil {
-		m.logger.Critical(err.Error())
-	}
-
-	measuredDurations := []int64{}
-
-	benchmarking.StoreSnapshotDb()
-
-	// Always do at least one internal repeat.
-	repeats := int(benchmarkConfig.InternalRepeats)
-	if repeats < 1 {
-		repeats = 1
-	}
-	for i := 1; i <= repeats; i++ {
-		// The dispatch call is executed in a transactional context,
-		// allowing to rollback and reset the state after each iteration.
-		// as an alternative of providing before hook.
-
-		benchmarking.RestoreSnapshotDb()
-
-		// Does nothing, for now
-		benchmarking.WipeDb()
-
-		// Set up the externalities environment for the setup we want to
-		// benchmark.
-
-		// Sets the block number to 1 to allow emitting events
-		m.systemModule.StorageBlockNumberSet(1)
-
-		// Commit the externalities to the database, flushing the DB cache.
-		// This will enable worst case scenario for reading from the database.
-		// Does nothing, for now
-		benchmarking.CommitDb()
-
-		// Whitelist known storage keys.
-		m.whitelistWellKnownKeys()
-
-		// Reset the read/write counter so we don't count
-		// operations in the setup process.
-		benchmarking.ResetReadWriteCount()
-
-		benchmarking.StartDbTracker()
-
-		var start, end int64
-
-		// Benchmark the comulative time of dispatchable module hooks.
-		switch hook {
-		case "on_initialize":
-			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
-				_, err := module.OnInitialize(arg0)
-				return err
-			}, m.logger)
-		case "on_runtime_upgrade":
-			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
-				_ = module.OnRuntimeUpgrade()
-				return nil
-			}, m.logger)
-		case "on_finalize":
-			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
-				err := module.OnFinalize(arg0)
-				return err
-			}, m.logger)
-		case "on_idle":
-			start, end = executeHooks(m.modules, func(module primitives.DispatchModule) error {
-				_ = module.OnIdle(arg0, arg1)
-				return nil
-			}, m.logger)
-		default:
-			m.logger.Critical("unsupported hook")
-		}
-
-		// Calculate the diff caused by the benchmark.
-		measuredDurations = append(measuredDurations, end-start)
-
-		benchmarking.StopDbTracker()
-
-		// Commit the changes to get proper write count.
-		// Does nothing, for now
-		benchmarking.CommitDb()
-	}
-
-	// Calculate the average time.
-	hooksTime := calculateAverageTime(measuredDurations)
-
-	benchmarkResult := benchmarking.BenchmarkResult{
-		Time:   sc.NewU128(hooksTime),
-		Reads:  sc.U32(benchmarking.DbReadCount()),
-		Writes: sc.U32(benchmarking.DbWriteCount()),
-	}.Bytes()
-
-	return m.memUtils.BytesToOffsetAndSize(benchmarkResult)
-}
-
-func executeHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) (int64, int64) {
-	var start, end int64
-
-	for _, module := range modules {
-		if start == 0 || end == 0 {
-			start = benchmarking.CurrentTime()
-			end = start
-		}
-
-		t0 := benchmarking.CurrentTime()
-		err := hookFn(module)
-		t1 := benchmarking.CurrentTime()
-		elapsed := t1 - t0
-		end += elapsed
-
-		if err != nil {
-			logger.Critical(err.Error())
-		}
-	}
-
-	return start, end
-}
-
-func calculateAverageTime(durations []int64) int64 {
-	var sum int64
-	for _, duration := range durations {
-		sum += duration
-	}
-	return sum / int64(len(durations))
 }
 
 func (m Module) originAndMaybeAccount(benchmarkConfig benchmarking.BenchmarkConfig) (primitives.RawOrigin, sc.Option[primitives.AccountId]) {
+	// TODO: pass origin as an option value
 	origin := benchmarkConfig.Origin
 
 	if origin.IsSignedOrigin() {
@@ -330,4 +276,12 @@ func (m Module) accountStorageKeyFrom(address primitives.AccountId) []byte {
 	keyStorageAccount = append(keyStorageAccount, addressHash...)
 	keyStorageAccount = append(keyStorageAccount, addressBytes...)
 	return keyStorageAccount
+}
+
+func calculateAverageTime(durations []int64) int64 {
+	var sum int64
+	for _, duration := range durations {
+		sum += duration
+	}
+	return sum / int64(len(durations))
 }

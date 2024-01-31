@@ -430,7 +430,7 @@ func BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 		modules,
 		decoder,
 		logger,
-	).ExecuteDispatch(dataPtr, dataLen)
+	).BenchmarkDispatch(dataPtr, dataLen)
 }
 
 //go:export Benchmark_hook
@@ -440,5 +440,5 @@ func BenchmarkHook(dataPtr int32, dataLen int32) int64 {
 		modules,
 		decoder,
 		logger,
-	).ExecuteHook(dataPtr, dataLen)
+	).BenchmarkHook(dataPtr, dataLen)
 }
