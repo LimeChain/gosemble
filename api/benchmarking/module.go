@@ -106,7 +106,7 @@ func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
 	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) int64 {
 		var elapsed int64
 
-		// Benchmark the comulative time of dispatchable module hooks.
+		// Benchmark the cumulative time of dispatchable module hooks.
 		switch hook {
 		case "on_initialize":
 			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {

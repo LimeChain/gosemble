@@ -40,6 +40,7 @@ var (
 	keyAuthoritiesHash, _        = common.Twox128Hash([]byte("Authorities"))
 	keyCurrentSlotHash, _        = common.Twox128Hash([]byte("CurrentSlot"))
 	keyDigestHash, _             = common.Twox128Hash([]byte("Digest"))
+	keyNumberHash, _             = common.Twox128Hash([]byte("Number"))
 	keyTimestampDidUpdateHash, _ = common.Twox128Hash([]byte("DidUpdate"))
 )
 
