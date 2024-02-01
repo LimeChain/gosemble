@@ -12,6 +12,7 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+	"github.com/montanaflynn/stats"
 )
 
 type Module struct {
@@ -60,7 +61,7 @@ func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	function := extrinsic.Function()
 	args := function.Args()
 
-	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) int64 {
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) float64 {
 		var start, end int64
 
 		start = benchmarking.CurrentTime()
@@ -74,7 +75,7 @@ func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 			m.logger.Critical(err.Error())
 		}
 
-		return end - start
+		return float64(end - start)
 	})
 
 	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
@@ -103,8 +104,8 @@ func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
 		m.logger.Critical(err.Error())
 	}
 
-	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) int64 {
-		var elapsed int64
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) float64 {
+		var elapsed float64
 
 		// Benchmark the cumulative time of dispatchable module hooks.
 		switch hook {
@@ -138,7 +139,7 @@ func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
 }
 
-func measureHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) int64 {
+func measureHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) float64 {
 	var start, end int64
 
 	for _, module := range modules {
@@ -158,13 +159,13 @@ func measureHooks(modules []primitives.Module, hookFn func(module primitives.Dis
 		}
 	}
 
-	return end - start
+	return float64(end - start)
 }
 
-func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(origin primitives.RawOrigin) int64) benchmarking.BenchmarkResult {
+func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(origin primitives.RawOrigin) float64) benchmarking.BenchmarkResult {
 	origin, accountId := m.originAndMaybeAccount(config)
 
-	measuredDurations := []int64{}
+	measuredDurations := []float64{}
 
 	benchmarking.StoreSnapshotDb()
 
@@ -222,10 +223,13 @@ func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(or
 	}
 
 	// Calculate the average time.
-	time := calculateAverageTime(measuredDurations)
+	time, err := stats.Mean(measuredDurations)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
 
 	return benchmarking.BenchmarkResult{
-		Time:   sc.NewU128(time),
+		Time:   sc.NewU128(int64(time)),
 		Reads:  sc.U32(benchmarking.DbReadCount()),
 		Writes: sc.U32(benchmarking.DbWriteCount()),
 	}
@@ -276,12 +280,4 @@ func (m Module) accountStorageKeyFrom(address primitives.AccountId) []byte {
 	keyStorageAccount = append(keyStorageAccount, addressHash...)
 	keyStorageAccount = append(keyStorageAccount, addressBytes...)
 	return keyStorageAccount
-}
-
-func calculateAverageTime(durations []int64) int64 {
-	var sum int64
-	for _, duration := range durations {
-		sum += duration
-	}
-	return sum / int64(len(durations))
 }
