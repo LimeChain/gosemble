@@ -50,7 +50,7 @@ func TestInstance(t *testing.T) {
 
 		br := instance.benchmarkResult
 		assert.NotNil(t, br)
-		assert.Positive(t, br.ExtrinsicTime.ToBigInt().Uint64())
+		assert.Positive(t, br.Time.ToBigInt().Uint64())
 		assert.Positive(t, br.Reads.ToBigInt().Uint64())
 		assert.Positive(t, br.Writes.ToBigInt().Uint64())
 

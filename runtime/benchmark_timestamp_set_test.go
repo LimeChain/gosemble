@@ -13,7 +13,7 @@ import (
 )
 
 func BenchmarkTimestampSet(b *testing.B) {
-	benchmarking.Run(b, func(i *benchmarking.Instance) {
+	benchmarking.RunDispatchCall(b, func(i *benchmarking.Instance) {
 		// arrange
 		(*i.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
 		(*i.Storage()).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdateHash...)))

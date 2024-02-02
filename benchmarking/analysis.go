@@ -18,7 +18,7 @@ type benchmarkResult struct {
 
 func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, componentValues []uint32) benchmarkResult {
 	return benchmarkResult{
-		extrinsicTime: benchmarkRes.ExtrinsicTime.ToBigInt().Uint64(),
+		extrinsicTime: benchmarkRes.Time.ToBigInt().Uint64(),
 		reads:         uint64(benchmarkRes.Reads),
 		writes:        uint64(benchmarkRes.Writes),
 		components:    componentValues,

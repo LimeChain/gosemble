@@ -34,9 +34,14 @@ var (
 )
 
 var (
-	keySystemHash, _  = common.Twox128Hash([]byte("System"))
-	keyAccountHash, _ = common.Twox128Hash([]byte("Account"))
-	keyNumberHash, _  = common.Twox128Hash([]byte("Number"))
+	keySystemHash, _             = common.Twox128Hash([]byte("System"))
+	keyAccountHash, _            = common.Twox128Hash([]byte("Account"))
+	keyAuraHash, _               = common.Twox128Hash([]byte("Aura"))
+	keyAuthoritiesHash, _        = common.Twox128Hash([]byte("Authorities"))
+	keyCurrentSlotHash, _        = common.Twox128Hash([]byte("CurrentSlot"))
+	keyDigestHash, _             = common.Twox128Hash([]byte("Digest"))
+	keyNumberHash, _             = common.Twox128Hash([]byte("Number"))
+	keyTimestampDidUpdateHash, _ = common.Twox128Hash([]byte("DidUpdate"))
 )
 
 type Instance struct {
@@ -135,11 +140,11 @@ func (i *Instance) ExecuteExtrinsic(callName string, origin primitives.RawOrigin
 
 	benchmarkConfig := benchmarkingtypes.BenchmarkConfig{
 		InternalRepeats: sc.U32(i.repeats),
-		Extrinsic:       extrinsic,
+		Benchmark:       extrinsic,
 		Origin:          origin,
 	}
 
-	res, err := i.runtime.Exec("Benchmark_run", benchmarkConfig.Bytes())
+	res, err := i.runtime.Exec("Benchmark_dispatch", benchmarkConfig.Bytes())
 	if err != nil {
 		return err
 	}
@@ -153,11 +158,6 @@ func (i *Instance) ExecuteExtrinsic(callName string, origin primitives.RawOrigin
 
 	return nil
 }
-
-// todo
-// func (i *Instance) ExecuteBlock() error {
-// 	return nil
-// }
 
 // Internal method that creates and encodes extrinsic
 func (i *Instance) newExtrinsic(callName string, args []interface{}) (sc.Sequence[sc.U8], error) {
