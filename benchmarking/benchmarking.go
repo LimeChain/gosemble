@@ -60,7 +60,7 @@ func RunDispatchCall(b *testing.B, testFn func(i *Instance), components ...*line
 	}
 
 	// todo output file path flag (fmt.Fprintf accepts writer as first arg)
-	// fmt.Printf("median slope analysis: %#v\n", medianSlopesAnalysis(results))
+	fmt.Printf("median slope analysis: %#v\n", medianSlopesAnalysis(results))
 }
 
 func RunHook(b *testing.B,
