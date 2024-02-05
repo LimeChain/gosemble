@@ -77,3 +77,25 @@ func DecodeTransactionSource(buffer *bytes.Buffer) (TransactionSource, error) {
 func (ts TransactionSource) Bytes() []byte {
 	return sc.EncodedBytes(ts)
 }
+
+func (ts TransactionSource) MetadataDefinition() *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"InBlock",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				TransactionSourceInBlock,
+				"TransactionSourceInBlock"),
+			NewMetadataDefinitionVariant(
+				"Local",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				TransactionSourceLocal,
+				"TransactionSourceLocal"),
+			NewMetadataDefinitionVariant(
+				"External",
+				sc.Sequence[MetadataTypeDefinitionField]{},
+				TransactionSourceExternal,
+				"TransactionSourceExternal"),
+		})
+	return &def
+}

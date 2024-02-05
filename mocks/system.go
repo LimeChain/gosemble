@@ -215,9 +215,9 @@ func (m *SystemModule) DbWeight() types.RuntimeDbWeight {
 	return args.Get(0).(types.RuntimeDbWeight)
 }
 
-func (m *SystemModule) BlockHashCount() sc.U64 {
+func (m *SystemModule) BlockHashCount() types.BlockHashCount {
 	args := m.Called()
-	return args.Get(0).(sc.U64)
+	return args.Get(0).(types.BlockHashCount)
 }
 
 func (m *SystemModule) StorageDigest() (types.Digest, error) {

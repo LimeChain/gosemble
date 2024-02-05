@@ -2,6 +2,7 @@ package system
 
 import (
 	"encoding/json"
+
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/types"
 )
@@ -21,7 +22,7 @@ func (m module) BuildConfig(_ []byte) error {
 	m.storage.ParentHash.Put(hash69)
 
 	m.StorageLastRuntimeUpgradeSet(types.LastRuntimeUpgradeInfo{
-		SpecVersion: m.Version().SpecVersion,
+		SpecVersion: sc.Compact{Number: m.Version().SpecVersion},
 		SpecName:    m.Version().SpecName,
 	})
 

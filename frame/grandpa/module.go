@@ -47,12 +47,10 @@ type Module struct {
 }
 
 func New(index sc.U8, logger log.WarnLogger, mdGenerator *primitives.MetadataTypeGenerator) Module {
-	functions := make(map[sc.U8]primitives.Call)
 
 	return Module{
 		Index:       index,
 		storage:     newStorage(),
-		functions:   functions,
 		mdGenerator: mdGenerator,
 		logger:      logger,
 	}
@@ -102,7 +100,7 @@ func (m Module) Authorities() (sc.Sequence[primitives.Authority], error) {
 }
 
 func (m Module) Metadata() primitives.MetadataModule {
-	m.mdGenerator.BuildCallsMetadata("Grandpa", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{
+	m.mdGenerator.BuildCallsMetadata("Grandpa", m.Functions(), &sc.Sequence[primitives.MetadataTypeParameter]{
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I"),
 	})

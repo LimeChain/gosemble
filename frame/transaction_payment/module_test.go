@@ -26,7 +26,7 @@ var (
 	blockWeights = types.BlockWeights{
 		BaseBlock: types.WeightFromParts(1, 2),
 		MaxBlock:  types.WeightFromParts(1000, 0),
-		PerClass: types.PerDispatchClass[types.WeightsPerClass]{
+		PerClass: types.PerDispatchClassWeightsPerClass{
 			Normal: types.WeightsPerClass{
 				BaseExtrinsic: types.WeightFromParts(5, 6),
 			},
@@ -46,6 +46,8 @@ var (
 	noUnsignedValidatorError = types.NewTransactionValidityError(
 		types.NewUnknownTransactionNoUnsignedValidator(),
 	)
+
+	typesWeightId, _ = mdGenerator.GetId("Weight")
 
 	expectedMetadataTypes = sc.Sequence[types.MetadataType]{
 		types.NewMetadataTypeWithPath(metadata.TypesTransactionPaymentReleases, "Releases", sc.Sequence[sc.Str]{"pallet_transaction_payment", "Releases"}, types.NewMetadataTypeDefinitionVariant(
@@ -77,12 +79,12 @@ var (
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesTransactionPaymentRuntimeDispatchInfo, "pallet_transaction_payment types RuntimeDispatchInfo", sc.Sequence[sc.Str]{"pallet_transaction_payment", "types", "RuntimeDispatchInfo"}, primitives.NewMetadataTypeDefinitionComposite(
 			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesWeight, "Weight"),
+				primitives.NewMetadataTypeDefinitionFieldWithName(typesWeightId, "Weight"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesDispatchClass, "Class"),
 				primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU128, "Balance")}),
 			sc.Sequence[primitives.MetadataTypeParameter]{
 				primitives.NewMetadataTypeParameter(metadata.PrimitiveTypesU128, "Balance"),
-				primitives.NewMetadataTypeParameter(metadata.TypesWeight, "Weight"),
+				primitives.NewMetadataTypeParameter(typesWeightId, "Weight"),
 			}),
 
 		// type 910

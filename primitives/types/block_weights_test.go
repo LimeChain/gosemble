@@ -19,7 +19,7 @@ var (
 	targetBlockWeights = BlockWeights{
 		BaseBlock: WeightFromParts(1, 2),
 		MaxBlock:  WeightFromParts(3, 4),
-		PerClass: PerDispatchClass[WeightsPerClass]{
+		PerClass: PerDispatchClassWeightsPerClass{
 			Normal: WeightsPerClass{
 				BaseExtrinsic: WeightFromParts(5, 6),
 				MaxExtrinsic:  sc.NewOption[Weight](WeightFromParts(7, 8)),

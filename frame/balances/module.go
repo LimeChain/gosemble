@@ -278,6 +278,14 @@ func (m Module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
+	mdConstants := metadataConstants{
+		ExistentialDeposit: primitives.ExistentialDeposit{U128: m.constants.ExistentialDeposit},
+		MaxLocks:           primitives.MaxLocks{U32: m.constants.MaxLocks},
+		MaxReserves:        primitives.MaxReserves{U32: m.constants.MaxReserves},
+	}
+
+	moduleMdConstants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(mdConstants))
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -301,7 +309,7 @@ func (m Module) Metadata() primitives.MetadataModule {
 				m.Index,
 				"Events.Balances"),
 		),
-		Constants: m.metadataConstants(),
+		Constants: moduleMdConstants,
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
@@ -493,27 +501,4 @@ func (m Module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"The total units issued in the system."),
 		},
 	})
-}
-
-func (m Module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
-	return sc.Sequence[primitives.MetadataModuleConstant]{
-		primitives.NewMetadataModuleConstant(
-			"ExistentialDeposit",
-			sc.ToCompact(metadata.PrimitiveTypesU128),
-			sc.BytesToSequenceU8(m.constants.ExistentialDeposit.Bytes()),
-			"The minimum amount required to keep an account open. MUST BE GREATER THAN ZERO!",
-		),
-		primitives.NewMetadataModuleConstant(
-			"MaxLocks",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.constants.MaxLocks.Bytes()),
-			"The maximum number of locks that should exist on an account.  Not strictly enforced, but used for weight estimation.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"MaxReserves",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.constants.MaxReserves.Bytes()),
-			"The maximum number of named reserves that can exist on an account.",
-		),
-	}
 }

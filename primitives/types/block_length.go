@@ -11,7 +11,7 @@ type BlockLength struct {
 	//
 	// In the worst case, the total block length is going to be:
 	// `MAX(max)`
-	Max PerDispatchClass[sc.U32]
+	Max PerDispatchClassU32
 }
 
 func (bl BlockLength) Encode(buffer *bytes.Buffer) error {
@@ -20,4 +20,8 @@ func (bl BlockLength) Encode(buffer *bytes.Buffer) error {
 
 func (bl BlockLength) Bytes() []byte {
 	return sc.EncodedBytes(bl)
+}
+
+func (bl BlockLength) Docs() string {
+	return "The maximum length of a block (in bytes)."
 }

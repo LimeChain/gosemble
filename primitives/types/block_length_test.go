@@ -17,7 +17,7 @@ var (
 
 var (
 	targetBlockLength = BlockLength{
-		Max: PerDispatchClass[sc.U32]{
+		Max: PerDispatchClassU32{
 			Normal:      sc.U32(0),
 			Operational: sc.U32(1),
 			Mandatory:   sc.U32(2),

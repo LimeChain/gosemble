@@ -39,3 +39,7 @@ func (dbw RuntimeDbWeight) ReadsWrites(r, w sc.U64) Weight {
 	writeWeight := sc.SaturatingMulU64(dbw.Write, w)
 	return WeightFromParts(sc.SaturatingAddU64(readWeight, writeWeight), 0)
 }
+
+func (dbw RuntimeDbWeight) Docs() string {
+	return "The weight of runtime database operations the runtime can invoke."
+}

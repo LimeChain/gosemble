@@ -26,12 +26,12 @@ var (
 	}
 
 	oldUpgradeInfo = primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: 99,
+		SpecVersion: sc.Compact{Number: sc.U32(99)},
 		SpecName:    "old-version",
 	}
 
 	currentUpgradeInfo = primitives.LastRuntimeUpgradeInfo{
-		SpecVersion: 100,
+		SpecVersion: sc.Compact{Number: sc.U32(100)},
 		SpecName:    "new-version",
 	}
 

@@ -101,3 +101,25 @@ func DecodeTransactionValidityError(buffer *bytes.Buffer) (TransactionValidityEr
 func (e TransactionValidityError) Bytes() []byte {
 	return sc.EncodedBytes(e)
 }
+
+func (e TransactionValidityError) MetadataDefinition(typesInvalidTxId int, typesUnknownTxId int) *MetadataTypeDefinition {
+	def := NewMetadataTypeDefinitionVariant(
+		sc.Sequence[MetadataDefinitionVariant]{
+			NewMetadataDefinitionVariant(
+				"Invalid",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(typesInvalidTxId),
+				},
+				TransactionValidityErrorInvalidTransaction,
+				""),
+			NewMetadataDefinitionVariant(
+				"Unknown",
+				sc.Sequence[MetadataTypeDefinitionField]{
+					NewMetadataTypeDefinitionField(typesUnknownTxId),
+				},
+				TransactionValidityErrorUnknownTransaction,
+				""),
+		},
+	)
+	return &def
+}

@@ -40,7 +40,7 @@ type Module interface {
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error)
 	Metadata() primitives.MetadataModule
 
-	BlockHashCount() sc.U64
+	BlockHashCount() types.BlockHashCount
 	BlockLength() types.BlockLength
 	BlockWeights() types.BlockWeights
 	DbWeight() types.RuntimeDbWeight
@@ -121,7 +121,7 @@ func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Ca
 	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
 }
 
-func (m module) BlockHashCount() sc.U64 {
+func (m module) BlockHashCount() types.BlockHashCount {
 	return m.constants.BlockHashCount
 }
 
@@ -334,7 +334,7 @@ func (m module) Finalize() (primitives.Header, error) {
 	}
 	buf.Reset()
 
-	toRemove := sc.SaturatingSubU64(blockNumber, m.constants.BlockHashCount)
+	toRemove := sc.SaturatingSubU64(blockNumber, sc.U64(m.constants.BlockHashCount.U32))
 	toRemove = sc.SaturatingSubU64(toRemove, 1)
 	if toRemove != 0 {
 		m.storage.BlockHash.Remove(toRemove)
@@ -607,6 +607,39 @@ func (m module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
 	})
 
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeight{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockWeights{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.RuntimeDbWeight{}), &sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, nil, nil)
+
+	validTransactionMdId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ValidTransaction{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.LastRuntimeUpgradeInfo{SpecVersion: sc.Compact{Number: sc.U32(0)}, SpecName: ""}), &sc.Sequence[sc.Str]{"frame_system", "LastRuntimeUpgradeInfo"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.TransactionSource{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"}, new(primitives.TransactionSource).MetadataDefinition(), nil)
+
+	// type 871
+	invalidTxMdId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.InvalidTransaction{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "InvalidTransaction"}, new(primitives.InvalidTransaction).MetadataDefinition(), nil)
+
+	// type872
+	unknownTxMdId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.UnknownTransaction{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "UnknownTransaction"}, new(primitives.UnknownTransaction).MetadataDefinition(), nil)
+
+	// type 870
+	validityErrorMdId := m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.TransactionValidityError{}), &sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionValidityError"}, new(primitives.TransactionValidityError).MetadataDefinition(invalidTxMdId, unknownTxMdId), nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.TransactionValidityResult{}), &sc.Sequence[sc.Str]{"Result"}, new(primitives.TransactionValidityResult).MetadataDefinition(validTransactionMdId, validityErrorMdId), nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassU32{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.BlockLength{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"}, nil, nil)
+
+	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.constants))
+
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
 		Storage: m.metadataStorage(),
@@ -630,7 +663,7 @@ func (m module) Metadata() primitives.MetadataModule {
 				m.Index,
 				"Events.System"),
 		),
-		Constants: m.metadataConstants(),
+		Constants: constants,
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(errorsMetadataId)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(
@@ -653,7 +686,7 @@ func (m module) Metadata() primitives.MetadataModule {
 }
 
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
-	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
+	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
 
 	return sc.Sequence[primitives.MetadataType]{
 		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
@@ -662,52 +695,6 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataType(metadata.TypesVecBlockNumEventIndex, "Vec<BlockNumber, EventIndex>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleU32U32))),
-
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeight, "PerDispatchClass[Weight]", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "normal", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "operational", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "mandatory", "T"),
-			},
-		),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeight, "T"),
-		),
-		primitives.NewMetadataTypeWithPath(metadata.TypesWeightPerClass, "WeightPerClass", sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_extrinsic", "Weight"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_extrinsic", "Option<Weight>"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "max_total", "Option<Weight>"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesOptionWeight, "reserved", "Option<Weight>"),
-			})),
-		primitives.NewMetadataTypeWithParam(metadata.TypesPerDispatchClassWeightsPerClass, "PerDispatchClass<WeightPerClass>", sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "normal", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "operational", "T"),
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeightPerClass, "mandatory", "T"),
-			}),
-			primitives.NewMetadataTypeParameter(metadata.TypesWeightPerClass, "T")),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesBlockWeights,
-			"BlockWeights",
-			sc.Sequence[sc.Str]{"frame_system", "limits", "BlockWeights"}, primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "base_block", "Weight"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesWeight, "max_block", "Weight"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPerDispatchClassWeightsPerClass, "per_class", "PerDispatchClass<WeightPerClass>"),
-				})),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesDbWeight, "sp_weights RuntimeDbWeight", sc.Sequence[sc.Str]{"sp_weights", "RuntimeDbWeight"}, primitives.NewMetadataTypeDefinitionComposite(
-			sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // read
-				primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64), // write
-			})),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesBlockLength,
-			"frame_system limits BlockLength",
-			sc.Sequence[sc.Str]{"frame_system", "limits", "BlockLength"},
-			primitives.NewMetadataTypeDefinitionComposite(sc.Sequence[primitives.MetadataTypeDefinitionField]{
-				primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesPerDispatchClassU32, "max", "PerDispatchClass<u32>"), // max
-			})),
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesEventRecord,
 			"frame_system EventRecord",
@@ -769,179 +756,14 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						"Events.Remarked"),
 				})),
 
-		primitives.NewMetadataTypeWithPath(metadata.TypesLastRuntimeUpgradeInfo,
-			"LastRuntimeUpgradeInfo",
-			sc.Sequence[sc.Str]{"frame_system", "LastRuntimeUpgradeInfo"}, primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionField(metadata.TypesCompactU32),
-					primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesString),
-				})),
-
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionSource, "TransactionSource", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionSource"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"InBlock",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.TransactionSourceInBlock,
-						"TransactionSourceInBlock"),
-					primitives.NewMetadataDefinitionVariant(
-						"Local",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.TransactionSourceLocal,
-						"TransactionSourceLocal"),
-					primitives.NewMetadataDefinitionVariant(
-						"External",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.TransactionSourceExternal,
-						"TransactionSourceExternal"),
-				})),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesValidTransaction, "ValidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "ValidTransaction"},
-			primitives.NewMetadataTypeDefinitionComposite(
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionPriority"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.TypesSequenceSequenceU8, "Vec<TransactionTag>"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesU64, "TransactionLongevity"),
-					primitives.NewMetadataTypeDefinitionFieldWithName(metadata.PrimitiveTypesBool, "bool"),
-				},
-			)),
-
-		// type 871
-		primitives.NewMetadataTypeWithPath(metadata.TypesInvalidTransaction, "InvalidTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "InvalidTransaction"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"Call",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionCall,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Payment",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionPayment,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Future",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionFuture,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Stale",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionStale,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"BadProof",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionBadProof,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"AncientBirthBlock",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionAncientBirthBlock,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"ExhaustsResources",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionExhaustsResources,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Custom",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
-						},
-						primitives.InvalidTransactionCustom,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"BadMandatory",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionBadMandatory,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"MandatoryValidation",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionMandatoryValidation,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"BadSigner",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.InvalidTransactionBadSigner,
-						""),
-				},
-			)),
-
-		// type 872
-		primitives.NewMetadataTypeWithPath(metadata.TypesUnknownTransaction, "UnknownTransaction", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "UnknownTransaction"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"CannotLookup",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.UnknownTransactionCannotLookup,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"NoUnsignedValidator",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						primitives.UnknownTransactionNoUnsignedValidator,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Custom",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU8),
-						},
-						primitives.UnknownTransactionCustomUnknownTransaction,
-						""),
-				},
-			)),
-
-		// type 870
-		primitives.NewMetadataTypeWithPath(metadata.TypesTransactionValidityError, "TransactionValidityError", sc.Sequence[sc.Str]{"sp_runtime", "transaction_validity", "TransactionValidityError"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"Invalid",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesInvalidTransaction),
-						},
-						primitives.TransactionValidityErrorInvalidTransaction,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Unknown",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesUnknownTransaction),
-						},
-						primitives.TransactionValidityErrorUnknownTransaction,
-						""),
-				},
-			)),
-
-		primitives.NewMetadataTypeWithPath(metadata.TypesResultValidityTransaction, "Result", sc.Sequence[sc.Str]{"Result"},
-			primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"Ok",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesValidTransaction),
-						},
-						primitives.TransactionValidityResultValid,
-						""),
-					primitives.NewMetadataDefinitionVariant(
-						"Err",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesTransactionValidityError),
-						},
-						primitives.TransactionValidityResultError,
-						""),
-				})),
 	}
 }
 
 func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
-	typesPhaseId := m.mdGenerator.GetIdsMap()["ExtrinsicPhase"]
+	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
+	perDispatchClassWeightId, _ := m.mdGenerator.GetId("PerDispatchClassWeight")
+	lastRuntimeUpgradeInfoId, _ := m.mdGenerator.GetId("LastRuntimeUpgradeInfo")
 
 	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
 		Prefix: m.name(),
@@ -964,7 +786,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"BlockWeight",
 				primitives.MetadataModuleStorageEntryModifierDefault,
 				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.TypesPerDispatchClassWeight)),
+					sc.ToCompact(perDispatchClassWeightId)),
 				"The current weight for the block."),
 			primitives.NewMetadataModuleStorageEntry(
 				"AllExtrinsicsLen",
@@ -1027,7 +849,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 			primitives.NewMetadataModuleStorageEntry(
 				"LastRuntimeUpgrade",
 				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesLastRuntimeUpgradeInfo)),
+				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(lastRuntimeUpgradeInfoId)),
 				"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
 			primitives.NewMetadataModuleStorageEntry(
 				"ExecutionPhase",
@@ -1036,41 +858,6 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				"The execution phase of the block."),
 		},
 	})
-}
-
-func (m module) metadataConstants() sc.Sequence[primitives.MetadataModuleConstant] {
-	return sc.Sequence[primitives.MetadataModuleConstant]{
-		primitives.NewMetadataModuleConstant(
-			"BlockWeights",
-			sc.ToCompact(metadata.TypesBlockWeights),
-			sc.BytesToSequenceU8(m.BlockWeights().Bytes()),
-			"Block & extrinsics weights: base values and limits.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockLength",
-			sc.ToCompact(metadata.TypesBlockLength),
-			sc.BytesToSequenceU8(m.BlockLength().Bytes()),
-			"The maximum length of a block (in bytes).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"BlockHashCount",
-			sc.ToCompact(metadata.PrimitiveTypesU32),
-			sc.BytesToSequenceU8(m.BlockHashCount().Bytes()),
-			"Maximum number of block number to block hash mappings to keep (oldest pruned first).",
-		),
-		primitives.NewMetadataModuleConstant(
-			"DbWeight",
-			sc.ToCompact(metadata.TypesDbWeight),
-			sc.BytesToSequenceU8(m.DbWeight().Bytes()),
-			"The weight of runtime database operations the runtime can invoke.",
-		),
-		primitives.NewMetadataModuleConstant(
-			"Version",
-			sc.ToCompact(metadata.TypesRuntimeVersion),
-			sc.BytesToSequenceU8(m.Version().Bytes()),
-			"Get the chain's current version.",
-		),
-	}
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) {

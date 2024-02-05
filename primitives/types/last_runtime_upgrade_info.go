@@ -2,18 +2,24 @@ package types
 
 import (
 	"bytes"
+	"errors"
 
 	sc "github.com/LimeChain/goscale"
 )
 
 type LastRuntimeUpgradeInfo struct {
-	SpecVersion sc.U32
+	SpecVersion sc.Compact
 	SpecName    sc.Str
 }
 
 func (lrui LastRuntimeUpgradeInfo) Encode(buffer *bytes.Buffer) error {
+	specVersion, ok := lrui.SpecVersion.Number.(sc.U32)
+	if !ok {
+		return errors.New("invalid SpecVersion of LastRuntimeUpgradeInfo")
+	}
+
 	return sc.EncodeEach(buffer,
-		sc.ToCompact(lrui.SpecVersion),
+		sc.Compact{Number: specVersion},
 		lrui.SpecName,
 	)
 }
@@ -28,7 +34,7 @@ func DecodeLastRuntimeUpgradeInfo(buffer *bytes.Buffer) (LastRuntimeUpgradeInfo,
 		return LastRuntimeUpgradeInfo{}, err
 	}
 	return LastRuntimeUpgradeInfo{
-		SpecVersion: sc.U32(specVersion.ToBigInt().Uint64()),
+		SpecVersion: specVersion,
 		SpecName:    specName,
 	}, nil
 }
