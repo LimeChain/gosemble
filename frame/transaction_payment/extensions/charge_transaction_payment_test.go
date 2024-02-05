@@ -34,7 +34,7 @@ var (
 	blockWeights = types.BlockWeights{
 		BaseBlock: types.WeightFromParts(1, 2),
 		MaxBlock:  types.WeightFromParts(3, 4),
-		PerClass: types.PerDispatchClass[types.WeightsPerClass]{
+		PerClass: types.PerDispatchClassWeightsPerClass{
 			Normal: types.WeightsPerClass{
 				BaseExtrinsic: types.WeightFromParts(5, 6),
 			},
@@ -48,7 +48,7 @@ var (
 	}
 
 	blockLength = types.BlockLength{
-		Max: types.PerDispatchClass[sc.U32]{
+		Max: types.PerDispatchClassU32{
 			Normal:      1,
 			Operational: 2,
 			Mandatory:   3,
@@ -396,4 +396,16 @@ func Test_getPriority(t *testing.T) {
 	mockSystemModule.AssertCalled(t, "BlockLength")
 	mockTxPaymentModule.AssertNotCalled(t, "OperationalFeeMultiplier")
 	assert.Equal(t, sc.U64(11), priority)
+}
+
+func Test_NewChargeTxPayment(t *testing.T) {
+	mockSystemModule = new(mocks.SystemModule)
+	expected := &ChargeTransactionPayment{
+		systemModule:                  mockSystemModule,
+		txPaymentModule:               mockTxPaymentModule,
+		onChargeTransaction:           newChargeTransaction(mockCurrencyAdapterForChargeTxPayment),
+		typesInfoAdditionalSignedData: sc.NewVaryingData(),
+	}
+	txPayment := NewChargeTransactionPayment(mockSystemModule, mockTxPaymentModule, mockCurrencyAdapterForChargeTxPayment)
+	assert.Equal(t, txPayment, expected)
 }

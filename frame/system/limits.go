@@ -14,7 +14,7 @@ func MaxWithNormalRatio(max sc.U32, normal types.Perbill) (types.BlockLength, er
 		return types.BlockLength{}, err
 	}
 	return types.BlockLength{
-		Max: types.PerDispatchClass[sc.U32]{
+		Max: types.PerDispatchClassU32{
 			Normal:      normalMax.(sc.U32),
 			Operational: max,
 			Mandatory:   max,
@@ -82,7 +82,7 @@ func NewBlockWeightsBuilder() *BlockWeightsBuilder {
 		Reserved:      sc.NewOption[types.Weight](nil),
 	}
 
-	weightsPerClass := types.PerDispatchClass[types.WeightsPerClass]{
+	weightsPerClass := types.PerDispatchClassWeightsPerClass{
 		Mandatory:   WeightsForMandatory,
 		Normal:      WeightsForNormalAndOperational,
 		Operational: WeightsForNormalAndOperational,

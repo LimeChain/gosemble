@@ -304,11 +304,17 @@ func (m module) runtimeUpgrade() (sc.Bool, error) {
 		return false, err
 	}
 
-	if m.system.Version().SpecVersion > last.SpecVersion ||
+	if last.SpecVersion.Number == nil {
+		last.SpecVersion = sc.Compact{Number: sc.U32(0)}
+	}
+
+	specVersion := last.SpecVersion.Number.(sc.U32)
+
+	if m.system.Version().SpecVersion > specVersion ||
 		last.SpecName != m.system.Version().SpecName {
 
 		current := primitives.LastRuntimeUpgradeInfo{
-			SpecVersion: m.system.Version().SpecVersion,
+			SpecVersion: sc.Compact{Number: m.system.Version().SpecVersion},
 			SpecName:    m.system.Version().SpecName,
 		}
 		m.system.StorageLastRuntimeUpgradeSet(current)

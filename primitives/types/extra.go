@@ -6,7 +6,6 @@ import (
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/constants/metadata"
-	"github.com/iancoleman/strcase"
 )
 
 type SignedExtra interface {
@@ -161,67 +160,15 @@ func (e signedExtra) PostDispatch(pre sc.Option[sc.Sequence[Pre]], info *Dispatc
 
 func (e signedExtra) Metadata() sc.Sequence[MetadataSignedExtension] {
 	ids := sc.Sequence[sc.Compact]{}
-	extraTypes := sc.Sequence[MetadataType]{}
 	signedExtensions := sc.Sequence[MetadataSignedExtension]{}
 
 	for _, extra := range e.extras {
-		extraMetadataId := generateExtraMetadata(extra, e.mdGenerator, &extraTypes, &signedExtensions)
+		extraMetadataId := e.mdGenerator.BuildExtraMetadata(reflect.ValueOf(extra), &signedExtensions)
 		ids = append(ids, sc.ToCompact(extraMetadataId))
 	}
-
-	e.mdGenerator.AppendMetadataTypes(extraTypes)
 
 	signedExtraType := NewMetadataType(metadata.SignedExtra, "SignedExtra", NewMetadataTypeDefinitionTuple(ids))
 	e.mdGenerator.AppendMetadataTypes(sc.Sequence[MetadataType]{signedExtraType})
 
 	return signedExtensions
-}
-
-// generateExtraMetadata generates the metadata for a signed extension. It may generate some new metadata types in the process. Returns the metadata id for the extra
-func generateExtraMetadata(extra SignedExtension, metadataGenerator *MetadataTypeGenerator, metadataTypes *sc.Sequence[MetadataType], extensions *sc.Sequence[MetadataSignedExtension]) int {
-	extraValue := reflect.ValueOf(extra)
-	extraTypeName := extraValue.Elem().Type().Name()
-	extraMetadataId := metadataGenerator.BuildMetadataTypeRecursively(extraValue.Elem(), &sc.Sequence[sc.Str]{sc.Str(extra.ModulePath()), "extensions", sc.Str(strcase.ToSnake(extraTypeName)), sc.Str(extraTypeName)}, nil, nil)
-	constructExtension(extraValue, extraMetadataId, extensions, metadataGenerator, metadataTypes)
-
-	return extraMetadataId
-}
-
-func generateCompositeType(typeId int, typeName string, tupleIds sc.Sequence[sc.Compact]) MetadataType {
-	return NewMetadataType(typeId, typeName, NewMetadataTypeDefinitionTuple(tupleIds))
-}
-
-// constructExtension Iterates through the elements of the typesInfoAdditionalSignedData slice and builds the extra extension. If an element in the slice is a type not present in the metadata map, it will also be generated.
-func constructExtension(extra reflect.Value, extraMetadataId int, extensions *sc.Sequence[MetadataSignedExtension], metadataGenerator *MetadataTypeGenerator, metadataTypes *sc.Sequence[MetadataType]) {
-	var resultTypeName string
-	var resultTupleIds sc.Sequence[sc.Compact]
-
-	extraType := extra.Elem().Type
-	extraName := extraType().Name()
-
-	additionalSignedField := extra.Elem().FieldByName(additionalSignedTypeName)
-
-	if additionalSignedField.IsValid() {
-		numAdditionalSignedTypes := additionalSignedField.Len()
-		if numAdditionalSignedTypes == 0 {
-			*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, metadata.TypesEmptyTuple))
-			return
-		}
-		for i := 0; i < numAdditionalSignedTypes; i++ {
-			currentType := additionalSignedField.Index(i).Elem()
-			currentTypeName := currentType.Type().Name()
-			currentTypeId, ok := metadataGenerator.GetIdsMap()[currentTypeName]
-			if !ok {
-				currentTypeId = metadataGenerator.BuildMetadataTypeRecursively(currentType, nil, nil, nil)
-			}
-			resultTypeName = resultTypeName + currentTypeName
-			resultTupleIds = append(resultTupleIds, sc.ToCompact(currentTypeId))
-		}
-		resultTypeId, ok := metadataGenerator.GetIdsMap()[resultTypeName]
-		if !ok {
-			resultTypeId = metadataGenerator.assignNewMetadataId(resultTypeName)
-			*metadataTypes = append(*metadataTypes, generateCompositeType(resultTypeId, resultTypeName, resultTupleIds))
-		}
-		*extensions = append(*extensions, NewMetadataSignedExtension(sc.Str(extraName), extraMetadataId, resultTypeId))
-	}
 }

@@ -39,6 +39,7 @@ var (
 	mockRuntimeDecoder *mocks.RuntimeDecoder
 	mockMemoryUtils    *mocks.MemoryTranslator
 	mockUxt            *mocks.UncheckedExtrinsic
+	mdGenerator        = primitives.NewMetadataTypeGenerator()
 )
 
 func Test_Module_Name(t *testing.T) {
@@ -187,6 +188,9 @@ func Test_Module_ValidateTransaction_DecodeBlake2bHash_Panics(t *testing.T) {
 func Test_Module_Metadata(t *testing.T) {
 	target := setup()
 
+	txSourceId, _ := target.mdGenerator.GetId("TransactionSource")
+	resultValidityTxId, _ := target.mdGenerator.GetId("TransactionValidityResult")
+
 	expect := primitives.RuntimeApiMetadata{
 		Name: ApiModuleName,
 		Methods: sc.Sequence[primitives.RuntimeApiMethodMetadata]{
@@ -195,7 +199,7 @@ func Test_Module_Metadata(t *testing.T) {
 				Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 					primitives.RuntimeApiMethodParamMetadata{
 						Name: "source",
-						Type: sc.ToCompact(metadata.TypesTransactionSource),
+						Type: sc.ToCompact(txSourceId),
 					},
 					primitives.RuntimeApiMethodParamMetadata{
 						Name: "tx",
@@ -206,7 +210,7 @@ func Test_Module_Metadata(t *testing.T) {
 						Type: sc.ToCompact(metadata.TypesH256),
 					},
 				},
-				Output: sc.ToCompact(metadata.TypesResultValidityTransaction),
+				Output: sc.ToCompact(resultValidityTxId),
 				Docs: sc.Sequence[sc.Str]{" Validate the transaction.",
 					"",
 					" This method is invoked by the transaction pool to learn details about given transaction.",
@@ -230,7 +234,7 @@ func setup() Module {
 	mockMemoryUtils = new(mocks.MemoryTranslator)
 	mockUxt = new(mocks.UncheckedExtrinsic)
 
-	target := New(mockExecutive, mockRuntimeDecoder, log.NewLogger())
+	target := New(mockExecutive, mockRuntimeDecoder, mdGenerator, log.NewLogger())
 	target.memUtils = mockMemoryUtils
 
 	return target

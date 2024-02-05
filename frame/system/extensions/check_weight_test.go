@@ -22,7 +22,7 @@ var (
 	blockWeight = primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(7, 8),
 			},
@@ -35,7 +35,7 @@ var (
 		},
 	}
 	blockLength = primitives.BlockLength{
-		Max: primitives.PerDispatchClass[sc.U32]{
+		Max: primitives.PerDispatchClassU32{
 			Normal:      10,
 			Operational: 20,
 			Mandatory:   30,
@@ -290,7 +290,7 @@ func Test_CheckWeight_doValidate_InvalidExtrinsicLength(t *testing.T) {
 	target := setupCheckWeight()
 
 	blockWeight := primitives.BlockWeights{
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				MaxExtrinsic: sc.NewOption[primitives.Weight](primitives.WeightFromParts(1, 0)),
 			},
@@ -359,7 +359,7 @@ func Test_CheckWeight_doPreDispatch_InvalidExtrinsicWeight(t *testing.T) {
 	target := setupCheckWeight()
 
 	blockWeight := primitives.BlockWeights{
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				MaxExtrinsic: sc.NewOption[primitives.Weight](primitives.WeightFromParts(1, 0)),
 			},
@@ -388,7 +388,7 @@ func Test_CheckWeight_doPreDispatch_InvalidBlockWeight(t *testing.T) {
 	blockWeight := primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(math.MaxUint64, 8),
 				MaxTotal:      sc.NewOption[primitives.Weight](primitives.WeightFromParts(10, 12)),
@@ -579,7 +579,7 @@ func Test_CheckWeight_checkExtrinsicWeight_ExhaustsResources(t *testing.T) {
 	target := setupCheckWeight()
 
 	blockWeight := primitives.BlockWeights{
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				MaxExtrinsic: sc.NewOption[primitives.Weight](primitives.WeightFromParts(1, 0)),
 			},
@@ -643,7 +643,7 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_ExhaustsResources(t *test
 	blockWeight := primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(math.MaxUint64, 8),
 				MaxTotal:      sc.NewOption[primitives.Weight](primitives.WeightFromParts(10, 12)),
@@ -668,7 +668,7 @@ func Test_CheckWeight_calculateConsumsedWeight_TotalMoreThanMaxReserved_Exhausts
 	blockWeight := primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(7, 8),
 				MaxTotal:      sc.NewOption[primitives.Weight](primitives.WeightFromParts(10, 12)),
@@ -694,7 +694,7 @@ func Test_CheckWeight_calculateConsumedWeight_LessThanMaxTotal_ExhaustsResources
 	blockWeight := primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(7, 8),
 				MaxTotal:      sc.NewOption[primitives.Weight](primitives.WeightFromParts(0, 1)),
@@ -719,7 +719,7 @@ func Test_CheckWeight_calculateConsumedWeight_MaxTotal_Success(t *testing.T) {
 	blockWeight := primitives.BlockWeights{
 		BaseBlock: primitives.WeightFromParts(3, 4),
 		MaxBlock:  primitives.WeightFromParts(5, 6),
-		PerClass: primitives.PerDispatchClass[primitives.WeightsPerClass]{
+		PerClass: primitives.PerDispatchClassWeightsPerClass{
 			Normal: primitives.WeightsPerClass{
 				BaseExtrinsic: primitives.WeightFromParts(7, 8),
 				MaxTotal:      sc.NewOption[primitives.Weight](primitives.WeightFromParts(10, 12)),

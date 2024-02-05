@@ -29,15 +29,17 @@ type Module struct {
 	decoder        types.RuntimeDecoder
 	runtimeVersion *primitives.RuntimeVersion
 	memUtils       utils.WasmMemoryTranslator
+	mdGenerator    *primitives.MetadataTypeGenerator
 	logger         log.Logger
 }
 
-func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *primitives.RuntimeVersion, logger log.Logger) Module {
+func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *primitives.RuntimeVersion, mdGenerator *primitives.MetadataTypeGenerator, logger log.Logger) Module {
 	return Module{
 		executive:      module,
 		decoder:        decoder,
 		runtimeVersion: runtimeVersion,
 		memUtils:       utils.NewMemoryTranslator(),
+		mdGenerator:    mdGenerator,
 		logger:         logger,
 	}
 }
@@ -100,6 +102,8 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 }
 
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
+	blockId, _ := m.mdGenerator.GetId("block")
+
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
 			Name:   "version",
@@ -112,7 +116,7 @@ func (m Module) Metadata() primitives.RuntimeApiMetadata {
 			Inputs: sc.Sequence[primitives.RuntimeApiMethodParamMetadata]{
 				primitives.RuntimeApiMethodParamMetadata{
 					Name: "block",
-					Type: sc.ToCompact(metadata.TypesBlock),
+					Type: sc.ToCompact(blockId),
 				},
 			},
 			Output: sc.ToCompact(metadata.TypesEmptyTuple),

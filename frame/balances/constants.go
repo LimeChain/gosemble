@@ -12,6 +12,12 @@ type consts struct {
 	ExistentialDeposit sc.U128
 }
 
+type metadataConstants struct {
+	ExistentialDeposit primitives.ExistentialDeposit
+	MaxLocks           primitives.MaxLocks
+	MaxReserves        primitives.MaxReserves
+}
+
 func newConstants(dbWeight primitives.RuntimeDbWeight, maxLocks sc.U32, maxReserves sc.U32, existentialDeposit sc.U128) *consts {
 	return &consts{
 		DbWeight:           dbWeight,

@@ -49,7 +49,7 @@ func Test_BuildConfig(t *testing.T) {
 
 	// assert LastRuntimeUpgradeSet
 	lrui := (*storage).Get(append(keySystemHash, keyLastRuntimeHash...))
-	expectedLrui := types.LastRuntimeUpgradeInfo{SpecVersion: 100, SpecName: "node-template"}
+	expectedLrui := types.LastRuntimeUpgradeInfo{SpecVersion: sc.Compact{Number: sc.U32(100)}, SpecName: "node-template"}
 	assert.Equal(t, expectedLrui.Bytes(), lrui)
 
 	// assert ExtrinsicIndex

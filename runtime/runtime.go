@@ -115,7 +115,7 @@ func initializeBlockDefaults() (primitives.BlockWeights, primitives.BlockLength)
 func initializeModules() []primitives.Module {
 	systemModule := system.New(
 		SystemIndex,
-		system.NewConfig(constants.BlockHashCount, blockWeights, blockLength, DbWeight, *RuntimeVersion),
+		system.NewConfig(primitives.BlockHashCount{U32: sc.U32(constants.BlockHashCount)}, blockWeights, blockLength, DbWeight, *RuntimeVersion),
 		mdGenerator,
 		logger,
 	)
@@ -205,9 +205,9 @@ func runtimeApi() types.RuntimeApi {
 		grandpaModule,
 	}
 
-	coreApi := core.New(executiveModule, decoder, RuntimeVersion, logger)
-	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder, logger)
-	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder, logger)
+	coreApi := core.New(executiveModule, decoder, RuntimeVersion, mdGenerator, logger)
+	blockBuilderApi := blockbuilder.New(runtimeExtrinsic, executiveModule, decoder, mdGenerator, logger)
+	taggedTxQueueApi := taggedtransactionqueue.New(executiveModule, decoder, mdGenerator, logger)
 	auraApi := apiAura.New(auraModule, logger)
 	grandpaApi := apiGrandpa.New(grandpaModule, logger)
 	accountNonceApi := account_nonce.New(systemModule, logger)
