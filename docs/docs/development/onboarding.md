@@ -144,9 +144,9 @@ TinyGo is a subset of Go with different goals from the standard Go. It is an alt
 
 ## 1.3. **TinyGo fork 🧪**
 
-We have [forked TinyGo](https://github.com/LimeChain/tinygo/) as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone **Wasm MVP**, similar to Rust's `wasm32-unknown-unknown`, **without bulk memory operations and other extensions,** also incorporating **custom GC** that utilizes an external allocator. In the [polkawasm-target-dev branch](https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev), you can see the changes created by Rado for the specific TinyGo releases.
+We have [forked TinyGo](https://github.com/LimeChain/tinygo/) as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone **Wasm MVP**, similar to Rust's `wasm32-unknown-unknown`, **without bulk memory operations and other extensions,** also incorporating **custom GC** that utilizes an external allocator. In the [polkawasm-target-dev branch](https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev), you can see the changes for the specific TinyGo releases.
 
-- Example: https://github.com/LimeChain/tinygo/pull/16 shows the changes added to TinyGo `v0.29`.
+- Example: [shows the changes](https://github.com/radkomih/tinygo/compare/dev...LimeChain:tinygo:polkawasm-target-dev) added to TinyGo `v0.30`.
 
 We use a local build of TinyGo and do not depend on the already-built brew dependency.
 
@@ -161,7 +161,7 @@ tinygo version
 The output should be similar to:
 
 ```bash
-tinygo version 0.30.0 darwin/arm64 (using go version go1.21.0 and LLVM version 16.0.6)
+tinygo version 0.30.0-dev darwin/arm64 (using go version go1.21.6 and LLVM version 17.0.6)
 ```
 
 # 2. Architecture of a Polkadot Node 🏛️
