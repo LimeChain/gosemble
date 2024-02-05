@@ -31,7 +31,6 @@ type Module struct {
 	Index       sc.U8
 	Config      *Config
 	constants   *consts
-	mdConstants *metadataConstants
 	storage     *storage
 	functions   map[sc.U8]primitives.Call
 	mdGenerator *primitives.MetadataTypeGenerator
@@ -42,14 +41,9 @@ func New(index sc.U8, config *Config, logger log.DebugLogger, mdGenerator *primi
 	storage := newStorage()
 
 	module := Module{
-		Index:     index,
-		Config:    config,
-		constants: constants,
-		mdConstants: &metadataConstants{
-			ExistentialDeposit: primitives.ExistentialDeposit{U128: constants.ExistentialDeposit},
-			MaxLocks:           primitives.MaxLocks{U32: constants.MaxLocks},
-			MaxReserves:        primitives.MaxReserves{U32: constants.MaxReserves},
-		},
+		Index:       index,
+		Config:      config,
+		constants:   constants,
 		storage:     storage,
 		mdGenerator: mdGenerator,
 	}
@@ -284,7 +278,13 @@ func (m Module) Metadata() primitives.MetadataModule {
 		primitives.NewMetadataEmptyTypeParameter("T"),
 		primitives.NewMetadataEmptyTypeParameter("I")})
 
-	constants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(*m.mdConstants))
+	mdConstants := metadataConstants{
+		ExistentialDeposit: primitives.ExistentialDeposit{U128: m.constants.ExistentialDeposit},
+		MaxLocks:           primitives.MaxLocks{U32: m.constants.MaxLocks},
+		MaxReserves:        primitives.MaxReserves{U32: m.constants.MaxReserves},
+	}
+
+	moduleMdConstants := m.mdGenerator.BuildModuleConstants(reflect.ValueOf(mdConstants))
 
 	dataV14 := primitives.MetadataModuleV14{
 		Name:    m.name(),
@@ -309,7 +309,7 @@ func (m Module) Metadata() primitives.MetadataModule {
 				m.Index,
 				"Events.Balances"),
 		),
-		Constants: constants,
+		Constants: moduleMdConstants,
 		Error:     sc.NewOption[sc.Compact](sc.ToCompact(metadata.TypesBalancesErrors)),
 		ErrorDef: sc.NewOption[primitives.MetadataDefinitionVariant](
 			primitives.NewMetadataDefinitionVariantStr(

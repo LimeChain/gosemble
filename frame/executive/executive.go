@@ -14,12 +14,11 @@ import (
 )
 
 var (
-	errInvalidParentHash      = errors.New("parent hash should be valid")
-	errInvalidDigestNum       = errors.New("number of digest must match the calculated")
-	errInvalidDigestItem      = errors.New("digest item must match that calculated")
-	errInvalidStorageRoot     = errors.New("storage root must match that calculated")
-	errInvalidTxTrie          = errors.New("Transaction trie must be valid")
-	errInvalidLastSpecVersion = errors.New("invalid last spec version number in runtime upgrade")
+	errInvalidParentHash  = errors.New("parent hash should be valid")
+	errInvalidDigestNum   = errors.New("number of digest must match the calculated")
+	errInvalidDigestItem  = errors.New("digest item must match that calculated")
+	errInvalidStorageRoot = errors.New("storage root must match that calculated")
+	errInvalidTxTrie      = errors.New("Transaction trie must be valid")
 )
 
 type Module interface {
