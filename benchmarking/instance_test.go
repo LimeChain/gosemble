@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"testing"
-	"time"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/lib/common"
@@ -33,18 +32,13 @@ func TestInstance(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, &runtime.Context.Storage, instance.Storage())
 
-		(*instance.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
-
-		nowStorageValue, err := sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
+		err = instance.InitializeBlock(blockNumber, dateTime)
 		assert.NoError(t, err)
-		assert.Equal(t, sc.U64(0), nowStorageValue)
-
-		now := uint64(time.Now().UnixMilli())
 
 		err = instance.ExecuteExtrinsic(
 			"Timestamp.set",
 			primitives.NewRawOriginNone(),
-			ctypes.NewUCompactFromUInt(now),
+			ctypes.NewUCompactFromUInt(dateTime),
 		)
 		assert.NoError(t, err)
 
@@ -54,9 +48,9 @@ func TestInstance(t *testing.T) {
 		assert.Positive(t, br.Reads.ToBigInt().Uint64())
 		assert.Positive(t, br.Writes.ToBigInt().Uint64())
 
-		nowStorageValue, err = sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
+		timestampStorageValue, err := sc.DecodeU64(bytes.NewBuffer((*instance.Storage()).Get(append(keyTimestampHash, keyTimestampNowHash...))))
 		assert.NoError(t, err)
-		assert.Equal(t, sc.U64(now), nowStorageValue)
+		assert.Equal(t, sc.U64(dateTime), timestampStorageValue)
 
 		err = instance.SetAccountInfo(aliceAccountIdBytes, gossamertypes.AccountInfo{})
 		assert.Equal(t, errors.New("failed to marshal account info: uint128 in nil"), err)
@@ -64,7 +58,7 @@ func TestInstance(t *testing.T) {
 		err = instance.ExecuteExtrinsic(
 			"Timestamp.set",
 			primitives.NewRawOriginNone(),
-			ctypes.NewUCompactFromUInt(now),
+			ctypes.NewUCompactFromUInt(dateTime),
 		)
 		assert.Equal(t, errOnlyOneCall, err)
 
@@ -73,7 +67,7 @@ func TestInstance(t *testing.T) {
 		err = instance.ExecuteExtrinsic(
 			"Timestamp.set",
 			primitives.RawOrigin{},
-			ctypes.NewUCompactFromUInt(now),
+			ctypes.NewUCompactFromUInt(dateTime),
 		)
 		assert.Error(t, err)
 

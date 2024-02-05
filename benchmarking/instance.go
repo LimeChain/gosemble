@@ -14,6 +14,7 @@ import (
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	sc "github.com/LimeChain/goscale"
+	"github.com/LimeChain/gosemble/frame/aura"
 	"github.com/LimeChain/gosemble/primitives/benchmarking"
 	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
@@ -125,6 +126,35 @@ func (i *Instance) GetAccountInfo(publicKey []byte) (gossamertypes.AccountInfo, 
 	return accountInfo, err
 }
 
+func (i *Instance) InitializeBlock(blockNumber uint, timestamp uint64) error {
+	slotDuration, err := i.slotDuration()
+	if err != nil {
+		return err
+	}
+
+	slot := sc.U64(timestamp) / slotDuration
+	preRuntimeDigest := gossamertypes.PreRuntimeDigest{
+		ConsensusEngineID: aura.EngineId,
+		Data:              slot.Bytes(),
+	}
+
+	digest := gossamertypes.NewDigest()
+	err = digest.Add(preRuntimeDigest)
+	if err != nil {
+		return err
+	}
+
+	header := gossamertypes.NewHeader(parentHash, common.Hash{}, common.Hash{}, blockNumber, digest)
+
+	bytesHeader, err := scale.Marshal(*header)
+	if err != nil {
+		return err
+	}
+
+	_, err = i.runtime.Exec("Core_initialize_block", bytesHeader)
+	return err
+}
+
 // Executes extrinsic with provided call name.
 // Accepts optional param signer, which if provided is used to sign the extrinsic.
 // Additionally the method appends the benchmark result to instance.benchmarkResults
@@ -157,6 +187,15 @@ func (i *Instance) ExecuteExtrinsic(callName string, origin primitives.RawOrigin
 	i.benchmarkResult = &benchmarkResult
 
 	return nil
+}
+
+func (i *Instance) slotDuration() (sc.U64, error) {
+	bytesSlotDuration, err := i.runtime.Exec("AuraApi_slot_duration", []byte{})
+	if err != nil {
+		return 0, err
+	}
+
+	return sc.DecodeU64(bytes.NewBuffer(bytesSlotDuration))
 }
 
 // Internal method that creates and encodes extrinsic

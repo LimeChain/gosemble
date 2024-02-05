@@ -113,6 +113,11 @@ func runTestFn(b *testing.B, testFn func(i *Instance)) benchmarkingtypes.Benchma
 		b.Fatalf("failed to create benchmarking instance: %v", err)
 	}
 
+	err = instance.InitializeBlock(blockNumber, dateTime)
+	if err != nil {
+		b.Fatalf("failed to initialize block: number [%d], date time [%d], err [%v]", blockNumber, dateTime, err)
+	}
+
 	testFn(instance)
 
 	benchmarkResult := instance.benchmarkResult

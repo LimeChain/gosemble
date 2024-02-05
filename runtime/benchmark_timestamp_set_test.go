@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"testing"
-	"time"
 
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/benchmarking"
@@ -18,7 +17,7 @@ func BenchmarkTimestampSet(b *testing.B) {
 		(*i.Storage()).Put(append(keyTimestampHash, keyTimestampNowHash...), sc.U64(0).Bytes())
 		(*i.Storage()).DbWhitelistKey(string(append(keyTimestampHash, keyTimestampDidUpdateHash...)))
 
-		now := uint64(time.Now().UnixMilli())
+		now := uint64(dateTime.UnixMilli())
 
 		// act
 		err := i.ExecuteExtrinsic(

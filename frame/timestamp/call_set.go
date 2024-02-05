@@ -153,7 +153,5 @@ func (c callSet) set(origin primitives.RuntimeOrigin, now sc.U64) error {
 	c.storage.Now.Put(now)
 	c.storage.DidUpdate.Put(true)
 
-	c.onTimestampSet.OnTimestampSet(now)
-
-	return nil
+	return c.onTimestampSet.OnTimestampSet(now)
 }
