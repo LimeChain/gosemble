@@ -40,7 +40,7 @@ func TestRun(t *testing.T) {
 
 		componentValues := []uint32{}
 
-		Run(b, func(instance *Instance) {
+		RunDispatchCall(b, func(instance *Instance) {
 			testFn(t, instance, component.Value())
 			componentValues = append(componentValues, component.Value())
 		}, component)
@@ -52,7 +52,7 @@ func TestRun(t *testing.T) {
 	// run with no components
 	testing.Benchmark(func(b *testing.B) {
 		value := uint32(100)
-		Run(b, func(instance *Instance) {
+		RunDispatchCall(b, func(instance *Instance) {
 			testFn(t, instance, value)
 		})
 	})

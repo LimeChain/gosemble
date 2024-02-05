@@ -49,17 +49,6 @@ const (
 	TimestampMinimumPeriod = 1 * 1_000 // 1 second
 )
 
-// RuntimeVersion contains the version identifiers of the Runtime.
-var RuntimeVersion = &primitives.RuntimeVersion{
-	SpecName:           sc.Str(constants.SpecName),
-	ImplName:           sc.Str(constants.ImplName),
-	AuthoringVersion:   sc.U32(constants.AuthoringVersion),
-	SpecVersion:        sc.U32(constants.SpecVersion),
-	ImplVersion:        sc.U32(constants.ImplVersion),
-	TransactionVersion: sc.U32(constants.TransactionVersion),
-	StateVersion:       sc.U8(constants.StateVersion),
-}
-
 var (
 	BalancesExistentialDeposit = sc.NewU128(1 * constants.Dollar)
 )
@@ -85,6 +74,22 @@ const (
 )
 
 var (
+	// RuntimeVersion contains the version identifiers of the Runtime.
+	RuntimeVersion = &primitives.RuntimeVersion{
+		SpecName:           sc.Str(constants.SpecName),
+		ImplName:           sc.Str(constants.ImplName),
+		AuthoringVersion:   sc.U32(constants.AuthoringVersion),
+		SpecVersion:        sc.U32(constants.SpecVersion),
+		ImplVersion:        sc.U32(constants.ImplVersion),
+		TransactionVersion: sc.U32(constants.TransactionVersion),
+		StateVersion:       sc.U8(constants.StateVersion),
+	}
+
+	// Block default values used in module initialization.
+	blockWeights, blockLength = initializeBlockDefaults()
+)
+
+var (
 	logger      = log.NewLogger()
 	mdGenerator = primitives.NewMetadataTypeGenerator()
 	// Modules contains all the modules used by the runtime.
@@ -93,17 +98,21 @@ var (
 	decoder = types.NewRuntimeDecoder(modules, extra, logger)
 )
 
+func initializeBlockDefaults() (primitives.BlockWeights, primitives.BlockLength) {
+	weights, err := system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
+	length, err := system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
+	if err != nil {
+		logger.Critical(err.Error())
+	}
+
+	return weights, length
+}
+
 func initializeModules() []primitives.Module {
-	blockWeights, err := system.WithSensibleDefaults(constants.MaximumBlockWeight, constants.NormalDispatchRatio)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-
-	blockLength, err := system.MaxWithNormalRatio(constants.FiveMbPerBlockPerExtrinsic, constants.NormalDispatchRatio)
-	if err != nil {
-		logger.Critical(err.Error())
-	}
-
 	systemModule := system.New(
 		SystemIndex,
 		system.NewConfig(primitives.BlockHashCount{U32: sc.U32(constants.BlockHashCount)}, blockWeights, blockLength, DbWeight, *RuntimeVersion),
@@ -423,13 +432,22 @@ func GenesisBuilderBuildConfig(dataPtr int32, dataLen int32) int64 {
 		BuildConfig(dataPtr, dataLen)
 }
 
-//go:export Benchmark_run
-func BenchmarkRun(dataPtr int32, dataLen int32) int64 {
-	systemModule := primitives.MustGetModule(SystemIndex, modules).(system.Module)
-
+//go:export Benchmark_dispatch
+func BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	return benchmarking.New(
-		systemModule,
+		SystemIndex,
+		modules,
 		decoder,
 		logger,
-	).Run(dataPtr, dataLen)
+	).BenchmarkDispatch(dataPtr, dataLen)
+}
+
+//go:export Benchmark_hook
+func BenchmarkHook(dataPtr int32, dataLen int32) int64 {
+	return benchmarking.New(
+		SystemIndex,
+		modules,
+		decoder,
+		logger,
+	).BenchmarkHook(dataPtr, dataLen)
 }

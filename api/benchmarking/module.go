@@ -12,9 +12,11 @@ import (
 	"github.com/LimeChain/gosemble/primitives/log"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/LimeChain/gosemble/utils"
+	"github.com/montanaflynn/stats"
 )
 
 type Module struct {
+	modules       []primitives.Module
 	systemModule  system.Module
 	transactional support.Transactional[primitives.PostDispatchInfo]
 	decoder       types.RuntimeDecoder
@@ -23,8 +25,11 @@ type Module struct {
 	logger        log.Logger
 }
 
-func New(systemModule system.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+func New(systemIndex sc.U8, modules []primitives.Module, decoder types.RuntimeDecoder, logger log.Logger) Module {
+	systemModule := primitives.MustGetModule(systemIndex, modules).(system.Module)
+
 	return Module{
+		modules:       modules,
 		systemModule:  systemModule,
 		decoder:       decoder,
 		transactional: support.NewTransactional[primitives.PostDispatchInfo](logger),
@@ -39,31 +44,133 @@ func New(systemModule system.Module, decoder types.RuntimeDecoder, logger log.Lo
 // in Gossamer supports caching and nested transactions.
 // https://github.com/ChainSafe/gossamer/discussions/3646
 
-func (m Module) Run(dataPtr int32, dataLen int32) int64 {
+func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
 
-	benchmarkConfig, err := benchmarking.DecodeBenchmarkConfig(buffer)
+	config, err := benchmarking.DecodeBenchmarkConfig(buffer)
 	if err != nil {
 		m.logger.Critical(err.Error())
 	}
 
-	opaqueExtrinsic := sc.SequenceU8ToBytes(benchmarkConfig.Extrinsic)
-	extrinsic, err := m.decoder.DecodeUncheckedExtrinsic(bytes.NewBuffer(opaqueExtrinsic))
+	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(config.Benchmark))
+	extrinsic, err := m.decoder.DecodeUncheckedExtrinsic(buffer)
 	if err != nil {
 		m.logger.Critical(err.Error())
 	}
-
 	function := extrinsic.Function()
 	args := function.Args()
-	origin, accountId := m.originAndMaybeAccount(benchmarkConfig)
 
-	measuredDurations := []int64{}
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) float64 {
+		var start, end int64
+
+		start = benchmarking.CurrentTime()
+		_, err := m.transactional.WithStorageLayer(
+			func() (primitives.PostDispatchInfo, error) {
+				return function.Dispatch(origin, args)
+			},
+		)
+		end = benchmarking.CurrentTime()
+		if err != nil {
+			m.logger.Critical(err.Error())
+		}
+
+		return float64(end - start)
+	})
+
+	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
+}
+
+func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
+	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
+	buffer := bytes.NewBuffer(data)
+
+	config, err := benchmarking.DecodeBenchmarkConfig(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	buffer = bytes.NewBuffer(sc.SequenceU8ToBytes(config.Benchmark))
+	hook, err := sc.DecodeStr(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+	arg0, err := sc.DecodeU64(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+	arg1, err := primitives.DecodeWeight(buffer)
+	if err != nil {
+		m.logger.Critical(err.Error())
+	}
+
+	benchmarkResult := m.executeBenchmark(config, func(origin primitives.RawOrigin) float64 {
+		var elapsed float64
+
+		// Benchmark the cumulative time of dispatchable module hooks.
+		switch hook {
+		case "on_initialize":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_, err := module.OnInitialize(arg0)
+				return err
+			}, m.logger)
+		case "on_runtime_upgrade":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnRuntimeUpgrade()
+				return nil
+			}, m.logger)
+		case "on_finalize":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				err := module.OnFinalize(arg0)
+				return err
+			}, m.logger)
+		case "on_idle":
+			elapsed = measureHooks(m.modules, func(module primitives.DispatchModule) error {
+				_ = module.OnIdle(arg0, arg1)
+				return nil
+			}, m.logger)
+		default:
+			m.logger.Critical("unsupported hook")
+		}
+
+		return elapsed
+	})
+
+	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
+}
+
+func measureHooks(modules []primitives.Module, hookFn func(module primitives.DispatchModule) error, logger log.Logger) float64 {
+	var start, end int64
+
+	for _, module := range modules {
+		if start == 0 || end == 0 {
+			start = benchmarking.CurrentTime()
+			end = start
+		}
+
+		t0 := benchmarking.CurrentTime()
+		err := hookFn(module)
+		t1 := benchmarking.CurrentTime()
+		elapsed := t1 - t0
+		end += elapsed
+
+		if err != nil {
+			logger.Critical(err.Error())
+		}
+	}
+
+	return float64(end - start)
+}
+
+func (m Module) executeBenchmark(config benchmarking.BenchmarkConfig, fn func(origin primitives.RawOrigin) float64) benchmarking.BenchmarkResult {
+	origin, accountId := m.originAndMaybeAccount(config)
+
+	measuredDurations := []float64{}
 
 	benchmarking.StoreSnapshotDb()
 
 	// Always do at least one internal repeat.
-	repeats := int(benchmarkConfig.InternalRepeats)
+	repeats := int(config.InternalRepeats)
 	if repeats < 1 {
 		repeats = 1
 	}
@@ -92,8 +199,10 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 		m.whitelistWellKnownKeys()
 
 		// Whitelist the signer account key.
-		keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
-		benchmarking.SetWhitelist(keyStorageAccount)
+		if accountId.HasValue {
+			keyStorageAccount := m.accountStorageKeyFrom(accountId.Value)
+			benchmarking.SetWhitelist(keyStorageAccount)
+		}
 
 		// Reset the read/write counter so we don't count
 		// operations in the setup process.
@@ -101,21 +210,10 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 
 		benchmarking.StartDbTracker()
 
-		var start, end int64
-
-		start = benchmarking.CurrentTime()
-		_, err := m.transactional.WithStorageLayer(
-			func() (primitives.PostDispatchInfo, error) {
-				return function.Dispatch(origin, args)
-			},
-		)
-		end = benchmarking.CurrentTime()
-		if err != nil {
-			m.logger.Critical(err.Error())
-		}
+		elapsed := fn(origin)
 
 		// Calculate the diff caused by the benchmark.
-		measuredDurations = append(measuredDurations, end-start)
+		measuredDurations = append(measuredDurations, elapsed)
 
 		benchmarking.StopDbTracker()
 
@@ -125,26 +223,20 @@ func (m Module) Run(dataPtr int32, dataLen int32) int64 {
 	}
 
 	// Calculate the average time.
-	extrinsicTime := calculateAverageTime(measuredDurations)
-
-	benchmarkResult := benchmarking.BenchmarkResult{
-		ExtrinsicTime: sc.NewU128(extrinsicTime),
-		Reads:         sc.U32(benchmarking.DbReadCount()),
-		Writes:        sc.U32(benchmarking.DbWriteCount()),
-	}.Bytes()
-
-	return m.memUtils.BytesToOffsetAndSize(benchmarkResult)
-}
-
-func calculateAverageTime(durations []int64) int64 {
-	var sum int64
-	for _, duration := range durations {
-		sum += duration
+	time, err := stats.Mean(measuredDurations)
+	if err != nil {
+		m.logger.Critical(err.Error())
 	}
-	return sum / int64(len(durations))
+
+	return benchmarking.BenchmarkResult{
+		Time:   sc.NewU128(int64(time)),
+		Reads:  sc.U32(benchmarking.DbReadCount()),
+		Writes: sc.U32(benchmarking.DbWriteCount()),
+	}
 }
 
 func (m Module) originAndMaybeAccount(benchmarkConfig benchmarking.BenchmarkConfig) (primitives.RawOrigin, sc.Option[primitives.AccountId]) {
+	// TODO: pass the origin as an option
 	origin := benchmarkConfig.Origin
 
 	if origin.IsSignedOrigin() {
