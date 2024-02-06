@@ -3,6 +3,7 @@ package timestamp
 import (
 	"bytes"
 	"errors"
+	"io"
 	"testing"
 	"time"
 
@@ -73,6 +74,14 @@ func Test_Call_Set_DecodeArgs(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, sc.NewVaryingData(compact), call.Args())
+}
+
+func Test_Call_Set_DecodeArgs_Fails(t *testing.T) {
+	target := setUpCallSet()
+
+	call, err := target.DecodeArgs(&bytes.Buffer{})
+	assert.Equal(t, io.EOF, err)
+	assert.Nil(t, call)
 }
 
 func Test_Call_Set_Encode(t *testing.T) {
@@ -161,6 +170,12 @@ func Test_Call_Set_PaysFee(t *testing.T) {
 	target := setUpCallSet()
 
 	assert.Equal(t, primitives.PaysYes, target.PaysFee(baseWeight))
+}
+
+func Test_Call_Set_Docs(t *testing.T) {
+	target := setUpCallSet()
+
+	assert.Equal(t, "Set the current time.", target.Docs())
 }
 
 func Test_Call_Set_Dispatch_Success(t *testing.T) {
