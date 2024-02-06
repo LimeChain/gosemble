@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -44,6 +45,30 @@ func Test_DecodeAccountData(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, targetAccountData, result)
+}
+
+func Test_DecodeAccountData_EOF(t *testing.T) {
+	examples := []struct {
+		label string
+		input string
+	}{
+		{"empty", ""},
+		{"only free", "01000000000000000000000000000000"},
+		{"free and reserved, no misc and fee", "0100000000000000000000000000000002000000000000000000000000000000"},
+		{"free, reserved and misc, no fee", "010000000000000000000000000000000200000000000000000000000000000003000000000000000000000000000000"},
+	}
+
+	for _, example := range examples {
+		t.Run(example.label, func(t *testing.T) {
+			b, err := hex.DecodeString(example.input)
+			assert.Nil(t, err)
+
+			result, err := DecodeAccountData(bytes.NewBuffer(b))
+
+			assert.Equal(t, err, io.EOF)
+			assert.Equal(t, AccountData{}, result)
+		})
+	}
 }
 
 func Test_Total(t *testing.T) {
