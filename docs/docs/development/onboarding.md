@@ -2,6 +2,7 @@
 layout: default
 permalink: /development/onboarding
 ---
+
 # Onboarding 🎓
 
 💬 *Please provide feedback on our onboarding guide. Let us know if any parts are unclear, confusing, or if you have other suggestions for improvement.*
@@ -14,7 +15,7 @@ Currently, Host implementations can be developed in Rust (Substrate), C++ (Kagom
 
 In this project, we focus only on the Runtime development in Go. The output of the Runtime code is Wasm bytecode, which can be plugged into any Host (you can consider this similar as how Solidity smart contracts are executed in Ethereum). The difference is that this bytecode takes care of the core functionality of a network.
 
-# Agenda
+**Agenda**
 
 - [1. Tech Stack 💘](#1-tech-stack) 
     * [1.1. WebAssembly 🏗️](#11-webassembly) 
@@ -30,30 +31,29 @@ In this project, we focus only on the Runtime development in Go. The output of t
     * [4.2. Implement simple Runtime function and add tests 🛠️](#42-implement-simple-runtime-function-and-add-tests)
 
 
+## 1. Tech Stack
 
-# 1. Tech Stack
-
-## 1.1. WebAssembly
+### 1.1. WebAssembly
 
 WebAssembly (abbreviated as Wasm) is a binary instruction format for a stack-based virtual machine. It is designed as a compact, portable, and fast compilation target for high-level languages like C, C++, and Rust and many others that are being adapted. It enables execution of code at near-native speeds directly in web browsers and various host environments, as it resembles low-level machine code that modern CPUs understand.
 
-### Binary Format
+#### Binary Format
 
 WebAssembly code is delivered in a low-level binary format, which is more compact than its textual representation. This binary format is designed to be fast to decode and execute. There's also a textual representation of this binary format, which is useful for debugging and testing.
 
-### Low-Level Virtual Machine
+#### Low-Level Virtual Machine
 
 WebAssembly provides a set of low-level virtual instructions that are closer to machine code than high-level programming languages. This enhances its execution efficiency and also makes it a suitable compilation target for other languages.
 
-### Typed Instructions
+#### Typed Instructions
 
 WebAssembly instructions are strongly typed. It supports several numerical types like i32, i64, f32, and f64 and a few others for handling memory and tables.
 
-### Stack-Based Architecture
+#### Stack-Based Architecture
 
 Its computational model is designed around a stack-based architecture. Operations are performed by pushing and popping values from an implicit stack (the stack is inaccessible and distinct from the untrusted linear memory). Though it is not a pure stack machine, as it accommodates features like unlimited virtual registers (local variables).
 
-### Modules & Sections
+#### Modules & Sections
 
 In the WebAssembly binary format, code and data are organized into modules. Each module consists of various sections arranged in a specific order, though some sections are optional. The module structure is defined by the WebAssembly specification and is validated before execution.
 
@@ -70,7 +70,7 @@ In the WebAssembly binary format, code and data are organized into modules. Each
 
 Modules can be dynamically loaded and combined, making it possible to build and manage larger applications effectively.
 
-### Memory Model
+#### Memory Model
 
 WebAssembly uses a single contiguous byte buffer as its memory model, referred to as linear memory. This memory is resizable, byte-addressable and is accessible by all memory operations.
 
@@ -78,7 +78,7 @@ WebAssembly uses a single contiguous byte buffer as its memory model, referred t
 
 It is isolated from the host system, thus providing a safe environment for the execution of untrusted code. It can be imported or exported, thus facilitates reading and writing operations by both WebAssembly and the Host.
 
-### Functions
+#### Functions
 
 Every module may contain functions which can be either exported (made accessible outside the module) or imported (indicating dependency on an external function).
 
@@ -90,19 +90,19 @@ Host-imported functions act as an additional bridge between WebAssembly and its 
 
 On the other hand, exported functions enables customization, allowing developers to expose specific functionalities to the host environment. An example would be to export a runtime function, which takes care of the execution of blockchain transactions.
 
-### WebAssembly Extensions
+#### WebAssembly Extensions
 
 WebAssembly has a minimal core specification, but it's designed to be extensible. Proposals like threads, garbage collection, and SIMD (single instruction, multiple data) operations are being worked on or have been added to provide more capabilities over time.
 
-### WebAssembly & JavaScript
+#### WebAssembly & JavaScript
 
 A significant feature of WebAssembly is its seamless interaction with JavaScript. The two can work in tandem within web applications.
 
-### WebAssembly & WASI
+#### WebAssembly & WASI
 
 Beyond browser capabilities, with the introduction of the WebAssembly System Interface (WASI), it can be integrated into a wide range of environments (Host), including web applications, desktop software, and more. In our case, we are going to embed it into another Rust/Go/C++ application. This is achieved by the WebAssembly module exposing a well-defined interface, facilitating communication with the host.
 
-### WebAssembly MVP & Polkadot
+#### WebAssembly MVP & Polkadot
 
 Polkadot uses a version of WebAssembly (Wasm MVP) that does not support reference types or multiple return types. Therefore, non-numeric values are exchanged through shared memory using pointer-sized allocations. This mechanism allows the WebAssembly module to interact manipulate data within the host's memory space, facilitating data exchange between the WebAssembly module and its host.
 
@@ -119,7 +119,7 @@ WebAssembly has different [platform targets](https://snarky.ca/webassembly-and-i
 
 **Unfortunately, Polkadot targets an old version of WebAssembly, called WebAssembly MVP, before [spec version 1](https://www.w3.org/TR/wasm-core-1/).** This is why we will not use the Go toolchain for building wasm blobs, but [TinyGo](https://github.com/tinygo-org/tinygo).
 
-## 1.2. Go and TinyGo
+### 1.2. Go and TinyGo
 
 TinyGo is a subset of Go with different goals from the standard Go. It is an alternative compiler and runtime aimed to support different small embedded devices and WebAssembly with a single processor core, emphasizing size optimizations.
 
@@ -131,7 +131,7 @@ TinyGo is a subset of Go with different goals from the standard Go. It is an alt
         1. https://github.com/tetratelabs/wazero/tree/main/examples/allocation - check README and `tinygo` folder
         2. https://github.com/tetratelabs/wazero/tree/main/examples/import-go - check README
 
-## 1.3. TinyGo fork
+### 1.3. TinyGo fork
 
 We have [forked TinyGo](https://github.com/LimeChain/tinygo/) as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone **Wasm MVP**, similar to Rust's `wasm32-unknown-unknown`, **without bulk memory operations and other extensions,** also incorporating **custom GC** that utilizes an external allocator. In the [polkawasm-target-dev branch](https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev), you can see the changes for the specific TinyGo releases.
 
@@ -153,19 +153,19 @@ The output should be similar to:
 tinygo version 0.31.0-dev darwin/arm64 (using go version go1.21.6 and LLVM version 16.0.6)
 ```
 
-# 2. Architecture of a Polkadot Node
+## 2. Architecture of a Polkadot Node
 
 Now that you have learned about WebAssembly, shared memory, runtime imported/exported functions and the TinyGo toolchain, let’s look at the Polkadot specification.
 
 Polkadot node architecture and protocol specification is heavily influenced by the tech stack: WebAssembly MVP and Rust. Some implementation details, like the memory management, are not well abstracted and tightly coupled with the Rust implementation and even included as part of the protocol specification.
 
-## 2.1. Node
+### 2.1. Node
 
 [Polkadot protocol](https://spec.polkadot.network/id-polkadot-protocol) has been divided into two parts, the [Polkadot Runtime](https://spec.polkadot.network/part-polkadot-runtime) and the [Polkadot Host](https://spec.polkadot.network/part-polkadot-host).
 
-## 2.2. Host-Runtime Interaction
+### 2.2. Host-Runtime Interaction
 
-### Imported Functions 📥
+#### Imported Functions 📥
 
 External functions provided by the **Host** environment (Substrate/Kagome/Gossamer host) that **Runtime** (WebAssembly module) can invoke when needed, for more details check the [Host API](https://spec.polkadot.network/chap-host-api). The Host API provides access to memory, storage, crypto, hashing, logging and misc functionality.
 
@@ -174,7 +174,7 @@ Example (Storage):
 - Rust [implementation](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/io/src/lib.rs#L172) using Substrate
 - Go [implementation](https://github.com/LimeChain/gosemble/blob/develop/env/storage.go) using  Gosemble
 
-### Exported Functions 📤
+#### Exported Functions 📤
 
 Defined within the **Runtime** (WebAssembly module) and can be invoked by the **Host** application, for more details check the [Runtime API](https://spec.polkadot.network/chap-runtime-api).
 
@@ -185,43 +185,43 @@ Example (Core API):
 - Rust [implementation](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/bin/node-template/runtime/src/lib.rs#L325) using Substrate
 - Go [implementation](https://github.com/LimeChain/gosemble/blob/develop/runtime/runtime.go#L261) using Gosemble
 
-### Memory 🧠
+#### Memory 🧠
 
 Shared between the Host and the Runtime and is [managed by the Host allocator](https://spec.polkadot.network/chap-state#sect-memory-management) for all heap allocations. All data passed between Host and Runtime, like arguments to exported or imported functions or returned results, is encoded using SCALE encoding. Non numeric types, like byte buffers, are [shared](https://spec.polkadot.network/chap-state#sect-runtime-return-value) using a [pointer-size](https://spec.polkadot.network/chap-host-api#defn-runtime-pointer-size) to the allocation in the heap.
 
 - [SCALE encoding (Spec)](https://spec.polkadot.network/id-cryptography-encoding#sect-scale-codec)
 - [SCALE Codec (Substrate)](https://docs.substrate.io/reference/scale-codec/)
 
-## 2.3. Runtime Internals
+### 2.3. Runtime Internals
 
-### Extrinsics (Transactions) 💳
+#### Extrinsics (Transactions) 💳
 
 - [Transaction Types](https://docs.substrate.io/learn/transaction-types/)
 - [Transaction Lifecycle](https://docs.substrate.io/learn/transaction-lifecycle/)
 
-### Weights & Fees ⚖️ 💸
+#### Weights & Fees ⚖️ 💸
 
 - [Transaction Weights (Gas) and Fees](https://docs.substrate.io/build/tx-weights-fees/)
 
-### Accounts, addresses, and keys 👤 🔑
+#### Accounts, addresses, and keys 👤 🔑
 
 - [Accounts Addresses Keys](https://docs.substrate.io/learn/accounts-addresses-keys/)
 
-### Storage 💾
+#### Storage 💾
 
 Storing and retrieving data, key/value generation and types of storage values.
 
 - [State Transitions and Storage](https://docs.substrate.io/learn/state-transitions-and-storage/#querying-storage)
 - [Transactional Storage](https://docs.substrate.io/build/runtime-storage/#transactional-storage)
 
-### Pallets (Modules) 🧱
+#### Pallets (Modules) 🧱
 
 Pallets communicate and interact with each other via events, storage, calls, hooks, etc.
 
 - [Pallet Coupling](https://docs.substrate.io/build/pallet-coupling/)
 - [Events and Errors](https://docs.substrate.io/build/events-and-errors/)
 
-# 3. Specifics of implementing a Runtime in Go
+## 3. Specifics of implementing a Runtime in Go
 
 Developing a framework for writing Polkadot runtimes in Go is not a straight forward process, accompanied with many blockers and issues that need to be resolved. Most of the issues are related to the incompatibilities between the design decisions around the Polkadot protocol and the Go language. Here are some of the major challenges that we faced while working on the project:
 
@@ -234,7 +234,7 @@ Developing a framework for writing Polkadot runtimes in Go is not a straight for
 
 Most of the things are documented here [Gosemble Runtime Architecture](/overview/runtime-architecture/).
 
-# 4. Tasks
+## 4. Tasks
 
 ### 4.1. Compile a Runtime from Gosemble and run it in a Substrate node
 
