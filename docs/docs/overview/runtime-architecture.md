@@ -4,12 +4,14 @@ title: Runtime Architecture
 permalink: /overview/runtime-architecture
 ---
 
+# Architecture 🏛️
+
 At the time of writing, the official Go compiler is not Wasm compatible with the Polkadot/Substrate requirements.
 The proposed solution is based on an alternative Go compiler that aims at supporting Wasm runtimes compatible with
 [Polkadot spec](https://spec.polkadot.network/id-polkadot-protocol) / [Substrate](https://docs.substrate.io/main-docs/)
 that incorporates GC with external memory allocator targeting Wasm MVP.
 
-![Host and Runtime interaction](../assets/images/overview/host-runtime-interaction.svg)
+![Host and Runtime interaction](../assets/images/overview/host-runtime-interaction.svg){:style="height:800px;width:800px"}
 
 #### WebAssembly specification
 
@@ -48,17 +50,10 @@ Host and relies on Host imported functions for all heap allocations. Since Go/Ti
 itself, contrary to specification, a GC with external memory allocator is implemented in our TinyGo fork to meet the
 requirements of the Polkadot specification.
 
-The design in which allocation functions are on the Host side is dictated by the fact that some Host functions might
-return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.
-
-For example, let's examine the Host function that returns a given storage value. The storage value's size is not known
-upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first
-call the Host function without a buffer, which will return the value's size, and then do the second call passing a
-buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions
-cannot be implemented in such model at all. To solve this problem, it was chosen to place the allocator on the Host
-side. However, this is not the only possible solution, as there is an ongoing discussion about moving the allocator into
-the Wasm: [[1]](https://github.com/paritytech/substrate/issues/11883). Notably, the allocator maintains some of its data
-structures inside the linear memory and some other structures outside.
+However, this is not the only possible solution, as there are ongoing discussions about moving the allocator into
+the Wasm runtime: 
+[[1]](https://github.com/polkadot-fellows/RFCs/pull/61)
+[[2]](https://github.com/polkadot-fellows/RFCs/pull/4) 
 
 #### Stack
 

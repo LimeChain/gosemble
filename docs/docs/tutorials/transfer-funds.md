@@ -3,7 +3,7 @@ layout: default
 permalink: /tutorials/transfer-funds/
 ---
 
-# Transfer funds
+# Transfer funds 💸
 
 This tutorial provides steps on how to issue a transfer transaction to your local network.
 

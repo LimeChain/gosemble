@@ -3,6 +3,8 @@ layout: default
 permalink: /
 ---
 
+# Overview 👀
+
 **Go implementation of Polkadot/Substrate compatible runtimes**
 
 The following project is based on [**previous research**](https://github.com/LimeChain/gosemble-research), funded by
@@ -16,3 +18,4 @@ Polkadot Runtimes is in [Rust](https://github.com/paritytech/substrate). Writing
 mainly because of _Go_'s simplicity and automatic memory management. It is a modern, powerful, and fast language, backed
 by Google and used in many of their software, thus making it an ideal candidate for implementing Polkadot Runtimes.
 
+If your are new to Polkadot, please check our [onboarding guide](/development/onboarding).
