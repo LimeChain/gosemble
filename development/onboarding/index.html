@@ -12,13 +12,13 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/development/toolchain-setup/">
+        <link rel="canonical" href="https://limechain.tech/development/onboarding/">
       
       
-        <link rel="prev" href="../test/">
+        <link rel="prev" href="../../overview/modules/">
       
       
-        <link rel="next" href="../../tutorials/start-a-network/">
+        <link rel="next" href="../install/">
       
       
       <link rel="icon" href="../../assets/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Toolchain setup - Gosemble Docs</title>
+        <title>Onboarding - Gosemble Docs</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#docker" class="md-skip">
+        <a href="#onboarding" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Toolchain setup
+              Onboarding
             
           </span>
         </div>
@@ -251,7 +251,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../onboarding/" class="md-tabs__link">
+        <a href="./" class="md-tabs__link">
           
   
     
@@ -544,10 +544,19 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../onboarding/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -556,6 +565,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -670,28 +680,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Toolchain setup
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -700,126 +692,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#docker" class="md-nav__link">
-    <span class="md-ellipsis">
-      Docker
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#linux" class="md-nav__link">
-    <span class="md-ellipsis">
-      Linux
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#macos-apple-silicon" class="md-nav__link">
-    <span class="md-ellipsis">
-      MacOS (Apple Silicon)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="MacOS (Apple Silicon)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#build-tinygo-by-using-a-system-wide-llvm" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build TinyGo by using a system-wide LLVM
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Build TinyGo by using a system-wide LLVM">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#install-llvm" class="md-nav__link">
-    <span class="md-ellipsis">
-      Install LLVM
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-wasi-libc" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build Wasi-libc
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-binaryen" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build Binaryen
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-tinygo" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build TinyGo
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#run-tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      Run Tests
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#build-tinygo-by-using-llvm-build-from-source" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build TinyGo by using LLVM build from source
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1017,109 +889,205 @@
   
 
 
-  <h1>Toolchain setup</h1>
-
-<p>Given that we use our own custom version of the TinyGo compiler, to facilitate its development process, which includes making changes, building, and executing tests, it's necessary to carry out extra steps for setting up the development environment, beyond the initial requirements specified in the <a href="/development/install">install</a> page.</p>
-<h2 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h2>
-<p>There is a docker image available, which can be used to build the compiler and run tests inside a container without having to install any dependencies locally.
-Run the following script to build and spin up a container:</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tinygo
-./polkawasm.sh
-</code></pre></div>
-
-<h2 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h2>
-<p>Similar to the Dockerfile.</p>
-<h2 id="macos-apple-silicon">MacOS (Apple Silicon)<a class="headerlink" href="#macos-apple-silicon" title="Permanent link">&para;</a></h2>
-<p>Install the necessary dependencies:</p>
-<div class="codehilite"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>cmake<span class="w"> </span>ninja
-</code></pre></div>
-
-<h3 id="build-tinygo-by-using-a-system-wide-llvm">Build TinyGo by using a system-wide LLVM<a class="headerlink" href="#build-tinygo-by-using-a-system-wide-llvm" title="Permanent link">&para;</a></h3>
-<h4 id="install-llvm">Install LLVM<a class="headerlink" href="#install-llvm" title="Permanent link">&para;</a></h4>
-<p>Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.30.0, requires LLVM 16:</p>
-<div class="codehilite"><pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>llvm@16
-</code></pre></div>
-
-<p>Make sure these environment variables are set correctly:</p>
-<div class="codehilite"><pre><span></span><code>go<span class="w"> </span>env<span class="w"> </span>GOROOT<span class="w"> </span><span class="c1"># =&gt; /usr/local/go</span>
-go<span class="w"> </span>env<span class="w"> </span>GOPATH<span class="w"> </span><span class="c1"># =&gt; ~/go</span>
-go<span class="w"> </span>env<span class="w"> </span>GOARCH<span class="w"> </span><span class="c1"># =&gt; arm64</span>
-</code></pre></div>
-
-<h4 id="build-wasi-libc">Build Wasi-libc<a class="headerlink" href="#build-wasi-libc" title="Permanent link">&para;</a></h4>
-<p>To be able to build <code>wasi-libc</code>, for example without bulk memory operations, make sure LLVM is in your <code>PATH</code> environment variable. Add the following line to your <code>.zshrc</code>, <code>.bashrc</code>, or <code>.bash_profile</code> file:</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;/opt/homebrew/opt/llvm@16/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-wasi-libc
-</code></pre></div>
-
-<h4 id="build-binaryen">Build Binaryen<a class="headerlink" href="#build-binaryen" title="Permanent link">&para;</a></h4>
-<p>Specific version of <code>binaryen(wasm-opt)</code> is required to target the Wasm MVP instruction set:</p>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-binaryen
-</code></pre></div>
-
-<h4 id="build-tinygo">Build TinyGo<a class="headerlink" href="#build-tinygo" title="Permanent link">&para;</a></h4>
-<p>Use the Go toolchain to build TinyGo. Do not use <code>make</code>, since the <code>Makefile</code> is intended to be used with a self-built LLVM.</p>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>tinygo
-go<span class="w"> </span>install
-</code></pre></div>
-
-<p>Make sure to include the path to the TinyGo binary in your <code>PATH</code> environment variable: </p>
-<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$GOPATH</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<p>Restart the shell and verify it's working:</p>
+<h1 id="onboarding">Onboarding 🎓<a class="headerlink" href="#onboarding" title="Permanent link">&para;</a></h1>
+<p>💬 <em>Please provide feedback on our onboarding guide. Let us know if any parts are unclear, confusing, or if you have other suggestions for improvement.</em></p>
+<p>The goal of this project is to develop a framework in Go that can be used by a Polkadot node.</p>
+<p>The Polkadot node is divided into two components, the Polkadot <strong>Runtime</strong> and the Polkadot <strong>Host</strong>. The Runtime handles the state transition logic for the Polkadot protocol and is designed to be upgradeable without the need of a fork. The Polkadot Host provides necessary functionality required for the Runtime to execute its state transition logic.</p>
+<p>Currently, Host implementations can be developed in Rust (Substrate), C++ (Kagome) and Go (Gossamer). On the other hand, Runtime can be developed only in Rust (Substrate).</p>
+<p>In this project, we focus only on the Runtime development in Go. The output of the Runtime code is Wasm bytecode, which can be plugged into any Host (you can consider this similar as how Solidity smart contracts are executed in Ethereum). The difference is that this bytecode takes care of the core functionality of a network.</p>
+<h1 id="agenda">Agenda<a class="headerlink" href="#agenda" title="Permanent link">&para;</a></h1>
+<ul>
+<li><a href="#1-tech-stack">1. Tech Stack 💘</a> <ul>
+<li><a href="#11-webassembly">1.1. WebAssembly 🏗️</a> </li>
+<li><a href="#12-go-and-tinygo">1.2. Go and TinyGo 🦖 🐣</a> </li>
+<li><a href="#13-tinygo-fork">1.3. TinyGo fork 🧪</a> </li>
+</ul>
+</li>
+<li><a href="#2-architecture-of-a-polkadot-node">2. Architecture of a Polkadot Node 🏛️</a> <ul>
+<li><a href="#21-node">2.1. Node 💻</a> </li>
+<li><a href="#22-host-runtime-interaction">2.2. Host-Runtime Interaction 🤝</a> </li>
+<li><a href="#23-runtime-internals">2.3. Runtime Internals ⚙️</a> </li>
+</ul>
+</li>
+<li><a href="#3-specifics-of-implementing-a-runtime-in-go">3. Specifics of implementing a Runtime in Go 🔍🐛</a> </li>
+<li><a href="#4-tasks">4. Tasks 📝</a> <ul>
+<li><a href="#41-compile-a-runtime-from-gosemble-and-run-it-in-a-substrate-node">4.1. Compile a Runtime from Gosemble and run it in a Substrate node 🛠️</a></li>
+<li><a href="#42-implement-simple-runtime-function-and-add-tests">4.2. Implement simple Runtime function and add tests 🛠️</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="1-tech-stack">1. Tech Stack<a class="headerlink" href="#1-tech-stack" title="Permanent link">&para;</a></h1>
+<h2 id="11-webassembly">1.1. WebAssembly<a class="headerlink" href="#11-webassembly" title="Permanent link">&para;</a></h2>
+<p>WebAssembly (abbreviated as Wasm) is a binary instruction format for a stack-based virtual machine. It is designed as a compact, portable, and fast compilation target for high-level languages like C, C++, and Rust and many others that are being adapted. It enables execution of code at near-native speeds directly in web browsers and various host environments, as it resembles low-level machine code that modern CPUs understand.</p>
+<h3 id="binary-format">Binary Format<a class="headerlink" href="#binary-format" title="Permanent link">&para;</a></h3>
+<p>WebAssembly code is delivered in a low-level binary format, which is more compact than its textual representation. This binary format is designed to be fast to decode and execute. There's also a textual representation of this binary format, which is useful for debugging and testing.</p>
+<h3 id="low-level-virtual-machine">Low-Level Virtual Machine<a class="headerlink" href="#low-level-virtual-machine" title="Permanent link">&para;</a></h3>
+<p>WebAssembly provides a set of low-level virtual instructions that are closer to machine code than high-level programming languages. This enhances its execution efficiency and also makes it a suitable compilation target for other languages.</p>
+<h3 id="typed-instructions">Typed Instructions<a class="headerlink" href="#typed-instructions" title="Permanent link">&para;</a></h3>
+<p>WebAssembly instructions are strongly typed. It supports several numerical types like i32, i64, f32, and f64 and a few others for handling memory and tables.</p>
+<h3 id="stack-based-architecture">Stack-Based Architecture<a class="headerlink" href="#stack-based-architecture" title="Permanent link">&para;</a></h3>
+<p>Its computational model is designed around a stack-based architecture. Operations are performed by pushing and popping values from an implicit stack (the stack is inaccessible and distinct from the untrusted linear memory). Though it is not a pure stack machine, as it accommodates features like unlimited virtual registers (local variables).</p>
+<h3 id="modules-sections">Modules &amp; Sections<a class="headerlink" href="#modules-sections" title="Permanent link">&para;</a></h3>
+<p>In the WebAssembly binary format, code and data are organized into modules. Each module consists of various sections arranged in a specific order, though some sections are optional. The module structure is defined by the WebAssembly specification and is validated before execution.</p>
+<ul>
+<li><strong>Type Section</strong> - declares all function signatures used within the module.</li>
+<li><strong>Import Section</strong> - specifies all module imports, such as functions, memories, globals, and tables.</li>
+<li><strong>Function Section</strong> - contains a list of function declarations, each referencing the type section for its signature.</li>
+<li><strong>Table Section</strong> - declares the table of function references used by the module.</li>
+<li><strong>Global Section</strong> - declares global variables.</li>
+<li><strong>Export Section</strong> - specifies all module exports, such as functions, memories, globals, and tables.</li>
+<li><strong>Elem Section</strong> - initializes the table with function references for indirect function calls.</li>
+<li><strong>Code Section</strong> - contains the binary code for the module's functions.</li>
+<li><strong>Data Section</strong> - contains initial values for the module's memory.</li>
+<li><strong>Custom Section</strong> - contains custom data for the host environment, possibly containing toolchain-specific information. This section can appear multiple times and is not restricted to a specific position in the list of sections.</li>
+</ul>
+<p>Modules can be dynamically loaded and combined, making it possible to build and manage larger applications effectively.</p>
+<h3 id="memory-model">Memory Model<a class="headerlink" href="#memory-model" title="Permanent link">&para;</a></h3>
+<p>WebAssembly uses a single contiguous byte buffer as its memory model, referred to as linear memory. This memory is resizable, byte-addressable and is accessible by all memory operations.</p>
+<p><strong>Imported/Exported Memory</strong></p>
+<p>It is isolated from the host system, thus providing a safe environment for the execution of untrusted code. It can be imported or exported, thus facilitates reading and writing operations by both WebAssembly and the Host.</p>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<p>Every module may contain functions which can be either exported (made accessible outside the module) or imported (indicating dependency on an external function).</p>
+<p><strong>Exported/Imported Functions</strong></p>
+<p>The WebAssembly module and its Host communicate using host-imported and exported functions.</p>
+<p>Host-imported functions act as an additional bridge between WebAssembly and its host, enabling the module to access resources, input-output operations, or system-specific functionality. An example would be to get the time of the machine the Host is currently running on.</p>
+<p>On the other hand, exported functions enables customization, allowing developers to expose specific functionalities to the host environment. An example would be to export a runtime function, which takes care of the execution of blockchain transactions.</p>
+<h3 id="webassembly-extensions">WebAssembly Extensions<a class="headerlink" href="#webassembly-extensions" title="Permanent link">&para;</a></h3>
+<p>WebAssembly has a minimal core specification, but it's designed to be extensible. Proposals like threads, garbage collection, and SIMD (single instruction, multiple data) operations are being worked on or have been added to provide more capabilities over time.</p>
+<h3 id="webassembly-javascript">WebAssembly &amp; JavaScript<a class="headerlink" href="#webassembly-javascript" title="Permanent link">&para;</a></h3>
+<p>A significant feature of WebAssembly is its seamless interaction with JavaScript. The two can work in tandem within web applications.</p>
+<h3 id="webassembly-wasi">WebAssembly &amp; WASI<a class="headerlink" href="#webassembly-wasi" title="Permanent link">&para;</a></h3>
+<p>Beyond browser capabilities, with the introduction of the WebAssembly System Interface (WASI), it can be integrated into a wide range of environments (Host), including web applications, desktop software, and more. In our case, we are going to embed it into another Rust/Go/C++ application. This is achieved by the WebAssembly module exposing a well-defined interface, facilitating communication with the host.</p>
+<h3 id="webassembly-mvp-polkadot">WebAssembly MVP &amp; Polkadot<a class="headerlink" href="#webassembly-mvp-polkadot" title="Permanent link">&para;</a></h3>
+<p>Polkadot uses a version of WebAssembly (Wasm MVP) that does not support reference types or multiple return types. Therefore, non-numeric values are exchanged through shared memory using pointer-sized allocations. This mechanism allows the WebAssembly module to interact manipulate data within the host's memory space, facilitating data exchange between the WebAssembly module and its host.</p>
+<p>In the case of Polkadot, the WebAssembly bytecode takes care of the state transition and block execution of each Polkadot Node, which is the most critical part. It is plugged into the Polkadot Node and it is called Runtime. In case of bugs, upgrades or updates, the logic can just be replaced with a new WebAssembly bytecode. This allows the Runtime to be updated on-chain, without the need of a network fork.</p>
+<ol>
+<li><a href="https://webassembly.org/">Documentation</a></li>
+<li><a href="https://hacks.mozilla.org/2017/02/a-cartoon-intro-to-webassembly/">Intro to WebAssembly</a></li>
+<li>Install latest Go (1.21) - https://go.dev/dl/ or brew</li>
+<li>Guides<ol>
+<li><a href="https://github.com/golang/go/wiki/WebAssembly#getting-started">Go to Wasm with JS apis - executed it in the browser</a></li>
+<li><a href="https://pkg.go.dev/github.com/stealthrocket/wasi-go#readme-with-go">Go to WASI</a></li>
+</ol>
+</li>
+</ol>
+<p>WebAssembly has different <a href="https://snarky.ca/webassembly-and-its-platform-targets/">platform targets</a> and extensions. Go supports <a href="https://webassembly.org/getting-started/js-api/">Wasm depending on JavaScript supported APIs</a> and with the release of Go 1.21, they’ve added support for <a href="https://wasi.dev/">WASI</a>.</p>
+<p><strong>Unfortunately, Polkadot targets an old version of WebAssembly, called WebAssembly MVP, before <a href="https://www.w3.org/TR/wasm-core-1/">spec version 1</a>.</strong> This is why we will not use the Go toolchain for building wasm blobs, but <a href="https://github.com/tinygo-org/tinygo">TinyGo</a>.</p>
+<h2 id="12-go-and-tinygo">1.2. Go and TinyGo<a class="headerlink" href="#12-go-and-tinygo" title="Permanent link">&para;</a></h2>
+<p>TinyGo is a subset of Go with different goals from the standard Go. It is an alternative compiler and runtime aimed to support different small embedded devices and WebAssembly with a single processor core, emphasizing size optimizations.</p>
+<ol>
+<li><a href="https://github.com/tinygo-org/tinygo/blob/release/README.md">Documentation</a></li>
+<li><a href="https://tinygo.org/getting-started/install/macos/">Install</a></li>
+<li>Guides<ol>
+<li><a href="https://tinygo.org/docs/guides/webassembly/wasm/">TinyGo to Wasm with JS apis - compile a Wasm module and execute it inside a JS environment (browser)</a></li>
+<li><a href="https://wasmbyexample.dev/home.en-us.html">TinyGo to WASI</a> - compile a Wasm blob and execute it inside another Go host application (<a href="https://wazero.io/">Wazero VM</a>)<ol>
+<li>https://github.com/tetratelabs/wazero/tree/main/examples/allocation - check README and <code>tinygo</code> folder</li>
+<li>https://github.com/tetratelabs/wazero/tree/main/examples/import-go - check README</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="13-tinygo-fork">1.3. TinyGo fork<a class="headerlink" href="#13-tinygo-fork" title="Permanent link">&para;</a></h2>
+<p>We have <a href="https://github.com/LimeChain/tinygo/">forked TinyGo</a> as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone <strong>Wasm MVP</strong>, similar to Rust's <code>wasm32-unknown-unknown</code>, <strong>without bulk memory operations and other extensions,</strong> also incorporating <strong>custom GC</strong> that utilizes an external allocator. In the <a href="https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev">polkawasm-target-dev branch</a>, you can see the changes for the specific TinyGo releases.</p>
+<ul>
+<li>Example: <a href="https://github.com/limechain/tinygo/compare/dev...polkawasm-target-dev">shows the changes</a> added to TinyGo <code>v0.31</code>.</li>
+</ul>
+<p>We use a local build of TinyGo and do not depend on the already-built brew dependency.</p>
+<p><a href="/development/toolchain-setup">Here are the steps</a> how to install and build it locally.</p>
+<p>After you have built TinyGo, execute the following:</p>
 <div class="codehilite"><pre><span></span><code>tinygo<span class="w"> </span>version
 </code></pre></div>
 
-<h4 id="run-tests">Run Tests<a class="headerlink" href="#run-tests" title="Permanent link">&para;</a></h4>
-<div class="codehilite"><pre><span></span><code><span class="c1"># standard library packages that pass tests on darwin, linux, wasi, and windows, but take over a minute in wasi</span>
-tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>compress/bzip2<span class="w"> </span>crypto/dsa<span class="w"> </span>index/suffixarray
-
-<span class="c1"># standard library packages that pass tests quickly on darwin, linux, wasi, and windows</span>
-tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>compress/lzw<span class="w"> </span>compress/zlib<span class="w"> </span>container/heap<span class="w"> </span>container/list<span class="w"> </span>container/ring<span class="w"> </span>crypto/des<span class="w"> </span>crypto/md5<span class="w"> </span>crypto/rc4<span class="w"> </span>crypto/sha1<span class="w"> </span>crypto/sha256<span class="w"> </span>crypto/sha512<span class="w"> </span>debug/macho<span class="w"> </span>embed/internal/embedtest<span class="w"> </span>encoding<span class="w"> </span>encoding/ascii85<span class="w"> </span>encoding/base32<span class="w"> </span>encoding/base64<span class="w"> </span>encoding/csv<span class="w"> </span>encoding/hex<span class="w"> </span>go/scanner<span class="w"> </span><span class="nb">hash</span><span class="w"> </span>hash/adler32<span class="w"> </span>hash/crc64<span class="w"> </span>hash/fnv<span class="w"> </span>html<span class="w"> </span>internal/itoa<span class="w"> </span>internal/profile<span class="w"> </span>math<span class="w"> </span>math/cmplx<span class="w"> </span>net/http/internal/ascii<span class="w"> </span>net/mail<span class="w"> </span>os<span class="w"> </span>path<span class="w"> </span>reflect<span class="w"> </span>sync<span class="w"> </span>testing<span class="w"> </span>testing/iotest<span class="w"> </span>text/scanner<span class="w"> </span>unicode<span class="w"> </span>unicode/utf16<span class="w"> </span>unicode/utf8
-
-<span class="c1"># standard library packages that pass tests on individual platforms</span>
-tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>archive/zip<span class="w"> </span>bytes<span class="w"> </span>compress/flate<span class="w"> </span>crypto/hmac<span class="w"> </span>debug/dwarf<span class="w"> </span>debug/plan9obj<span class="w"> </span>image<span class="w"> </span>io/ioutil<span class="w"> </span>mime/quotedprintable<span class="w"> </span>net<span class="w"> </span>strconv<span class="w"> </span>testing/fstest<span class="w"> </span>text/tabwriter<span class="w"> </span>text/template/parse
-
-<span class="c1"># wasi</span>
-tinygo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-target<span class="w"> </span>wasi<span class="w"> </span>./tests/runtime_wasi
-
-<span class="c1"># wasm</span>
-tinygo<span class="w"> </span>build<span class="w"> </span>-size<span class="w"> </span>short<span class="w"> </span>-o<span class="w"> </span>wasm.wasm<span class="w"> </span>-target<span class="o">=</span>wasm<span class="w"> </span>examples/wasm/export
-tinygo<span class="w"> </span>build<span class="w"> </span>-size<span class="w"> </span>short<span class="w"> </span>-o<span class="w"> </span>wasm.wasm<span class="w"> </span>-target<span class="o">=</span>wasm<span class="w"> </span>examples/wasm/main
-
-<span class="c1"># wasm</span>
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/wasm
-
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/os/smoke
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/runtime
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/text/template/smoke
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>./tests/tinygotest
-
-go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>-count<span class="o">=</span><span class="m">1</span><span class="w"> </span>-v<span class="w"> </span>-timeout<span class="o">=</span>20m<span class="w"> </span>-tags<span class="w"> </span><span class="s2">&quot;osusergo&quot;</span><span class="w"> </span>./builder<span class="w"> </span>./cgo<span class="w"> </span>./compileopts<span class="w"> </span>./compiler<span class="w"> </span>./interp<span class="w"> </span>./transform<span class="w"> </span>.
+<p>The output should be similar to:</p>
+<div class="codehilite"><pre><span></span><code>tinygo<span class="w"> </span>version<span class="w"> </span><span class="m">0</span>.31.0-dev<span class="w"> </span>darwin/arm64<span class="w"> </span><span class="o">(</span>using<span class="w"> </span>go<span class="w"> </span>version<span class="w"> </span>go1.21.6<span class="w"> </span>and<span class="w"> </span>LLVM<span class="w"> </span>version<span class="w"> </span><span class="m">16</span>.0.6<span class="o">)</span>
 </code></pre></div>
 
-<h3 id="build-tinygo-by-using-llvm-build-from-source">Build TinyGo by using LLVM build from source<a class="headerlink" href="#build-tinygo-by-using-llvm-build-from-source" title="Permanent link">&para;</a></h3>
-<p>Use <code>make</code> with a self-built LLVM which has the benefit of already set up tests.</p>
-<p>Clone and build LLVM:</p>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>llvm-source
-make<span class="w"> </span>llvm-build
-</code></pre></div>
-
-<p>Build the TinyGo compiler:</p>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>clean
-make<span class="w"> </span>tinygo
-</code></pre></div>
-
-<p>Run the tests:</p>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span><span class="nb">test</span>
-make<span class="w"> </span>smoketest
-make<span class="w"> </span>test-corpus-wasi
-make<span class="w"> </span>wasmtest
-</code></pre></div>
+<h1 id="2-architecture-of-a-polkadot-node">2. Architecture of a Polkadot Node<a class="headerlink" href="#2-architecture-of-a-polkadot-node" title="Permanent link">&para;</a></h1>
+<p>Now that you have learned about WebAssembly, shared memory, runtime imported/exported functions and the TinyGo toolchain, let’s look at the Polkadot specification.</p>
+<p>Polkadot node architecture and protocol specification is heavily influenced by the tech stack: WebAssembly MVP and Rust. Some implementation details, like the memory management, are not well abstracted and tightly coupled with the Rust implementation and even included as part of the protocol specification.</p>
+<h2 id="21-node">2.1. Node<a class="headerlink" href="#21-node" title="Permanent link">&para;</a></h2>
+<p><a href="https://spec.polkadot.network/id-polkadot-protocol">Polkadot protocol</a> has been divided into two parts, the <a href="https://spec.polkadot.network/part-polkadot-runtime">Polkadot Runtime</a> and the <a href="https://spec.polkadot.network/part-polkadot-host">Polkadot Host</a>.</p>
+<h2 id="22-host-runtime-interaction">2.2. Host-Runtime Interaction<a class="headerlink" href="#22-host-runtime-interaction" title="Permanent link">&para;</a></h2>
+<h3 id="imported-functions">Imported Functions 📥<a class="headerlink" href="#imported-functions" title="Permanent link">&para;</a></h3>
+<p>External functions provided by the <strong>Host</strong> environment (Substrate/Kagome/Gossamer host) that <strong>Runtime</strong> (WebAssembly module) can invoke when needed, for more details check the <a href="https://spec.polkadot.network/chap-host-api">Host API</a>. The Host API provides access to memory, storage, crypto, hashing, logging and misc functionality.</p>
+<p>Example (Storage):</p>
+<ul>
+<li>Rust <a href="https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/io/src/lib.rs#L172">implementation</a> using Substrate</li>
+<li>Go <a href="https://github.com/LimeChain/gosemble/blob/develop/env/storage.go">implementation</a> using  Gosemble</li>
+</ul>
+<h3 id="exported-functions">Exported Functions 📤<a class="headerlink" href="#exported-functions" title="Permanent link">&para;</a></h3>
+<p>Defined within the <strong>Runtime</strong> (WebAssembly module) and can be invoked by the <strong>Host</strong> application, for more details check the <a href="https://spec.polkadot.network/chap-runtime-api">Runtime API</a>.</p>
+<p>The Runtime API provides core and chains specific functionality.</p>
+<p>Example (Core API):</p>
+<ul>
+<li>Rust <a href="https://github.com/paritytech/polkadot-sdk/blob/master/substrate/bin/node-template/runtime/src/lib.rs#L325">implementation</a> using Substrate</li>
+<li>Go <a href="https://github.com/LimeChain/gosemble/blob/develop/runtime/runtime.go#L261">implementation</a> using Gosemble</li>
+</ul>
+<h3 id="memory">Memory 🧠<a class="headerlink" href="#memory" title="Permanent link">&para;</a></h3>
+<p>Shared between the Host and the Runtime and is <a href="https://spec.polkadot.network/chap-state#sect-memory-management">managed by the Host allocator</a> for all heap allocations. All data passed between Host and Runtime, like arguments to exported or imported functions or returned results, is encoded using SCALE encoding. Non numeric types, like byte buffers, are <a href="https://spec.polkadot.network/chap-state#sect-runtime-return-value">shared</a> using a <a href="https://spec.polkadot.network/chap-host-api#defn-runtime-pointer-size">pointer-size</a> to the allocation in the heap.</p>
+<ul>
+<li><a href="https://spec.polkadot.network/id-cryptography-encoding#sect-scale-codec">SCALE encoding (Spec)</a></li>
+<li><a href="https://docs.substrate.io/reference/scale-codec/">SCALE Codec (Substrate)</a></li>
+</ul>
+<h2 id="23-runtime-internals">2.3. Runtime Internals<a class="headerlink" href="#23-runtime-internals" title="Permanent link">&para;</a></h2>
+<h3 id="extrinsics-transactions">Extrinsics (Transactions) 💳<a class="headerlink" href="#extrinsics-transactions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://docs.substrate.io/learn/transaction-types/">Transaction Types</a></li>
+<li><a href="https://docs.substrate.io/learn/transaction-lifecycle/">Transaction Lifecycle</a></li>
+</ul>
+<h3 id="weights-fees">Weights &amp; Fees ⚖️ 💸<a class="headerlink" href="#weights-fees" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://docs.substrate.io/build/tx-weights-fees/">Transaction Weights (Gas) and Fees</a></li>
+</ul>
+<h3 id="accounts-addresses-and-keys">Accounts, addresses, and keys 👤 🔑<a class="headerlink" href="#accounts-addresses-and-keys" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://docs.substrate.io/learn/accounts-addresses-keys/">Accounts Addresses Keys</a></li>
+</ul>
+<h3 id="storage">Storage 💾<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
+<p>Storing and retrieving data, key/value generation and types of storage values.</p>
+<ul>
+<li><a href="https://docs.substrate.io/learn/state-transitions-and-storage/#querying-storage">State Transitions and Storage</a></li>
+<li><a href="https://docs.substrate.io/build/runtime-storage/#transactional-storage">Transactional Storage</a></li>
+</ul>
+<h3 id="pallets-modules">Pallets (Modules) 🧱<a class="headerlink" href="#pallets-modules" title="Permanent link">&para;</a></h3>
+<p>Pallets communicate and interact with each other via events, storage, calls, hooks, etc.</p>
+<ul>
+<li><a href="https://docs.substrate.io/build/pallet-coupling/">Pallet Coupling</a></li>
+<li><a href="https://docs.substrate.io/build/events-and-errors/">Events and Errors</a></li>
+</ul>
+<h1 id="3-specifics-of-implementing-a-runtime-in-go">3. Specifics of implementing a Runtime in Go<a class="headerlink" href="#3-specifics-of-implementing-a-runtime-in-go" title="Permanent link">&para;</a></h1>
+<p>Developing a framework for writing Polkadot runtimes in Go is not a straight forward process, accompanied with many blockers and issues that need to be resolved. Most of the issues are related to the incompatibilities between the design decisions around the Polkadot protocol and the Go language. Here are some of the major challenges that we faced while working on the project:</p>
+<ul>
+<li>Missing support for standalone Wasm (<strong>MVP</strong>) 🕳️</li>
+<li>GC that is required to work with an external allocator, provided by the Host 💣</li>
+<li>Immature toolchain based on <a href="https://github.com/LimeChain/tinygo">custom Tinygo</a> 🐣</li>
+<li><a href="https://github.com/LimeChain/goscale">SCALE codec</a> implementation with minimal reflection 🪩</li>
+<li>Writing mostly low-level and unsafe Go (none of the concurrency capabilities are utilized) ⚠️</li>
+<li>The spec lacks details regarding the Runtime; thus, you should be able to read Rust code, which is the actual source of truth. 🦀</li>
+</ul>
+<p>Most of the things are documented here <a href="/overview/runtime-architecture/">Gosemble Runtime Architecture</a>.</p>
+<h1 id="4-tasks">4. Tasks<a class="headerlink" href="#4-tasks" title="Permanent link">&para;</a></h1>
+<h3 id="41-compile-a-runtime-from-gosemble-and-run-it-in-a-substrate-node">4.1. Compile a Runtime from Gosemble and run it in a Substrate node<a class="headerlink" href="#41-compile-a-runtime-from-gosemble-and-run-it-in-a-substrate-node" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Install <code>git</code> and <code>docker</code></li>
+<li>Clone the Gosemble repo - <code>git clone https://github.com/LimeChain/gosemble.git</code></li>
+<li>Checkout the development branch - <code>git checkout develop</code></li>
+<li>Pull all necessary git submodules - <code>git submodule update --init --recursive</code></li>
+<li>Build the runtime - <code>make build-docker-benchmarking</code></li>
+<li>Run the tests - <code>make test</code></li>
+<li>Start a local network - <a href="/tutorials/start-a-network/">start a network</a></li>
+<li>Connect to Polkadot.js and do a simple transfer - <a href="/tutorials/transfer-funds">transfer funds tutorial</a></li>
+</ol>
+<h3 id="42-implement-simple-runtime-function-and-add-tests">4.2. Implement simple Runtime function and add tests<a class="headerlink" href="#42-implement-simple-runtime-function-and-add-tests" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Declare a runtime exported function, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/runtime/runtime.go#L240C1-L241C70">example</a>.</li>
+<li>Read a byte buffer passed as an argument, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/api/block_builder/module.go#L58C1-L60C30">example</a>.</li>
+<li>SCALE decode the byte buffer, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/api/block_builder/module.go#L62">example</a>.</li>
+<li>Call 2-3 host imported functions, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/primitives/log/log.go#L41C1-L45C2">example</a>, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/primitives/storage/storage.go#L135-L139C2">example</a>.</li>
+<li>Return a byte buffer as a result, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/api/block_builder/module.go#L75">example</a>.</li>
+<li>Add unit &amp; integration tests, <a href="https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/runtime/block_builder_apply_extrinsic_test.go#L76">example</a>.</li>
+</ol>
 
 
 
@@ -1158,7 +1126,7 @@ make<span class="w"> </span>wasmtest
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../test/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Testing">
+          <a href="../../overview/modules/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Modules">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1168,20 +1136,20 @@ make<span class="w"> </span>wasmtest
                 Previous
               </span>
               <div class="md-ellipsis">
-                Testing
+                Modules
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../tutorials/start-a-network/" class="md-footer__link md-footer__link--next" aria-label="Next: Start a Network">
+          <a href="../install/" class="md-footer__link md-footer__link--next" aria-label="Next: Install">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Start a Network
+                Install
               </div>
             </div>
             <div class="md-footer__button md-icon">
