@@ -147,6 +147,7 @@ nav:
       - Toolchain: ./overview/toolchain.md
       - Modules: ./overview/modules.md
   - Development:
+      - Onboarding: ./development/onboarding.md
       - Install: ./development/install.md
       - Build: ./development/build.md
       - Inspect: ./development/inspect.md
