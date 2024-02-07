@@ -24,16 +24,16 @@ In this project, we focus only on the Runtime development in Go. The output of t
     * [2.1. Node 💻](#21-node) 
     * [2.2. Host-Runtime Interaction 🤝](#22-host-runtime-interaction) 
     * [2.3. Runtime Internals ⚙️](#23-runtime-internals) 
-- [3. Specifics of implementing a Runtime in Go 🔍🐛 ](#3-specifics-of-implementing-a-runtime-in-go) 
+- [3. Specifics of implementing a Runtime in Go 🔍🐛](#3-specifics-of-implementing-a-runtime-in-go) 
 - [4. Tasks 📝](#4-tasks) 
     * [4.1. Compile a Runtime from Gosemble and run it in a Substrate node 🛠️](#41-compile-a-runtime-from-gosemble-and-run-it-in-a-substrate-node)
     * [4.2. Implement simple Runtime function and add tests 🛠️](#42-implement-simple-runtime-function-and-add-tests)
 
 
 
-# 1. Tech Stack 💘
+# 1. Tech Stack
 
-## 1.1. WebAssembly 🏗️
+## 1.1. WebAssembly
 
 WebAssembly (abbreviated as Wasm) is a binary instruction format for a stack-based virtual machine. It is designed as a compact, portable, and fast compilation target for high-level languages like C, C++, and Rust and many others that are being adapted. It enables execution of code at near-native speeds directly in web browsers and various host environments, as it resembles low-level machine code that modern CPUs understand.
 
@@ -119,7 +119,7 @@ WebAssembly has different [platform targets](https://snarky.ca/webassembly-and-i
 
 **Unfortunately, Polkadot targets an old version of WebAssembly, called WebAssembly MVP, before [spec version 1](https://www.w3.org/TR/wasm-core-1/).** This is why we will not use the Go toolchain for building wasm blobs, but [TinyGo](https://github.com/tinygo-org/tinygo).
 
-## 1.2. Go and TinyGo 🦖 🐣
+## 1.2. Go and TinyGo
 
 TinyGo is a subset of Go with different goals from the standard Go. It is an alternative compiler and runtime aimed to support different small embedded devices and WebAssembly with a single processor core, emphasizing size optimizations.
 
@@ -131,7 +131,7 @@ TinyGo is a subset of Go with different goals from the standard Go. It is an alt
         1. https://github.com/tetratelabs/wazero/tree/main/examples/allocation - check README and `tinygo` folder
         2. https://github.com/tetratelabs/wazero/tree/main/examples/import-go - check README
 
-## 1.3. TinyGo fork 🧪
+## 1.3. TinyGo fork
 
 We have [forked TinyGo](https://github.com/LimeChain/tinygo/) as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone **Wasm MVP**, similar to Rust's `wasm32-unknown-unknown`, **without bulk memory operations and other extensions,** also incorporating **custom GC** that utilizes an external allocator. In the [polkawasm-target-dev branch](https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev), you can see the changes for the specific TinyGo releases.
 
@@ -153,17 +153,17 @@ The output should be similar to:
 tinygo version 0.31.0-dev darwin/arm64 (using go version go1.21.6 and LLVM version 16.0.6)
 ```
 
-# 2. Architecture of a Polkadot Node 🏛️
+# 2. Architecture of a Polkadot Node
 
 Now that you have learned about WebAssembly, shared memory, runtime imported/exported functions and the TinyGo toolchain, let’s look at the Polkadot specification.
 
 Polkadot node architecture and protocol specification is heavily influenced by the tech stack: WebAssembly MVP and Rust. Some implementation details, like the memory management, are not well abstracted and tightly coupled with the Rust implementation and even included as part of the protocol specification.
 
-## 2.1. Node 💻
+## 2.1. Node
 
 [Polkadot protocol](https://spec.polkadot.network/id-polkadot-protocol) has been divided into two parts, the [Polkadot Runtime](https://spec.polkadot.network/part-polkadot-runtime) and the [Polkadot Host](https://spec.polkadot.network/part-polkadot-host).
 
-## 2.2. Host-Runtime Interaction 🤝
+## 2.2. Host-Runtime Interaction
 
 ### Imported Functions 📥
 
@@ -192,7 +192,7 @@ Shared between the Host and the Runtime and is [managed by the Host allocator](h
 - [SCALE encoding (Spec)](https://spec.polkadot.network/id-cryptography-encoding#sect-scale-codec)
 - [SCALE Codec (Substrate)](https://docs.substrate.io/reference/scale-codec/)
 
-## 2.3. Runtime Internals ⚙️
+## 2.3. Runtime Internals
 
 ### Extrinsics (Transactions) 💳
 
@@ -221,7 +221,7 @@ Pallets communicate and interact with each other via events, storage, calls, hoo
 - [Pallet Coupling](https://docs.substrate.io/build/pallet-coupling/)
 - [Events and Errors](https://docs.substrate.io/build/events-and-errors/)
 
-# 3. Specifics of implementing a Runtime in Go 🔍🐛
+# 3. Specifics of implementing a Runtime in Go
 
 Developing a framework for writing Polkadot runtimes in Go is not a straight forward process, accompanied with many blockers and issues that need to be resolved. Most of the issues are related to the incompatibilities between the design decisions around the Polkadot protocol and the Go language. Here are some of the major challenges that we faced while working on the project:
 
@@ -234,9 +234,9 @@ Developing a framework for writing Polkadot runtimes in Go is not a straight for
 
 Most of the things are documented here [Gosemble Runtime Architecture](/overview/runtime-architecture/).
 
-# 4. Tasks 📝
+# 4. Tasks
 
-### 4.1. Compile a Runtime from Gosemble and run it in a Substrate node 🛠️
+### 4.1. Compile a Runtime from Gosemble and run it in a Substrate node
 
 1. Install `git` and `docker`
 2. Clone the Gosemble repo - `git clone https://github.com/LimeChain/gosemble.git`
@@ -247,7 +247,7 @@ Most of the things are documented here [Gosemble Runtime Architecture](/overview
 7. Start a local network - [start a network](/tutorials/start-a-network/)
 8. Connect to Polkadot.js and do a simple transfer - [transfer funds tutorial](/tutorials/transfer-funds)
 
-### 4.2. Implement simple Runtime function and add tests 🛠️
+### 4.2. Implement simple Runtime function and add tests
 
 1. Declare a runtime exported function, [example](https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/runtime/runtime.go#L240C1-L241C70).
 2. Read a byte buffer passed as an argument, [example](https://github.com/LimeChain/gosemble/blob/8d77db41b91b51984769c9d68b0b347ed29f1c32/api/block_builder/module.go#L58C1-L60C30).
