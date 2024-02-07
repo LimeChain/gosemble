@@ -4,7 +4,7 @@ title: Build
 permalink: /development/build
 ---
 
-By utilizing our [Toolchain](../../overview/toolchain), we have developed a custom Garbage Collector implementation,
+By utilizing our [Toolchain](/overview/toolchain), we have developed a custom Garbage Collector implementation,
 which uses the externally provided allocator functions as per specification.
 
 ```bash
