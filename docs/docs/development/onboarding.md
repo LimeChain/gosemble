@@ -129,17 +129,17 @@ TinyGo is a subset of Go with different goals from the standard Go. It is an alt
     1. [TinyGo to Wasm with JS apis - compile a Wasm module and execute it inside a JS environment (browser)](https://tinygo.org/docs/guides/webassembly/wasm/)
     2. [TinyGo to WASI](https://wasmbyexample.dev/home.en-us.html) - compile a Wasm blob and execute it inside another Go host application ([Wazero VM](https://wazero.io/))
         1. https://github.com/tetratelabs/wazero/tree/main/examples/allocation - check README and `tinygo` folder
-        2. https://github.com/tetratelabs/wazero/tree/main/examples/import-go - check README and `tinygo` folder
+        2. https://github.com/tetratelabs/wazero/tree/main/examples/import-go - check README
 
 ## 1.3. TinyGo fork 🧪
 
 We have [forked TinyGo](https://github.com/LimeChain/tinygo/) as we need to add a new target for the Polkadot-specific wasm blob, targeting standalone **Wasm MVP**, similar to Rust's `wasm32-unknown-unknown`, **without bulk memory operations and other extensions,** also incorporating **custom GC** that utilizes an external allocator. In the [polkawasm-target-dev branch](https://github.com/LimeChain/tinygo/tree/polkawasm-target-dev), you can see the changes for the specific TinyGo releases.
 
-- Example: [shows the changes](https://github.com/limechain/tinygo/compare/dev...polkawasm-target-dev) added to TinyGo `v0.30`.
+- Example: [shows the changes](https://github.com/limechain/tinygo/compare/dev...polkawasm-target-dev) added to TinyGo `v0.31`.
 
 We use a local build of TinyGo and do not depend on the already-built brew dependency.
 
-[Here are the steps](https://github.com/LimeChain/gosemble/blob/develop/docs/docs/development/toolchain-setup.md) how to install and build it locally.
+[Here are the steps](/docs/docs/development/toolchain-setup.md) how to install and build it locally.
 
 After you have built TinyGo, execute the following:
 
@@ -150,7 +150,7 @@ tinygo version
 The output should be similar to:
 
 ```bash
-tinygo version 0.30.0-dev darwin/arm64 (using go version go1.21.6 and LLVM version 17.0.6)
+tinygo version 0.31.0-dev darwin/arm64 (using go version go1.21.6 and LLVM version 16.0.6)
 ```
 
 # 2. Architecture of a Polkadot Node
@@ -171,8 +171,8 @@ External functions provided by the **Host** environment (Substrate/Kagome/Gossam
 
 Example (Storage):
 
-- Rust implementation using Substrate
-- Go [implementation](https://github.com/LimeChain/gosemble/blob/master/env/storage.go) using  Gosemble
+- Rust [implementation](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/io/src/lib.rs#L172) using Substrate
+- Go [implementation](https://github.com/LimeChain/gosemble/blob/develop/env/storage.go) using  Gosemble
 
 ### Exported Functions 📤
 
@@ -182,8 +182,8 @@ The Runtime API provides core and chains specific functionality.
 
 Example (Core API):
 
-- Rust [implementation](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/bin/node-template/runtime/src/lib.rs#L345) using Substrate
-- Go [implementation](https://github.com/LimeChain/gosemble/blob/develop/runtime/runtime.go#L214) using Gosemble
+- Rust [implementation](https://github.com/paritytech/polkadot-sdk/blob/master/substrate/bin/node-template/runtime/src/lib.rs#L325) using Substrate
+- Go [implementation](https://github.com/LimeChain/gosemble/blob/develop/runtime/runtime.go#L261) using Gosemble
 
 ### Memory 🧠
 
@@ -232,7 +232,7 @@ Developing a framework for writing Polkadot runtimes in Go is not a straight for
 - Writing mostly low-level and unsafe Go (none of the concurrency capabilities are utilized) ⚠️
 - The spec lacks details regarding the Runtime; thus, you should be able to read Rust code, which is the actual source of truth. 🦀
 
-Most of the things are documented here [Gosemble Runtime Architecture](https://limechain.github.io/gosemble/overview/runtime-architecture/) , but more up to date version of the docs can be found [Gosemble docs](https://github.com/LimeChain/gosemble/tree/develop/docs/docs) 🚧.
+Most of the things are documented here [Gosemble Runtime Architecture](https://limechain.github.io/gosemble/overview/runtime-architecture/) , but more up to date version of the docs can be found [Gosemble docs](/docs/docs) 🚧.
 
 # 4. Tasks 📝
 
@@ -242,10 +242,10 @@ Most of the things are documented here [Gosemble Runtime Architecture](https://l
 2. Clone the Gosemble repo - `git clone https://github.com/LimeChain/gosemble.git`
 3. Checkout the development branch - `git checkout develop`
 4. Pull all necessary git submodules - `git submodule update --init --recursive`
-5. Build the runtime - `make build-docker-dev`
+5. Build the runtime - `make build-docker-benchmarking`
 6. Run the tests - `make test`
 7. Start a local network - https://limechain.github.io/gosemble/tutorials/start-a-network/
-8. Connect to Polkadot.js and do a simple transfer - https://limechain.github.io/gosemble/tutorials/transfer-funds/
+8. Connect to Polkadot.js and do a simple transfer - [transfer funds tutorial](/docs/docs/tutorials/transfer-funds.md)
 
 ### 4.2. Implement simple Runtime function and add tests
 
