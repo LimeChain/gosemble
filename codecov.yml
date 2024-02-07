@@ -1,7 +1,9 @@
 ignore:
   - "env"
   - "mocks"
-  - "**/benchmarking"
+  - "benchmarking"
+  - "api/benchmarking"
+  - "primitives/benchmarking"
 
 coverage:
   precision: 2
