@@ -15,6 +15,9 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
+// template struct represents a template file that can be modified using go/parser and go/ast.
+// the template file must be a compileable go file and defines a function and optionally constants for ref time, reads and writes.
+// see variables extrinsicTemplate and overheadTemplate defined below.
 type template struct {
 	filePath, fnName, refTimeVar, readsVar, writesVar string
 }
@@ -72,13 +75,9 @@ func generateWeightFile(template template, outputPath string, refTime, reads, wr
 	// append info
 	hostName, _ := os.Hostname()
 	cpuInfo := runtime.GOARCH
-	info := fmt.Sprintf("DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s", time.Now(), *steps, *repeat, *dbCache, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
-	commentNode := &ast.Comment{Text: fmt.Sprintf("// %s\n", info)}
-	if len(templateNode.Comments) > 0 {
-		templateNode.Comments[0].List = append(templateNode.Comments[0].List, commentNode)
-	} else {
-		templateNode.Comments = []*ast.CommentGroup{{List: []*ast.Comment{commentNode}}}
-	}
+	info := fmt.Sprintf("// DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s\n", time.Now(), *steps, *repeat, *dbCache, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
+	info = fmt.Sprintf("// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE\n%s", info)
+	templateNode.Comments = []*ast.CommentGroup{{List: []*ast.Comment{{Text: info}}}}
 
 	// modify package name
 	paths := strings.Split(filepath.Dir(outputPath), "/")

@@ -1,4 +1,4 @@
-// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE
+// DO NOT EDIT - TEMPLATE FILE USED FOR GENERATING WEIGHT FILES (see weight_file_generator.go)
 package benchmarking
 
 import (
