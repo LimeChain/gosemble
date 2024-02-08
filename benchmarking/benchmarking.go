@@ -18,13 +18,14 @@ import (
 const WASM_RUNTIME = "../build/runtime.wasm"
 
 var (
-	steps         *int    = flag.Int("steps", 50, "Select how many samples we should take across the variable components.")
-	repeat        *int    = flag.Int("repeat", 20, "Select how many repetitions of this benchmark should run from within the wasm.")
-	heapPages     *int    = flag.Int("heap-pages", 4096, "Cache heap allocation pages.")
-	dbCache       *int    = flag.Int("db-cache", 1024, "Limit the memory the database cache can use.")
-	gc            *string = flag.String("gc", "", "GC flag used for building the runtime")
-	tinyGoVersion *string = flag.String("tinygoversion", "", "TinyGO version used for building the runtime")
-	target        *string = flag.String("target", "", "Target used for building the runtime")
+	steps               *int    = flag.Int("steps", 50, "Select how many samples we should take across the variable components.")
+	repeat              *int    = flag.Int("repeat", 20, "Select how many repetitions of this benchmark should run from within the wasm.")
+	heapPages           *int    = flag.Int("heap-pages", 4096, "Cache heap allocation pages.")
+	dbCache             *int    = flag.Int("db-cache", 1024, "Limit the memory the database cache can use.")
+	gc                  *string = flag.String("gc", "", "GC flag used for building the runtime.")
+	tinyGoVersion       *string = flag.String("tinygoversion", "", "TinyGO version used for building the runtime.")
+	target              *string = flag.String("target", "", "Target used for building the runtime.")
+	generateWeightFiles *bool   = flag.Bool("generate-weight-files", false, "Whether to generate weight files.")
 )
 
 // Executes a benchmark test.
@@ -66,8 +67,10 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	analysis := medianSlopesAnalysis(results)
 	fmt.Println(analysis.String())
 
-	if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
-		b.Fatalf("failed to generate weight file: %v", err)
+	if *generateWeightFiles {
+		if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
+			b.Fatalf("failed to generate weight file: %v", err)
+		}
 	}
 }
 

@@ -54,8 +54,10 @@ func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 	stats := benchBlock(t, instance, config)
 	fmt.Println(stats.String())
 
-	if err := generateWeightFile(overheadTemplate, "../constants/block_execution_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
-		t.Fatalf("failed to generate weight file: %v", err)
+	if *generateWeightFiles {
+		if err := generateWeightFile(overheadTemplate, "../constants/block_execution_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+			t.Fatalf("failed to generate weight file: %v", err)
+		}
 	}
 }
 
@@ -83,8 +85,10 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	stats := benchExtrinsic(t, instance, config)
 	fmt.Println(stats.String())
 
-	if err := generateWeightFile(overheadTemplate, "../constants/base_extrinsic_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
-		t.Fatalf("failed to generate weight file: %v", err)
+	if *generateWeightFiles {
+		if err := generateWeightFile(overheadTemplate, "../constants/base_extrinsic_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+			t.Fatalf("failed to generate weight file: %v", err)
+		}
 	}
 }
 

@@ -107,9 +107,10 @@ test-coverage:
 	@set -e; \
 	./scripts/coverage.sh
 
+generate-weight-files=false
 benchmark: build-benchmarking
 	@go test --tags="nonwasmenv" -bench=. ./runtime/... -run=XXX -benchtime=1x \
-	-steps=50 -repeat=20 -heap-pages=4096 -db-cache=1024 -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION);
+	-steps=50 -repeat=20 -heap-pages=4096 -db-cache=1024 -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION) -generate-weight-files=$(generate-weight-files);
 
 benchmark-overhead: build-benchmarking
-	@go test --tags="nonwasmenv" -bench=^BenchmarkOverhead ./benchmarking/... -run=^a -benchtime=1x -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION)
+	@go test --tags="nonwasmenv" -bench=^BenchmarkOverhead ./benchmarking/... -run=^a -benchtime=1x -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION) -generate-weight-files=$(generate-weight-files)
