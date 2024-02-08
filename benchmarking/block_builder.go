@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
-	"github.com/ChainSafe/gossamer/lib/common"
 	"github.com/ChainSafe/gossamer/pkg/scale"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -35,18 +34,7 @@ func (bb *BlockBuilder) StartSimulation(blockNumber uint) error {
 	(*bb.instance.storage).DbStoreSnapshot()
 	bb.extrinsics = nil
 
-	header := gossamertypes.NewHeader(parentHash, common.Hash{}, common.Hash{}, blockNumber, gossamertypes.NewDigest())
-	encodedHeader, err := scale.Marshal(*header)
-	if err != nil {
-		return err
-	}
-
-	_, err = bb.instance.runtime.Exec("Core_initialize_block", encodedHeader)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return bb.instance.InitializeBlock(blockNumber, dateTime)
 }
 
 // ApplyInherentExtrinsics converts the inherent data to extrinsics and adds them to the simulated block.
