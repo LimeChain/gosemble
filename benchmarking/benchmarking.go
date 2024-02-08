@@ -64,7 +64,9 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 
 	// generate weight file
 	analysis := medianSlopesAnalysis(results)
-	if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
+	fmt.Println(analysis.String())
+
+	if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
 		b.Fatalf("failed to generate weight file: %v", err)
 	}
 }

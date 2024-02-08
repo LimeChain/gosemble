@@ -17,6 +17,7 @@ import (
 
 // template struct represents a template file that can be modified using go/parser and go/ast.
 // the template file must be a compileable go file and defines a function and optionally constants for ref time, reads and writes.
+// the template file must also start with a comment, which will be replaced with summary.
 // see variables extrinsicTemplate and overheadTemplate defined below.
 type template struct {
 	filePath, fnName, refTimeVar, readsVar, writesVar string
@@ -28,7 +29,7 @@ var (
 	overheadTemplate  = template{filepath.Join(filepath.Dir(f), "weight_file_overhead_template.go"), "overheadWeightFn", "refTime", "", ""}
 )
 
-func generateWeightFile(template template, outputPath string, refTime, reads, writes uint64) error {
+func generateWeightFile(template template, outputPath, summary string, refTime, reads, writes uint64) error {
 	// parse template file
 	fset := token.NewFileSet()
 	templateNode, err := parser.ParseFile(fset, template.filePath, nil, parser.ParseComments)
@@ -75,9 +76,11 @@ func generateWeightFile(template template, outputPath string, refTime, reads, wr
 	// append info
 	hostName, _ := os.Hostname()
 	cpuInfo := runtime.GOARCH
-	info := fmt.Sprintf("// DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s\n", time.Now(), *steps, *repeat, *dbCache, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
-	info = fmt.Sprintf("// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE\n%s", info)
-	templateNode.Comments = []*ast.CommentGroup{{List: []*ast.Comment{{Text: info}}}}
+	infoComment := fmt.Sprintf("// DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HEAPPAGES: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s", time.Now(), *steps, *repeat, *dbCache, *heapPages, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
+	summaryComment := fmt.Sprintf("// %s", summary)
+	generatedFileComment := "// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE"
+	comment := fmt.Sprintf("%s\n%s\n\n// Summary:\n%s", generatedFileComment, infoComment, summaryComment)
+	templateNode.Comments = []*ast.CommentGroup{{List: []*ast.Comment{{Text: comment}}}}
 
 	// modify package name
 	paths := strings.Split(filepath.Dir(outputPath), "/")

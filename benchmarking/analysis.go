@@ -31,6 +31,10 @@ type analysis struct {
 	minimumExtrinsicTime, minimumReads, minimumWrites uint64
 }
 
+func (a analysis) String() string {
+	return fmt.Sprintf("BaseExtrinsicTime: %d, BaseReads: %d, BaseWrites: %d, SlopesExtrinsicTime: %d, SlopesReads: %d, SlopesWrites: %d, MinExtrinsicTime: %d, MinReads: %d, MinWrites: %d", a.baseExtrinsicTime, a.baseReads, a.baseWrites, a.slopesExtrinsicTime, a.slopesReads, a.slopesWrites, a.minimumExtrinsicTime, a.minimumReads, a.minimumWrites)
+}
+
 func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	if len(benchmarkResults) == 0 {
 		return analysis{}
