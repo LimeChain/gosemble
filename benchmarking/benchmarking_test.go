@@ -3,6 +3,7 @@ package benchmarking
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
 	"github.com/ChainSafe/gossamer/pkg/scale"
@@ -23,6 +24,8 @@ var (
 )
 
 func TestRun(t *testing.T) {
+	outputPath := filepath.Join(t.TempDir(), "output.go")
+
 	// redirect os.Stdout
 	rescueStdout := os.Stdout
 	r, w, _ := os.Pipe()
@@ -40,7 +43,7 @@ func TestRun(t *testing.T) {
 
 		componentValues := []uint32{}
 
-		RunDispatchCall(b, func(instance *Instance) {
+		RunDispatchCall(b, outputPath, func(instance *Instance) {
 			testFn(t, instance, component.Value())
 			componentValues = append(componentValues, component.Value())
 		}, component)
@@ -52,7 +55,7 @@ func TestRun(t *testing.T) {
 	// run with no components
 	testing.Benchmark(func(b *testing.B) {
 		value := uint32(100)
-		RunDispatchCall(b, func(instance *Instance) {
+		RunDispatchCall(b, outputPath, func(instance *Instance) {
 			testFn(t, instance, value)
 		})
 	})

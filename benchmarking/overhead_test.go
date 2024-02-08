@@ -38,7 +38,7 @@ func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 	}
 
 	// todo set heapPages and dbCache when Gossamer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, "../build/runtime.wasm", trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
 	instance, err := newBenchmarkingInstance(runtime, config.Repeat)
@@ -54,7 +54,10 @@ func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 	stats := benchBlock(t, instance, config)
 	fmt.Println("result stats")
 	fmt.Println(stats)
-	// TODO: Generate weight files
+
+	if err := generateWeightFile(overheadTemplate, "../constants/block_execution_weight.go", uint64(stats.Median), 0, 0); err != nil {
+		t.Fatalf("failed to generate weight file: %v", err)
+	}
 }
 
 func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
@@ -65,7 +68,7 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	}
 
 	// todo set heapPages and dbCache when Gossamer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, "../build/runtime.wasm", trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
 	instance, err := newBenchmarkingInstance(runtime, config.Repeat)
@@ -81,7 +84,10 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 	stats := benchExtrinsic(t, instance, config)
 	fmt.Println("result stats")
 	fmt.Println(stats)
-	// TODO: Generate weight files
+
+	if err := generateWeightFile(overheadTemplate, "../constants/base_extrinsic_weight.go", uint64(stats.Median), 0, 0); err != nil {
+		t.Fatalf("failed to generate weight file: %v", err)
+	}
 }
 
 func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) StatsResult {
