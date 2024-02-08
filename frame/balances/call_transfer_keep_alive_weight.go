@@ -1,8 +1,8 @@
 // THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE
-// DATE: 2024-02-08 11:35:40.113001 +0200 EET m=+1.236482835, STEPS: 50, REPEAT: 20, DBCACHE: 1024, HEAPPAGES: 4096, HOSTNAME: MacBook-Pro.local, CPU: arm64, GC: extalloc, TINYGO VERSION: 0.31.0-dev, TARGET: polkawasm
+// DATE: 2024-02-08 12:20:52.812488 +0200 EET m=+1.238975835, STEPS: 50, REPEAT: 20, DBCACHE: 1024, HEAPPAGES: 4096, HOSTNAME: MacBook-Pro.local, CPU: Apple M2 Pro(10 cores, 3504 mhz), GC: extalloc, TINYGO VERSION: 0.31.0-dev, TARGET: polkawasm
 
 // Summary:
-// BaseExtrinsicTime: 1651950000, BaseReads: 1, BaseWrites: 1, SlopesExtrinsicTime: [], SlopesReads: [], SlopesWrites: [], MinExtrinsicTime: 1651950, MinReads: 1, MinWrites: 1
+// BaseExtrinsicTime: 1620550000, BaseReads: 1, BaseWrites: 1, SlopesExtrinsicTime: [], SlopesReads: [], SlopesWrites: [], MinExtrinsicTime: 1620550, MinReads: 1, MinWrites: 1
 package balances
 
 import (
@@ -11,7 +11,7 @@ import (
 )
 
 func callTransferKeepAliveWeight(dbWeight primitives.RuntimeDbWeight) primitives.Weight {
-	const refTime sc.U64 = 1651950000
+	const refTime sc.U64 = 1620550000
 	const reads sc.U64 = 1
 	const writes sc.U64 = 1
 	const proofSize sc.U64 = 0

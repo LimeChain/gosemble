@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/iancoleman/strcase"
+	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 // template struct represents a template file that can be modified using go/parser and go/ast.
@@ -74,8 +75,11 @@ func generateWeightFile(template template, outputPath, summary string, refTime, 
 	})
 
 	// append info
+	cpuInfo := ""
+	if c, err := cpu.Info(); err == nil && len(c) > 0 {
+		cpuInfo = fmt.Sprintf("%s(%d cores, %d mhz)", c[0].ModelName, c[0].Cores, int(c[0].Mhz))
+	}
 	hostName, _ := os.Hostname()
-	cpuInfo := runtime.GOARCH
 	infoComment := fmt.Sprintf("// DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HEAPPAGES: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s", time.Now(), *steps, *repeat, *dbCache, *heapPages, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
 	summaryComment := fmt.Sprintf("// %s", summary)
 	generatedFileComment := "// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE"
