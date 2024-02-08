@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	gossamerruntime "github.com/ChainSafe/gossamer/lib/runtime"
+	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/lib/trie"
 	sc "github.com/LimeChain/goscale"
@@ -71,8 +71,8 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 
 func RunHook(b *testing.B,
 	hookName string,
-	setupFn func(storage *gossamerruntime.Storage),
-	validateFn func(storage *gossamerruntime.Storage),
+	setupFn func(storage *runtime.Storage),
+	validateFn func(storage *runtime.Storage),
 ) benchmarkingtypes.BenchmarkResult {
 	// todo set heapPages and dbCache when gosammer starts supporting db caching
 	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())

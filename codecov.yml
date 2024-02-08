@@ -4,6 +4,7 @@ ignore:
   - "benchmarking"
   - "api/benchmarking"
   - "primitives/benchmarking"
+  - "*_weight.go"
 
 coverage:
   precision: 2
