@@ -60,18 +60,7 @@ func (c callRemark) Args() sc.VaryingData {
 // - `O(1)`
 // The range of component `b` is `[0, 3932160]`.
 func (c callRemark) BaseWeight() primitives.Weight {
-	// Proof Size summary in bytes:
-	//  Measured:  `0`
-	//  Estimated: `0`
-	// Minimum execution time: 2_018 nanoseconds.
-	// Standard Error: 0
-	b := sc.Sequence[sc.U8]{}
-	if c.Arguments != nil {
-		b = c.Arguments[0].(sc.Sequence[sc.U8])
-	}
-
-	w := primitives.WeightFromParts(362, 0).SaturatingMul(sc.U64(len(b)))
-	return primitives.WeightFromParts(2_091_000, 0).SaturatingAdd(w)
+	return callRemarkWeight(primitives.RuntimeDbWeight{})
 }
 
 func (_ callRemark) WeighData(baseWeight primitives.Weight) primitives.Weight {

@@ -78,17 +78,7 @@ func (c callSet) Args() sc.VaryingData {
 }
 
 func (c callSet) BaseWeight() primitives.Weight {
-	// Storage: Timestamp Now (r:1 w:1)
-	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-	// Storage: Babe CurrentSlot (r:1 w:0)
-	// Proof: Babe CurrentSlot (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-	// Proof Size summary in bytes:
-	//  Measured:  `312`
-	//  Estimated: `1006`
-	// Minimum execution time: 9_106 nanoseconds.
-	r := c.constants.DbWeight.Reads(2)
-	w := c.constants.DbWeight.Writes(1)
-	return primitives.WeightFromParts(9_258_000, 1006).SaturatingAdd(r).SaturatingAdd(w)
+	return callSetWeight(c.constants.DbWeight)
 }
 
 func (_ callSet) WeighData(baseWeight primitives.Weight) primitives.Weight {

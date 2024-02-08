@@ -66,17 +66,7 @@ func (c callTransferAll) Args() sc.VaryingData {
 }
 
 func (c callTransferAll) BaseWeight() types.Weight {
-	// Proof Size summary in bytes:
-	//  Measured:  `0`
-	//  Estimated: `3593`
-	// Minimum execution time: 34_878 nanoseconds.
-	r := c.constants.DbWeight.Reads(1)
-	w := c.constants.DbWeight.Writes(1)
-	e := types.WeightFromParts(0, 3593)
-	return types.WeightFromParts(35_121_000, 0).
-		SaturatingAdd(e).
-		SaturatingAdd(r).
-		SaturatingAdd(w)
+	return callTransferAllWeight(c.constants.DbWeight)
 }
 
 func (_ callTransferAll) WeighData(baseWeight types.Weight) types.Weight {
