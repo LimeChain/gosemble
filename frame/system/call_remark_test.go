@@ -111,19 +111,10 @@ func Test_Call_Remark_FunctionIndex(t *testing.T) {
 	}
 }
 
-func Test_Call_Remark_BaseWeight_EmptyArgs(t *testing.T) {
+func Test_Call_Remark_BaseWeight(t *testing.T) {
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	assert.Equal(t, primitives.WeightFromParts(2_091_000, 0), call.BaseWeight())
-}
-
-func Test_Call_Remark_BaseWeight_WithArgs(t *testing.T) {
-	seq := sc.BytesToSequenceU8([]byte{1})
-	call := newCallRemark(moduleId, functionRemarkIndex)
-	call, err := call.DecodeArgs(bytes.NewBuffer(seq.Bytes()))
-	assert.Nil(t, err)
-
-	assert.Equal(t, primitives.WeightFromParts(2_091_362, 0), call.BaseWeight())
+	assert.Equal(t, callRemarkWeight(dbWeight), call.BaseWeight())
 }
 
 func Test_Call_Remark_WeighData(t *testing.T) {

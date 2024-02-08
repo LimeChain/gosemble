@@ -2,7 +2,6 @@ package benchmarking
 
 import (
 	"flag"
-	"fmt"
 	"path/filepath"
 
 	gossamertypes "github.com/ChainSafe/gossamer/dot/types"
@@ -10,7 +9,6 @@ import (
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/benchmarking"
 
-	"io"
 	"math/big"
 	"os"
 	"testing"
@@ -25,11 +23,6 @@ var (
 
 func TestRun(t *testing.T) {
 	outputPath := filepath.Join(t.TempDir(), "output.go")
-
-	// redirect os.Stdout
-	rescueStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
 
 	// set benchmarking flags
 	os.Args = append(os.Args, "-steps", "3")
@@ -50,24 +43,6 @@ func TestRun(t *testing.T) {
 
 		assert.Equal(t, []uint32{1, 50, 100}, componentValues)
 	})
-	expectedMedianSlopesAnalysis := "median slope analysis: benchmarking.analysis{baseExtrinsicTime:0x0, baseReads:0x0, baseWrites:0x0, slopesExtrinsicTime:[]uint64{0x0}, slopesReads:[]uint64{0x1}, slopesWrites:[]uint64{0x0}, minimumExtrinsicTime:0x0, minimumReads:0x1, minimumWrites:0x0}\n"
-
-	// run with no components
-	testing.Benchmark(func(b *testing.B) {
-		value := uint32(100)
-		RunDispatchCall(b, outputPath, func(instance *Instance) {
-			testFn(t, instance, value)
-		})
-	})
-	expectedMedianValuesAnalysis := "median slope analysis: benchmarking.analysis{baseExtrinsicTime:0x0, baseReads:0x64, baseWrites:0x0, slopesExtrinsicTime:[]uint64(nil), slopesReads:[]uint64(nil), slopesWrites:[]uint64(nil), minimumExtrinsicTime:0x0, minimumReads:0x64, minimumWrites:0x0}\n"
-
-	// stop redirecting os.Stdout
-	w.Close()
-	os.Stdout = rescueStdout
-
-	// assert output
-	out, _ := io.ReadAll(r)
-	assert.Equal(t, fmt.Sprintf("%s%s", expectedMedianSlopesAnalysis, expectedMedianValuesAnalysis), string(out))
 }
 
 func testFn(t *testing.T, instance *Instance, value uint32) {

@@ -60,6 +60,7 @@ func (c callRemark) Args() sc.VaryingData {
 // - `O(1)`
 // The range of component `b` is `[0, 3932160]`.
 func (c callRemark) BaseWeight() primitives.Weight {
+	// todo pass length of remark arg to weight function once component calculations have been implemented
 	return callRemarkWeight(primitives.RuntimeDbWeight{})
 }
 

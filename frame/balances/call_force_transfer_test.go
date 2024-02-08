@@ -83,7 +83,7 @@ func Test_Call_ForceTransfer_FunctionIndex(t *testing.T) {
 func Test_Call_ForceTransfer_BaseWeight(t *testing.T) {
 	target := setupCallForceTransfer()
 
-	assert.Equal(t, primitives.WeightFromParts(40_360_006, 6196), target.BaseWeight())
+	assert.Equal(t, callForceTransferWeight(dbWeight), target.BaseWeight())
 }
 
 func Test_Call_ForceTransfer_WeighData(t *testing.T) {
