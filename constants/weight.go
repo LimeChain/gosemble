@@ -37,43 +37,11 @@ var NormalDispatchRatio types.Perbill = types.Perbill{Percentage: 75}
 
 // ExtrinsicBaseWeight is the time to execute a NO-OP extrinsic, for example `System::remark`.
 // Calculated by multiplying the *Average* with `1.0` and adding `0`.
-//
-// Stats nanoseconds:
-//
-//	Min, Max: 109_595, 114_170
-//	Average:  110_536
-//	Median:   110_233
-//	Std-Dev:  933.39
-//
-// Percentiles nanoseconds:
-//
-//	99th: 114_120
-//	95th: 112_680
-//	75th: 110_858
-var ExtrinsicBaseWeight = types.WeightFromParts(
-	sc.SaturatingMulU64(WeightRefTimePerNanos, 110_536),
-	0,
-)
+var ExtrinsicBaseWeight = baseExtrinsicWeight(WeightRefTimePerNanos)
 
 // Time to execute an empty block.
 // Calculated by multiplying the *Average* with `1.0` and adding `0`.
-//
-// Stats nanoseconds:
-//
-//	Min, Max: 402_748, 458_228
-//	Average:  412_772
-//	Median:   406_151
-//	Std-Dev:  13480.33
-//
-// Percentiles nanoseconds:
-//
-//	99th: 450_080
-//	95th: 445_111
-//	75th: 414_170
-var BlockExecutionWeight = types.WeightFromParts(
-	sc.SaturatingMulU64(WeightRefTimePerNanos, 412_772),
-	0,
-)
+var BlockExecutionWeight = blockExecutionWeight(WeightRefTimePerNanos)
 
 // MaximumBlockWeight is the maximum weight 2 seconds of compute with a 6-second average block time, with maximum proof size.
 var MaximumBlockWeight = types.WeightFromParts(
