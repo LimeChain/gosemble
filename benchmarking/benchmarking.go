@@ -54,7 +54,12 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	fmt.Println(analysis.String())
 
 	if Config.GenerateWeightFiles {
-		if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
+		template, err := ExtrinsicWeightTemplate()
+		if err != nil {
+			b.Fatalf("failed to get extrinsic weight template")
+		}
+
+		if err := generateWeightFile(template, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
 			b.Fatalf("failed to generate weight file: %v", err)
 		}
 	}

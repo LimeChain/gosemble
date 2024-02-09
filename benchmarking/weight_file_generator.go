@@ -2,13 +2,8 @@ package benchmarking
 
 import (
 	"fmt"
-	"go/ast"
-	"go/format"
-	"go/parser"
-	"go/token"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -16,91 +11,46 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 )
 
-// template struct represents a template file that can be modified using go/parser and go/ast.
-// the template file must be a compileable go file and defines a function and optionally constants for ref time, reads and writes.
-// the template file must also start with a comment, which will be replaced with summary.
-// see variables extrinsicTemplate and overheadTemplate defined below.
-type template struct {
-	filePath, fnName, refTimeVar, readsVar, writesVar string
-}
-
-var (
-	_, f, _, _        = runtime.Caller(0) // gets the current file path
-	extrinsicTemplate = template{filepath.Join(filepath.Dir(f), "weight_file_extrinsic_template.go"), "extrinsicWeightFn", "refTime", "reads", "writes"}
-	overheadTemplate  = template{filepath.Join(filepath.Dir(f), "weight_file_overhead_template.go"), "overheadWeightFn", "refTime", "", ""}
-)
-
-func generateWeightFile(template template, outputPath, summary string, refTime, reads, writes uint64) error {
-	// parse template file
-	fset := token.NewFileSet()
-	templateNode, err := parser.ParseFile(fset, template.filePath, nil, parser.ParseComments)
-	if err != nil {
-		return fmt.Errorf("error parsing file: %v", err)
+func generateWeightFile(template *weightFileTemplate, outputPath, weightSummary string, refTime, reads, writes uint64) error {
+	if err := template.SetWeightValues(refTime, reads, writes); err != nil {
+		return err
 	}
 
-	// find variable declarations and modify values
-	ast.Inspect(templateNode, func(n ast.Node) bool {
-		if genDecl, ok := n.(*ast.GenDecl); ok && genDecl.Tok == token.CONST {
-			for _, spec := range genDecl.Specs {
-				valueSpec, ok := spec.(*ast.ValueSpec)
-				if !ok {
-					continue
-				}
-				for i, name := range valueSpec.Names {
-					switch name.Name {
-					case template.refTimeVar:
-						valueSpec.Values[i] = &ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", refTime)}
-					case template.readsVar:
-						valueSpec.Values[i] = &ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", reads)}
-					case template.writesVar:
-						valueSpec.Values[i] = &ast.BasicLit{Kind: token.INT, Value: fmt.Sprintf("%d", writes)}
-					}
-				}
-			}
-		}
-		return true
-	})
+	weightFn := strcase.ToLowerCamel(strings.TrimSuffix(filepath.Base(outputPath), ".go")) // formats outputPath to weightFn name
 
-	// generate function name from output path
-	functionName := strcase.ToLowerCamel(strings.TrimSuffix(filepath.Base(outputPath), ".go"))
+	if err := template.SetWeightFnName(weightFn); err != nil {
+		return err
+	}
 
-	// find function declaration and modify the function name
-	ast.Inspect(templateNode, func(n ast.Node) bool {
-		if fnDecl, ok := n.(*ast.FuncDecl); ok {
-			if fnDecl.Name.Name == template.fnName {
-				fnDecl.Name.Name = functionName
-			}
-		}
-		return true
-	})
-
-	// append info
+	alertGeneratedFile := "THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE"
+	hostName, _ := os.Hostname()
 	cpuInfo := ""
 	if c, err := cpu.Info(); err == nil && len(c) > 0 {
 		cpuInfo = fmt.Sprintf("%s(%d cores, %d mhz)", c[0].ModelName, c[0].Cores, int(c[0].Mhz))
 	}
-	hostName, _ := os.Hostname()
-	infoComment := fmt.Sprintf("// DATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HEAPPAGES: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s", time.Now(), *steps, *repeat, *dbCache, *heapPages, hostName, cpuInfo, *gc, *tinyGoVersion, *target)
-	summaryComment := fmt.Sprintf("// %s", summary)
-	generatedFileComment := "// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE"
-	comment := fmt.Sprintf("%s\n%s\n\n// Summary:\n%s", generatedFileComment, infoComment, summaryComment)
-	templateNode.Comments = []*ast.CommentGroup{{List: []*ast.Comment{{Text: comment}}}}
+	info := fmt.Sprintf(
+		"%s\nDATE: %s, STEPS: %d, REPEAT: %d, DBCACHE: %d, HEAPPAGES: %d, HOSTNAME: %s, CPU: %s, GC: %s, TINYGO VERSION: %s, TARGET: %s\nSummary:\n%s",
+		alertGeneratedFile, time.Now(), Config.Steps, Config.Repeat, Config.DbCache, Config.HeapPages, hostName, cpuInfo, Config.GC, Config.TinyGoVersion, Config.Target, weightSummary,
+	)
 
-	// modify package name
+	if err := template.SetInfoComment(info); err != nil {
+		return err
+	}
+
 	paths := strings.Split(filepath.Dir(outputPath), "/")
 	packageName := paths[len(paths)-1]
-	templateNode.Name.Name = packageName
+	if err := template.SetPackageName(packageName); err != nil {
+		return err
+	}
 
-	// create output file
 	outputFile, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("error creating output file: %v", err)
 	}
 	defer outputFile.Close()
 
-	// write the modified AST to the output file
-	if err := format.Node(outputFile, fset, templateNode); err != nil {
-		return fmt.Errorf("error writing modified AST to file: %v", err)
+	if err := template.WriteGeneratedFile(outputFile); err != nil {
+		return err
 	}
 
 	return nil
