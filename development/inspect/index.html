@@ -79,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#inspect" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -246,7 +251,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../onboarding/" class="md-tabs__link">
+        <a href="../install/" class="md-tabs__link">
           
   
     
@@ -502,6 +507,8 @@
       
         
       
+        
+      
     
     
     
@@ -534,27 +541,6 @@
             Development
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../onboarding/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Onboarding
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -610,6 +596,8 @@
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
+      
+        
       
       
       <a href="./" class="md-nav__link md-nav__link--active">
@@ -676,11 +664,53 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Benchmarking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Toolchain setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Onboarding
   </span>
   
 
@@ -882,40 +912,39 @@
   
 
 
-  <h1>Inspect</h1>
-
+<h1 id="inspect">Inspect 🔬<a class="headerlink" href="#inspect" title="Permanent link">&para;</a></h1>
 <p>Install <a href="https://wasmer.io/">wasmer</a> to get a simple view of the compiled WASM.</p>
 <div class="codehilite"><pre><span></span><code>wasmer<span class="w"> </span>inspect<span class="w"> </span>build/runtime.wasm
 </code></pre></div>
 
 <div class="codehilite"><pre><span></span><code><span class="nl">Type</span><span class="p">:</span><span class="w"> </span><span class="n">wasm</span>
-<span class="k">Size</span><span class="err">:</span><span class="w"> </span><span class="mf">2.1</span><span class="w"> </span><span class="n">MB</span>
+<span class="k">Size</span><span class="err">:</span><span class="w"> </span><span class="mf">873.2</span><span class="w"> </span><span class="n">KB</span>
 <span class="nl">Imports</span><span class="p">:</span>
 <span class="w">  </span><span class="nl">Functions</span><span class="p">:</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_allocator_malloc_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_allocator_free_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_secp256k1_ecdsa_recover_compressed_version_2&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_ed25519_generate_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_ed25519_verify_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_sr25519_generate_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_sr25519_verify_version_2&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_start_batch_verify_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_crypto_finish_batch_verify_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_twox_128_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_twox_64_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_blake2_128_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_blake2_256_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_logging_log_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_twox_128_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_hashing_twox_64_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_append_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_clear_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_clear_prefix_version_2&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_exists_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_get_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_start_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_rollback_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
-<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_commit_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_read_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64, I64, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_root_version_2&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_set_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_commit_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_rollback_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_storage_start_transaction_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="err">[]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_trie_blake2_256_ordered_root_version_2&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I64, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I32</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;ext_logging_log_version_1&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I64, I64</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="err">[]</span>
 <span class="w">  </span><span class="nl">Memories</span><span class="p">:</span>
 <span class="w">    </span><span class="ss">&quot;env&quot;</span><span class="p">.</span><span class="ss">&quot;memory&quot;</span><span class="err">:</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">shared</span><span class="w"> </span><span class="p">(</span><span class="mi">20</span><span class="w"> </span><span class="n">pages</span><span class="p">..)</span>
 <span class="w">  </span><span class="nl">Tables</span><span class="p">:</span>
@@ -938,16 +967,20 @@
 <span class="w">    </span><span class="ss">&quot;TransactionPaymentCallApi_query_call_info&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;TransactionPaymentCallApi_query_call_fee_details&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;Metadata_metadata&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;Metadata_metadata_at_version&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;Metadata_metadata_versions&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;SessionKeys_generate_session_keys&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;SessionKeys_decode_session_keys&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;GrandpaApi_grandpa_authorities&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">    </span><span class="ss">&quot;OffchainWorkerApi_offchain_worker&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;GenesisBuilder_create_default_config&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
+<span class="w">    </span><span class="ss">&quot;GenesisBuilder_build_config&quot;</span><span class="err">:</span><span class="w"> </span><span class="o">[</span><span class="n">I32, I32</span><span class="o">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">I64</span><span class="o">]</span>
 <span class="w">  </span><span class="nl">Memories</span><span class="p">:</span>
 <span class="w">  </span><span class="nl">Tables</span><span class="p">:</span>
-<span class="w">    </span><span class="ss">&quot;__indirect_function_table&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">FuncRef</span><span class="w"> </span><span class="p">(</span><span class="mf">62..62</span><span class="p">)</span>
+<span class="w">    </span><span class="ss">&quot;__indirect_function_table&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">FuncRef</span><span class="w"> </span><span class="p">(</span><span class="mf">105..105</span><span class="p">)</span>
 <span class="w">  </span><span class="nl">Globals</span><span class="p">:</span>
-<span class="w">    </span><span class="ss">&quot;__data_end&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">I32</span><span class="w"> </span><span class="p">(</span><span class="n">constant</span><span class="p">)</span>
 <span class="w">    </span><span class="ss">&quot;__heap_base&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">I32</span><span class="w"> </span><span class="p">(</span><span class="n">constant</span><span class="p">)</span>
+<span class="w">    </span><span class="ss">&quot;__data_end&quot;</span><span class="err">:</span><span class="w"> </span><span class="n">I32</span><span class="w"> </span><span class="p">(</span><span class="n">constant</span><span class="p">)</span>
 </code></pre></div>
 
 <p>To inspect the WASM in more detail, and view the actual memory segments, you can

@@ -18,7 +18,7 @@
         <link rel="prev" href="../file-structure/">
       
       
-        <link rel="next" href="../toolchain-setup/">
+        <link rel="next" href="../benchmarking/">
       
       
       <link rel="icon" href="../../assets/favicon.png">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#debug" class="md-skip">
+        <a href="#testing" class="md-skip">
           Skip to content
         </a>
       
@@ -251,7 +251,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../onboarding/" class="md-tabs__link">
+        <a href="../install/" class="md-tabs__link">
           
   
     
@@ -507,6 +507,8 @@
       
         
       
+        
+      
     
     
     
@@ -539,27 +541,6 @@
             Development
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../onboarding/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Onboarding
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -658,6 +639,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -686,6 +669,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -696,7 +681,7 @@
         <li class="md-nav__item">
   <a href="#debug" class="md-nav__link">
     <span class="md-ellipsis">
-      Debug
+      Debug 🐛
     </span>
   </a>
   
@@ -718,11 +703,53 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Benchmarking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Toolchain setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Onboarding
   </span>
   
 
@@ -924,25 +951,26 @@
   
 
 
-  <h1>Testing</h1>
-
+<h1 id="testing">Testing 🧪<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h1>
 <p>Currently, the project contains unit and integration tests. Integration tests use <a href="https://github.com/LimeChain/gossamer">Gossamer</a>, which
 imports all the necessary Host functions and interacts with the Runtime.</p>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span><span class="nb">test</span>
 </code></pre></div>
 
 <p>or</p>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>test_unit
-make<span class="w"> </span>test_integration
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>test-unit
+make<span class="w"> </span>test-integration
 </code></pre></div>
 
-<h3 id="debug">Debug<a class="headerlink" href="#debug" title="Permanent link">&para;</a></h3>
-<p>To aid the debugging process, there is a set of imported functions that can be called within the Runtime to log messages.</p>
-<div class="codehilite"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">Critical</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="c1">// logs and aborts the execution</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">Warn</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">Info</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">Debug</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
-<span class="kd">func</span><span class="w"> </span><span class="nx">Trace</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<h3 id="debug">Debug 🐛<a class="headerlink" href="#debug" title="Permanent link">&para;</a></h3>
+<p>To aid the debugging process, there is a set of functions provided by the logger instance that can be called within the Runtime to log messages.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">logger</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">log</span><span class="p">.</span><span class="nx">NewLogger</span><span class="p">()</span>
+
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Critical</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="c1">// logs and aborts the execution</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Warn</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Info</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Debug</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">Trace</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span>
 </code></pre></div>
 
 
@@ -999,13 +1027,13 @@ make<span class="w"> </span>test_integration
         
         
           
-          <a href="../toolchain-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Toolchain setup">
+          <a href="../benchmarking/" class="md-footer__link md-footer__link--next" aria-label="Next: Benchmarking">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Toolchain setup
+                Benchmarking
               </div>
             </div>
             <div class="md-footer__button md-icon">

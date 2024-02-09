@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#webassembly-specification" class="md-skip">
+        <a href="#architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -251,7 +251,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../development/onboarding/" class="md-tabs__link">
+        <a href="../../development/install/" class="md-tabs__link">
           
   
     
@@ -427,6 +427,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
@@ -454,6 +456,8 @@
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
+  
+    
   
   
     <label class="md-nav__title" for="__toc">
@@ -615,6 +619,8 @@
       
         
       
+        
+      
     
     
     
@@ -647,27 +653,6 @@
             Development
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../development/onboarding/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Onboarding
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
             
               
                 
@@ -781,11 +766,53 @@
   
   
     <li class="md-nav__item">
+      <a href="../../development/benchmarking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Benchmarking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../development/toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Toolchain setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/onboarding/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Onboarding
   </span>
   
 
@@ -987,13 +1014,12 @@
   
 
 
-  <h1>Runtime Architecture</h1>
-
+<h1 id="architecture">Architecture 🏛️<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
 <p>At the time of writing, the official Go compiler is not Wasm compatible with the Polkadot/Substrate requirements.
 The proposed solution is based on an alternative Go compiler that aims at supporting Wasm runtimes compatible with
 <a href="https://spec.polkadot.network/id-polkadot-protocol">Polkadot spec</a> / <a href="https://docs.substrate.io/main-docs/">Substrate</a>
 that incorporates GC with external memory allocator targeting Wasm MVP.</p>
-<p><img alt="Host and Runtime interaction" src="../../assets/images/overview/host-runtime-interaction.svg" /></p>
+<p><img alt="Host and Runtime interaction" src="../../assets/images/overview/host-runtime-interaction.svg" style="height:800px;width:800px" /></p>
 <h4 id="webassembly-specification">WebAssembly specification<a class="headerlink" href="#webassembly-specification" title="Permanent link">&para;</a></h4>
 <p>It targets <a href="https://github.com/WebAssembly/design/blob/main/MVP.md">WebAssembly MVP</a> without any
 extensions enabled, that offers limited set of features compared to WebAssembly 1.0. Adding on top of that,
@@ -1023,16 +1049,10 @@ Runtime API is always SCALE encoded, Host API calls on the other hand try to avo
 Host and relies on Host imported functions for all heap allocations. Since Go/TinyGo uses GC and manages its memory by
 itself, contrary to specification, a GC with external memory allocator is implemented in our TinyGo fork to meet the
 requirements of the Polkadot specification.</p>
-<p>The design in which allocation functions are on the Host side is dictated by the fact that some Host functions might
-return buffers of data of unknown size. That means that the Wasm code cannot efficiently provide buffers upfront.</p>
-<p>For example, let's examine the Host function that returns a given storage value. The storage value's size is not known
-upfront in the general case, so the Wasm caller cannot pre-allocate the buffer upfront. A potential solution is to first
-call the Host function without a buffer, which will return the value's size, and then do the second call passing a
-buffer of the required size. For some Host functions, caches could be put in place for mitigation, some other functions
-cannot be implemented in such model at all. To solve this problem, it was chosen to place the allocator on the Host
-side. However, this is not the only possible solution, as there is an ongoing discussion about moving the allocator into
-the Wasm: <a href="https://github.com/paritytech/substrate/issues/11883">[1]</a>. Notably, the allocator maintains some of its data
-structures inside the linear memory and some other structures outside.</p>
+<p>However, this is not the only possible solution, as there are ongoing discussions about moving the allocator into
+the Wasm runtime: 
+<a href="https://github.com/polkadot-fellows/RFCs/pull/61">[1]</a>
+<a href="https://github.com/polkadot-fellows/RFCs/pull/4">[2]</a> </p>
 <h4 id="stack">Stack<a class="headerlink" href="#stack" title="Permanent link">&para;</a></h4>
 <p>Since WebAssembly has no stack introspection to scan the roots, it requires to use mirrored shadow stack in the linear
 memory, pushed/popped along with the machine stack, thus making it less efficient. Also, the stack placement differs

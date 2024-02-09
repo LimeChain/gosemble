@@ -12,13 +12,13 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/development/file-structure/">
+        <link rel="canonical" href="https://limechain.tech/development/benchmarking/">
       
       
-        <link rel="prev" href="../inspect/">
+        <link rel="prev" href="../test/">
       
       
-        <link rel="next" href="../test/">
+        <link rel="next" href="../toolchain-setup/">
       
       
       <link rel="icon" href="../../assets/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>File structure - Gosemble Docs</title>
+        <title>Benchmarking - Gosemble Docs</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#file-structure" class="md-skip">
+        <a href="#benchmarking" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              File structure
+              Benchmarking
             
           </span>
         </div>
@@ -609,19 +609,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../file-structure/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -630,7 +621,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -661,10 +651,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../benchmarking/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Benchmarking
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -673,6 +683,104 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process 📌
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process 📌">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-switch-the-host-branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Switch the host branch 🔀
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-build-the-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Build the runtime 🏗️
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-write-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Write benchmarks 📝
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#31-dispatch-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1. Dispatch calls 📞
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-system-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2. System hooks 🪝
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-block-overhead" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3. Block overhead 🧊
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-run-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Run benchmarks ▶️
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -912,27 +1020,81 @@
   
 
 
-<h1 id="file-structure">File structure 📁<a class="headerlink" href="#file-structure" title="Permanent link">&para;</a></h1>
+<h1 id="benchmarking">Benchmarking ⏱️<a class="headerlink" href="#benchmarking" title="Permanent link">&para;</a></h1>
+<p>The goal of benchmarking is to determine how computationally heavy it is to execute a given operation, measured as time, which reflects the operation's computational complexity. The execution time is represented as weight, and <strong>1 second</strong> of computation on a physical machine is equal to <strong>10^12 weight</strong> units. This measure is used to limit the amount of work that can be done in a single block and to charge fees proportionally to the resources consumed by the operation.</p>
+<h2 id="process">Process 📌<a class="headerlink" href="#process" title="Permanent link">&para;</a></h2>
+<p>Gosemble includes a CLI that provides a way of executing benchmark tests in a configurable manner, including extrinsics, steps, repeatability, etc. As a result, it automatically generates the weight files. This functionality relies on a set of utility functions provided by both the runtime and the host (Gossamer), allowing to measure the execution time in an isolated manner. It also accounts for database reads and writes of the storage keys hit during execution (some keys are preloaded and thus are excluded from the counts).
+Here are the necessary steps to follow:</p>
+<h3 id="1-switch-the-host-branch">1. Switch the host branch 🔀<a class="headerlink" href="#1-switch-the-host-branch" title="Permanent link">&para;</a></h3>
+<p>Checkout the host branch that contains the necessary functionality for benchmarking:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>gossamer
+git<span class="w"> </span>checkout<span class="w"> </span>bench-instance
+</code></pre></div>
+
+<p>Later, this set of functions provided by the host (Gossamer) is imported by the runtime and used during the benchmarking process.</p>
+<div class="codehilite"><pre><span></span><code><span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_current_time_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[</span>I64<span class="o">]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_set_whitelist_version_1&quot;</span>:<span class="w"> </span><span class="o">[</span>I64<span class="o">]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_reset_read_write_count_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_start_db_tracker_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_stop_db_tracker_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_db_read_count_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[</span>I32<span class="o">]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_db_write_count_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[</span>I32<span class="o">]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_wipe_db_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_commit_db_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_store_snapshot_db_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+<span class="s2">&quot;env&quot;</span>.<span class="s2">&quot;ext_benchmarking_restore_snapshot_db_version_1&quot;</span>:<span class="w"> </span><span class="o">[]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[]</span>
+</code></pre></div>
+
+<h3 id="2-build-the-runtime">2. Build the runtime 🏗️<a class="headerlink" href="#2-build-the-runtime" title="Permanent link">&para;</a></h3>
+<p>Build the runtime with the benchmarking feature:</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-benchmarking
+</code></pre></div>
+
+<p>or</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-docker-benchmarking
+</code></pre></div>
+
+<p>It exposes additional utility functions exported by the runtime, which allow the execution of benchmark tests in a Wasm environment.</p>
+<div class="codehilite"><pre><span></span><code><span class="s2">&quot;Benchmark_dispatch&quot;</span>:<span class="w"> </span><span class="o">[</span>I32,<span class="w"> </span>I32<span class="o">]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[</span>I64<span class="o">]</span>
+<span class="s2">&quot;Benchmark_hook&quot;</span>:<span class="w"> </span><span class="o">[</span>I32,<span class="w"> </span>I32<span class="o">]</span><span class="w"> </span>-&gt;<span class="w"> </span><span class="o">[</span>I64<span class="o">]</span>
+</code></pre></div>
+
+<h3 id="3-write-benchmarks">3. Write benchmarks 📝<a class="headerlink" href="#3-write-benchmarks" title="Permanent link">&para;</a></h3>
+<p>It is important to note that benchmark tests should always assess the <strong>worst-case</strong> scenario. The general process of writing a benchmark test includes setting up an initial state, executing an operation, and asserting the final state, which encompasses both success and failure scenarios.</p>
+<h3 id="31-dispatch-calls">3.1. Dispatch calls 📞<a class="headerlink" href="#31-dispatch-calls" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>api</code> - api interface providing access to the modules (pallets) functionality.</li>
-<li><code>benchmarking</code> - cli and utilities for running benchmark tests.</li>
-<li><code>build</code> - the output directory for the compiled Wasm file.</li>
-<li><code>constants</code> - constants used in the runtime.</li>
-<li><code>docs</code> - project documentation.</li>
-<li><code>env</code> - stubs for the host-provided functions.</li>
-<li><code>execution</code> - runtime execution logic.</li>
-<li><code>frame</code> - runtime modules (pallets).</li>
-<li><code>hooks</code> - hooks implemented by the modules.</li>
-<li><code>mocks</code> - mock implementations for testing.</li>
-<li><code>primitives</code> - runtime primitive types and host functions.</li>
-<li><code>runtime</code> - runtime entry point and integration tests.</li>
-<li><code>utils</code> - utility functions.</li>
-<li><code>scripts</code> - scripts used during deployment.</li>
-<li><code>tinygo</code> - submodule for the TinyGo compiler, used for WASM compilation.</li>
-<li><code>goscale</code> - submodule for the SCALE codec.</li>
-<li><code>gossamer</code> - submodule for the Gossamer host, used during development and for running tests.</li>
-<li><code>polkadot-sdk</code> - submodule for the Substrate host, used for running a network.</li>
+<li>
+<p>Example benchmark test:
+<a href="https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_timestamp_set_test.go">benchmark_timestamp_set_test.go</a></p>
+</li>
+<li>
+<p>Example benchmark test with linear components:
+<a href="https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_system_remark_test.go">runtime/benchmark_system_remark_test.go</a></p>
+</li>
 </ul>
+<p>Extrinsic calls are executed through the <code>Benchmark_dispatch</code> runtime function.</p>
+<h3 id="32-system-hooks">3.2. System hooks 🪝<a class="headerlink" href="#32-system-hooks" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Example benchmark test:
+<a href="https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_hooks_test.go">benchmark_hooks_test.go</a></li>
+</ul>
+<p>System hooks are executed through the <code>Benchmark_hooks</code> runtime function.</p>
+<h3 id="33-block-overhead">3.3. Block overhead 🧊<a class="headerlink" href="#33-block-overhead" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Example benchmark test:
+<a href="https://github.com/LimeChain/gosemble/blob/develop/benchmarking/overhead_test.go">overhead_test.go</a></li>
+</ul>
+<h2 id="4-run-benchmarks">4. Run benchmarks ▶️<a class="headerlink" href="#4-run-benchmarks" title="Permanent link">&para;</a></h2>
+<p>Run extrinsic and hook benchmarks.</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark<span class="w"> </span><span class="nv">steps</span><span class="o">=</span><span class="m">50</span><span class="w"> </span><span class="nv">repeat</span><span class="o">=</span><span class="m">100</span>
+</code></pre></div>
+
+<p>Run the overhead benchmarks.</p>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark-overhead
+</code></pre></div>
 
 
 
@@ -971,7 +1133,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../inspect/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Inspect">
+          <a href="../test/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Testing">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -981,20 +1143,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Inspect
+                Testing
               </div>
             </div>
           </a>
         
         
           
-          <a href="../test/" class="md-footer__link md-footer__link--next" aria-label="Next: Testing">
+          <a href="../toolchain-setup/" class="md-footer__link md-footer__link--next" aria-label="Next: Toolchain setup">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Testing
+                Toolchain setup
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -79,6 +79,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#build" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -246,7 +251,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../onboarding/" class="md-tabs__link">
+        <a href="../install/" class="md-tabs__link">
           
   
     
@@ -502,6 +507,8 @@
       
         
       
+        
+      
     
     
     
@@ -542,27 +549,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../onboarding/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Onboarding
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../install/" class="md-nav__link">
         
   
@@ -590,6 +576,19 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Build
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -600,6 +599,43 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-build-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Build with Docker 🐳
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-build-with-local-tinygo" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Build with local TinyGo
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -676,11 +712,53 @@
   
   
     <li class="md-nav__item">
+      <a href="../benchmarking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Benchmarking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Toolchain setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Onboarding
   </span>
   
 
@@ -882,11 +960,14 @@
   
 
 
-  <h1>Build</h1>
-
-<p>By utilizing our <a href="/overview/toolchain">Toolchain</a>, we have developed a custom Garbage Collector implementation,
-which uses the externally provided allocator functions as per specification.</p>
+<h1 id="build">Build 🏗️<a class="headerlink" href="#build" title="Permanent link">&para;</a></h1>
+<p>By utilizing our <a href="/overview/toolchain">Toolchain</a> you can build the runtime through one of several methods.</p>
+<h2 id="1-build-with-docker">1. Build with Docker 🐳<a class="headerlink" href="#1-build-with-docker" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-docker-release
+</code></pre></div>
+
+<h2 id="2-build-with-local-tinygo">2. Build with local TinyGo<a class="headerlink" href="#2-build-with-local-tinygo" title="Permanent link">&para;</a></h2>
+<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>build-release
 </code></pre></div>
 
 
