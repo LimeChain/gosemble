@@ -2,7 +2,6 @@ package benchmarking
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
@@ -15,26 +14,13 @@ import (
 	"testing"
 )
 
-const WASM_RUNTIME = "../build/runtime.wasm"
-
-var (
-	steps               *int    = flag.Int("steps", 50, "Select how many samples we should take across the variable components.")
-	repeat              *int    = flag.Int("repeat", 20, "Select how many repetitions of this benchmark should run from within the wasm.")
-	heapPages           *int    = flag.Int("heap-pages", 4096, "Cache heap allocation pages.")
-	dbCache             *int    = flag.Int("db-cache", 1024, "Limit the memory the database cache can use.")
-	gc                  *string = flag.String("gc", "", "GC flag used for building the runtime.")
-	tinyGoVersion       *string = flag.String("tinygoversion", "", "TinyGO version used for building the runtime.")
-	target              *string = flag.String("target", "", "Target used for building the runtime.")
-	generateWeightFiles *bool   = flag.Bool("generate-weight-files", false, "Whether to generate weight files.")
-)
-
 // Executes a benchmark test.
 // b is a go benchmark instance which must be provided by the calling test.
 // outputPath is the path where weight file will be generated.
 // testFn is a closure function that defines the test. It accepts a benchmarking instance param which is used to setup storage and run extrinsics.
 // components is a registry for linear components variables which testFn may use.
 func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), components ...*linear) {
-	if *steps < 2 {
+	if Config.Steps < 2 {
 		b.Fatal("`steps` must be at least 2.")
 	}
 
@@ -49,7 +35,7 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 
 	// iterate components for each step
 	for i, component := range components {
-		for y, v := range component.values(*steps) {
+		for y, v := range component.values(Config.Steps) {
 			component.setValue(v)
 
 			componentValues := componentValues(components)
@@ -67,7 +53,7 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	analysis := medianSlopesAnalysis(results)
 	fmt.Println(analysis.String())
 
-	if *generateWeightFiles {
+	if Config.GenerateWeightFiles {
 		if err := generateWeightFile(extrinsicTemplate, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
 			b.Fatalf("failed to generate weight file: %v", err)
 		}
@@ -80,10 +66,10 @@ func RunHook(b *testing.B,
 	validateFn func(storage *runtime.Storage),
 ) benchmarkingtypes.BenchmarkResult {
 	// todo set heapPages and dbCache when gosammer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, Config.WasmRuntime, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
-	instance, err := newBenchmarkingInstance(runtime, *repeat)
+	instance, err := newBenchmarkingInstance(runtime, Config.Repeat)
 	if err != nil {
 		b.Fatalf("failed to create benchmarking instance: %v", err)
 	}
@@ -116,10 +102,10 @@ func RunHook(b *testing.B,
 
 func runTestFn(b *testing.B, testFn func(i *Instance)) benchmarkingtypes.BenchmarkResult {
 	// todo set heapPages and dbCache when gosammer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, Config.WasmRuntime, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
-	instance, err := newBenchmarkingInstance(runtime, *repeat)
+	instance, err := newBenchmarkingInstance(runtime, Config.Repeat)
 	if err != nil {
 		b.Fatalf("failed to create benchmarking instance: %v", err)
 	}
