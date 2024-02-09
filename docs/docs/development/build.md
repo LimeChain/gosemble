@@ -4,9 +4,18 @@ title: Build
 permalink: /development/build
 ---
 
-By utilizing our [Toolchain](/overview/toolchain), we have developed a custom Garbage Collector implementation,
-which uses the externally provided allocator functions as per specification.
+# Build 🏗️
+
+By utilizing our [Toolchain](/overview/toolchain) you can build the runtime through one of several methods.
+
+## 1. Build with Docker 🐳
 
 ```bash
 make build-docker-release
+```
+
+## 2. Build with local TinyGo
+
+```bash
+make build-release
 ```

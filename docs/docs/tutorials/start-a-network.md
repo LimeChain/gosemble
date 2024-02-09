@@ -3,7 +3,7 @@ layout: default
 permalink: /tutorials/start-a-network/
 ---
 
-# Start a Network
+# Start a Network 🕸️
 
 This tutorial provides a basic introduction how you can start a local network using Gosemble runtime, imported in Substrate node.
 

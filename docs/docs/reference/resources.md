@@ -4,11 +4,15 @@ title: Resources
 permalink: /reference/resources
 ---
 
+# Resources 📚
+ 
 ### Polkadot
 
-* [General](https://polkadot.network/)
+* [Official Website](https://polkadot.network/)
 * [Wiki](https://wiki.polkadot.network/)
 * [Specification](https://spec.polkadot.network/)
+* [Forum](https://forum.polkadot.network/)
+* [Stack Exchange](https://substrate.stackexchange.com/)
 
 ### Substrate
 
@@ -17,6 +21,11 @@ permalink: /reference/resources
 ### W3F
 
 * [Research](https://web3.foundation/research/)
+
+### Github
+
+* [Polkadot Fellowship](https://github.com/polkadot-fellows)
+* [Parity Technologies](https://github.com/paritytech)
 
 ### WebAssembly
 

@@ -3,6 +3,8 @@ layout: default
 permalink: /development/toolchain-setup
 ---
 
+# Toolchain ⚙️
+
 Given that we use our own custom version of the TinyGo compiler, to facilitate its development process, which includes making changes, building, and executing tests, it's necessary to carry out extra steps for setting up the development environment, beyond the initial requirements specified in the [install](/development/install) page.
 
 ## Docker
@@ -32,7 +34,7 @@ brew install cmake ninja
 #### Install LLVM
 
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
-For example, TinyGo 0.30.0, requires LLVM 16:
+For example, TinyGo 0.31.0, requires LLVM 16:
 
 ```sh
 brew install llvm@16

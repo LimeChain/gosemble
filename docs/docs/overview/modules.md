@@ -4,6 +4,8 @@ title: Modules
 permalink: /overview/modules
 ---
 
+# Modules 🧱
+
 Currently supported:
 
 * **System** - The most fundamental module that provides low-level types, storage, and functions which are essential for other modules.
