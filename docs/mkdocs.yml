@@ -150,10 +150,10 @@ nav:
       - Install: ./development/install.md
       - Build: ./development/build.md
       - Inspect: ./development/inspect.md
-      - Test: ./development/test.md
-      - Benchmark: ./development/benchmark.md
-      - Toolchain setup: ./development/toolchain-setup.md
       - File structure: ./development/file-structure.md
+      - Testing: ./development/test.md
+      - Benchmarking: ./development/benchmark.md
+      - Toolchain setup: ./development/toolchain-setup.md
       - Onboarding: ./development/onboarding.md
   - Tutorials:
       - Start a Network: ./tutorials/start-a-network.md

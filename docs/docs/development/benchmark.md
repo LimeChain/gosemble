@@ -3,7 +3,7 @@ layout: default
 permalink: /development/benchmark
 ---
 
-# Benchmark ⏱️ 
+# Benchmarking ⏱️ 
 
 The goal of benchmarking is to determine how computationally heavy it is to execute a given operation, measured as time, which reflects the operation's computational complexity. The execution time is represented as weight, and **1 second** of computation on a physical machine is equal to **10^12 weight** units. This measure is used to limit the amount of work that can be done in a single block and to charge fees proportionally to the resources consumed by the operation.
 
@@ -56,33 +56,33 @@ It exposes additional utility functions exported by the runtime, which allow the
 "Benchmark_hook": [I32, I32] -> [I64]
 ```
 
-### 2. Write benchmarks 📝
+### 3. Write benchmarks 📝
 
 It is important to note that benchmark tests should always assess the **worst-case** scenario. The general process of writing a benchmark test includes setting up an initial state, executing an operation, and asserting the final state, which encompasses both success and failure scenarios.
 
-### 2.1. Dispatch calls 📞
+### 3.1. Dispatch calls 📞
 
 * Example benchmark test:
 [benchmark_timestamp_set_test.go](https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_timestamp_set_test.go)
 
 * Example benchmark test with linear components:
-[benchmark_system_remark_test.go](https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_timestamp_set_test.go)
+[runtime/benchmark_system_remark_test.go](https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_system_remark_test.go)
 
 Extrinsic calls are executed through the `Benchmark_dispatch` runtime function.
 
-### 1.2. System hooks 🪝
+### 3.2. System hooks 🪝
 
 * Example benchmark test:
 [benchmark_hooks_test.go](https://github.com/LimeChain/gosemble/blob/develop/runtime/benchmark_hooks_test.go)
 
 System hooks are executed through the `Benchmark_hooks` runtime function.
 
-### 1.3. Block overhead 🧊
+### 3.3. Block overhead 🧊
 
 * Example benchmark test:
 [overhead_test.go](https://github.com/LimeChain/gosemble/blob/develop/benchmarking/overhead_test.go)
 
-## 3. Run benchmarks ▶️
+## 4. Run benchmarks ▶️
 
 Run extrinsic and hook benchmarks.
 

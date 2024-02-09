@@ -12,7 +12,7 @@ permalink: /reference/resources
 * [Wiki](https://wiki.polkadot.network/)
 * [Specification](https://spec.polkadot.network/)
 * [Forum](https://forum.polkadot.network/)
-* [Stackexchange](https://substrate.stackexchange.com/)
+* [Stack Exchange](https://substrate.stackexchange.com/)
 
 ### Substrate
 
@@ -24,8 +24,8 @@ permalink: /reference/resources
 
 ### Github
 
-* [Polkadot Fellows](https://github.com/polkadot-fellows)
-* [Paritytech](https://github.com/paritytech)
+* [Polkadot Fellowship](https://github.com/polkadot-fellows)
+* [Parity Technologies](https://github.com/paritytech)
 
 ### WebAssembly
 
