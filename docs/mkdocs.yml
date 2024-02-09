@@ -152,7 +152,7 @@ nav:
       - Inspect: ./development/inspect.md
       - File structure: ./development/file-structure.md
       - Testing: ./development/test.md
-      - Benchmarking: ./development/benchmark.md
+      - Benchmarking: ./development/benchmarking.md
       - Toolchain setup: ./development/toolchain-setup.md
       - Onboarding: ./development/onboarding.md
   - Tutorials:
