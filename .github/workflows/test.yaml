@@ -11,13 +11,16 @@ jobs:
   build-and-run-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/local/lib/android
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Build Runtime using Docker
         run: make build-docker-benchmarking
       - name: Setup GO env
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
           cache: true
