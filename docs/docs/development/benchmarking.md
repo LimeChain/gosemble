@@ -84,17 +84,25 @@ System hooks are executed through the `Benchmark_hooks` runtime function.
 
 ## 4. Run benchmarks ▶️
 
-Run extrinsic and hook benchmarks.
+Run extrinsic and hook benchmarks with auto-generating weight files (the default):
 
 ```bash
 make benchmark
 ```
+
 ```bash
 make benchmark steps=50 repeat=100
 ```
 
-Run the overhead benchmarks.
+Run the overhead benchmarks:
 
 ```bash
 make benchmark-overhead
+```
+
+Run benchmarks without generating weight files:
+
+```bash
+GENERATE_WEIGHT_FILES=false make benchmark
+GENERATE_WEIGHT_FILES=false make benchmark-overhead
 ```
