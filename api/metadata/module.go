@@ -27,6 +27,10 @@ const (
 	optionSomeIdx
 )
 
+// Module implements the Metadata Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-metadata-module
 type Module struct {
 	runtimeApiModules []primitives.RuntimeApiModule
 	runtimeExtrinsic  extrinsic.RuntimeExtrinsic
@@ -45,18 +49,23 @@ func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, runtimeApiModules []primit
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Metadata returns the metadata of the runtime.
+// Currently supported versions are V14 and V15.
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata
 func (m Module) Metadata() int64 {
 	metadata := m.buildMetadata()
 
@@ -100,8 +109,15 @@ func (m Module) buildMetadata() primitives.Metadata {
 }
 
 // MetadataAtVersion returns the metadata of a specific version of the runtime passed as argument.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded 32-bit integer version.
+// Currently supported versions are V14 and V15.
 // Returns a pointer-size of the SCALE-encoded metadata of the runtime.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata-at-version
 func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -159,6 +175,11 @@ func (m Module) MetadataAtVersion(dataPtr int32, dataLen int32) int64 {
 	}
 }
 
+// MetadataVersions returns the supported metadata versions.
+// Returns a pointer-size of the SCALE-encoded set of versions.
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-metadata-metadata-versions
 func (m Module) MetadataVersions() int64 {
 	bVersions := sc.Sequence[sc.U32]{
 		sc.U32(primitives.MetadataVersion14), sc.U32(primitives.MetadataVersion15),
@@ -167,6 +188,7 @@ func (m Module) MetadataVersions() int64 {
 	return m.memUtils.BytesToOffsetAndSize(bVersions.Bytes())
 }
 
+// runtimeApiMetadata returns all the api modules' metadata.
 func (m Module) runtimeApiMetadata() sc.Sequence[primitives.RuntimeApiMetadata] {
 	runtimeApiMetadata := sc.Sequence[primitives.RuntimeApiMetadata]{}
 
@@ -177,6 +199,7 @@ func (m Module) runtimeApiMetadata() sc.Sequence[primitives.RuntimeApiMetadata] 
 	return append(runtimeApiMetadata, m.apiMetadata())
 }
 
+// apiMetadata returns the runtime api metadata of the module.
 func (m Module) apiMetadata() primitives.RuntimeApiMetadata {
 	modules := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{

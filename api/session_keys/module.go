@@ -17,6 +17,10 @@ const (
 	apiVersion    = 1
 )
 
+// Module implements the SessionKeys Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-sessionkeys-module
 type Module struct {
 	sessions []types.Session
 	crypto   io.Crypto
@@ -33,10 +37,12 @@ func New(sessions []types.Session, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
@@ -49,7 +55,9 @@ func (m Module) Item() types.ApiItem {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded optional seed.
 // Returns a pointer-size of the SCALE-encoded set of keys.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_generate_session_keys)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_generate_session_keys
 func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -79,7 +87,9 @@ func (m Module) GenerateSessionKeys(dataPtr int32, dataLen int32) int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded keys.
 // Returns a pointer-size of the SCALE-encoded set of raw keys and their respective key type.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_decode_session_keys)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-sessionkeys_decode_session_keys
 func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -103,6 +113,7 @@ func (m Module) DecodeSessionKeys(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() types.RuntimeApiMetadata {
 	methods := sc.Sequence[types.RuntimeApiMethodMetadata]{
 		types.RuntimeApiMethodMetadata{

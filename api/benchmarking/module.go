@@ -15,6 +15,9 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
+// Module implements API for benchmarking dispatchable extrinsic calls and system hooks.
+// For more information about the benchmarking process, see:
+// /docs/docs/development/benchmarking.md
 type Module struct {
 	modules       []primitives.Module
 	systemModule  system.Module
@@ -39,11 +42,21 @@ func New(systemIndex sc.U8, modules []primitives.Module, decoder types.RuntimeDe
 	}
 }
 
+// BenchmarkDispatch benchmarks the execution of dispatchable calls.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded benchmarking configuration.
+//
+// Executes a dispatch extrinsic call N times in isolated environment
+// by measuring the elapsed time in each execution.
+//
+// Returns a pointer-size of the SCALE-encoded benchmarking result.
+//
 // TODO:
 // Implement DbCommit, DbWipe once the state implementation
 // in Gossamer supports caching and nested transactions.
 // https://github.com/ChainSafe/gossamer/discussions/3646
-
 func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
@@ -81,6 +94,16 @@ func (m Module) BenchmarkDispatch(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(benchmarkResult.Bytes())
 }
 
+// BenchmarkHook benchmarks the execution of system hooks.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded benchmarking configuration.
+//
+// Based on the provided system hook, it executes it for each of
+// the preconfigured runtime modules and sums their execution elapsed time.
+//
+// Returns a pointer-size of the SCALE-encoded benchmarking result.
 func (m Module) BenchmarkHook(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)

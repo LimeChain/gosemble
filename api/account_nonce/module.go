@@ -17,6 +17,10 @@ const (
 	apiVersion    = 1
 )
 
+// Module implements the AccountNonceApi Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-module-accountnonceapi
 type Module struct {
 	systemModule system.Module
 	memUtils     utils.WasmMemoryTranslator
@@ -31,10 +35,12 @@ func New(systemModule system.Module, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
@@ -46,7 +52,9 @@ func (m Module) Item() types.ApiItem {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded AccountId.
 // Returns a pointer-size of the SCALE-encoded nonce of the AccountId.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-accountnonceapi-account-nonce)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-accountnonceapi-account-nonce
 func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -65,6 +73,7 @@ func (m Module) AccountNonce(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(nonce.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() types.RuntimeApiMetadata {
 	methods := sc.Sequence[types.RuntimeApiMethodMetadata]{
 		types.RuntimeApiMethodMetadata{

@@ -15,6 +15,10 @@ const (
 	apiVersion    = 1
 )
 
+// Module implements the AuraApi Runtime API definition.
+//
+// For more information about API definition, see:
+// https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/consensus/aura/src/lib.rs#L86
 type Module struct {
 	aura     aura.AuraModule
 	memUtils utils.WasmMemoryTranslator
@@ -29,10 +33,12 @@ func New(aura aura.AuraModule, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
@@ -60,6 +66,7 @@ func (m Module) SlotDuration() int64 {
 	return m.memUtils.BytesToOffsetAndSize(slotDuration.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{

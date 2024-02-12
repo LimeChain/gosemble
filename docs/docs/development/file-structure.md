@@ -6,14 +6,14 @@ permalink: /development/file-structure
 
 # File structure 📁
 
-* `api` - api interface providing access to the modules (pallets) functionality.
+* [api](./api.md) - api interface providing access to the modules (pallets) functionality.
 * `benchmarking` - cli and utilities for running benchmark tests.
 * `build` - the output directory for the compiled Wasm file.
 * `constants` - constants used in the runtime.
 * `docs` - project documentation.
 * `env` - stubs for the host-provided functions.
 * `execution` - runtime execution logic.
-* `frame` - runtime modules (pallets).
+* [frame](./modules.md) - runtime modules (pallets).
 * `hooks` - hooks implemented by the modules.
 * `mocks` - mock implementations for testing.
 * `primitives` - runtime primitive types and host functions.

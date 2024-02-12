@@ -19,6 +19,10 @@ const (
 	apiVersion    = 3
 )
 
+// Module implements the TransactionPaymentCallApi Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-transactionpaymentcallapi-module
 type Module struct {
 	decoder    types.RuntimeDecoder
 	txPayments transaction_payment.Module
@@ -35,10 +39,12 @@ func New(decoder types.RuntimeDecoder, txPayments transaction_payment.Module, lo
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
@@ -50,7 +56,9 @@ func (m Module) Item() primitives.ApiItem {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded weight, dispatch class and partial fee.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-info
 func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -85,7 +93,9 @@ func (m Module) QueryCallInfo(dataPtr int32, dataLen int32) int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded dispatch call and its length.
 // Returns a pointer-size of the SCALE-encoded detailed fee.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-transactionpaymentcallapi-query-call-fee-details
 func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -108,6 +118,7 @@ func (m Module) QueryCallFeeDetails(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(feeDetails.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{
