@@ -1088,15 +1088,20 @@ git<span class="w"> </span>checkout<span class="w"> </span>bench-instance
 <a href="https://github.com/LimeChain/gosemble/blob/develop/benchmarking/overhead_test.go">overhead_test.go</a></li>
 </ul>
 <h2 id="4-run-benchmarks">4. Run benchmarks ▶️<a class="headerlink" href="#4-run-benchmarks" title="Permanent link">&para;</a></h2>
-<p>Run extrinsic and hook benchmarks.</p>
+<p>Run extrinsic and hook benchmarks with auto-generating weight files (the default):</p>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark
 </code></pre></div>
 
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark<span class="w"> </span><span class="nv">steps</span><span class="o">=</span><span class="m">50</span><span class="w"> </span><span class="nv">repeat</span><span class="o">=</span><span class="m">100</span>
 </code></pre></div>
 
-<p>Run the overhead benchmarks.</p>
+<p>Run the overhead benchmarks:</p>
 <div class="codehilite"><pre><span></span><code>make<span class="w"> </span>benchmark-overhead
+</code></pre></div>
+
+<p>Run benchmarks without generating weight files:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">GENERATE_WEIGHT_FILES</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>make<span class="w"> </span>benchmark
+<span class="nv">GENERATE_WEIGHT_FILES</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span>make<span class="w"> </span>benchmark-overhead
 </code></pre></div>
 
 
