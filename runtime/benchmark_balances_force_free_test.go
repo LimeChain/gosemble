@@ -13,7 +13,7 @@ import (
 )
 
 func BenchmarkBalancesForceFree(b *testing.B) {
-	benchmarking.RunDispatchCall(b, func(i *benchmarking.Instance) {
+	benchmarking.RunDispatchCall(b, "../frame/balances/call_force_free_weight.go", func(i *benchmarking.Instance) {
 		// arrange
 		accountInfo := gossamertypes.AccountInfo{
 			Nonce:       0,

@@ -152,12 +152,13 @@ func Test_Call_Set_FunctionIndex(t *testing.T) {
 func Test_Call_Set_BaseWeight(t *testing.T) {
 	target := setUpCallSet()
 
-	assert.Equal(t, primitives.WeightFromParts(159_258_000, 1006), target.BaseWeight())
+	assert.Equal(t, callSetWeight(c.DbWeight), target.BaseWeight())
 }
 
 func Test_Call_Set_WeighData(t *testing.T) {
 	target := setUpCallSet()
-	assert.Equal(t, primitives.WeightFromParts(124, 0), target.WeighData(baseWeight))
+	baseWeight := target.BaseWeight()
+	assert.Equal(t, primitives.WeightFromParts(baseWeight.RefTime, 0), target.WeighData(baseWeight))
 }
 
 func Test_Call_Set_ClassifyDispatch(t *testing.T) {

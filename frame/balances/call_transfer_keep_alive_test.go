@@ -80,7 +80,7 @@ func Test_Call_TransferKeepAlive_FunctionIndex(t *testing.T) {
 func Test_Call_TransferKeepAlive_BaseWeight(t *testing.T) {
 	target := setupCallTransferKeepAlive()
 
-	assert.Equal(t, primitives.WeightFromParts(49_250_003, 3593), target.BaseWeight())
+	assert.Equal(t, callTransferKeepAliveWeight(dbWeight), target.BaseWeight())
 }
 
 func Test_Call_TransferKeepAlive_WeighData(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 // * The recipient account is created
 // * The sender is killed
 func BenchmarkBalancesTransferAllAllowDeath(b *testing.B) {
-	benchmarking.RunDispatchCall(b, func(i *benchmarking.Instance) {
+	benchmarking.RunDispatchCall(b, "../frame/balances/call_transfer_all_weight.go", func(i *benchmarking.Instance) {
 		// arrange
 		balance := existentialMultiplier * existentialAmount
 

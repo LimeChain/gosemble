@@ -87,7 +87,7 @@ func Test_Call_SetBalance_FunctionIndex(t *testing.T) {
 func Test_Call_SetBalance_BaseWeight(t *testing.T) {
 	target := setupCallSetBalance()
 
-	assert.Equal(t, primitives.WeightFromParts(17_777_003, 3593), target.BaseWeight())
+	assert.Equal(t, callSetBalanceCreatingWeight(dbWeight).Max(callSetBalanceKillingWeight(dbWeight)), target.BaseWeight())
 }
 
 func Test_Call_SetBalance_IsInherent(t *testing.T) {

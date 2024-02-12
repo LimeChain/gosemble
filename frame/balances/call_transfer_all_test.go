@@ -80,7 +80,7 @@ func Test_Call_TransferAll_FunctionIndex(t *testing.T) {
 func Test_Call_TransferAll_BaseWeight(t *testing.T) {
 	target := setupCallTransferAll()
 
-	assert.Equal(t, primitives.WeightFromParts(35_121_003, 3593), target.BaseWeight())
+	assert.Equal(t, callTransferAllWeight(dbWeight), target.BaseWeight())
 }
 
 func Test_Call_TransferAll_WeighData(t *testing.T) {

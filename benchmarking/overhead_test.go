@@ -1,7 +1,6 @@
 package benchmarking
 
 import (
-	"flag"
 	"fmt"
 	"math"
 	"testing"
@@ -16,32 +15,15 @@ import (
 )
 
 var (
-	overheadWarmup         = flag.Int("overhead.warmup", 10, "How many warmup rounds before measuring.")
-	overheadRepeat         = flag.Int("overhead.repeat", 100, "How many times the benchmark test should be repeated.")
-	overheadMaxExtPerBlock = flag.Int("overhead.maxExtPerBlock", 500, "Maximum number of extrinsics per block")
-)
-
-var (
 	signer = signature.TestKeyringPairAlice
 )
 
-type OverheadConfig struct {
-	Warmup         int
-	Repeat         int
-	MaxExtPerBlock int
-}
-
 func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
-	config := OverheadConfig{
-		Warmup: *overheadWarmup,
-		Repeat: *overheadRepeat,
-	}
-
 	// todo set heapPages and dbCache when Gossamer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, "../build/runtime.wasm", trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, Config.WasmRuntime, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
-	instance, err := newBenchmarkingInstance(runtime, config.Repeat)
+	instance, err := newBenchmarkingInstance(runtime, Config.Overhead.Repeat)
 	if err != nil {
 		t.Fatalf("failed to create benchmarking instance: [%v]", err)
 	}
@@ -51,24 +33,27 @@ func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 		t.Fatal(err)
 	}
 
-	stats := benchBlock(t, instance, config)
-	fmt.Println("result stats")
-	fmt.Println(stats)
-	// TODO: Generate weight files
+	stats := benchBlock(t, instance, Config.Overhead)
+	fmt.Println(stats.String())
+
+	if Config.GenerateWeightFiles {
+		template, err := InitOverheadWeightTemplate()
+		if err != nil {
+			t.Fatalf("failed to initialize overhead weight template: %v", err.Error())
+		}
+
+		if err := generateWeightFile(template, "../constants/block_execution_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+			t.Fatalf("failed to generate weight file: %v", err)
+		}
+	}
 }
 
 func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
-	config := OverheadConfig{
-		Warmup:         *overheadWarmup,
-		Repeat:         *overheadRepeat,
-		MaxExtPerBlock: *overheadMaxExtPerBlock,
-	}
-
 	// todo set heapPages and dbCache when Gossamer starts supporting db caching
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, "../build/runtime.wasm", trie.NewEmptyTrie())
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(t, Config.WasmRuntime, trie.NewEmptyTrie())
 	defer runtime.Stop()
 
-	instance, err := newBenchmarkingInstance(runtime, config.Repeat)
+	instance, err := newBenchmarkingInstance(runtime, Config.Overhead.Repeat)
 	if err != nil {
 		t.Fatalf("failed to create benchmarking instance: [%v]", err)
 	}
@@ -78,13 +63,22 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 		t.Fatal(err)
 	}
 
-	stats := benchExtrinsic(t, instance, config)
-	fmt.Println("result stats")
-	fmt.Println(stats)
-	// TODO: Generate weight files
+	stats := benchExtrinsic(t, instance, Config.Overhead)
+	fmt.Println(stats.String())
+
+	if Config.GenerateWeightFiles {
+		template, err := InitOverheadWeightTemplate()
+		if err != nil {
+			t.Fatalf("failed to initialize overhead weight template: %v", err.Error())
+		}
+
+		if err := generateWeightFile(template, "../constants/base_extrinsic_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+			t.Fatalf("failed to generate weight file: %v", err)
+		}
+	}
 }
 
-func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) StatsResult {
+func benchBlock(b *testing.B, instance *Instance, config overheadConfig) StatsResult {
 	// Build the block
 	block, err := buildBlock(instance, false, config.MaxExtPerBlock)
 	if err != nil {
@@ -106,7 +100,7 @@ func benchBlock(b *testing.B, instance *Instance, config OverheadConfig) StatsRe
 	return stats
 }
 
-func benchExtrinsic(b *testing.B, instance *Instance, config OverheadConfig) StatsResult {
+func benchExtrinsic(b *testing.B, instance *Instance, config overheadConfig) StatsResult {
 	// Build an Empty block
 	baseEmptyBlock, err := buildBlock(instance, false, config.MaxExtPerBlock)
 	if err != nil {
@@ -212,7 +206,7 @@ func buildBlock(instance *Instance, hasExtrinsics bool, maxExtrinsicsPerBlock in
 	return block, nil
 }
 
-func measureBlock(instance *Instance, config OverheadConfig, block gossamertypes.Block) ([]float64, error) {
+func measureBlock(instance *Instance, config overheadConfig, block gossamertypes.Block) ([]float64, error) {
 	encodedBlock, err := scale.Marshal(block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode block: [%v]", err)
