@@ -24,11 +24,11 @@ type weightFileTemplate struct {
 	weightFn               *ast.FuncDecl
 }
 
-func ExtrinsicWeightTemplate() (*weightFileTemplate, error) {
+func InitExtrinsicWeightTemplate() (*weightFileTemplate, error) {
 	return newWeightFileTemplate("weight_file_extrinsic_template.go", "extrinsicWeightFn", "refTime", "reads", "writes")
 }
 
-func OverheadWeightTemplate() (*weightFileTemplate, error) {
+func InitOverheadWeightTemplate() (*weightFileTemplate, error) {
 	return newWeightFileTemplate("weight_file_overhead_template.go", "overheadWeightFn", "refTime", "", "")
 }
 
@@ -93,13 +93,13 @@ func newWeightFileTemplate(templateFile, weightFn, refTime, reads, writes string
 		return true
 	})
 	if template.refTime == nil && refTime != "" {
-		return template, fmt.Errorf("error getting refTime variable from file template")
+		return template, fmt.Errorf("error getting 'refTime' variable from file template")
 	}
 	if template.reads == nil && reads != "" {
-		return template, fmt.Errorf("error getting reads variable from file template")
+		return template, fmt.Errorf("error getting 'reads' variable from file template")
 	}
 	if template.writes == nil && writes != "" {
-		return template, fmt.Errorf("error getting writes variable from file template")
+		return template, fmt.Errorf("error getting 'writes' variable from file template")
 	}
 	return template, nil
 }

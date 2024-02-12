@@ -3,6 +3,8 @@ package benchmarking
 import (
 	"bytes"
 	"fmt"
+	"testing"
+
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
 	"github.com/ChainSafe/gossamer/lib/trie"
@@ -11,7 +13,6 @@ import (
 	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	"github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 // Executes a benchmark test.
@@ -54,9 +55,9 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	fmt.Println(analysis.String())
 
 	if Config.GenerateWeightFiles {
-		template, err := ExtrinsicWeightTemplate()
+		template, err := InitExtrinsicWeightTemplate()
 		if err != nil {
-			b.Fatalf("failed to get extrinsic weight template")
+			b.Fatalf("failed to initialize extrinsic weight template: %v", err.Error())
 		}
 
 		if err := generateWeightFile(template, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
