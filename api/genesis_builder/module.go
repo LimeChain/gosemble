@@ -22,6 +22,10 @@ type GenesisBuilder interface {
 	BuildConfig(config []byte) error
 }
 
+// Module implements the GenesisBuilder Runtime API definition.
+//
+// For more information about API definition, see:
+// https://github.com/paritytech/polkadot-sdk/blob/master/substrate/primitives/genesis-builder/src/lib.rs#L38
 type Module struct {
 	modules  []primitives.Module
 	memUtils utils.WasmMemoryTranslator
@@ -36,15 +40,20 @@ func New(modules []primitives.Module, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
+// CreateDefaultConfig returns the default genesis configuration of the runtime.
+// Includes all modules' JSON default configuration.
+// Returns a pointer-size of the serialised JSON representation of the default genesis configuration.
 func (m Module) CreateDefaultConfig() int64 {
 	gcs := []string{}
 	for _, module := range m.modules {
@@ -68,6 +77,12 @@ func (m Module) CreateDefaultConfig() int64 {
 	return m.memUtils.BytesToOffsetAndSize(sc.BytesToSequenceU8(gcJson).Bytes())
 }
 
+// BuildConfig validates the genesis configuration and stores it in the storage.
+// It takes two arguments:
+// - dataPtr: Pointer to the data in the Wasm memory.
+// - dataLen: Length of the data.
+// which represent the SCALE-encoded serialised JSON genesis configuration.
+// The serialised bytes must contain the genesis configuration for each runtime module.
 func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
 	gcJsonBytes := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	gcDecoded, err := sc.DecodeSequence[sc.U8](bytes.NewBuffer(gcJsonBytes))
@@ -91,7 +106,7 @@ func (m Module) BuildConfig(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize([]byte{0})
 }
 
-// todo metadata
+// todo: metadata
 // func (m Module) Metadata() primitives.RuntimeApiMetadata {
 // 	return primitives.RuntimeApiMetadata{}
 // }

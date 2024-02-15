@@ -26,6 +26,10 @@ type BlockBuilder interface {
 	CheckInherents(dataPtr int32, dataLen int32) int64
 }
 
+// Module implements the BlockBuilder Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-blockbuilder-module
 type Module struct {
 	runtimeExtrinsic extrinsic.RuntimeExtrinsic
 	executive        executive.Module
@@ -46,10 +50,12 @@ func New(runtimeExtrinsic extrinsic.RuntimeExtrinsic, executive executive.Module
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
@@ -61,7 +67,9 @@ func (m Module) Item() primitives.ApiItem {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded unchecked extrinsic.
 // Returns a pointer-size of the SCALE-encoded result, which specifies if this extrinsic is included in this block or not.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-apply-extrinsic
 func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -98,7 +106,9 @@ func (m Module) ApplyExtrinsic(dataPtr int32, dataLen int32) int64 {
 
 // FinalizeBlock finalizes the state changes for the current block.
 // Returns a pointer-size of the SCALE-encoded header for this block.
-// [Specification](https://spec.polkadot.network/#defn-rt-blockbuilder-finalize-block)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#defn-rt-blockbuilder-finalize-block
 func (m Module) FinalizeBlock() int64 {
 	header, err := m.executive.FinalizeBlock()
 	if err != nil {
@@ -114,7 +124,9 @@ func (m Module) FinalizeBlock() int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded inherent data.
 // Returns a pointer-size of the SCALE-encoded timestamp extrinsic.
-// [Specification](https://spec.polkadot.network/#defn-rt-builder-inherent-extrinsics)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#defn-rt-builder-inherent-extrinsics
 func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -138,7 +150,9 @@ func (m Module) InherentExtrinsics(dataPtr int32, dataLen int32) int64 {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded inherent data.
 // Returns a pointer-size of the SCALE-encoded result, specifying if all inherents are valid.
-// [Specification](https://spec.polkadot.network/#id-blockbuilder_check_inherents)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-blockbuilder_check_inherents
 func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -161,6 +175,7 @@ func (m Module) CheckInherents(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(result.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	blockId, _ := m.mdGenerator.GetId("block")
 

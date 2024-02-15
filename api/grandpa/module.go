@@ -15,6 +15,10 @@ const (
 	apiVersion    = 3
 )
 
+// Module implements the GrandpaApi Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-module-grandpaapi
 type Module struct {
 	grandpa  grandpa.GrandpaModule
 	memUtils utils.WasmMemoryTranslator
@@ -29,15 +33,22 @@ func New(grandpa grandpa.GrandpaModule, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
+// Authorities returns the current set of Grandpa authorities.
+// Returns a pointer-size of the SCALE-encoded set of authorities.
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-grandpa-auth
 func (m Module) Authorities() int64 {
 	authorities, err := m.grandpa.Authorities()
 	if err != nil {
@@ -46,6 +57,7 @@ func (m Module) Authorities() int64 {
 	return m.memUtils.BytesToOffsetAndSize(authorities.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{

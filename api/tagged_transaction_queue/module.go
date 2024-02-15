@@ -22,6 +22,10 @@ type TaggedTransactionQueue interface {
 	ValidateTransaction(dataPtr int32, dataLen int32) int64
 }
 
+// Module implements the TaggedTransactionQueue Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-txqueue-module
 type Module struct {
 	executive   executive.Module
 	decoder     types.RuntimeDecoder
@@ -40,10 +44,12 @@ func New(executive executive.Module, decoder types.RuntimeDecoder, mdGenerator *
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
@@ -55,7 +61,9 @@ func (m Module) Item() primitives.ApiItem {
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded tx source, extrinsic and block hash.
 // Returns a pointer-size of the SCALE-encoded result whether the extrinsic is valid.
-// [Specification](https://spec.polkadot.network/#sect-rte-validate-transaction)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-validate-transaction
 func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
@@ -89,6 +97,7 @@ func (m Module) ValidateTransaction(dataPtr int32, dataLen int32) int64 {
 	return m.memUtils.BytesToOffsetAndSize(res.Bytes())
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	transactionSourceId, _ := m.mdGenerator.GetId("TransactionSource")
 	resultValidityTxId, _ := m.mdGenerator.GetId("TransactionValidityResult")

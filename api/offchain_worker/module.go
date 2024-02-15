@@ -18,6 +18,10 @@ const (
 	apiVersion    = 2
 )
 
+// Module implements the OffchainWorkerApi Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-offchainapi-module
 type Module struct {
 	executive executive.Module
 	memUtils  utils.WasmMemoryTranslator
@@ -32,10 +36,12 @@ func New(executive executive.Module, logger log.Logger) Module {
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() types.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return types.NewApiItem(hash, apiVersion)
@@ -46,7 +52,9 @@ func (m Module) Item() types.ApiItem {
 // - dataPtr: Pointer to the data in the Wasm memory.
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded header of the block.
-// [Specification](https://spec.polkadot.network/chap-runtime-api#id-offchainworkerapi_offchain_worker)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#id-offchainworkerapi_offchain_worker
 func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	b := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(b)
@@ -61,6 +69,7 @@ func (m Module) OffchainWorker(dataPtr int32, dataLen int32) {
 	}
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	methods := sc.Sequence[primitives.RuntimeApiMethodMetadata]{
 		primitives.RuntimeApiMethodMetadata{

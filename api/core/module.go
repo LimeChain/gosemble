@@ -24,6 +24,10 @@ type Core interface {
 	InitializeBlock(dataPtr int32, dataLen int32)
 }
 
+// Module implements the Core Runtime API definition.
+//
+// For more information about API definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-runtime-core-module
 type Module struct {
 	executive      executive.Module
 	decoder        types.RuntimeDecoder
@@ -44,17 +48,21 @@ func New(module executive.Module, decoder types.RuntimeDecoder, runtimeVersion *
 	}
 }
 
+// Name returns the name of the api module.
 func (m Module) Name() string {
 	return ApiModuleName
 }
 
+// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.
 func (m Module) Item() primitives.ApiItem {
 	hash := hashing.MustBlake2b8([]byte(ApiModuleName))
 	return primitives.NewApiItem(hash, apiVersion)
 }
 
 // Version returns a pointer-size SCALE-encoded Runtime version.
-// [Specification](https://spec.polkadot.network/#defn-rt-core-version)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#defn-rt-core-version
 func (m Module) Version() int64 {
 	encoded := m.runtimeVersion.Bytes()
 
@@ -66,7 +74,9 @@ func (m Module) Version() int64 {
 // - dataPtr: Pointer to the data in the Wasm memory.
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded header of the block.
-// [Specification](https://spec.polkadot.network/#sect-rte-core-initialize-block)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-core-initialize-block
 func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
@@ -86,7 +96,9 @@ func (m Module) InitializeBlock(dataPtr int32, dataLen int32) {
 // - dataPtr: Pointer to the data in the Wasm memory.
 // - dataLen: Length of the data.
 // which represent the SCALE-encoded block.
-// [Specification](https://spec.polkadot.network/#sect-rte-core-execute-block)
+//
+// For more information about function definition, see:
+// https://spec.polkadot.network/chap-runtime-api#sect-rte-core-execute-block
 func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	data := m.memUtils.GetWasmMemorySlice(dataPtr, dataLen)
 	buffer := bytes.NewBuffer(data)
@@ -101,6 +113,7 @@ func (m Module) ExecuteBlock(dataPtr int32, dataLen int32) {
 	}
 }
 
+// Metadata returns the runtime api metadata of the module.
 func (m Module) Metadata() primitives.RuntimeApiMetadata {
 	blockId, _ := m.mdGenerator.GetId("block")
 

@@ -145,12 +145,13 @@ nav:
       - Overview: ./index.md
       - Runtime Architecture: ./overview/runtime-architecture.md
       - Toolchain: ./overview/toolchain.md
-      - Modules: ./overview/modules.md
   - Development:
       - Install: ./development/install.md
       - Build: ./development/build.md
       - Inspect: ./development/inspect.md
       - File structure: ./development/file-structure.md
+      - API: ./development/api.md
+      - Core Modules: ./development/modules.md
       - Testing: ./development/test.md
       - Benchmarking: ./development/benchmarking.md
       - Toolchain setup: ./development/toolchain-setup.md
