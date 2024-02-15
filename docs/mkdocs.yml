@@ -116,10 +116,19 @@ markdown_extensions:
   # - pymdownx.emoji:
   #     # emoji_generator: !!python/name:materialx.emoji.to_svg
   #     # emoji_index: !!python/name:materialx.emoji.twemoji
-  # - pymdownx.highlight:
-  #     anchor_linenums: true
-  #     line_spans: __span
-  #     pygments_lang_class: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      linenums: true
+      linenums_style: pymdownx-inline
+      auto_title: false
+      use_pygments: true
+  - pymdownx.superfences:
+      # custom_fences:
+      #   - name: mermaid
+      #     class: mermaid
+      #     format: !!python/name:pymdownx.superfences.fence_code_format
   # - pymdownx.inlinehilite
   # - pymdownx.keys
   # - pymdownx.magiclink:
@@ -128,11 +137,7 @@ markdown_extensions:
   #     repo: mkdocs-material
   # - pymdownx.mark
   # - pymdownx.smartsymbols
-  # - pymdownx.superfences:
-  #     custom_fences:
-  #       - name: mermaid
-  #         class: mermaid
-  #         format: !!python/name:pymdownx.superfences.fence_code_format
+
   # - pymdownx.tabbed:
   #     alternate_style: true
   # - pymdownx.tasklist:

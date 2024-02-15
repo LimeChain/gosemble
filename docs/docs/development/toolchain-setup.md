@@ -12,7 +12,7 @@ Given that we use our own custom version of the TinyGo compiler, to facilitate i
 There is a docker image available, which can be used to build the compiler and run tests inside a container without having to install any dependencies locally.
 Run the following script to build and spin up a container:
 
-```sh
+```bash
 cd tinygo
 ./polkawasm.sh
 ```
@@ -25,7 +25,7 @@ Similar to the Dockerfile.
 
 Install the necessary dependencies:
 
-```sh
+```bash
 brew install cmake ninja
 ```
 
@@ -36,13 +36,13 @@ brew install cmake ninja
 Depending on the TinyGo version you want to build, choose the correct version of LLVM. 
 For example, TinyGo 0.31.0, requires LLVM 16:
 
-```sh
+```bash
 brew install llvm@16
 ```
 
 Make sure these environment variables are set correctly:
 
-```sh
+```bash
 go env GOROOT # => /usr/local/go
 go env GOPATH # => ~/go
 go env GOARCH # => arm64
@@ -52,11 +52,11 @@ go env GOARCH # => arm64
 
 To be able to build `wasi-libc`, for example without bulk memory operations, make sure LLVM is in your `PATH` environment variable. Add the following line to your `.zshrc`, `.bashrc`, or `.bash_profile` file:
 
-```sh
+```bash
 export PATH="/opt/homebrew/opt/llvm@16/bin:$PATH"
 ```
 
-```sh
+```bash
 make build-wasi-libc
 ```
 
@@ -64,7 +64,7 @@ make build-wasi-libc
 
 Specific version of `binaryen(wasm-opt)` is required to target the Wasm MVP instruction set:
 
-```sh
+```bash
 make build-binaryen
 ```
 
@@ -72,26 +72,26 @@ make build-binaryen
 
 Use the Go toolchain to build TinyGo. Do not use `make`, since the `Makefile` is intended to be used with a self-built LLVM.
 
-```sh
+```bash
 cd tinygo
 go install
 ```
 
 Make sure to include the path to the TinyGo binary in your `PATH` environment variable: 
 
-```sh
+```bash
 export PATH="$GOPATH/bin:$PATH"
 ```
 
 Restart the shell and verify it's working:
 
-```sh
+```bash
 tinygo version
 ```
 
 #### Run Tests
 
-```sh
+```bash
 # standard library packages that pass tests on darwin, linux, wasi, and windows, but take over a minute in wasi
 tinygo test -target wasi compress/bzip2 crypto/dsa index/suffixarray
 
@@ -125,21 +125,21 @@ Use `make` with a self-built LLVM which has the benefit of already set up tests.
 
 Clone and build LLVM:
 
-```sh
+```bash
 make llvm-source
 make llvm-build
 ```
 
 Build the TinyGo compiler:
 
-```sh
+```bash
 make clean
 make tinygo
 ```
 
 Run the tests:
 
-```sh
+```bash
 make test
 make smoketest
 make test-corpus-wasi
