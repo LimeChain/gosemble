@@ -1,6 +1,10 @@
 package benchmarking
 
-import "github.com/montanaflynn/stats"
+import (
+	"fmt"
+
+	"github.com/montanaflynn/stats"
+)
 
 type StatsResult struct {
 	Sum float64
@@ -14,6 +18,10 @@ type StatsResult struct {
 	P99 float64
 	P95 float64
 	P75 float64
+}
+
+func (s StatsResult) String() string {
+	return fmt.Sprintf("Total: %f, Min: %f, Max: %f, Average: %f, Median: %f, Stddev: %f, Percentiles 99th, 95th, 75th: %f, %f, %f", s.Sum, s.Min, s.Max, s.Mean, s.Median, s.Stddev, s.P99, s.P95, s.P75)
 }
 
 func NewStatsResult(input []float64) (StatsResult, error) {

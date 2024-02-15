@@ -121,7 +121,7 @@ func Test_Call_ForceFree_EncodeWithArgs(t *testing.T) {
 func Test_Call_ForceFree_BaseWeight(t *testing.T) {
 	target := setupCallForceFree()
 
-	assert.Equal(t, primitives.WeightFromParts(17_029_003, 3593), target.BaseWeight())
+	assert.Equal(t, callForceFreeWeight(dbWeight), target.BaseWeight())
 }
 
 func Test_Call_ForceFree_WeighData(t *testing.T) {

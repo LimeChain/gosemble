@@ -76,17 +76,7 @@ func (c callSetBalance) Args() sc.VaryingData {
 }
 
 func (c callSetBalance) BaseWeight() types.Weight {
-	// Proof Size summary in bytes:
-	//  Measured:  `206`
-	//  Estimated: `3593`
-	// Minimum execution time: 17_474 nanoseconds.
-	r := c.constants.DbWeight.Reads(1)
-	w := c.constants.DbWeight.Writes(1)
-	e := types.WeightFromParts(0, 3593)
-	return types.WeightFromParts(17_777_000, 0).
-		SaturatingAdd(e).
-		SaturatingAdd(r).
-		SaturatingAdd(w)
+	return callSetBalanceCreatingWeight(c.constants.DbWeight).Max(callSetBalanceKillingWeight(c.constants.DbWeight))
 }
 
 func (_ callSetBalance) IsInherent() bool {
