@@ -47,7 +47,7 @@ Each module has the following structure:
 
 We recommend the following structure for a module:
 
-```
+```bash
 ├── frame
 │   ├── <module_name> # Name of the module
 │   │   ├── call_1_.go # extrinsic call functionality for call 1

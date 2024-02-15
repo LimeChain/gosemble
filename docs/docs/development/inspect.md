@@ -12,7 +12,7 @@ Install [wasmer](https://wasmer.io/) to get a simple view of the compiled WASM.
 wasmer inspect build/runtime.wasm
 ```
 
-```
+```bash
 Type: wasm
 Size: 873.2 KB
 Imports:
