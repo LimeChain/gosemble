@@ -1369,13 +1369,11 @@
 <p>We use a local build of TinyGo and do not depend on the already-built brew dependency.</p>
 <p><a href="/development/toolchain-setup">Here are the steps</a> how to install and build it locally.</p>
 <p>After you have built TinyGo, execute the following:</p>
-<div class="codehilite"><pre><span></span><code>tinygo<span class="w"> </span>version
-</code></pre></div>
-
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><a href="#__codelineno-0-1"><span class="linenos" data-linenos="1 "></span></a>tinygo<span class="w"> </span>version
+</span></code></pre></div>
 <p>The output should be similar to:</p>
-<div class="codehilite"><pre><span></span><code>tinygo<span class="w"> </span>version<span class="w"> </span><span class="m">0</span>.31.0-dev<span class="w"> </span>darwin/arm64<span class="w"> </span><span class="o">(</span>using<span class="w"> </span>go<span class="w"> </span>version<span class="w"> </span>go1.21.6<span class="w"> </span>and<span class="w"> </span>LLVM<span class="w"> </span>version<span class="w"> </span><span class="m">16</span>.0.6<span class="o">)</span>
-</code></pre></div>
-
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><a href="#__codelineno-1-1"><span class="linenos" data-linenos="1 "></span></a>tinygo<span class="w"> </span>version<span class="w"> </span><span class="m">0</span>.31.0-dev<span class="w"> </span>darwin/arm64<span class="w"> </span><span class="o">(</span>using<span class="w"> </span>go<span class="w"> </span>version<span class="w"> </span>go1.21.6<span class="w"> </span>and<span class="w"> </span>LLVM<span class="w"> </span>version<span class="w"> </span><span class="m">16</span>.0.6<span class="o">)</span>
+</span></code></pre></div>
 <h2 id="2-architecture-of-a-polkadot-node">2. Architecture of a Polkadot Node 🏛️<a class="headerlink" href="#2-architecture-of-a-polkadot-node" title="Permanent link">&para;</a></h2>
 <p>Now that you have learned about WebAssembly, shared memory, runtime imported/exported functions and the TinyGo toolchain, let’s look at the Polkadot specification.</p>
 <p>Polkadot node architecture and protocol specification is heavily influenced by the tech stack: WebAssembly MVP and Rust. Some implementation details, like the memory management, are not well abstracted and tightly coupled with the Rust implementation and even included as part of the protocol specification.</p>
