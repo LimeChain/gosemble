@@ -12,13 +12,13 @@
         <meta name="author" content="LimeChain">
       
       
-        <link rel="canonical" href="https://limechain.tech/tutorials/start-a-network/">
+        <link rel="canonical" href="https://limechain.tech/development/api/">
       
       
-        <link rel="prev" href="../../development/onboarding/">
+        <link rel="prev" href="../file-structure/">
       
       
-        <link rel="next" href="../transfer-funds/">
+        <link rel="next" href="../modules/">
       
       
       <link rel="icon" href="../../assets/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Start a Network - Gosemble Docs</title>
+        <title>API - Gosemble Docs</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#start-a-network" class="md-skip">
+        <a href="#runtime-api-modules" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Start a Network
+              API
             
           </span>
         </div>
@@ -245,11 +245,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../development/install/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../install/" class="md-tabs__link">
           
   
     
@@ -265,13 +267,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../tutorials/start-a-network/" class="md-tabs__link">
           
   
     
@@ -463,8 +463,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -491,19 +493,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -514,7 +519,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Development
@@ -528,7 +533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/install/" class="md-nav__link">
+      <a href="../install/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -549,7 +554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/build/" class="md-nav__link">
+      <a href="../build/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -570,7 +575,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/inspect/" class="md-nav__link">
+      <a href="../inspect/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -591,7 +596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/file-structure/" class="md-nav__link">
+      <a href="../file-structure/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -609,10 +614,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../development/api/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    API
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -621,6 +646,59 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -633,7 +711,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/modules/" class="md-nav__link">
+      <a href="../modules/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -654,7 +732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/test/" class="md-nav__link">
+      <a href="../test/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -675,7 +753,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/benchmarking/" class="md-nav__link">
+      <a href="../benchmarking/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -696,7 +774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/toolchain-setup/" class="md-nav__link">
+      <a href="../toolchain-setup/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -717,7 +795,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/onboarding/" class="md-nav__link">
+      <a href="../onboarding/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -742,10 +820,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -756,22 +832,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -782,7 +855,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Tutorials
@@ -793,30 +866,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Start a Network
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../tutorials/start-a-network/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -825,44 +878,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#before-you-begin" class="md-nav__link">
-    <span class="md-ellipsis">
-      Before you begin
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#build-and-start-the-network" class="md-nav__link">
-    <span class="md-ellipsis">
-      Build and start the network
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -875,7 +890,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../transfer-funds/" class="md-nav__link">
+      <a href="../../tutorials/transfer-funds/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -986,72 +1001,160 @@
   
 
 
-<h1 id="start-a-network">Start a Network 🕸️<a class="headerlink" href="#start-a-network" title="Permanent link">&para;</a></h1>
-<p>This tutorial provides a basic introduction how you can start a local network using Gosemble runtime, imported in Substrate node.</p>
-<h2 id="before-you-begin">Before you begin<a class="headerlink" href="#before-you-begin" title="Permanent link">&para;</a></h2>
-<p>Before you begin, verify that:</p>
-<ol>
-<li>You have <a href="../../development/install/">installed</a> all the repository dependencies.</li>
-<li>You have <a href="../../development/build/">built</a> your latest Gosemble runtime.</li>
-</ol>
-<h2 id="build-and-start-the-network">Build and start the network<a class="headerlink" href="#build-and-start-the-network" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Open a terminal shell on your machine.</li>
-<li>Change to the root directory to the locally cloned Gosemble repository.</li>
-<li>Execute the following command:</li>
-</ol>
-<div class="codehilite"><pre><span></span><code>make<span class="w"> </span>start-network
-</code></pre></div>
+<h1 id="runtime-api-modules">Runtime API modules<a class="headerlink" href="#runtime-api-modules" title="Permanent link">&para;</a></h1>
+<p>Contains modules of the <a href="https://spec.polkadot.network/chap-runtime-api">Runtime API Specification</a>.</p>
+<h2 id="supported-modules">Supported modules<a class="headerlink" href="#supported-modules" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/account_nonce">AccountNonceApi</a></td>
+<td>Provides logic to get an account's nonce.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/aura">AuraApi</a></td>
+<td>Manages block authoring AuRa consensus mechanism.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/benchmarking">Benchmarking</a></td>
+<td>Provides functionality for benchmarking extrinsic calls and system hooks.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/block_builder">BlockBuilder</a></td>
+<td>Provides functionality for building and finalizing a block.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/core">Core</a></td>
+<td>Provides functionality for initialising and executing a block.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/genesis_builder">GenesisBuilder</a></td>
+<td>Builds genesis configuration.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/grandpa">GrandpaApi</a></td>
+<td>Manages the GRANDPA block finalization.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/metadata">Metadata</a></td>
+<td>Returns the metadata of the runtime</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/offchain_worker">OffchainWorkerApi</a></td>
+<td>Provides functionality to start offchain worker operations.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/session_keys">SessionKeys</a></td>
+<td>Generates and decodes session keys</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/tagged_transaction_queue">TaggedTransactionQueue</a></td>
+<td>Validates transactions in the transaction queue.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/transaction_payment">TransactionPaymentApi</a></td>
+<td>Queries the runtime for transaction fees.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/limechain/gosemble/tree/develop/api/transaction_payment_call">TransactionPaymentCallApi</a></td>
+<td>Queries the runtime for transaction call fees.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="structure">Structure<a class="headerlink" href="#structure" title="Permanent link">&para;</a></h2>
+<p>Each module must have the following:</p>
+<ul>
+<li><code>name</code></li>
+<li><code>version</code></li>
+<li><code>exported</code> runtime functions<ul>
+<li>Each runtime-exported function takes care of reading from and writing to the WASM memory.</li>
+</ul>
+</li>
+<li><code>metadata</code> definition</li>
+<li>Explanatory <code>inline documentation</code></li>
+</ul>
+<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
+<p>An <code>example</code> module, which takes care of returning account balances.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">example</span>
 
-<p>This will build the Substrate node with the Gosemble runtime wasm blob and start a network with one node.</p>
-<p>Once the node is built, the terminal should display a similar output to this:</p>
-<div class="codehilite"><pre><span></span><code><span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>Substrate<span class="w"> </span>Node<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>✌️<span class="w">  </span>version<span class="w"> </span><span class="m">4</span>.0.0-dev-765fd435549<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>❤️<span class="w">  </span>by<span class="w"> </span>Substrate<span class="w"> </span>DevHub<span class="w"> </span>&lt;https://github.com/substrate-developer-hub&gt;,<span class="w"> </span><span class="m">2017</span>-2023<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>📋<span class="w"> </span>Chain<span class="w"> </span>specification:<span class="w"> </span>Development<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>🏷<span class="w">  </span>Node<span class="w"> </span>name:<span class="w"> </span>real-approval-9498<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>👤<span class="w"> </span>Role:<span class="w"> </span>AUTHORITY<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>💾<span class="w"> </span>Database:<span class="w"> </span>RocksDb<span class="w"> </span>at<span class="w"> </span>/var/folders/4y/0ylpyqgn22g8jqpchzpm6lz80000gn/T/substrateBtT4Ur/chains/dev/db/full<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>⛓<span class="w">  </span>Native<span class="w"> </span>runtime:<span class="w"> </span>node-template-100<span class="w"> </span><span class="o">(</span>node-template-1.tx1.au1<span class="o">)</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>🔨<span class="w"> </span>Initializing<span class="w"> </span>Genesis<span class="w"> </span>block/state<span class="w"> </span><span class="o">(</span>state:<span class="w"> </span>0x8cac…2784,<span class="w"> </span>header-hash:<span class="w"> </span>0x3cda…df57<span class="o">)</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>👴<span class="w"> </span>Loading<span class="w"> </span>GRANDPA<span class="w"> </span>authority<span class="w"> </span><span class="nb">set</span><span class="w"> </span>from<span class="w"> </span>genesis<span class="w"> </span>on<span class="w"> </span>what<span class="w"> </span>appears<span class="w"> </span>to<span class="w"> </span>be<span class="w"> </span>first<span class="w"> </span>startup.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>Using<span class="w"> </span>default<span class="w"> </span>protocol<span class="w"> </span>ID<span class="w"> </span><span class="s2">&quot;sup&quot;</span><span class="w"> </span>because<span class="w"> </span>none<span class="w"> </span>is<span class="w"> </span>configured<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>chain<span class="w"> </span>specs<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>🏷<span class="w">  </span>Local<span class="w"> </span>node<span class="w"> </span>identity<span class="w"> </span>is:<span class="w"> </span>12D3KooWKTKaG1R7DxRtTWGAJDAEXC91QgbvjuW2HoChuarvPVwB<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>💻<span class="w"> </span>Operating<span class="w"> </span>system:<span class="w"> </span>macos<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>💻<span class="w"> </span>CPU<span class="w"> </span>architecture:<span class="w"> </span>aarch64<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>📦<span class="w"> </span>Highest<span class="w"> </span>known<span class="w"> </span>block<span class="w"> </span>at<span class="w"> </span><span class="c1">#0    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>〽️<span class="w"> </span>Prometheus<span class="w"> </span>exporter<span class="w"> </span>started<span class="w"> </span>at<span class="w"> </span><span class="m">127</span>.0.0.1:9615<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>Running<span class="w"> </span>JSON-RPC<span class="w"> </span>HTTP<span class="w"> </span>server:<span class="w"> </span><span class="nv">addr</span><span class="o">=</span><span class="m">127</span>.0.0.1:9933,<span class="w"> </span>allowed<span class="w"> </span><span class="nv">origins</span><span class="o">=[</span><span class="s2">&quot;*&quot;</span><span class="o">]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:47<span class="w"> </span>Running<span class="w"> </span>JSON-RPC<span class="w"> </span>WS<span class="w"> </span>server:<span class="w"> </span><span class="nv">addr</span><span class="o">=</span><span class="m">127</span>.0.0.1:9944,<span class="w"> </span>allowed<span class="w"> </span><span class="nv">origins</span><span class="o">=[</span><span class="s2">&quot;*&quot;</span><span class="o">]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:48<span class="w"> </span>🙌<span class="w"> </span>Starting<span class="w"> </span>consensus<span class="w"> </span>session<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of<span class="w"> </span>parent<span class="w"> </span>0x3cda151b8ad3c4f331710e99d76c93a6f1332fb6944274beb4942758f129df57<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:48<span class="w"> </span>🎁<span class="w"> </span>Prepared<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposing<span class="w"> </span>at<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">(</span><span class="m">0</span><span class="w"> </span>ms<span class="o">)</span><span class="w"> </span><span class="o">[</span>hash:<span class="w"> </span>0x78f54ecfb1c9429ab0fdf79e895fe5b384996759fbad7dd080e86793cb6dd171<span class="p">;</span><span class="w"> </span>parent_hash:<span class="w"> </span>0x3cda…df57<span class="p">;</span><span class="w"> </span>extrinsics<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="o">)</span>:<span class="w"> </span><span class="o">[</span>0x47a9…5266<span class="o">]]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:48<span class="w"> </span>🔖<span class="w"> </span>Pre-sealed<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposal<span class="w"> </span>at<span class="w"> </span><span class="m">1</span>.<span class="w"> </span>Hash<span class="w"> </span>now<span class="w"> </span>0x73b64c2e2ebb1e36f6ce3ceae1f30db4e85ec97541cfca38f688771661283911,<span class="w"> </span>previously<span class="w"> </span>0x78f54ecfb1c9429ab0fdf79e895fe5b384996759fbad7dd080e86793cb6dd171.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:48<span class="w"> </span>✨<span class="w"> </span>Imported<span class="w"> </span><span class="c1">#1 (0x73b6…3911)    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:50<span class="w"> </span>🙌<span class="w"> </span>Starting<span class="w"> </span>consensus<span class="w"> </span>session<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of<span class="w"> </span>parent<span class="w"> </span>0x73b64c2e2ebb1e36f6ce3ceae1f30db4e85ec97541cfca38f688771661283911<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:50<span class="w"> </span>🎁<span class="w"> </span>Prepared<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposing<span class="w"> </span>at<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">(</span><span class="m">0</span><span class="w"> </span>ms<span class="o">)</span><span class="w"> </span><span class="o">[</span>hash:<span class="w"> </span>0x8297614e7b45dde043902a55c76410ad249bdde1a34d30593a0614b0e7c8743c<span class="p">;</span><span class="w"> </span>parent_hash:<span class="w"> </span>0x73b6…3911<span class="p">;</span><span class="w"> </span>extrinsics<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="o">)</span>:<span class="w"> </span><span class="o">[</span>0x56e4…ec44<span class="o">]]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:50<span class="w"> </span>🔖<span class="w"> </span>Pre-sealed<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposal<span class="w"> </span>at<span class="w"> </span><span class="m">2</span>.<span class="w"> </span>Hash<span class="w"> </span>now<span class="w"> </span>0x46590bceeaf9c797c37e940b97dc7c127dfef625c540f32d3298570cdf805af1,<span class="w"> </span>previously<span class="w"> </span>0x8297614e7b45dde043902a55c76410ad249bdde1a34d30593a0614b0e7c8743c.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:50<span class="w"> </span>✨<span class="w"> </span>Imported<span class="w"> </span><span class="c1">#2 (0x4659…5af1)    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:52<span class="w"> </span>🙌<span class="w"> </span>Starting<span class="w"> </span>consensus<span class="w"> </span>session<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of<span class="w"> </span>parent<span class="w"> </span>0x46590bceeaf9c797c37e940b97dc7c127dfef625c540f32d3298570cdf805af1<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:52<span class="w"> </span>🎁<span class="w"> </span>Prepared<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposing<span class="w"> </span>at<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>ms<span class="o">)</span><span class="w"> </span><span class="o">[</span>hash:<span class="w"> </span>0xc068b2a5904b34a40aeb0ee0ff64469a3879974435f36859c074542f11cacbd2<span class="p">;</span><span class="w"> </span>parent_hash:<span class="w"> </span>0x4659…5af1<span class="p">;</span><span class="w"> </span>extrinsics<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="o">)</span>:<span class="w"> </span><span class="o">[</span>0x2fc1…1556<span class="o">]]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:52<span class="w"> </span>🔖<span class="w"> </span>Pre-sealed<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposal<span class="w"> </span>at<span class="w"> </span><span class="m">3</span>.<span class="w"> </span>Hash<span class="w"> </span>now<span class="w"> </span>0x1f95f1d3b05ee47883cc56853029b9160f0aedf966adc874e7acc50f64a1af1f,<span class="w"> </span>previously<span class="w"> </span>0xc068b2a5904b34a40aeb0ee0ff64469a3879974435f36859c074542f11cacbd2.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:52<span class="w"> </span>✨<span class="w"> </span>Imported<span class="w"> </span><span class="c1">#3 (0x1f95…af1f)    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:52<span class="w"> </span>💤<span class="w"> </span>Idle<span class="w"> </span><span class="o">(</span><span class="m">0</span><span class="w"> </span>peers<span class="o">)</span>,<span class="w"> </span>best:<span class="w"> </span><span class="c1">#3 (0x1f95…af1f), finalized #0 (0x3cda…df57), ⬇ 0 ⬆ 0    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:54<span class="w"> </span>🙌<span class="w"> </span>Starting<span class="w"> </span>consensus<span class="w"> </span>session<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of<span class="w"> </span>parent<span class="w"> </span>0x1f95f1d3b05ee47883cc56853029b9160f0aedf966adc874e7acc50f64a1af1f<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:54<span class="w"> </span>🎁<span class="w"> </span>Prepared<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposing<span class="w"> </span>at<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>ms<span class="o">)</span><span class="w"> </span><span class="o">[</span>hash:<span class="w"> </span>0xccb05a3ba5b0122223aceea63fdf451137f431eda74d3d5be071d033c276ad64<span class="p">;</span><span class="w"> </span>parent_hash:<span class="w"> </span>0x1f95…af1f<span class="p">;</span><span class="w"> </span>extrinsics<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="o">)</span>:<span class="w"> </span><span class="o">[</span>0x3933…768d<span class="o">]]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:54<span class="w"> </span>🔖<span class="w"> </span>Pre-sealed<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposal<span class="w"> </span>at<span class="w"> </span><span class="m">4</span>.<span class="w"> </span>Hash<span class="w"> </span>now<span class="w"> </span>0x499abfe622f7ba16ee2f84d93d14cfd53cfb67ad6520c2fe1d4e494feabcba08,<span class="w"> </span>previously<span class="w"> </span>0xccb05a3ba5b0122223aceea63fdf451137f431eda74d3d5be071d033c276ad64.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:54<span class="w"> </span>✨<span class="w"> </span>Imported<span class="w"> </span><span class="c1">#4 (0x499a…ba08)    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:56<span class="w"> </span>🙌<span class="w"> </span>Starting<span class="w"> </span>consensus<span class="w"> </span>session<span class="w"> </span>on<span class="w"> </span>top<span class="w"> </span>of<span class="w"> </span>parent<span class="w"> </span>0x499abfe622f7ba16ee2f84d93d14cfd53cfb67ad6520c2fe1d4e494feabcba08<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:56<span class="w"> </span>🎁<span class="w"> </span>Prepared<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposing<span class="w"> </span>at<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="w"> </span>ms<span class="o">)</span><span class="w"> </span><span class="o">[</span>hash:<span class="w"> </span>0x1c360a200207e096b0b94888b35ef125636b79b7199051eb1d10e536233c1c98<span class="p">;</span><span class="w"> </span>parent_hash:<span class="w"> </span>0x499a…ba08<span class="p">;</span><span class="w"> </span>extrinsics<span class="w"> </span><span class="o">(</span><span class="m">1</span><span class="o">)</span>:<span class="w"> </span><span class="o">[</span>0xdfad…dc49<span class="o">]]</span><span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:56<span class="w"> </span>🔖<span class="w"> </span>Pre-sealed<span class="w"> </span>block<span class="w"> </span><span class="k">for</span><span class="w"> </span>proposal<span class="w"> </span>at<span class="w"> </span><span class="m">5</span>.<span class="w"> </span>Hash<span class="w"> </span>now<span class="w"> </span>0x48285138338a30e15d38ffe6d972ce295d89c32b20f393034f2aec448abf348c,<span class="w"> </span>previously<span class="w"> </span>0x1c360a200207e096b0b94888b35ef125636b79b7199051eb1d10e536233c1c98.<span class="w">    </span>
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:00:56<span class="w"> </span>✨<span class="w"> </span>Imported<span class="w"> </span><span class="c1">#5 (0x4828…348c)    </span>
-...
-...
-...
-...
-<span class="m">2023</span>-04-20<span class="w"> </span><span class="m">09</span>:01:07<span class="w"> </span>💤<span class="w"> </span>Idle<span class="w"> </span><span class="o">(</span><span class="m">0</span><span class="w"> </span>peers<span class="o">)</span>,<span class="w"> </span>best:<span class="w"> </span><span class="c1">#10 (0xa1fe…c156), finalized #7 (0x2361…27a8), ⬇ 0 ⬆ 0   </span>
-</code></pre></div>
+<span class="c1">// imports</span>
 
-<p>If the number of <code>finalized</code> blocks is increasing, this means your blockchain network is producing new blocks and successfully reaching consensus.</p>
+<span class="c1">// Module implements the Example Runtime API.</span>
+<span class="kd">type</span><span class="w"> </span><span class="nx">Module</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">memUtils</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">WasmMemoryTranslator</span>
+<span class="w">    </span><span class="nx">logger</span><span class="w">   </span><span class="nx">log</span><span class="p">.</span><span class="nx">Logger</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">New</span><span class="p">(</span><span class="nx">logger</span><span class="w"> </span><span class="nx">log</span><span class="p">.</span><span class="nx">Logger</span><span class="p">)</span><span class="w"> </span><span class="nx">Module</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">Module</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">memUtils</span><span class="p">:</span><span class="w"> </span><span class="nx">utils</span><span class="p">.</span><span class="nx">NewMemoryTranslator</span><span class="p">(),</span>
+<span class="w">        </span><span class="nx">logger</span><span class="p">:</span><span class="w">   </span><span class="nx">logger</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Name returns the name of the api module.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="nx">Module</span><span class="p">)</span><span class="w"> </span><span class="nx">Name</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;ExampleModule&quot;</span>
+<span class="p">}</span>
+
+<span class="c1">// Item returns the first 8 bytes of the Blake2b hash of the name and version of the api module.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="nx">Module</span><span class="p">)</span><span class="w"> </span><span class="nx">Item</span><span class="p">()</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">ApiItem</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">hash</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">hashing</span><span class="p">.</span><span class="nx">MustBlake2b8</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">ApiModuleName</span><span class="p">))</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">NewApiItem</span><span class="p">(</span><span class="nx">hash</span><span class="p">,</span><span class="w"> </span><span class="nx">apiVersion</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// AccountBalance returns the balance of given AccountId.</span>
+<span class="c1">// It takes two arguments:</span>
+<span class="c1">// - dataPtr: Pointer to the data in the Wasm memory.</span>
+<span class="c1">// - dataLen: Length of the data.</span>
+<span class="c1">// which represent the SCALE-encoded AccountId.</span>
+<span class="c1">// Returns a pointer-size of the SCALE-encoded balance of the account.</span>
+<span class="c1">// &lt;Link to Specification if found&gt;</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="nx">Module</span><span class="p">)</span><span class="w"> </span><span class="nx">AccountBalance</span><span class="p">(</span><span class="nx">dataPtr</span><span class="w"> </span><span class="kt">int32</span><span class="p">,</span><span class="w"> </span><span class="nx">dataLen</span><span class="w"> </span><span class="kt">int32</span><span class="p">)</span><span class="w"> </span><span class="kt">int64</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">b</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">memUtils</span><span class="p">.</span><span class="nx">GetWasmMemorySlice</span><span class="p">(</span><span class="nx">dataPtr</span><span class="p">,</span><span class="w"> </span><span class="nx">dataLen</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">buffer</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">bytes</span><span class="p">.</span><span class="nx">NewBuffer</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">accountId</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">DecodeAccountId</span><span class="p">(</span><span class="nx">buffer</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">m</span><span class="p">.</span><span class="nx">logger</span><span class="p">.</span><span class="nx">Critical</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">Error</span><span class="p">())</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Logic to get account balance</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">m</span><span class="p">.</span><span class="nx">memUtils</span><span class="p">.</span><span class="nx">BytesToOffsetAndSize</span><span class="p">(</span><span class="nx">accountBalance</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Metadata returns the runtime api metadata of the module.</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="nx">Module</span><span class="p">)</span><span class="w"> </span><span class="nx">Metadata</span><span class="p">()</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMetadata</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Metadata declaration of the module, which includes:</span>
+<span class="w">    </span><span class="c1">// * Name of the module</span>
+<span class="w">    </span><span class="c1">// * Definition of each runtime exported function (AccountBalance).</span>
+<span class="w">    </span><span class="nx">methods</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sc</span><span class="p">.</span><span class="nx">Sequence</span><span class="p">[</span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMethodMetadata</span><span class="p">]{</span>
+<span class="w">        </span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMethodMetadata</span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;account_balance&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Inputs</span><span class="p">:</span><span class="w"> </span><span class="nx">sc</span><span class="p">.</span><span class="nx">Sequence</span><span class="p">[</span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMethodParamMetadata</span><span class="p">]{</span>
+<span class="w">                </span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMethodParamMetadata</span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;account&quot;</span><span class="p">,</span>
+<span class="w">                    </span><span class="nx">Type</span><span class="p">:</span><span class="w"> </span><span class="nx">sc</span><span class="p">.</span><span class="nx">ToCompact</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">TypesAddress32</span><span class="p">),</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nx">Output</span><span class="p">:</span><span class="w"> </span><span class="nx">sc</span><span class="p">.</span><span class="nx">ToCompact</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">PrimitiveTypesU128</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Docs</span><span class="p">:</span><span class="w">   </span><span class="nx">sc</span><span class="p">.</span><span class="nx">Sequence</span><span class="p">[</span><span class="nx">sc</span><span class="p">.</span><span class="nx">Str</span><span class="p">]{</span><span class="s">&quot; Get current account balance of given `AccountId`.&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">RuntimeApiMetadata</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Name</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;ExampleModule&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Methods</span><span class="p">:</span><span class="w"> </span><span class="nx">methods</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Docs</span><span class="p">:</span><span class="w">    </span><span class="nx">sc</span><span class="p">.</span><span class="nx">Sequence</span><span class="p">[</span><span class="nx">sc</span><span class="p">.</span><span class="nx">Str</span><span class="p">]{</span><span class="s">&quot; The Example API to query account balances.&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -1090,7 +1193,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../development/onboarding/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Onboarding">
+          <a href="../file-structure/" class="md-footer__link md-footer__link--prev" aria-label="Previous: File structure">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1100,20 +1203,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Onboarding
+                File structure
               </div>
             </div>
           </a>
         
         
           
-          <a href="../transfer-funds/" class="md-footer__link md-footer__link--next" aria-label="Next: Transfer funds">
+          <a href="../modules/" class="md-footer__link md-footer__link--next" aria-label="Next: Core Modules">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Transfer funds
+                Core Modules
               </div>
             </div>
             <div class="md-footer__button md-icon">
