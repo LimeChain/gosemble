@@ -5,7 +5,7 @@ permalink: /development/onboarding
 
 # Onboarding 🎓
 
-💬 *Please provide feedback on our onboarding guide. Let us know if any parts are unclear, confusing, or if you have other suggestions for improvement.*
+💬 _Please provide feedback on our onboarding guide. Let us know if any parts are unclear, confusing, or if you have other suggestions for improvement._
 
 The goal of this project is to develop a framework in Go that can be used by a Polkadot node.
 
