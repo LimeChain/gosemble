@@ -157,6 +157,7 @@ nav:
       - File structure: ./development/file-structure.md
       - API: ./development/api.md
       - Core Modules: ./development/modules.md
+      - Metadata: ./development/metadata.md
       - Testing: ./development/test.md
       - Benchmarking: ./development/benchmarking.md
       - Toolchain setup: ./development/toolchain-setup.md
