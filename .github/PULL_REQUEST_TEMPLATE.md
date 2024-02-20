@@ -12,7 +12,7 @@ including:*
 Fixes # (issue number, *if applicable*)
 
 ## Checklist:
-- [ ] I have read the [CONTRIBUTING document](../docs/docs/development/CONTRIBUTING.md).
+- [ ] I have read the [contributing document](../docs/docs/development/contributing.md).
 - [ ] My PR title matches the [Conventional Commits spec](https://www.conventionalcommits.org/). 
 - [ ] My change requires a change to the documentation.
 - [ ] I have updated the documentation accordingly.

@@ -162,8 +162,9 @@ nav:
       - Benchmarking: ./development/benchmarking.md
       - Toolchain setup: ./development/toolchain-setup.md
       - Onboarding: ./development/onboarding.md
-      - Contributing: ./development/CONTRIBUTING.md
-      - Code of Conduct: ./development/CODE_OF_CONDUCT.md
+      - Contributing: ./development/contributing.md
+      - Style guide: ./development/style-guide.md
+      - Code of Conduct: ./development/code-of-conduct.md
   - Tutorials:
       - Start a Network: ./tutorials/start-a-network.md
       - Transfer funds: ./tutorials/transfer-funds.md
