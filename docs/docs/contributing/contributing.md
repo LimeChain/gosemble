@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Contributing
-permalink: /development/contributing
+title: Contributing guidelines
+permalink: /contributing/contributing
 ---
 
 # Contributing
@@ -22,8 +22,8 @@ When submitting a new pull request (PR), please ensure the following:
 
 - **Target the `develop` branch**: All new PRs must target the `develop` branch.
 - **Use our PR template**: Utilize our [PR template](/.github/PULL_REQUEST_TEMPLATE.md) to ensure all necessary information is included.
-- **Include updated runtime.wasm**: Our test workflow relies on having an actual version of the [runtime.wasm](/build/runtime.wasm) file. you should [build](./build.md) the runtime and commit the changes.
-- **Pass the tests**: Ensure that all tests are passing. [Read more](./test.md).
+- **Include updated runtime.wasm**: Our test workflow relies on having an actual version of the [runtime.wasm](/build/runtime.wasm) file. you should [build](../development/build.md) the runtime and commit the changes.
+- **Pass the tests**: Ensure that all tests are passing. [Read more](../development/test.md).
 - **Pass the coverage workflow**: Ensure that your PR is passing the [test coverage workflow](/.github/workflows/coverage.yaml).
 - **Update the docs**: Ensure that all relevant changes are reflected in the docs.
 - **Follow our style guide**: Check our [style guide](./style-guide.md) and maintain consistent coding style.
@@ -31,7 +31,7 @@ When submitting a new pull request (PR), please ensure the following:
 
 Additional recommendations:
 - Write integration tests for logic related to pallets. [See example test](/runtime/balances_set_balance_test.go).
-- Write benchmark tests for new extrinsic calls. [Read more](./benchmarking.md).
+- Write benchmark tests for new extrinsic calls. [Read more](../development/benchmarking.md).
 - Check if you can successfully start a substrate node with the runtime. [See guide](../tutorials/start-a-network.md).
 
 ## Release Process

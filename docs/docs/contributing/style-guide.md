@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Style guide
-permalink: /development/style-guide
+permalink: /contributing/style-guide
 ---
 
 # Style guide

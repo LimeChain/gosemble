@@ -1,1 +1,1 @@
-### See our [contributing guidelines](./docs/docs/development/contributing.md).
+### See our [contributing guidelines](./docs/docs/contributing/contributing.md).

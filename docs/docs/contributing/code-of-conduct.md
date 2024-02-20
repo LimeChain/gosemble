@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Code of conduct
-permalink: /development/code-of-conduct
+permalink: /contributing/code-of-conduct
 ---
 
 # Code of conduct
