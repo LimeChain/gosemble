@@ -1,5 +1,6 @@
 # Gosemble
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/LimeChain/gosemble)](https://goreportcard.com/report/github.com/LimeChain/gosemble)
 [![codecov](https://codecov.io/github/LimeChain/gosemble/graph/badge.svg?token=48SIN10OBK)](https://codecov.io/github/LimeChain/gosemble)
 
 > **Warning**
