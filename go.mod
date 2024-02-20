@@ -5,13 +5,13 @@ go 1.21
 require (
 	github.com/ChainSafe/gossamer v0.7.1-0.20230117201132-e6da01b2f323
 	github.com/LimeChain/goscale v0.0.0-20230105112432-c7d2229e9977
-	github.com/centrifuge/go-substrate-rpc-client/v4 v4.1.0
+	github.com/centrifuge/go-substrate-rpc-client/v4 v4.2.1
 	github.com/iancoleman/strcase v0.3.0
 	github.com/montanaflynn/stats v0.7.1
 	github.com/shirou/gopsutil/v3 v3.24.1
 	github.com/stretchr/testify v1.8.4
 	github.com/vedhavyas/go-subkey v1.0.4
-	golang.org/x/crypto v0.15.0
+	golang.org/x/crypto v0.19.0
 )
 
 require (
@@ -78,10 +78,11 @@ require (
 	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/vedhavyas/go-subkey/v2 v2.0.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.uber.org/mock v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
