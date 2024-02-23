@@ -11,10 +11,13 @@ import (
 	"github.com/ChainSafe/gossamer/lib/crypto/secp256k1"
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
-	"github.com/ChainSafe/gossamer/lib/trie"
 	"github.com/ChainSafe/gossamer/pkg/scale"
+	"github.com/ChainSafe/gossamer/pkg/trie"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/frame/balances"
+	"github.com/LimeChain/gosemble/frame/system"
+	"github.com/LimeChain/gosemble/frame/transaction_payment"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	cscale "github.com/centrifuge/go-substrate-rpc-client/v4/scale"
 	ctypes "github.com/centrifuge/go-substrate-rpc-client/v4/types"
@@ -33,6 +36,7 @@ var (
 	keyAllExtrinsicsLenHash, _   = common.Twox128Hash([]byte("AllExtrinsicsLen"))
 	keyAuraHash, _               = common.Twox128Hash([]byte("Aura"))
 	keyAuthoritiesHash, _        = common.Twox128Hash([]byte("Authorities"))
+	keyAuthorizedUpgradeHash, _  = common.Twox128Hash([]byte("AuthorizedUpgrade"))
 	keyBlockHash, _              = common.Twox128Hash([]byte("BlockHash"))
 	keyCurrentSlotHash, _        = common.Twox128Hash([]byte("CurrentSlot"))
 	keyDigestHash, _             = common.Twox128Hash([]byte("Digest"))
@@ -41,6 +45,7 @@ var (
 	keyExecutionPhaseHash, _     = common.Twox128Hash([]byte("ExecutionPhase"))
 	keyExtrinsicCountHash, _     = common.Twox128Hash([]byte("ExtrinsicCount"))
 	keyExtrinsicIndex            = []byte(":extrinsic_index")
+	keyHeapPages                 = []byte(":heappages")
 	keyExtrinsicDataHash, _      = common.Twox128Hash([]byte("ExtrinsicData"))
 	keyLastRuntimeHash, _        = common.Twox128Hash([]byte("LastRuntimeUpgrade"))
 	keyNumberHash, _             = common.Twox128Hash([]byte("Number"))
@@ -110,23 +115,32 @@ var (
 				Err:   sc.U32(balances.ErrorKeepAlive),
 			}))
 
-	applyExtrinsicResultOutcome, _              = primitives.NewApplyExtrinsicResult(dispatchOutcome)
-	applyExtrinsicResultExhaustsResourcesErr, _ = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
-	applyExtrinsicResultBadOriginErr, _         = primitives.NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
-	applyExtrinsicResultBadProofErr, _          = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr.(primitives.TransactionValidityError))
-
+	applyExtrinsicResultOutcome, _               = primitives.NewApplyExtrinsicResult(dispatchOutcome)
+	applyExtrinsicResultExhaustsResourcesErr, _  = primitives.NewApplyExtrinsicResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))
+	applyExtrinsicResultBadOriginErr, _          = primitives.NewApplyExtrinsicResult(dispatchOutcomeBadOriginErr)
+	applyExtrinsicResultBadProofErr, _           = primitives.NewApplyExtrinsicResult(invalidTransactionBadProofErr.(primitives.TransactionValidityError))
 	applyExtrinsicResultCustomModuleErr, _       = primitives.NewApplyExtrinsicResult(dispatchOutcomeCustomModuleErr)
 	applyExtrinsicResultExistentialDepositErr, _ = primitives.NewApplyExtrinsicResult(dispatchOutcomeExistentialDepositErr)
 	applyExtrinsicResultKeepAliveErr, _          = primitives.NewApplyExtrinsicResult(dispatchOutcomeKeepAliveErr)
 )
 
-func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {
-	runtime := wazero_runtime.NewTestInstanceWithTrie(t, WASM_RUNTIME, trie.NewEmptyTrie())
+func newBenchmarkingRuntime(b *testing.B) (*wazero_runtime.Instance, *runtime.Storage) {
+	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
 	return runtime, &runtime.Context.Storage
 }
 
-func newBenchmarkingRuntime(b *testing.B) (*wazero_runtime.Instance, *runtime.Storage) {
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
+func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {
+	tt := trie.NewEmptyTrie()
+	runtime := wazero_runtime.NewTestInstance(t, WASM_RUNTIME, wazero_runtime.TestWithTrie(tt))
+	return runtime, &runtime.Context.Storage
+}
+
+func newTestRuntimeFromCode(t *testing.T, parentRuntime *wazero_runtime.Instance, code []byte) (*wazero_runtime.Instance, *runtime.Storage) {
+	cfg := wazero_runtime.Config{
+		Storage: parentRuntime.Context.Storage,
+	}
+	runtime, err := wazero_runtime.NewInstance(code, cfg)
+	assert.NoError(t, err)
 	return runtime, &runtime.Context.Storage
 }
 
@@ -143,6 +157,68 @@ func runtimeMetadata(t assert.TestingT, instance *wazero_runtime.Instance) *ctyp
 	assert.NoError(t, err)
 
 	return metadata
+}
+
+func initializeBlock(t *testing.T,
+	rt *wazero_runtime.Instance,
+	parentHash, stateRoot, extrinsicsRoot common.Hash,
+	blockNumber uint64,
+) {
+	digest := gossamertypes.NewDigest()
+	header := gossamertypes.NewHeader(parentHash, stateRoot, extrinsicsRoot, uint(blockNumber), digest)
+	encodedHeader, err := scale.Marshal(*header)
+	assert.NoError(t, err)
+
+	_, err = rt.Exec("Core_initialize_block", encodedHeader)
+	assert.NoError(t, err)
+}
+
+func assertStorageSystemEventCount(t assert.TestingT, storage *runtime.Storage, expected uint32) {
+	buffer := &bytes.Buffer{}
+	buffer.Write((*storage).Get(append(keySystemHash, keyEventCountHash...)))
+	storageEventCount, err := sc.DecodeU32(buffer)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, uint32(storageEventCount))
+}
+
+func assertEmittedBalancesEvent(t assert.TestingT, event sc.U8, buffer *bytes.Buffer) {
+	var emitted bool
+	eventRecord, err := types.DecodeEventRecord(BalancesIndex, balances.DecodeEvent, buffer)
+	assert.NoError(t, err)
+	if eventRecord.Event.VaryingData[1] == event {
+		emitted = true
+	}
+	assert.True(t, emitted)
+}
+
+func assertEmittedSystemEvent(t assert.TestingT, event sc.U8, buffer *bytes.Buffer) {
+	var emitted bool
+	eventRecord, err := types.DecodeEventRecord(SystemIndex, system.DecodeEvent, buffer)
+	assert.NoError(t, err)
+	if eventRecord.Event.VaryingData[1] == event {
+		emitted = true
+	}
+	assert.True(t, emitted)
+}
+
+func assertEmittedTransactionPaymentEvent(t assert.TestingT, event sc.U8, buffer *bytes.Buffer) {
+	var emitted bool
+	eventRecord, err := types.DecodeEventRecord(TxPaymentsIndex, transaction_payment.DecodeEvent, buffer)
+	assert.NoError(t, err)
+	if eventRecord.Event.VaryingData[1] == event {
+		emitted = true
+	}
+	assert.True(t, emitted)
+}
+
+func assertStorageDigestItem(t *testing.T, storage *runtime.Storage, digestItem sc.U8) {
+	buffer := bytes.NewBuffer((*storage).Get(append(keySystemHash, keyDigestHash...)))
+	decodeDigest, err := types.DecodeDigest(buffer)
+	assert.NoError(t, err)
+	assert.Len(t, decodeDigest.Sequence, 1)
+	if decodeDigest.Sequence[0].VaryingData[0] == digestItem {
+		assert.True(t, true)
+	}
 }
 
 func setStorageAccountInfo(t *testing.T, storage *runtime.Storage, account []byte, freeBalance *big.Int, nonce uint32) (storageKey []byte, info gossamertypes.AccountInfo) {

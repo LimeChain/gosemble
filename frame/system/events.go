@@ -16,6 +16,10 @@ const (
 	EventNewAccount
 	EventKilledAccount
 	EventRemarked
+	EventTaskStarted
+	EventTaskCompleted
+	EventTaskFailed
+	EventUpgradeAuthorized
 )
 
 var (
@@ -45,6 +49,22 @@ func newEventKilledAccount(moduleIndex sc.U8, account types.AccountId) types.Eve
 
 func newEventRemarked(moduleIndex sc.U8, sender types.AccountId, hash types.H256) types.Event {
 	return types.NewEvent(moduleIndex, EventRemarked, sender, hash)
+}
+
+func newEventTaskStarted(moduleIndex sc.U8, task types.RuntimeTask) types.Event {
+	return types.NewEvent(moduleIndex, EventTaskStarted, task)
+}
+
+func newEventTaskCompleted(moduleIndex sc.U8, task types.RuntimeTask) types.Event {
+	return types.NewEvent(moduleIndex, EventTaskCompleted, task)
+}
+
+func newEventTaskFailed(moduleIndex sc.U8, task types.RuntimeTask) types.Event {
+	return types.NewEvent(moduleIndex, EventTaskFailed, task)
+}
+
+func newEventUpgradeAuthorized(moduleIndex sc.U8, codeHash types.H256, checkVersion sc.Bool) types.Event {
+	return types.NewEvent(moduleIndex, EventUpgradeAuthorized, codeHash, checkVersion)
 }
 
 func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
@@ -102,6 +122,34 @@ func DecodeEvent(moduleIndex sc.U8, buffer *bytes.Buffer) (types.Event, error) {
 			return types.Event{}, err
 		}
 		return newEventRemarked(moduleIndex, account, hash), nil
+	case EventTaskStarted:
+		task, err := types.DecodeRuntimeTask(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventTaskStarted(moduleIndex, task), nil
+	case EventTaskCompleted:
+		task, err := types.DecodeRuntimeTask(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventTaskCompleted(moduleIndex, task), nil
+	case EventTaskFailed:
+		task, err := types.DecodeRuntimeTask(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventTaskFailed(moduleIndex, task), nil
+	case EventUpgradeAuthorized:
+		codeHash, err := types.DecodeH256(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		checkVersion, err := sc.DecodeBool(buffer)
+		if err != nil {
+			return types.Event{}, err
+		}
+		return newEventUpgradeAuthorized(moduleIndex, codeHash, checkVersion), nil
 	default:
 		return types.Event{}, errInvalidEventType
 	}

@@ -43,6 +43,12 @@ func (ssv SimpleStorageValue[T]) Append(value T) {
 	ssv.baseStorage.append(ssv.key, value)
 }
 
+// TODO:
+// support appending values with type different from T
+func (ssv SimpleStorageValue[T]) AppendItem(value sc.Encodable) {
+	ssv.baseStorage.storage.Append(ssv.key, value.Bytes())
+}
+
 func (ssv SimpleStorageValue[T]) TakeBytes() ([]byte, error) {
 	return ssv.baseStorage.takeBytes(ssv.key)
 }

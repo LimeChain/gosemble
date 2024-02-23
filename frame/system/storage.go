@@ -15,6 +15,8 @@ var (
 	keyAllExtrinsicsLen   = []byte("AllExtrinsicsLen")
 	keyBlockHash          = []byte("BlockHash")
 	keyBlockWeight        = []byte("BlockWeight")
+	keyCode               = []byte(":code")
+	keyAuthorizedUpgrade  = []byte("AuthorizedUpgrade")
 	keyDigest             = []byte("Digest")
 	keyEventCount         = []byte("EventCount")
 	keyEvents             = []byte("Events")
@@ -23,6 +25,7 @@ var (
 	keyExtrinsicCount     = []byte("ExtrinsicCount")
 	keyExtrinsicData      = []byte("ExtrinsicData")
 	keyExtrinsicIndex     = []byte(":extrinsic_index")
+	keyHeapPages          = []byte(":heappages")
 	keyLastRuntimeUpgrade = []byte("LastRuntimeUpgrade")
 	keyNumber             = []byte("Number")
 	keyParentHash         = []byte("ParentHash")
@@ -44,26 +47,32 @@ type storage struct {
 	EventTopics        support.StorageMap[types.H256, sc.VaryingData]
 	LastRuntimeUpgrade support.StorageValue[types.LastRuntimeUpgradeInfo]
 	ExecutionPhase     support.StorageValue[types.ExtrinsicPhase]
+	HeapPages          support.StorageValue[sc.U64]
+	Code               support.StorageRawValue
+	AuthorizedUpgrade  support.StorageValue[sc.Option[CodeUpgradeAuthorization]]
 }
 
 func newStorage() *storage {
 	hashing := io.NewHashing()
 
 	return &storage{
-		Account:            support.NewHashStorageMap[types.AccountId, types.AccountInfo](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
+		Account:            support.NewHashStorageMap[types.AccountId](keySystem, keyAccount, hashing.Blake128, types.DecodeAccountInfo),
 		BlockWeight:        support.NewHashStorageValue(keySystem, keyBlockWeight, types.DecodeConsumedWeight),
-		BlockHash:          support.NewHashStorageMap[sc.U64, types.Blake2bHash](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
+		BlockHash:          support.NewHashStorageMap[sc.U64](keySystem, keyBlockHash, hashing.Twox64, types.DecodeBlake2bHash),
 		BlockNumber:        support.NewHashStorageValue(keySystem, keyNumber, sc.DecodeU64),
 		AllExtrinsicsLen:   support.NewHashStorageValue(keySystem, keyAllExtrinsicsLen, sc.DecodeU32),
 		ExtrinsicIndex:     support.NewSimpleStorageValue(keyExtrinsicIndex, sc.DecodeU32),
-		ExtrinsicData:      support.NewHashStorageMap[sc.U32, sc.Sequence[sc.U8]](keySystem, keyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
+		ExtrinsicData:      support.NewHashStorageMap[sc.U32](keySystem, keyExtrinsicData, hashing.Twox64, sc.DecodeSequence[sc.U8]),
 		ExtrinsicCount:     support.NewHashStorageValue(keySystem, keyExtrinsicCount, sc.DecodeU32),
 		ParentHash:         support.NewHashStorageValue(keySystem, keyParentHash, types.DecodeBlake2bHash),
 		Digest:             support.NewHashStorageValue(keySystem, keyDigest, types.DecodeDigest),
-		Events:             support.NewHashStorageValue(keySystem, keyEvents, types.DecodeEventRecord),
+		Events:             support.NewHashStorageValue(keySystem, keyEvents, func(*bytes.Buffer) (types.EventRecord, error) { return types.EventRecord{}, nil }),
 		EventCount:         support.NewHashStorageValue(keySystem, keyEventCount, sc.DecodeU32),
-		EventTopics:        support.NewHashStorageMap[types.H256, sc.VaryingData](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) (sc.VaryingData, error) { return sc.NewVaryingData(), nil }),
+		EventTopics:        support.NewHashStorageMap[types.H256](keySystem, keyEventTopics, hashing.Blake128, func(buffer *bytes.Buffer) (sc.VaryingData, error) { return sc.NewVaryingData(), nil }),
 		LastRuntimeUpgrade: support.NewHashStorageValue(keySystem, keyLastRuntimeUpgrade, types.DecodeLastRuntimeUpgradeInfo),
 		ExecutionPhase:     support.NewHashStorageValue(keySystem, keyExecutionPhase, types.DecodeExtrinsicPhase),
+		HeapPages:          support.NewSimpleStorageValue(keyHeapPages, sc.DecodeU64),
+		Code:               support.NewRawStorageValue(keyCode),
+		AuthorizedUpgrade:  support.NewHashStorageValue(keySystem, keyAuthorizedUpgrade, DecodeCodeUpgradeAuthorizationOption),
 	}
 }

@@ -110,7 +110,19 @@ test-coverage:
 GENERATE_WEIGHT_FILES=true
 benchmark: build-benchmarking
 	@go test --tags="nonwasmenv" -bench=. ./runtime/... -run=XXX -benchtime=1x \
-	-steps=50 -repeat=20 -heap-pages=4096 -db-cache=1024 -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION) -generate-weight-files=$(GENERATE_WEIGHT_FILES);
+	-steps=50 \
+	-repeat=20 \
+	-heap-pages=4096 \
+	-db-cache=1024 \
+	-gc=$(GC) \
+	-target=$(TARGET) \
+	-tinygoversion=$(VERSION) \
+	-generate-weight-files=$(GENERATE_WEIGHT_FILES);
 
 benchmark-overhead: build-benchmarking
-	@go test --tags="nonwasmenv" -bench=^BenchmarkOverhead ./benchmarking/... -run=^a -benchtime=1x -gc=$(GC) -target=$(TARGET) -tinygoversion=$(VERSION) -generate-weight-files=$(GENERATE_WEIGHT_FILES)
+	@go test --tags="nonwasmenv" -bench=^BenchmarkOverhead ./benchmarking/... -run=^a -benchtime=1x \
+	-gc=$(GC) \
+	-target=$(TARGET) \
+	-tinygoversion=$(VERSION) \
+	-generate-weight-files=$(GENERATE_WEIGHT_FILES)
+

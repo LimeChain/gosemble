@@ -9,13 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	moduleId = 0
-)
-
 var (
-	baseWeight = primitives.WeightFromParts(567, 123)
-	argsBytes  = sc.NewVaryingData(sc.Sequence[sc.U8]{}).Bytes()
+	remarkMsg         = sc.BytesToSequenceU8([]byte("remark messsage"))
+	someRemarkArgs    = sc.NewVaryingData(remarkMsg)
+	defaultRemarkArgs = sc.NewVaryingData(sc.Sequence[sc.U8]{})
 )
 
 func Test_Call_Remark_New(t *testing.T) {
@@ -23,32 +20,30 @@ func Test_Call_Remark_New(t *testing.T) {
 		Callable: primitives.Callable{
 			ModuleId:   moduleId,
 			FunctionId: functionRemarkIndex,
-			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
+			Arguments:  defaultRemarkArgs,
 		},
 	}
 
-	actual := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected, call)
 }
 
 func Test_Call_Remark_DecodeArgs_Success(t *testing.T) {
-	seq := sc.BytesToSequenceU8([]byte{1, 2, 3})
-	buf := bytes.NewBuffer(seq.Bytes())
+	buf := bytes.NewBuffer(someRemarkArgs.Bytes())
 
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 	call, err := call.DecodeArgs(buf)
 	assert.Nil(t, err)
 
-	assert.Equal(t, sc.NewVaryingData(seq), call.Args())
+	assert.Equal(t, someRemarkArgs, call.Args())
 }
 
 func Test_Call_Remark_Encode(t *testing.T) {
-	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionRemarkIndex}, argsBytes...))
+	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionRemarkIndex}, defaultRemarkArgs.Bytes()...))
 	buf := &bytes.Buffer{}
 
-	call := newCallRemark(moduleId, functionRemarkIndex)
-
+	call := setupCallRemark()
 	err := call.Encode(buf)
 
 	assert.NoError(t, err)
@@ -56,13 +51,10 @@ func Test_Call_Remark_Encode(t *testing.T) {
 }
 
 func Test_Call_Remark_EncodeWithArgs(t *testing.T) {
-	seq := sc.BytesToSequenceU8([]byte{1, 2, 3})
+	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionRemarkIndex}, someRemarkArgs.Bytes()...))
+	buf := bytes.NewBuffer(someRemarkArgs.Bytes())
 
-	expectedBuf := bytes.NewBuffer(append([]byte{moduleId, functionRemarkIndex}, seq.Bytes()...))
-
-	buf := bytes.NewBuffer(seq.Bytes())
-
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 	call, err := call.DecodeArgs(buf)
 	assert.Nil(t, err)
 
@@ -74,9 +66,9 @@ func Test_Call_Remark_EncodeWithArgs(t *testing.T) {
 }
 
 func Test_Call_Remark_Bytes(t *testing.T) {
-	expected := append([]byte{moduleId, functionRemarkIndex}, argsBytes...)
+	expected := append([]byte{moduleId, functionRemarkIndex}, defaultRemarkArgs.Bytes()...)
 
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
 	assert.Equal(t, expected, call.Bytes())
 }
@@ -112,67 +104,43 @@ func Test_Call_Remark_FunctionIndex(t *testing.T) {
 }
 
 func Test_Call_Remark_BaseWeight(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
 	assert.Equal(t, callRemarkWeight(dbWeight, 0), call.BaseWeight())
 }
 
 func Test_Call_Remark_WeighData(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
 	assert.Equal(t, primitives.WeightFromParts(567, 0), call.WeighData(baseWeight))
 }
 
 func Test_Call_Remark_ClassifyDispatch(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
 	assert.Equal(t, primitives.NewDispatchClassNormal(), call.ClassifyDispatch(baseWeight))
 }
 
 func Test_Call_Remark_PaysFee(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
+	call := setupCallRemark()
 
 	assert.Equal(t, primitives.PaysYes, call.PaysFee(baseWeight))
 }
 
-func Test_Call_Remark_Dispatch_Success(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
+func Test_Call_Remark_Dispatch_AnyOrigin_Success(t *testing.T) {
+	call := setupCallRemark()
 
-	_, dispatchErr := call.Dispatch(primitives.NewRawOriginRoot(), nil)
+	for _, origin := range []primitives.RuntimeOrigin{
+		primitives.NewRawOriginNone(),
+		primitives.NewRawOriginRoot(),
+		primitives.NewRawOriginSigned(primitives.NewAccountIdFromAddress32(addr)),
+	} {
+		_, dispatchErr := call.Dispatch(origin, nil)
 
-	assert.Nil(t, dispatchErr)
+		assert.Nil(t, dispatchErr)
+	}
 }
 
-func Test_Call_Remark_Dispatch_Fail(t *testing.T) {
-	call := newCallRemark(moduleId, functionRemarkIndex)
-
-	_, dispatchErr := call.Dispatch(primitives.NewRawOriginNone(), nil)
-
-	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), dispatchErr)
-}
-
-func Test_EnsureSignedOrRoot_Root(t *testing.T) {
-	r, err := EnsureSignedOrRoot(primitives.NewRawOriginRoot())
-
-	assert.Nil(t, err)
-	assert.Equal(t, sc.NewOption[primitives.AccountId](nil), r)
-}
-
-func Test_EnsureSignedOrRoot_Signed(t *testing.T) {
-	slice := make([]byte, 32)
-	address, err := primitives.NewAddress32(sc.BytesToSequenceU8(slice)...)
-	assert.Nil(t, err)
-	signer := primitives.NewAccountIdFromAddress32(address)
-
-	r, err := EnsureSignedOrRoot(primitives.NewRawOriginSigned(signer))
-
-	assert.Nil(t, err)
-	assert.Equal(t, sc.NewOption[primitives.AccountId](signer), r)
-}
-
-func Test_EnsureSignedOrRoot_BadOrigin(t *testing.T) {
-	r, err := EnsureSignedOrRoot(primitives.NewRawOriginNone())
-
-	assert.Equal(t, primitives.NewDispatchErrorBadOrigin(), err)
-	assert.Equal(t, sc.NewOption[primitives.AccountId](nil), r)
+func setupCallRemark() primitives.Call {
+	return newCallRemark(moduleId, functionRemarkIndex)
 }

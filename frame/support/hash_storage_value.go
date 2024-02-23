@@ -52,6 +52,12 @@ func (hsv HashStorageValue[T]) Append(value T) {
 	hsv.baseStorage.append(hsv.key(), value)
 }
 
+// TODO:
+// support appending values with type different from T
+func (hsv HashStorageValue[T]) AppendItem(value sc.Encodable) {
+	hsv.baseStorage.storage.Append(hsv.key(), value.Bytes())
+}
+
 func (hsv HashStorageValue[T]) Take() (T, error) {
 	return hsv.baseStorage.take(hsv.key())
 }

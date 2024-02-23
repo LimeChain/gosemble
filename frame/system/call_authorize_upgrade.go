@@ -1,0 +1,98 @@
+package system
+
+import (
+	"bytes"
+
+	sc "github.com/LimeChain/goscale"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+// Authorize new runtime code.
+type callAuthorizeUpgrade struct {
+	primitives.Callable
+	codeUpgrader CodeUpgrader
+}
+
+func newCallAuthorizeUpgrade(moduleId sc.U8, functionId sc.U8, codeUpgrader CodeUpgrader) primitives.Call {
+	call := callAuthorizeUpgrade{
+		Callable: primitives.Callable{
+			ModuleId:   moduleId,
+			FunctionId: functionId,
+			Arguments:  sc.NewVaryingData(primitives.H256{}),
+		},
+		codeUpgrader: codeUpgrader,
+	}
+
+	return call
+}
+
+func (c callAuthorizeUpgrade) DecodeArgs(buffer *bytes.Buffer) (primitives.Call, error) {
+	codeHash, err := primitives.DecodeH256(buffer)
+	if err != nil {
+		return nil, err
+	}
+	c.Arguments = sc.NewVaryingData(codeHash)
+	return c, nil
+}
+
+func (c callAuthorizeUpgrade) Encode(buffer *bytes.Buffer) error {
+	return c.Callable.Encode(buffer)
+}
+
+func (c callAuthorizeUpgrade) Bytes() []byte {
+	return c.Callable.Bytes()
+}
+
+func (c callAuthorizeUpgrade) ModuleIndex() sc.U8 {
+	return c.Callable.ModuleIndex()
+}
+
+func (c callAuthorizeUpgrade) FunctionIndex() sc.U8 {
+	return c.Callable.FunctionIndex()
+}
+
+func (c callAuthorizeUpgrade) Args() sc.VaryingData {
+	return c.Callable.Args()
+}
+
+func (c callAuthorizeUpgrade) BaseWeight() primitives.Weight {
+	return callAuthorizeUpgradeWeight(primitives.RuntimeDbWeight{})
+}
+
+func (_ callAuthorizeUpgrade) WeighData(baseWeight primitives.Weight) primitives.Weight {
+	return primitives.WeightFromParts(baseWeight.RefTime, 0)
+}
+
+func (_ callAuthorizeUpgrade) ClassifyDispatch(baseWeight primitives.Weight) primitives.DispatchClass {
+	return primitives.NewDispatchClassOperational()
+}
+
+func (_ callAuthorizeUpgrade) PaysFee(baseWeight primitives.Weight) primitives.Pays {
+	return primitives.PaysNo
+}
+
+func (c callAuthorizeUpgrade) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) (primitives.PostDispatchInfo, error) {
+	// TODO: enable once 'sudo' module is implemented
+	//
+	// err := EnsureRoot(origin)
+	// if err != nil {
+	// 	return err
+	// }
+
+	codeHash := primitives.H256{}
+	if args[0] != nil {
+		codeHash = args[0].(primitives.H256)
+	}
+
+	authorizeUpgrade(codeHash, true, c.codeUpgrader)
+
+	return primitives.PostDispatchInfo{}, nil
+}
+
+func (_ callAuthorizeUpgrade) Docs() string {
+	return "Authorize new runtime code."
+}
+
+func authorizeUpgrade(codeHash primitives.H256, checkVersion sc.Bool, codeUpgrader CodeUpgrader) {
+	codeUpgrader.DoAuthorizeUpgrade(codeHash, checkVersion)
+}

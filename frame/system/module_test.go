@@ -12,9 +12,14 @@ import (
 	"github.com/LimeChain/gosemble/constants/metadata"
 	"github.com/LimeChain/gosemble/mocks"
 	"github.com/LimeChain/gosemble/primitives/log"
+	"github.com/LimeChain/gosemble/primitives/types"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+)
+
+const (
+	moduleId = 0
 )
 
 var (
@@ -72,7 +77,8 @@ var (
 		Read:  1,
 		Write: 2,
 	}
-	version = primitives.RuntimeVersion{
+	baseWeight = primitives.WeightFromParts(567, 123)
+	version    = primitives.RuntimeVersion{
 		SpecName:           "test-spec",
 		ImplName:           "test-impl",
 		AuthoringVersion:   1,
@@ -97,6 +103,68 @@ var (
 )
 
 var (
+	expectErrorsDefinition = primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data."),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged."),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidTask",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidTask,
+				"The specified [`Task`] is not valid.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedTask",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedTask,
+				"The specified [`Task`] failed during execution.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"NothingAuthorized",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNothingAuthorized,
+				"No upgrade authorized.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"Unauthorized",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorUnauthorized,
+				"The submitted code is not authorized.",
+			),
+		},
+	)
+)
+
+var (
 	mockStorageAccount            *mocks.StorageMap[primitives.AccountId, primitives.AccountInfo]
 	mockStorageBlockWeight        *mocks.StorageValue[primitives.ConsumedWeight]
 	mockStorageBlockHash          *mocks.StorageMap[sc.U64, primitives.Blake2bHash]
@@ -112,9 +180,13 @@ var (
 	mockStorageEventTopics        *mocks.StorageMap[primitives.H256, sc.VaryingData]
 	mockStorageLastRuntimeUpgrade *mocks.StorageValue[primitives.LastRuntimeUpgradeInfo]
 	mockStorageExecutionPhase     *mocks.StorageValue[primitives.ExtrinsicPhase]
+	mockStorageHeapPages          *mocks.StorageValue[sc.U64]
+	mockStorageCode               *mocks.RawStorageValue
 
 	mockIoStorage *mocks.IoStorage
+	mockIoHashing *mocks.IoHashing
 	mockIoTrie    *mocks.IoTrie
+	mockIoMisc    *mocks.IoMisc
 
 	mockTypeMutateAccountInfo       = mock.AnythingOfType("func(*types.AccountInfo) (goscale.Encodable, error)")
 	mockTypeMutateOptionAccountInfo = mock.AnythingOfType("func(*goscale.Option[github.com/LimeChain/gosemble/primitives/types.AccountInfo]) (goscale.Encodable, error)")
@@ -128,7 +200,7 @@ func Test_Module_Functions(t *testing.T) {
 	target := setupModule()
 	functions := target.Functions()
 
-	assert.Equal(t, 1, len(functions))
+	assert.Equal(t, 12, len(functions))
 }
 
 func Test_Module_PreDispatch(t *testing.T) {
@@ -1232,41 +1304,7 @@ func Test_Module_mutateAccount(t *testing.T) {
 func Test_Module_ErrorsDefinition(t *testing.T) {
 	target := setupModule()
 
-	expectDefinition := primitives.NewMetadataTypeDefinitionVariant(
-		sc.Sequence[primitives.MetadataDefinitionVariant]{
-			primitives.NewMetadataDefinitionVariant(
-				"InvalidSpecName",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorInvalidSpecName,
-				"The name of specification does not match between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"SpecVersionNeedsToIncrease",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorSpecVersionNeedsToIncrease,
-				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"FailedToExtractRuntimeVersion",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorFailedToExtractRuntimeVersion,
-				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonDefaultComposite",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonDefaultComposite,
-				"Suicide called when the account has non-default composite data."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonZeroRefCount",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonZeroRefCount,
-				"There is a non-zero reference count preventing the account from being purged."),
-			primitives.NewMetadataDefinitionVariant(
-				"CallFiltered",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorCallFiltered,
-				"The origin filter prevent the call to be dispatched."),
-		})
-
-	assert.Equal(t, &expectDefinition, target.errorsDefinition())
+	assert.Equal(t, &expectErrorsDefinition, target.errorsDefinition())
 }
 
 func Test_Module_mutateAccount_NilData(t *testing.T) {
@@ -1299,43 +1337,24 @@ func Test_Module_Metadata(t *testing.T) {
 	target := setupModule()
 
 	expectedSystemCallId := mdGenerator.GetLastAvailableIndex() + 1
-
 	expectedSystemErrorsId := expectedSystemCallId + 1
-
 	expectedTypesPhaseId := expectedSystemErrorsId + 1
-
 	expectedTypesBlockId := expectedTypesPhaseId + 1
-
 	expectedTypesWeightPerClassId := expectedTypesBlockId + 1
-
 	expectedTypesOptionWeightId := expectedTypesWeightPerClassId + 1
-
 	expectedPerDispatchClassWeightId := expectedTypesOptionWeightId + 1
-
 	expectedPerDispatchClassWeightPerClassId := expectedPerDispatchClassWeightId + 1
-
 	expectedTypesBlockWeightsId := expectedPerDispatchClassWeightPerClassId + 1
-
 	expectedTypesDbWeightId := expectedTypesBlockWeightsId + 1
-
 	expectedTypesValidTransactionId := expectedTypesDbWeightId + 1
-
 	expectedLastRuntimeUpgradeInfoId := expectedTypesValidTransactionId + 1
-
 	expectedCompactU32Id := expectedLastRuntimeUpgradeInfoId + 1
-
 	expectedTransactionSourceId := expectedCompactU32Id + 1
-
 	expectedTypeInvalidTransactionId := expectedTransactionSourceId + 1
-
 	expectedTypeUnknownTransactionId := expectedTypeInvalidTransactionId + 1
-
 	expectedTransactionValidityErrorTypeId := expectedTypeUnknownTransactionId + 1
-
 	expectedTransactionValidityResultId := expectedTransactionValidityErrorTypeId + 1
-
 	expectedPerDispatchClassU32Id := expectedTransactionValidityResultId + 1
-
 	expectedTypesBlockLengthId := expectedPerDispatchClassU32Id + 1
 
 	expectMetadataTypes := sc.Sequence[primitives.MetadataType]{
@@ -1343,6 +1362,7 @@ func Test_Module_Metadata(t *testing.T) {
 			"System calls",
 			sc.Sequence[sc.Str]{"pallet_system", "pallet", "Call"},
 			primitives.NewMetadataTypeDefinitionVariant(
+
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
 					primitives.NewMetadataDefinitionVariant(
 						"remark",
@@ -1350,44 +1370,114 @@ func Test_Module_Metadata(t *testing.T) {
 							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
 						},
 						functionRemarkIndex,
-						"Make some on-chain remark."),
+						"Make some on-chain remark.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"set_heap_pages",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU64),
+						},
+						functionSetHeapPagesIndex,
+						"Set the number of pages in the WebAssembly environment's heap.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"set_code",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionSetCodeIndex,
+						"Set the new runtime code.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"set_code_without_checks",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionSetCodeWithoutChecksIndex,
+						"Set the new runtime code without any checks.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"set_storage",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceSequenceU8), // TypesSequenceKeyValue
+						},
+						functionSetStorageIndex,
+						"Set some items of storage.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"kill_storage",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceSequenceU8),
+						},
+						functionKillStorageIndex,
+						"Kill some items from storage.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"kill_prefix",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+							primitives.NewMetadataTypeDefinitionField(metadata.PrimitiveTypesU32),
+						},
+						functionKillPrefixIndex,
+						"Kill all storage items with a key that starts with the given prefix.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"remark_with_event",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionRemarkWithEventIndex,
+						"Make some on-chain remark and emit an event.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"do_task",
+						sc.Sequence[types.MetadataTypeDefinitionField]{},
+						functionDoTaskIndex,
+						"Do some specified task.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"authorize_upgrade",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesH256),
+						},
+						functionAuthorizeUpgradeIndex,
+						"Authorize new runtime code.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"authorize_upgrade_without_checks",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesH256),
+						},
+						functionAuthorizeUpgradeWithoutChecksIndex,
+						"Authorize new runtime code and an upgrade sans verification.",
+					),
+
+					primitives.NewMetadataDefinitionVariant(
+						"apply_authorized_upgrade",
+						sc.Sequence[types.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceU8),
+						},
+						functionApplyAuthorizedUpgradeIndex,
+						"Provide new, already-authorized runtime code.",
+					),
 				}),
 			primitives.NewMetadataEmptyTypeParameter("T")),
-		primitives.NewMetadataTypeWithPath(expectedSystemErrorsId,
+		primitives.NewMetadataTypeWithPath(
+			expectedSystemErrorsId,
 			"frame_system pallet Error",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"}, primitives.NewMetadataTypeDefinitionVariant(
-				sc.Sequence[primitives.MetadataDefinitionVariant]{
-					primitives.NewMetadataDefinitionVariant(
-						"InvalidSpecName",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorInvalidSpecName,
-						"The name of specification does not match between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"SpecVersionNeedsToIncrease",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorSpecVersionNeedsToIncrease,
-						"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-					primitives.NewMetadataDefinitionVariant(
-						"FailedToExtractRuntimeVersion",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorFailedToExtractRuntimeVersion,
-						"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonDefaultComposite",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonDefaultComposite,
-						"Suicide called when the account has non-default composite data."),
-					primitives.NewMetadataDefinitionVariant(
-						"NonZeroRefCount",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorNonZeroRefCount,
-						"There is a non-zero reference count preventing the account from being purged."),
-					primitives.NewMetadataDefinitionVariant(
-						"CallFiltered",
-						sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-						ErrorCallFiltered,
-						"The origin filter prevent the call to be dispatched."),
-				})),
+			sc.Sequence[sc.Str]{"frame_system", "pallet", "Error"},
+			expectErrorsDefinition,
+		),
 		primitives.NewMetadataTypeWithPath(expectedTypesPhaseId,
 			"ExtrinsicPhase",
 			sc.Sequence[sc.Str]{"frame_system", "Phase"},
@@ -1814,7 +1904,8 @@ func Test_Module_Metadata(t *testing.T) {
 					"ExecutionPhase",
 					primitives.MetadataModuleStorageEntryModifierOptional,
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(expectedTypesPhaseId)),
-					"The execution phase of the block."),
+					"The execution phase of the block.",
+				),
 			},
 		}),
 		Call: sc.NewOption[sc.Compact](sc.ToCompact(expectedSystemCallId)),
@@ -1952,11 +2043,12 @@ func Test_Build_Module_Constants(t *testing.T) {
 }
 
 func setupModule() module {
-	config := NewConfig(primitives.BlockHashCount{U32: sc.U32(blockHashCount)}, blockWeights, blockLength, dbWeight, version)
+	config := NewConfig(primitives.BlockHashCount{U32: sc.U32(blockHashCount)}, blockWeights, blockLength, dbWeight, &version)
 
 	target := New(moduleId, config, mdGenerator, log.NewLogger()).(module)
 
 	initMockStorage()
+
 	target.storage.Account = mockStorageAccount
 	target.storage.BlockWeight = mockStorageBlockWeight
 	target.storage.BlockHash = mockStorageBlockHash
@@ -1972,6 +2064,8 @@ func setupModule() module {
 	target.storage.EventTopics = mockStorageEventTopics
 	target.storage.LastRuntimeUpgrade = mockStorageLastRuntimeUpgrade
 	target.storage.ExecutionPhase = mockStorageExecutionPhase
+	target.storage.HeapPages = mockStorageHeapPages
+	target.storage.Code = mockStorageCode
 
 	target.ioStorage = mockIoStorage
 	target.trie = mockIoTrie
@@ -1995,7 +2089,11 @@ func initMockStorage() {
 	mockStorageEventTopics = new(mocks.StorageMap[primitives.H256, sc.VaryingData])
 	mockStorageLastRuntimeUpgrade = new(mocks.StorageValue[primitives.LastRuntimeUpgradeInfo])
 	mockStorageExecutionPhase = new(mocks.StorageValue[primitives.ExtrinsicPhase])
+	mockStorageHeapPages = new(mocks.StorageValue[sc.U64])
+	mockStorageCode = new(mocks.RawStorageValue)
 
 	mockIoStorage = new(mocks.IoStorage)
+	mockIoHashing = new(mocks.IoHashing)
+	mockIoMisc = new(mocks.IoMisc)
 	mockIoTrie = new(mocks.IoTrie)
 }

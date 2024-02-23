@@ -34,30 +34,29 @@ func (er EventRecord) Bytes() []byte {
 	return sc.EncodedBytes(er)
 }
 
-func DecodeEventRecord(buffer *bytes.Buffer) (EventRecord, error) {
+func DecodeEventRecord(
+	moduleIndex sc.U8,
+	decodeEvent func(moduleIndex sc.U8, buffer *bytes.Buffer) (Event, error),
+	buffer *bytes.Buffer,
+) (EventRecord, error) {
 	phase, err := DecodeExtrinsicPhase(buffer)
 	if err != nil {
-		return EventRecord{}, nil
+		return EventRecord{}, err
 	}
+
+	event, err := decodeEvent(moduleIndex, buffer)
+	if err != nil {
+		return EventRecord{}, err
+	}
+
 	topics, err := sc.DecodeSequence[H256](buffer)
 	if err != nil {
-		return EventRecord{}, nil
+		return EventRecord{}, err
 	}
+
 	return EventRecord{
 		Phase:  phase,
-		Event:  Event{}, // TODO:
+		Event:  event,
 		Topics: topics,
 	}, nil
 }
-
-// func DecodeEvents(buffer *bytes.Buffer) sc.Sequence[EventRecord] {
-// 	compactSize := sc.DecodeCompact(buffer)
-// 	size := int(compactSize.ToBigInt().Int64())
-
-// 	sequence := make(sc.Sequence[EventRecord], size)
-// 	for i := 0; i < size; i++ {
-// 		sequence[i] = DecodeEventRecord(buffer)
-// 	}
-
-// 	return sequence
-// }

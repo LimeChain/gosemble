@@ -154,6 +154,10 @@ func (m *SystemModule) DepositEvent(event primitives.Event) {
 	m.Called(event)
 }
 
+func (m *SystemModule) DepositLog(item primitives.DigestItem) {
+	m.Called(item)
+}
+
 func (m *SystemModule) Mutate(who primitives.AccountId, f func(who *primitives.AccountInfo) (sc.Encodable, error)) (sc.Encodable, error) {
 	args := m.Called(who, f)
 	if args[1] == nil {
@@ -183,6 +187,30 @@ func (m *SystemModule) AccountTryMutateExists(who primitives.AccountId, f func(w
 func (m *SystemModule) Metadata() primitives.MetadataModule {
 	args := m.Called()
 	return args.Get(0).(primitives.MetadataModule)
+}
+
+func (m *SystemModule) CanSetCode(codeBlob sc.Sequence[sc.U8]) error {
+	args := m.Called(codeBlob)
+
+	if args.Get(0) == nil {
+		return nil
+	}
+
+	return args.Get(0).(error)
+}
+
+func (m *SystemModule) DoAuthorizeUpgrade(codeHash primitives.H256, checkVersion sc.Bool) {
+	m.Called(codeHash, checkVersion)
+}
+
+func (m *SystemModule) DoApplyAuthorizeUpgrade(code sc.Sequence[sc.U8]) (primitives.PostDispatchInfo, error) {
+	args := m.Called(code)
+
+	if args.Get(1) == nil {
+		return args.Get(0).(primitives.PostDispatchInfo), nil
+	}
+
+	return args.Get(0).(primitives.PostDispatchInfo), args.Get(1).(error)
 }
 
 func (m *SystemModule) errorsDefinition() *primitives.MetadataTypeDefinition {
@@ -301,4 +329,8 @@ func (m *SystemModule) StorageAllExtrinsicsLen() (sc.U32, error) {
 
 func (m *SystemModule) StorageAllExtrinsicsLenSet(value sc.U32) {
 	m.Called(value)
+}
+
+func (m *SystemModule) StorageCodeSet(codeBlob sc.Sequence[sc.U8]) {
+	m.Called(codeBlob)
 }
