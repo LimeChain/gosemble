@@ -49,6 +49,16 @@ func (m *AuraModule) OnInitialize(n sc.U64) (primitives.Weight, error) {
 	return args.Get(0).(primitives.Weight), args.Get(1).(error)
 }
 
+func (m *AuraModule) FindAuthor(digests sc.Sequence[primitives.DigestPreRuntime]) (sc.Option[sc.U32], error) {
+	args := m.Called(digests)
+
+	if args.Error(1) == nil {
+		return args.Get(0).(sc.Option[sc.U32]), nil
+	}
+
+	return args.Get(0).(sc.Option[sc.U32]), args.Error(1)
+}
+
 func (m *AuraModule) OnTimestampSet(now sc.U64) error {
 	args := m.Called(now)
 	if args.Error(0) == nil {
@@ -67,7 +77,27 @@ func (m *AuraModule) SlotDuration() sc.U64 {
 	return args.Get(0).(sc.U64)
 }
 
-func (m *AuraModule) GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error) {
+func (m *AuraModule) StorageAuthorities() (sc.Sequence[primitives.Sr25519PublicKey], error) {
+	args := m.Called()
+
+	if args.Error(1) == nil {
+		return args.Get(0).(sc.Sequence[primitives.Sr25519PublicKey]), nil
+	}
+
+	return args.Get(0).(sc.Sequence[primitives.Sr25519PublicKey]), args.Error(1)
+}
+
+func (m *AuraModule) StorageCurrentSlot() (sc.U64, error) {
+	args := m.Called()
+
+	if args.Error(1) == nil {
+		return args.Get(0).(sc.U64), nil
+	}
+
+	return args.Get(0).(sc.U64), args.Error(1)
+}
+
+func (m *AuraModule) StorageAuthoritiesBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
 	args := m.Called()
 	if args.Get(1) == nil {
 		return args.Get(0).(sc.Option[sc.Sequence[sc.U8]]), nil
