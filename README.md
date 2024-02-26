@@ -3,8 +3,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/LimeChain/gosemble)](https://goreportcard.com/report/github.com/LimeChain/gosemble)
 [![codecov](https://codecov.io/github/LimeChain/gosemble/graph/badge.svg?token=48SIN10OBK)](https://codecov.io/github/LimeChain/gosemble)
 
-> **Warning**
-> The Gosemble is in pre-production
+> [!WARNING]
+> Gosemble is in pre-production and the code is not yet audited. Use at your own risk.
 
 Go implementation of Polkadot/Substrate compatible runtimes. For more details, check
 the [Official Documentation](https://limechain.github.io/gosemble/)
