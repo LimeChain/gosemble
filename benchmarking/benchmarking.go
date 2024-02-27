@@ -30,22 +30,19 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	if len(components) == 0 {
 		b.Run("Step 1", func(b *testing.B) {
 			res := runTestFn(b, testFn)
-			results = append(results, newBenchmarkResult(res, []uint32{}))
+			results = append(results, newBenchmarkResult(res, []linear{}))
 		})
 	}
 
 	// iterate components for each step
 	for i, component := range components {
-		for y, v := range component.values(Config.Steps) {
+		for y, v := range component.rangeValues(Config.Steps) {
 			component.setValue(v)
-
-			componentValues := componentValues(components)
-
-			testName := fmt.Sprintf("Step %d/ComponentIndex %d/ComponentValues %d", y+1, i, componentValues)
-
+			c := copyComponents(components)
+			testName := fmt.Sprintf("Step %d/ComponentIndex %d/ComponentValues %d", y+1, i, componentValues(c))
 			b.Run(testName, func(b *testing.B) {
 				res := runTestFn(b, testFn)
-				results = append(results, newBenchmarkResult(res, componentValues))
+				results = append(results, newBenchmarkResult(res, c))
 			})
 		}
 	}
@@ -55,12 +52,8 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	fmt.Println(analysis.String())
 
 	if Config.GenerateWeightFiles {
-		template, err := InitExtrinsicWeightTemplate()
-		if err != nil {
-			b.Fatalf("failed to initialize extrinsic weight template: %v", err.Error())
-		}
 
-		if err := generateWeightFile(template, outputPath, analysis.String(), analysis.baseExtrinsicTime, analysis.baseReads, analysis.baseWrites); err != nil {
+		if err := generateExtrinsicWeightFile(outputPath, analysis); err != nil {
 			b.Fatalf("failed to generate weight file: %v", err)
 		}
 	}

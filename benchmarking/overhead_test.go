@@ -42,7 +42,7 @@ func BenchmarkOverheadBlockExecutionWeight(t *testing.B) {
 			t.Fatalf("failed to initialize overhead weight template: %v", err.Error())
 		}
 
-		if err := generateWeightFile(template, "../constants/block_execution_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+		if err := generateOverheadWeightFile(template, "../constants/block_execution_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
 			t.Fatalf("failed to generate weight file: %v", err)
 		}
 	}
@@ -72,7 +72,7 @@ func BenchmarkOverheadBaseExtrinsicWeight(t *testing.B) {
 			t.Fatalf("failed to initialize overhead weight template: %v", err.Error())
 		}
 
-		if err := generateWeightFile(template, "../constants/base_extrinsic_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
+		if err := generateOverheadWeightFile(template, "../constants/base_extrinsic_weight.go", stats.String(), uint64(stats.Mean), 0, 0); err != nil {
 			t.Fatalf("failed to generate weight file: %v", err)
 		}
 	}

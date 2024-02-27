@@ -24,10 +24,6 @@ type weightFileTemplate struct {
 	weightFn               *ast.FuncDecl
 }
 
-func InitExtrinsicWeightTemplate() (*weightFileTemplate, error) {
-	return newWeightFileTemplate("weight_file_extrinsic_template.go", "extrinsicWeightFn", "refTime", "reads", "writes")
-}
-
 func InitOverheadWeightTemplate() (*weightFileTemplate, error) {
 	return newWeightFileTemplate("weight_file_overhead_template.go", "overheadWeightFn", "refTime", "", "")
 }

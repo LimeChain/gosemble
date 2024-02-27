@@ -31,7 +31,7 @@ func TestRun(t *testing.T) {
 
 	// run with components
 	testing.Benchmark(func(b *testing.B) {
-		component, err := NewLinear(1, 100)
+		component, err := NewLinear("test", 1, 100)
 		assert.NoError(t, err)
 
 		componentValues := []uint32{}
