@@ -30,6 +30,15 @@ These modules provide features than can be useful for your blockchain and can be
 | [timestamp](https://github.com/limechain/gosemble/tree/develop/frame/timestamp)                     | Manages on-chain time.                                                        |
 | [transaction payment](https://github.com/limechain/gosemble/tree/develop/frame/transaction_payment) | Manages pre-dispatch execution fees.                                          |       
 
+### Parachain modules
+
+In additional to functional modules, which are useful for any blockchain, there are modules that provide features specifically for blockchain integration with a relay chain.
+
+| Name                                                                                      | Description              |
+|-------------------------------------------------------------------------------------------|--------------------------|
+| [parachain_info](https://github.com/limechain/gosemble/tree/develop/frame/parachain_info) | Stores the parachain id. |
+
+
 ## Structure
 
 Each module has the following structure:
