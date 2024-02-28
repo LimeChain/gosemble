@@ -20,6 +20,8 @@ var (
 	errSlotMustIncrease      = errors.New("Slot must increase")
 	errSlotDurationZero      = errors.New("Aura slot duration cannot be zero.")
 	errTimestampSlotMismatch = errors.New("Timestamp slot must match `CurrentSlot`")
+	errEmptyAuthorities      = errors.New("empty storage authorities")
+	errZeroAuthorities       = errors.New("zero storage authorities")
 )
 
 type AuraModule interface {
@@ -29,7 +31,10 @@ type AuraModule interface {
 	KeyTypeId() [4]byte
 	OnTimestampSet(now sc.U64) error
 	SlotDuration() sc.U64
-	GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error)
+	FindAuthor(digests sc.Sequence[primitives.DigestPreRuntime]) (sc.Option[sc.U32], error)
+	StorageAuthorities() (sc.Sequence[primitives.Sr25519PublicKey], error)
+	StorageAuthoritiesBytes() (sc.Option[sc.Sequence[sc.U8]], error)
+	StorageCurrentSlot() (sc.U64, error)
 }
 
 type Module struct {
@@ -142,6 +147,66 @@ func (m Module) OnTimestampSet(now sc.U64) error {
 		return errTimestampSlotMismatch
 	}
 	return nil
+}
+
+// FindAuthor finds the author from the pre-runtime digests.
+func (m Module) FindAuthor(digests sc.Sequence[primitives.DigestPreRuntime]) (sc.Option[sc.U32], error) {
+	for _, preRuntime := range digests {
+		if reflect.DeepEqual(sc.FixedSequenceU8ToBytes(preRuntime.ConsensusEngineId), EngineId[:]) {
+			buffer := bytes.NewBuffer(sc.SequenceU8ToBytes(preRuntime.Message))
+
+			currentSlot, err := sc.DecodeU64(buffer)
+			if err != nil {
+				return sc.Option[sc.U32]{}, err
+			}
+
+			authoritiesLen, err := m.storageAuthoritiesLen()
+			if err != nil {
+				return sc.Option[sc.U32]{}, err
+			}
+
+			authorIndex := currentSlot % authoritiesLen
+
+			return sc.NewOption[sc.U32](sc.U32(authorIndex)), nil
+		}
+	}
+
+	return sc.NewOption[sc.U32](nil), nil
+}
+
+func (m Module) SlotDuration() sc.U64 {
+	return m.constants.MinimumPeriod * 2
+}
+
+func (m Module) StorageAuthoritiesBytes() (sc.Option[sc.Sequence[sc.U8]], error) {
+	return m.storage.Authorities.GetBytes()
+}
+
+func (m Module) StorageAuthorities() (sc.Sequence[primitives.Sr25519PublicKey], error) {
+	return m.storage.Authorities.Get()
+}
+
+func (m Module) StorageCurrentSlot() (sc.U64, error) {
+	return m.storage.CurrentSlot.Get()
+}
+
+// storageAuthoritiesLen fetches the length of the storage authorities.
+// Returns err if value is empty or 0.
+func (m Module) storageAuthoritiesLen() (sc.U64, error) {
+	totalAuthorities, err := m.storage.Authorities.DecodeLen()
+	if err != nil {
+		return 0, err
+	}
+
+	if !totalAuthorities.HasValue {
+		return 0, errEmptyAuthorities
+	}
+
+	if totalAuthorities.Value == 0 {
+		return 0, errZeroAuthorities
+	}
+
+	return totalAuthorities.Value, nil
 }
 
 func (m Module) Metadata() primitives.MetadataModule {
@@ -273,12 +338,4 @@ func (m Module) currentSlotFromDigests() (sc.Option[slot], error) {
 	}
 
 	return sc.NewOption[slot](nil), nil
-}
-
-func (m Module) SlotDuration() sc.U64 {
-	return m.constants.MinimumPeriod * 2
-}
-
-func (m Module) GetAuthorities() (sc.Option[sc.Sequence[sc.U8]], error) {
-	return m.storage.Authorities.GetBytes()
 }

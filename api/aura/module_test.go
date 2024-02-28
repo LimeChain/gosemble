@@ -49,7 +49,7 @@ func Test_Item(t *testing.T) {
 func Test_Authorities_None(t *testing.T) {
 	setup()
 
-	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
+	mockAura.On("StorageAuthoritiesBytes").Return(sc.NewOption[sc.Sequence[sc.U8]](nil), nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{0}).Return(int64(0))
 
 	target.Authorities()
@@ -61,7 +61,7 @@ func Test_Authorities_None(t *testing.T) {
 func Test_Authorities_Some(t *testing.T) {
 	setup()
 
-	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](
+	mockAura.On("StorageAuthoritiesBytes").Return(sc.NewOption[sc.Sequence[sc.U8]](
 		sc.Sequence[sc.U8]{sc.U8(1), sc.U8(2), sc.U8(3)},
 	), nil)
 	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{1, 2, 3}).Return(int64(13))
@@ -76,7 +76,7 @@ func Test_Authorities_Panics(t *testing.T) {
 	setup()
 
 	expectedErr := errors.New("panic")
-	mockAura.On("GetAuthorities").Return(sc.NewOption[sc.Sequence[sc.U8]](
+	mockAura.On("StorageAuthoritiesBytes").Return(sc.NewOption[sc.Sequence[sc.U8]](
 		sc.Sequence[sc.U8]{},
 	), expectedErr)
 	mockMemoryUtils.On("BytesToOffsetAndSize", []byte{1, 2, 3}).Return(int64(13))
@@ -86,7 +86,7 @@ func Test_Authorities_Panics(t *testing.T) {
 		func() { target.Authorities() },
 	)
 
-	mockAura.AssertCalled(t, "GetAuthorities")
+	mockAura.AssertCalled(t, "StorageAuthoritiesBytes")
 	mockMemoryUtils.AssertNotCalled(t, "BytesToOffsetAndSize", []byte{1, 2, 3})
 }
 

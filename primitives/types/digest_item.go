@@ -109,3 +109,11 @@ func (di DigestItem) AsPreRuntime() (DigestPreRuntime, error) {
 	}
 	return DigestPreRuntime{}, newTypeError("DigestPreRuntime")
 }
+
+// TODO: has the same fields as DigestPreRuntime, merge at some point
+func (di DigestItem) AsSeal() (DigestSeal, error) {
+	if di.IsSeal() {
+		return NewDigestSeal(di.VaryingData[1].(sc.FixedSequence[sc.U8]), di.VaryingData[2].(sc.Sequence[sc.U8])), nil
+	}
+	return DigestSeal{}, newTypeError("DigestSeal")
+}
