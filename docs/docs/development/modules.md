@@ -32,7 +32,7 @@ These modules provide features than can be useful for your blockchain and can be
 
 ### Parachain modules
 
-In additional to functional modules, which are useful for any blockchain, there are modules that provide features specifically for blockchain integration with a relay chain.
+In addition to functional modules, which are useful for any blockchain, there are modules that provide features specifically for blockchain integration with a relay chain.
 
 | Name                                                                                      | Description              |
 |-------------------------------------------------------------------------------------------|--------------------------|
