@@ -20,8 +20,8 @@ var (
 	errSlotMustIncrease      = errors.New("Slot must increase")
 	errSlotDurationZero      = errors.New("Aura slot duration cannot be zero.")
 	errTimestampSlotMismatch = errors.New("Timestamp slot must match `CurrentSlot`")
-	errEmptyAuthorities      = errors.New("empty authorities")
-	errZeroAuthorities       = errors.New("zero authorities")
+	errEmptyAuthorities      = errors.New("empty storage authorities")
+	errZeroAuthorities       = errors.New("zero storage authorities")
 )
 
 type AuraModule interface {
@@ -191,7 +191,7 @@ func (m Module) StorageCurrentSlot() (sc.U64, error) {
 }
 
 // storageAuthoritiesLen fetches the length of the storage authorities.
-// Returns err if value is not empty and is 0.
+// Returns err if value is empty or 0.
 func (m Module) storageAuthoritiesLen() (sc.U64, error) {
 	totalAuthorities, err := m.storage.Authorities.DecodeLen()
 	if err != nil {
