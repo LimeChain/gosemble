@@ -207,3 +207,23 @@ func Test_DigestItem_AsPreRuntime_Fails_MismatchingType(t *testing.T) {
 	assert.Equal(t, newTypeError("DigestPreRuntime"), err)
 	assert.Equal(t, DigestPreRuntime{}, result)
 }
+
+func Test_DigestItem_AsSeal(t *testing.T) {
+	expect := NewDigestSeal(consensusEngineId, message)
+
+	target := NewDigestItemSeal(consensusEngineId, message)
+
+	result, err := target.AsSeal()
+
+	assert.NoError(t, err)
+	assert.Equal(t, expect, result)
+}
+
+func Test_DigestItem_AsSeal_Fails_MismatchingType(t *testing.T) {
+	target := NewDigestItemOther(message)
+
+	result, err := target.AsSeal()
+
+	assert.Equal(t, newTypeError("DigestSeal"), err)
+	assert.Equal(t, DigestSeal{}, result)
+}
