@@ -39,7 +39,7 @@ func Test_GenesisConfig_BuildConfig_InvalidParachainId(t *testing.T) {
 func Test_GenesisConfig_CreateDefaultConfig(t *testing.T) {
 	target := setup()
 
-	expectedGc := []byte("{\"parachainInfo\":{\"parachainId\":100}}")
+	expectedGc := []byte("{\"parachainInfo\":{\"parachainId\":2000}}")
 
 	gc, err := target.CreateDefaultConfig()
 	assert.NoError(t, err)
