@@ -2,6 +2,7 @@ package aura
 
 import (
 	"errors"
+	"io"
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
@@ -20,9 +21,16 @@ const (
 	allowMultipleBlocksPerSlot        = false
 	keyType                           = types.PublicKeySr25519
 	blockNumber                sc.U64 = 0
+	currentSlot                       = sc.U32(4)
 )
 
 var (
+	digestsPreRuntime = sc.Sequence[types.DigestPreRuntime]{
+		{
+			ConsensusEngineId: sc.BytesToFixedSequenceU8(EngineId[:]),
+			Message:           sc.BytesToSequenceU8(sc.U64(currentSlot).Bytes()),
+		},
+	}
 	mdGenerator = types.NewMetadataTypeGenerator()
 )
 
@@ -316,8 +324,122 @@ func Test_Aura_OnTimestampSet_TimestampSlotMismatch(t *testing.T) {
 	mockStorageCurrentSlot.AssertCalled(t, "Get")
 }
 
+func Test_Aura_FindAuthor(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(1)), nil)
+
+	result, err := module.FindAuthor(digestsPreRuntime)
+
+	assert.Nil(t, err)
+	assert.Equal(t, sc.NewOption[sc.U32](sc.U32(0)), result)
+	mockStorageAuthorities.AssertCalled(t, "DecodeLen")
+}
+
+func Test_Aura_FindAuthor_Empty(t *testing.T) {
+	preRuntimes := sc.Sequence[types.DigestPreRuntime]{}
+	setup(timestampMinimumPeriod)
+
+	result, err := module.FindAuthor(preRuntimes)
+
+	assert.Nil(t, err)
+	assert.Equal(t, sc.NewOption[sc.U32](nil), result)
+	mockStorageAuthorities.AssertNotCalled(t, "DecodeLen")
+}
+
+func Test_Aura_FindAuthor_InvalidMessage(t *testing.T) {
+	preRuntimes := sc.Sequence[types.DigestPreRuntime]{
+		{
+			ConsensusEngineId: sc.BytesToFixedSequenceU8(EngineId[:]),
+			Message:           sc.Sequence[sc.U8]{}, // empty sequence
+		},
+	}
+	setup(timestampMinimumPeriod)
+
+	result, err := module.FindAuthor(preRuntimes)
+
+	assert.Equal(t, io.EOF, err)
+	assert.Equal(t, sc.Option[sc.U32]{}, result)
+	mockStorageAuthorities.AssertNotCalled(t, "DecodeLen")
+}
+
+func Test_Aura_FindAuthor_ErrDecodeLen(t *testing.T) {
+	setup(timestampMinimumPeriod)
+	expectError := errors.New("expect")
+
+	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](nil), expectError)
+
+	result, err := module.FindAuthor(digestsPreRuntime)
+
+	assert.Equal(t, expectError, err)
+	assert.Equal(t, sc.Option[sc.U32]{}, result)
+	mockStorageAuthorities.AssertCalled(t, "DecodeLen")
+}
+
+func Test_Aura_FindAuthor_ErrZeroAuthorities(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](sc.U64(0)), nil)
+
+	result, err := module.FindAuthor(digestsPreRuntime)
+
+	assert.Equal(t, errZeroAuthorities, err)
+	assert.Equal(t, sc.Option[sc.U32]{}, result)
+	mockStorageAuthorities.AssertCalled(t, "DecodeLen")
+}
+
+func Test_Aura_FindAuthor_ErrEmptyAuthorities(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	mockStorageAuthorities.On("DecodeLen").Return(sc.NewOption[sc.U64](nil), nil)
+
+	result, err := module.FindAuthor(digestsPreRuntime)
+
+	assert.Equal(t, errEmptyAuthorities, err)
+	assert.Equal(t, sc.Option[sc.U32]{}, result)
+	mockStorageAuthorities.AssertCalled(t, "DecodeLen")
+}
+
 func Test_Aura_SlotDuration(t *testing.T) {
 	setup(timestampMinimumPeriod)
 
 	assert.Equal(t, sc.U64(4_000), module.SlotDuration())
+}
+
+func Test_Aura_StorageAuthoritiesBytes(t *testing.T) {
+	bytesAuthorities := sc.Option[sc.Sequence[sc.U8]]{HasValue: true, Value: sc.BytesToSequenceU8([]byte{1, 2, 3})}
+	setup(timestampMinimumPeriod)
+
+	mockStorageAuthorities.On("GetBytes").Return(bytesAuthorities, nil)
+
+	result, err := module.StorageAuthoritiesBytes()
+
+	assert.Nil(t, err)
+	assert.Equal(t, bytesAuthorities, result)
+	mockStorageAuthorities.AssertCalled(t, "GetBytes")
+}
+
+func Test_Aura_StorageAuthorities(t *testing.T) {
+	setup(timestampMinimumPeriod)
+
+	mockStorageAuthorities.On("Get").Return(authorities, nil)
+
+	result, err := module.StorageAuthorities()
+
+	assert.Nil(t, err)
+	assert.Equal(t, authorities, result)
+	mockStorageAuthorities.AssertCalled(t, "Get")
+}
+
+func Test_Aura_StorageCurrentSlot(t *testing.T) {
+	slot := sc.U64(5)
+	setup(timestampMinimumPeriod)
+
+	mockStorageCurrentSlot.On("Get").Return(slot, nil)
+
+	result, err := module.StorageCurrentSlot()
+
+	assert.Nil(t, err)
+	assert.Equal(t, slot, result)
+	mockStorageCurrentSlot.AssertCalled(t, "Get")
 }

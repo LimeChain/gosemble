@@ -47,7 +47,7 @@ func (m Module) Item() primitives.ApiItem {
 // Authorities returns current set of AuRa (Authority Round) authorities.
 // Returns a pointer-size of the SCALE-encoded set of authorities.
 func (m Module) Authorities() int64 {
-	authorities, err := m.aura.GetAuthorities()
+	authorities, err := m.aura.StorageAuthoritiesBytes()
 	if err != nil {
 		m.logger.Critical(err.Error())
 	}
