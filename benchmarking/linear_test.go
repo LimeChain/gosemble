@@ -16,9 +16,8 @@ func TestLinearComponent(t *testing.T) {
 	l.setValue(99)
 	assert.Equal(t, uint32(99), l.Value())
 
-	// todo
-	// componentValues := componentValues([]*linear{l})
-	// assert.Equal(t, []uint32{99}, componentValues)
+	componentValues := componentValues([]linear{*l})
+	assert.Equal(t, []uint32{99}, componentValues)
 
 	l, err = NewLinear("test", 1, 0)
 	assert.Equal(t, errInvalidValues, err)

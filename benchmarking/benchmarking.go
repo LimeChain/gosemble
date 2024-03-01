@@ -52,7 +52,6 @@ func RunDispatchCall(b *testing.B, outputPath string, testFn func(i *Instance), 
 	fmt.Println(analysis.String())
 
 	if Config.GenerateWeightFiles {
-
 		if err := generateExtrinsicWeightFile(outputPath, analysis); err != nil {
 			b.Fatalf("failed to generate weight file: %v", err)
 		}

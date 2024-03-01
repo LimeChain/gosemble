@@ -1,0 +1,19 @@
+// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE
+// DATE: `{{.Date}}`, STEPS: `{{.Steps}}`, REPEAT: `{{.Repeat}}`, DBCACHE: `{{.DbCache}}`, HEAPPAGES: `{{.HeapPages}}`, HOSTNAME: `{{.HostName}}`, CPU: `{{.CpuName}}`, GC: `{{.Gc}}`, TINYGO VERSION: `{{.TinyGoVersion}}`, TARGET: `{{.Target}}`
+
+// Summary:
+// {{.Summary}}
+
+package {{.PackageName}}
+
+import (
+	sc "github.com/LimeChain/goscale"
+	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+func {{.FunctionName}}(multiplier sc.U64) primitives.Weight {
+	return primitives.WeightFromParts(
+		sc.SaturatingMulU64(multiplier, {{.BaseWeight}}),
+		0,
+	)
+}

@@ -24,29 +24,6 @@ func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, componen
 	}
 }
 
-// type analysisResult struct {
-// 	base, min uint64
-// 	slopes    []uint64
-// }
-
-// type analysisStats struct {
-// 	extrinsicTime, reads, writes uint64
-// }
-
-// type componentStats struct {
-// 	*linear
-// 	// slope analysisStats
-// 	extrinsicTime, reads, writes uint64
-// }
-
-// todo may be useless
-//
-//	func (c componentStats) NameCheckUsed() string {
-//		if (c.slope == analysisStats{}) {
-//			return "_"
-//		}
-//		return c.Name()
-//	}
 type componentSlope struct {
 	ComponentName string
 	Slope         uint64
