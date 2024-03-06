@@ -114,7 +114,7 @@ func Test_Call_Remark_FunctionIndex(t *testing.T) {
 func Test_Call_Remark_BaseWeight(t *testing.T) {
 	call := newCallRemark(moduleId, functionRemarkIndex)
 
-	assert.Equal(t, callRemarkWeight(dbWeight), call.BaseWeight())
+	assert.Equal(t, callRemarkWeight(dbWeight, 0), call.BaseWeight())
 }
 
 func Test_Call_Remark_WeighData(t *testing.T) {

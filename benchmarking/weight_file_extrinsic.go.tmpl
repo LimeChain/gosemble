@@ -1,0 +1,33 @@
+// THIS FILE WAS GENERATED USING GOSEMBLE BENCHMARKING PACKAGE
+// DATE: `{{.Date}}`, STEPS: `{{.Steps}}`, REPEAT: `{{.Repeat}}`, DBCACHE: `{{.DbCache}}`, HEAPPAGES: `{{.HeapPages}}`, HOSTNAME: `{{.HostName}}`, CPU: `{{.CpuName}}`, GC: `{{.Gc}}`, TINYGO VERSION: `{{.TinyGoVersion}}`, TARGET: `{{.Target}}`
+
+// Summary:
+// {{.Summary}}
+
+package {{.PackageName}}
+
+import (
+	{{- if gt (len .UsedComponents) 0 -}}
+		sc "github.com/LimeChain/goscale"
+	{{- end }}
+	primitives "github.com/LimeChain/gosemble/primitives/types"
+)
+
+func {{.FunctionName}}(dbWeight primitives.RuntimeDbWeight
+	{{- range $index, $componentName := .UsedComponents -}}
+		, {{$componentName}} sc.U64
+	{{- end -}}
+) primitives.Weight {
+	return primitives.WeightFromParts({{.BaseWeight}}, 0).
+		{{- range .ComponentWeights }}
+			SaturatingAdd(primitives.WeightFromParts({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
+		SaturatingAdd(dbWeight.Reads({{.BaseReads}})).
+		{{- range .ComponentReads }}
+			SaturatingAdd(dbWeight.Reads({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
+		SaturatingAdd(dbWeight.Writes({{.BaseWrites}})){{if gt (len .ComponentWrites) 0}}.{{end}}
+		{{- range .ComponentWrites }}
+			SaturatingAdd(dbWeight.Writes({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
+}

@@ -2,33 +2,39 @@ package benchmarking
 
 import (
 	"fmt"
+	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
-
-	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 )
 
 type benchmarkResult struct {
-	components    []uint32
+	components    []linear
 	extrinsicTime uint64
 	reads, writes uint64
 }
 
-func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, componentValues []uint32) benchmarkResult {
+func newBenchmarkResult(benchmarkRes benchmarkingtypes.BenchmarkResult, components []linear) benchmarkResult {
 	return benchmarkResult{
 		extrinsicTime: benchmarkRes.Time.ToBigInt().Uint64(),
 		reads:         uint64(benchmarkRes.Reads),
 		writes:        uint64(benchmarkRes.Writes),
-		components:    componentValues,
+		components:    components,
 	}
 }
 
+type componentSlope struct {
+	ComponentName string
+	Slope         uint64
+}
+
 type analysis struct {
-	baseExtrinsicTime, baseReads, baseWrites          uint64
-	slopesExtrinsicTime, slopesReads, slopesWrites    []uint64
-	minimumExtrinsicTime, minimumReads, minimumWrites uint64
+	baseExtrinsicTime, baseReads, baseWrites                 uint64
+	slopesExtrinsicTime, slopesReads, slopesWrites           []uint64
+	minimumExtrinsicTime, minimumReads, minimumWrites        uint64
+	componentExtrinsicTimes, componentReads, componentWrites []componentSlope
+	usedComponents                                           []string
 }
 
 func (a analysis) String() string {
@@ -56,8 +62,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 		// count each component value combination
 		counted := map[string]int{}
 		for _, br := range benchmarkResults {
-			componentValues := make([]uint32, len(br.components))
-			copy(componentValues, br.components)
+			componentValues := componentValues(br.components)
 			componentValues[i] = 0
 			counted[fmt.Sprintf("%d", componentValues)]++
 		}
@@ -84,7 +89,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 		for _, br := range benchmarkResults {
 			isValid := true
 			for y, v := range br.components {
-				if y != i && float64(v) != others[y] {
+				if y != i && float64(v.Value()) != others[y] {
 					isValid = false
 					continue
 				}
@@ -98,7 +103,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 				results[i].values, struct {
 					componentValue               float64
 					extrinsicTime, reads, writes float64
-				}{float64(br.components[i]), float64(br.extrinsicTime), float64(br.reads), float64(br.writes)},
+				}{float64(br.components[i].Value()), float64(br.extrinsicTime), float64(br.reads), float64(br.writes)},
 			)
 		}
 	}
@@ -190,6 +195,7 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 
 	// analysis
 	res := analysis{}
+	usedComponents := map[string]bool{}
 
 	// extrinsic time
 	offsetExtrinsicTime := float64(0)
@@ -198,8 +204,15 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	}
 	res.baseExtrinsicTime = uint64((offsetExtrinsicTime + 0.000_000_005) * 1000)
 
-	for _, m := range models {
-		res.slopesExtrinsicTime = append(res.slopesExtrinsicTime, uint64((math.Max(m.slopeExtrinsicTime, 0)+0.000_000_005)*1000))
+	for i, m := range models {
+		slope := uint64((math.Max(m.slopeExtrinsicTime, 0) + 0.000_000_005) * 1000)
+		res.slopesExtrinsicTime = append(res.slopesExtrinsicTime, slope)
+		if slope > 0 {
+			componentName := benchmarkResults[0].components[i].Name()
+			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
+			res.componentExtrinsicTimes = append(res.componentExtrinsicTimes, componentSlope)
+			usedComponents[componentName] = true
+		}
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
@@ -214,8 +227,15 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	}
 	res.baseReads = uint64(offsetReads + 0.000_000_005)
 
-	for _, m := range models {
-		res.slopesReads = append(res.slopesReads, uint64(math.Max(m.slopeReads, 0)+0.000_000_005))
+	for i, m := range models {
+		slope := uint64(math.Max(m.slopeReads, 0) + 0.000_000_005)
+		res.slopesReads = append(res.slopesReads, slope)
+		if slope > 0 {
+			componentName := benchmarkResults[0].components[i].Name()
+			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
+			res.componentReads = append(res.componentReads, componentSlope)
+			usedComponents[componentName] = true
+		}
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
@@ -230,14 +250,25 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	}
 	res.baseWrites = uint64(offsetWrites + 0.000_000_005)
 
-	for _, m := range models {
-		res.slopesWrites = append(res.slopesWrites, uint64(math.Max(m.slopeWrites, 0)+0.000_000_005))
+	for i, m := range models {
+		slope := uint64(math.Max(m.slopeWrites, 0) + 0.000_000_005)
+		res.slopesWrites = append(res.slopesWrites, slope)
+		if slope > 0 {
+			componentName := benchmarkResults[0].components[i].Name()
+			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
+			res.componentWrites = append(res.componentWrites, componentSlope)
+			usedComponents[componentName] = true
+		}
 	}
 
 	sort.Slice(benchmarkResults, func(i, j int) bool {
 		return benchmarkResults[i].writes < benchmarkResults[j].writes
 	})
 	res.minimumWrites = benchmarkResults[0].writes
+
+	for componentName := range usedComponents {
+		res.usedComponents = append(res.usedComponents, componentName)
+	}
 
 	return res
 }

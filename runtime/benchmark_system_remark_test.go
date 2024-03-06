@@ -10,7 +10,7 @@ import (
 )
 
 func BenchmarkSystemRemark(b *testing.B) {
-	size, err := benchmarking.NewLinear(0, uint32(blockLength.Max.Normal))
+	size, err := benchmarking.NewLinear("size", 0, uint32(blockLength.Max.Normal))
 	assert.NoError(b, err)
 
 	benchmarking.RunDispatchCall(b, "../frame/system/call_remark_weight.go", func(i *benchmarking.Instance) {

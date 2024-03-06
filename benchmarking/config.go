@@ -37,6 +37,6 @@ func initOverheadConfig() overheadConfig {
 	cfg := overheadConfig{}
 	flag.IntVar(&cfg.Warmup, "overhead.warmup", 10, "How many warmup rounds before measuring.")
 	flag.IntVar(&cfg.Repeat, "overhead.repeat", 100, "How many times the benchmark test should be repeated.")
-	flag.IntVar(&cfg.MaxExtPerBlock, "overhead.maxExtPerBlock", 500, "Maximum number of extrinsics per block")
+	flag.IntVar(&cfg.MaxExtPerBlock, "overhead.maxExtPerBlock", 200, "Maximum number of extrinsics per block")
 	return cfg
 }
