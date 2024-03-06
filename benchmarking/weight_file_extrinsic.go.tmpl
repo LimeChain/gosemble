@@ -7,15 +7,27 @@
 package {{.PackageName}}
 
 import (
-	{{if gt (len .UsedComponents) 0}}sc "github.com/LimeChain/goscale"{{end}}
+	{{- if gt (len .UsedComponents) 0 -}}
+		sc "github.com/LimeChain/goscale"
+	{{- end }}
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-func {{.FunctionName}}(dbWeight primitives.RuntimeDbWeight{{if gt (len .UsedComponents) 0}}, {{end}}{{range $index, $componentName := .UsedComponents}}{{if $index}}, {{end}}{{$componentName}} sc.U64{{end}}) primitives.Weight {
+func {{.FunctionName}}(dbWeight primitives.RuntimeDbWeight
+	{{- range $index, $componentName := .UsedComponents -}}
+		, {{$componentName}} sc.U64
+	{{- end -}}
+) primitives.Weight {
 	return primitives.WeightFromParts({{.BaseWeight}}, 0).
-		{{- range .ComponentWeights}}SaturatingAdd(primitives.WeightFromParts({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).{{end}}
+		{{- range .ComponentWeights }}
+			SaturatingAdd(primitives.WeightFromParts({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
 		SaturatingAdd(dbWeight.Reads({{.BaseReads}})).
-		{{- range .ComponentReads}}SaturatingAdd(dbWeight.Reads({{.Slope}}).SaturatingMul({{.ComponentName}})).{{- end}}
+		{{- range .ComponentReads }}
+			SaturatingAdd(dbWeight.Reads({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
 		SaturatingAdd(dbWeight.Writes({{.BaseWrites}})){{if gt (len .ComponentWrites) 0}}.{{end}}
-		{{- range $index, $cw := .ComponentWrites}}SaturatingAdd(dbWeight.Writes({{$cw.Slope}}).SaturatingMul({{$cw.ComponentName}})){{if $index}}.{{end}}{{- end}}
+		{{- range .ComponentWrites }}
+			SaturatingAdd(dbWeight.Writes({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- end }}
 }
