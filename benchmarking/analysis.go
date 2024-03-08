@@ -2,11 +2,12 @@ package benchmarking
 
 import (
 	"fmt"
-	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
+
+	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"
 )
 
 type benchmarkResult struct {
@@ -34,7 +35,7 @@ type analysis struct {
 	slopesExtrinsicTime, slopesReads, slopesWrites           []uint64
 	minimumExtrinsicTime, minimumReads, minimumWrites        uint64
 	componentExtrinsicTimes, componentReads, componentWrites []componentSlope
-	usedComponents                                           []string
+	componentNames                                           []string
 }
 
 func (a analysis) String() string {
@@ -195,7 +196,6 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 
 	// analysis
 	res := analysis{}
-	usedComponents := map[string]bool{}
 
 	// extrinsic time
 	offsetExtrinsicTime := float64(0)
@@ -211,7 +211,6 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 			componentName := benchmarkResults[0].components[i].Name()
 			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
 			res.componentExtrinsicTimes = append(res.componentExtrinsicTimes, componentSlope)
-			usedComponents[componentName] = true
 		}
 	}
 
@@ -234,7 +233,6 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 			componentName := benchmarkResults[0].components[i].Name()
 			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
 			res.componentReads = append(res.componentReads, componentSlope)
-			usedComponents[componentName] = true
 		}
 	}
 
@@ -257,7 +255,6 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 			componentName := benchmarkResults[0].components[i].Name()
 			componentSlope := componentSlope{ComponentName: componentName, Slope: slope}
 			res.componentWrites = append(res.componentWrites, componentSlope)
-			usedComponents[componentName] = true
 		}
 	}
 
@@ -266,8 +263,9 @@ func medianSlopesAnalysis(benchmarkResults []benchmarkResult) analysis {
 	})
 	res.minimumWrites = benchmarkResults[0].writes
 
-	for componentName := range usedComponents {
-		res.usedComponents = append(res.usedComponents, componentName)
+	res.componentNames = make([]string, len(benchmarkResults[0].components))
+	for i, c := range benchmarkResults[0].components {
+		res.componentNames[i] = c.Name()
 	}
 
 	return res

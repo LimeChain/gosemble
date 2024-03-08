@@ -32,7 +32,7 @@ type benchmarkInfo struct {
 func generateExtrinsicWeightFile(outputPath string, analysisResult analysis) error {
 	data := struct {
 		benchmarkInfo
-		UsedComponents                                      []string
+		ComponentNames                                      []string
 		BaseWeight, BaseReads, BaseWrites, MinExtrinsicTime uint64
 		ComponentWeights, ComponentReads, ComponentWrites   []componentSlope
 	}{}
@@ -63,7 +63,7 @@ func generateExtrinsicWeightFile(outputPath string, analysisResult analysis) err
 		data.CpuName = fmt.Sprintf("%s(%d cores, %d mhz)", c[0].ModelName, c[0].Cores, int(c[0].Mhz))
 	}
 
-	data.UsedComponents = analysisResult.usedComponents
+	data.ComponentNames = analysisResult.componentNames
 	data.BaseWeight = analysisResult.baseExtrinsicTime
 	data.BaseReads = analysisResult.baseReads
 	data.BaseWrites = analysisResult.baseWrites
