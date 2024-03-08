@@ -18,7 +18,6 @@ var (
 
 var (
 	expectedHeapPagesStorage = uint64(0)
-	expectedDigestStorage    = gossamertypes.NewDigest()
 )
 
 func Test_SetHeapPages_DispatchOutcome(t *testing.T) {
@@ -28,7 +27,6 @@ func Test_SetHeapPages_DispatchOutcome(t *testing.T) {
 	runtimeVersion, err := rt.Version()
 	assert.NoError(t, err)
 
-	// Initialize block
 	initializeBlock(t, rt, parentHash, stateRoot, extrinsicsRoot, blockNumber)
 
 	call, err := ctypes.NewCall(metadata, "System.set_heap_pages", pages)
@@ -60,7 +58,7 @@ func Test_SetHeapPages_DispatchOutcome(t *testing.T) {
 
 	digestStorage := gossamertypes.NewDigest()
 	scale.Unmarshal((*storage).Get(append(keySystemHash, keyDigestHash...)[:]), &digestStorage)
-	assert.Equal(t, expectedDigestStorage, digestStorage)
+	assert.Equal(t, gossamertypes.Digest(nil), digestStorage)
 
 	res, err := rt.Exec("BlockBuilder_apply_extrinsic", extEnc.Bytes())
 	assert.NoError(t, err)
@@ -72,6 +70,7 @@ func Test_SetHeapPages_DispatchOutcome(t *testing.T) {
 
 	digestStorage = gossamertypes.NewDigest()
 	scale.Unmarshal((*storage).Get(append(keySystemHash, keyDigestHash...)[:]), &digestStorage)
+	expectedDigestStorage := gossamertypes.Digest(nil)
 	expectedDigestStorage.Add(gossamertypes.RuntimeEnvironmentUpdated{})
 	assert.Equal(t, expectedDigestStorage, digestStorage)
 

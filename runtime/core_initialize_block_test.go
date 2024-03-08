@@ -28,10 +28,10 @@ func Test_CoreInitializeBlock(t *testing.T) {
 	digest := gossamertypes.NewDigest()
 
 	preRuntimeDigestItem := gossamertypes.NewDigestItem()
-	assert.NoError(t, preRuntimeDigestItem.Set(preRuntimeDigest))
+	assert.NoError(t, preRuntimeDigestItem.SetValue(preRuntimeDigest))
 
 	sealDigestItem := gossamertypes.NewDigestItem()
-	assert.NoError(t, sealDigestItem.Set(sealDigest))
+	assert.NoError(t, sealDigestItem.SetValue(sealDigest))
 
 	prdi, err := preRuntimeDigestItem.Value()
 	assert.NoError(t, err)
