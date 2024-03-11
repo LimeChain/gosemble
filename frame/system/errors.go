@@ -13,8 +13,6 @@ const (
 	ErrorNonDefaultComposite
 	ErrorNonZeroRefCount
 	ErrorCallFiltered
-	ErrorInvalidTask
-	ErrorFailedTask
 	ErrorNothingAuthorized
 	ErrorUnauthorized
 )
@@ -63,22 +61,6 @@ func NewDispatchErrorCallFiltered(moduleId sc.U8) primitives.DispatchError {
 	return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
 		Index:   moduleId,
 		Err:     sc.U32(ErrorCallFiltered),
-		Message: sc.NewOption[sc.Str](nil),
-	})
-}
-
-func NewDispatchErrorInvalidTask(moduleId sc.U8) primitives.DispatchError {
-	return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-		Index:   moduleId,
-		Err:     sc.U32(ErrorInvalidTask),
-		Message: sc.NewOption[sc.Str](nil),
-	})
-}
-
-func NewDispatchErrorFailedTask(moduleId sc.U8) primitives.DispatchError {
-	return primitives.NewDispatchErrorModule(primitives.CustomModuleError{
-		Index:   moduleId,
-		Err:     sc.U32(ErrorFailedTask),
 		Message: sc.NewOption[sc.Str](nil),
 	})
 }

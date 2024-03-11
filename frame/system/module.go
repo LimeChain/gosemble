@@ -25,7 +25,6 @@ const (
 	functionKillStorageIndex
 	functionKillPrefixIndex
 	functionRemarkWithEventIndex
-	functionDoTaskIndex
 	functionAuthorizeUpgradeIndex
 	functionAuthorizeUpgradeWithoutChecksIndex
 	functionApplyAuthorizedUpgradeIndex
@@ -137,7 +136,6 @@ func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenera
 	functions[functionKillStorageIndex] = newCallKillStorage(index, functionKillStorageIndex, ioStorage)
 	functions[functionKillPrefixIndex] = newCallKillPrefix(index, functionKillPrefixIndex, ioStorage)
 	functions[functionRemarkWithEventIndex] = newCallRemarkWithEvent(index, functionRemarkWithEventIndex, ioHashing, moduleInstance)
-	functions[functionDoTaskIndex] = newCallDoTask(index, functionDoTaskIndex)
 	functions[functionAuthorizeUpgradeIndex] = newCallAuthorizeUpgrade(index, functionAuthorizeUpgradeIndex, moduleInstance)
 	functions[functionAuthorizeUpgradeWithoutChecksIndex] = newCallAuthorizeUpgradeWithoutChecks(index, functionAuthorizeUpgradeWithoutChecksIndex, moduleInstance)
 	functions[functionApplyAuthorizedUpgradeIndex] = newCallApplyAuthorizedUpgrade(index, functionApplyAuthorizedUpgradeIndex, moduleInstance)
@@ -762,18 +760,6 @@ func (m module) errorsDefinition() *primitives.MetadataTypeDefinition {
 				"The origin filter prevent the call to be dispatched.",
 			),
 			primitives.NewMetadataDefinitionVariant(
-				"InvalidTask",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorInvalidTask,
-				"The specified [`Task`] is not valid.",
-			),
-			primitives.NewMetadataDefinitionVariant(
-				"FailedTask",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorFailedTask,
-				"The specified [`Task`] failed during execution.",
-			),
-			primitives.NewMetadataDefinitionVariant(
 				"NothingAuthorized",
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
 				ErrorNothingAuthorized,
@@ -1047,9 +1033,9 @@ func (m module) DoAuthorizeUpgrade(codeHash primitives.H256, checkVersion sc.Boo
 	m.DepositEvent(newEventUpgradeAuthorized(m.Index, codeHash, checkVersion))
 }
 
-// Apply an authorized upgrade, performing any validation checks, and remove the authorization.
-// Whether or not the code is set directly depends on the `OnSetCode` configuration of the
-// runtime.
+// DoApplyAuthorizeUpgrade applies an authorized upgrade, performing any validation checks,
+// and removing the authorization. Whether or not the code is set directly depends on the
+// `OnSetCode` configuration of the runtime.
 func (m module) DoApplyAuthorizeUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives.PostDispatchInfo, error) {
 	_, err := m.validateAuthorizedUpgrade(codeBlob)
 	if err != nil {

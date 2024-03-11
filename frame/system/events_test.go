@@ -120,57 +120,6 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	)
 }
 
-func Test_System_DecodeEvent_EventTaskStarted(t *testing.T) {
-	task := types.RuntimeTask{}
-
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(moduleId)
-	buffer.Write(EventTaskStarted.Bytes())
-	buffer.Write(task.Bytes())
-
-	result, err := DecodeEvent(moduleId, buffer)
-	assert.Nil(t, err)
-
-	assert.Equal(t,
-		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventTaskStarted, task)},
-		result,
-	)
-}
-
-func Test_System_DecodeEvent_EventTaskCompleted(t *testing.T) {
-	task := types.RuntimeTask{}
-
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(moduleId)
-	buffer.Write(EventTaskCompleted.Bytes())
-	buffer.Write(task.Bytes())
-
-	result, err := DecodeEvent(moduleId, buffer)
-	assert.Nil(t, err)
-
-	assert.Equal(t,
-		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventTaskCompleted, task)},
-		result,
-	)
-}
-
-func Test_System_DecodeEvent_EventTaskFailed(t *testing.T) {
-	task := types.RuntimeTask{}
-
-	buffer := &bytes.Buffer{}
-	buffer.WriteByte(moduleId)
-	buffer.Write(EventTaskFailed.Bytes())
-	buffer.Write(task.Bytes())
-
-	result, err := DecodeEvent(moduleId, buffer)
-	assert.Nil(t, err)
-
-	assert.Equal(t,
-		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventTaskFailed, task)},
-		result,
-	)
-}
-
 func Test_System_DecodeEvent_EventUpgradeAuthorized(t *testing.T) {
 	checkVersion := sc.Bool(true)
 

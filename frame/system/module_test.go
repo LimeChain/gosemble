@@ -141,18 +141,6 @@ var (
 				"The origin filter prevent the call to be dispatched.",
 			),
 			primitives.NewMetadataDefinitionVariant(
-				"InvalidTask",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorInvalidTask,
-				"The specified [`Task`] is not valid.",
-			),
-			primitives.NewMetadataDefinitionVariant(
-				"FailedTask",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorFailedTask,
-				"The specified [`Task`] failed during execution.",
-			),
-			primitives.NewMetadataDefinitionVariant(
 				"NothingAuthorized",
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
 				ErrorNothingAuthorized,
@@ -205,7 +193,7 @@ func Test_Module_Functions(t *testing.T) {
 	target := setupModule()
 	functions := target.Functions()
 
-	assert.Equal(t, 12, len(functions))
+	assert.Equal(t, 11, len(functions))
 }
 
 func Test_Module_PreDispatch(t *testing.T) {
@@ -1441,13 +1429,6 @@ func Test_Module_Metadata(t *testing.T) {
 						},
 						functionRemarkWithEventIndex,
 						"Make some on-chain remark and emit an event.",
-					),
-
-					primitives.NewMetadataDefinitionVariant(
-						"do_task",
-						sc.Sequence[types.MetadataTypeDefinitionField]{},
-						functionDoTaskIndex,
-						"Do some specified task.",
 					),
 
 					primitives.NewMetadataDefinitionVariant(
