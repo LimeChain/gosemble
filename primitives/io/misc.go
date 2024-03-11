@@ -21,17 +21,17 @@ func NewMisc() Misc {
 	}
 }
 
-func (m *misc) PrintHex(data []byte) {
+func (m misc) PrintHex(data []byte) {
 	dataOffsetSize := m.memoryTranslator.BytesToOffsetAndSize(data)
 	env.ExtMiscPrintHexVersion1(dataOffsetSize)
 }
 
-func (m *misc) PrintUtf8(data []byte) {
+func (m misc) PrintUtf8(data []byte) {
 	dataOffsetSize := m.memoryTranslator.BytesToOffsetAndSize(data)
 	env.ExtMiscPrintUtf8Version1(dataOffsetSize)
 }
 
-func (m *misc) RuntimeVersion(codeBlob []byte) []byte {
+func (m misc) RuntimeVersion(codeBlob []byte) []byte {
 	codeBlobOffsetSize := m.memoryTranslator.BytesToOffsetAndSize(codeBlob)
 	resOffsetSize := env.ExtMiscRuntimeVersionVersion1(codeBlobOffsetSize)
 	offset, size := m.memoryTranslator.Int64ToOffsetAndSize(resOffsetSize)

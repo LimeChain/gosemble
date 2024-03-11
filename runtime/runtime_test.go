@@ -124,11 +124,6 @@ var (
 	applyExtrinsicResultKeepAliveErr, _          = primitives.NewApplyExtrinsicResult(dispatchOutcomeKeepAliveErr)
 )
 
-func newBenchmarkingRuntime(b *testing.B) (*wazero_runtime.Instance, *runtime.Storage) {
-	runtime := wazero_runtime.NewBenchInstanceWithTrie(b, WASM_RUNTIME, trie.NewEmptyTrie())
-	return runtime, &runtime.Context.Storage
-}
-
 func newTestRuntime(t *testing.T) (*wazero_runtime.Instance, *runtime.Storage) {
 	tt := trie.NewEmptyTrie()
 	runtime := wazero_runtime.NewTestInstance(t, WASM_RUNTIME, wazero_runtime.TestWithTrie(tt))

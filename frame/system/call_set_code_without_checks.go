@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -12,12 +11,14 @@ import (
 // Set the new runtime code without doing any checks of the given `code`.
 type callSetCodeWithoutChecks struct {
 	primitives.Callable
+	constants     consts
 	hookOnSetCode hooks.OnSetCode
 }
 
 func newCallSetCodeWithoutChecks(
 	moduleId sc.U8,
 	functionId sc.U8,
+	constants consts,
 	hookOnSetCode hooks.OnSetCode,
 ) primitives.Call {
 	call := callSetCodeWithoutChecks{
@@ -26,6 +27,7 @@ func newCallSetCodeWithoutChecks(
 			FunctionId: functionId,
 			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
+		constants:     constants,
 		hookOnSetCode: hookOnSetCode,
 	}
 
@@ -97,7 +99,7 @@ func (c callSetCodeWithoutChecks) Dispatch(origin primitives.RuntimeOrigin, args
 
 	// consume the rest of the block to prevent further transactions
 	return primitives.PostDispatchInfo{
-		ActualWeight: sc.NewOption[primitives.Weight](constants.MaximumBlockWeight),
+		ActualWeight: sc.NewOption[primitives.Weight](c.constants.BlockWeights.MaxBlock),
 		PaysFee:      primitives.PaysNo,
 	}, nil
 }

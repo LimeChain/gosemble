@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/mocks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 	"github.com/stretchr/testify/assert"
@@ -25,6 +24,7 @@ func Test_Call_SetCodeWithoutChecks_New(t *testing.T) {
 			FunctionId: functionSetCodeWithoutChecksIndex,
 			Arguments:  defaultSetCodeWithoutChecksArgs,
 		},
+		constants:     *moduleConstants,
 		hookOnSetCode: mockOnSetCode,
 	}
 
@@ -87,7 +87,7 @@ func Test_Call_SetCodeWithoutChecks_ModuleIndex(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		call := newCallSetCodeWithoutChecks(tc, functionSetCodeIndex, mockOnSetCode)
+		call := newCallSetCodeWithoutChecks(tc, functionSetCodeIndex, *moduleConstants, mockOnSetCode)
 
 		assert.Equal(t, tc, call.ModuleIndex())
 	}
@@ -105,7 +105,7 @@ func Test_Call_SetCodeWithoutChecks_FunctionIndex(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		call := newCallSetCodeWithoutChecks(moduleId, tc, mockOnSetCode)
+		call := newCallSetCodeWithoutChecks(moduleId, tc, *moduleConstants, mockOnSetCode)
 
 		assert.Equal(t, tc, call.FunctionIndex())
 	}
@@ -147,10 +147,10 @@ func Test_Call_SetCodeWithoutChecks_Dispatch(t *testing.T) {
 	mockOnSetCode.AssertCalled(t, "SetCode", codeBlob)
 
 	assert.Nil(t, dispatchErr)
-	assert.Equal(t, sc.NewOption[primitives.Weight](constants.MaximumBlockWeight), res.ActualWeight)
+	assert.Equal(t, sc.NewOption[primitives.Weight](blockWeights.MaxBlock), res.ActualWeight)
 }
 
 func setupCallSetCodeWithoutChecks() primitives.Call {
 	mockOnSetCode = new(mocks.DefaultOnSetCode)
-	return newCallSetCodeWithoutChecks(moduleId, functionSetCodeWithoutChecksIndex, mockOnSetCode)
+	return newCallSetCodeWithoutChecks(moduleId, functionSetCodeWithoutChecksIndex, *moduleConstants, mockOnSetCode)
 }

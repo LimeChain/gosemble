@@ -40,7 +40,7 @@ type Module interface {
 
 	CodeUpgrader
 	LogDepositor
-	EventDepositor
+	primitives.EventDepositor
 
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
@@ -131,8 +131,8 @@ func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenera
 
 	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
 	functions[functionSetHeapPagesIndex] = newCallSetHeapPages(index, functionSetHeapPagesIndex, storage.HeapPages, moduleInstance)
-	functions[functionSetCodeIndex] = newCallSetCode(index, functionSetCodeIndex, defaultOnSetCode, moduleInstance)
-	functions[functionSetCodeWithoutChecksIndex] = newCallSetCodeWithoutChecks(index, functionSetCodeWithoutChecksIndex, defaultOnSetCode)
+	functions[functionSetCodeIndex] = newCallSetCode(index, functionSetCodeIndex, *constants, defaultOnSetCode, moduleInstance)
+	functions[functionSetCodeWithoutChecksIndex] = newCallSetCodeWithoutChecks(index, functionSetCodeWithoutChecksIndex, *constants, defaultOnSetCode)
 	functions[functionSetStorageIndex] = newCallSetStorage(index, functionSetStorageIndex, ioStorage)
 	functions[functionKillStorageIndex] = newCallKillStorage(index, functionKillStorageIndex, ioStorage)
 	functions[functionKillPrefixIndex] = newCallKillPrefix(index, functionKillPrefixIndex, ioStorage)
@@ -569,9 +569,11 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	if err != nil {
 		return err
 	}
+
 	if blockNumber == 0 {
 		return nil
 	}
+
 	phase, err := m.storage.ExecutionPhase.Get()
 	if err != nil {
 		return err
@@ -594,7 +596,6 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	}
 
 	m.storage.EventCount.Put(newEventCount)
-
 	m.storage.Events.Append(eventRecord)
 
 	topicValue := sc.NewVaryingData(blockNumber, oldEventCount)
@@ -1009,7 +1010,7 @@ func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData
 	}
 }
 
-// Determine whether or not it is possible to update the code.
+// CanSetCode determines whether it is possible to update the code.
 //
 // Checks the given code if it is a valid runtime wasm blob by instantianting
 // it and extracting the runtime version of it. It checks that the runtime version
@@ -1018,13 +1019,11 @@ func (m module) CanSetCode(codeBlob sc.Sequence[sc.U8]) error {
 	currentVersion := *m.Config.Version
 
 	runtimeVersionBytes := m.ioMisc.RuntimeVersion(sc.SequenceU8ToBytes(codeBlob))
-	buf := bytes.NewBuffer(runtimeVersionBytes)
+	buffer := bytes.NewBuffer(runtimeVersionBytes)
+	sc.DecodeBool(buffer)            // option
+	sc.DecodeCompact[sc.U32](buffer) // length
 
-	// TODO: refactor
-	sc.DecodeBool(buf)            // option
-	sc.DecodeCompact[sc.U32](buf) // length
-
-	newVersion, err := primitives.DecodeRuntimeVersion(buf)
+	newVersion, err := primitives.DecodeRuntimeVersion(buffer)
 	if err != nil {
 		return NewDispatchErrorFailedToExtractRuntimeVersion(m.Index)
 	}
@@ -1066,7 +1065,7 @@ func (m module) DoApplyAuthorizeUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives
 
 	post := primitives.PostDispatchInfo{
 		// consume the rest of the block to prevent further transactions
-		ActualWeight: sc.NewOption[primitives.Weight](constants.MaximumBlockWeight),
+		ActualWeight: sc.NewOption[primitives.Weight](m.constants.BlockWeights.MaxBlock),
 		// no fee for valid upgrade
 		PaysFee: primitives.PaysNo,
 	}
@@ -1088,7 +1087,7 @@ func (m module) validateAuthorizedUpgrade(codeBlob sc.Sequence[sc.U8]) (primitiv
 		return primitives.H256{}, err
 	}
 
-	if !(reflect.DeepEqual(actualHash, authorization.Value.CodeHash)) {
+	if !reflect.DeepEqual(actualHash, authorization.Value.CodeHash) {
 		return primitives.H256{}, NewDispatchErrorUnauthorized(m.Index)
 	}
 
@@ -1102,7 +1101,7 @@ func (m module) validateAuthorizedUpgrade(codeBlob sc.Sequence[sc.U8]) (primitiv
 	return actualHash, nil
 }
 
-// Ensure that the origin represents the root.
+// EnsureRoot ensures that the origin represents the root.
 func EnsureRoot(origin primitives.RuntimeOrigin) error {
 	if origin.IsRootOrigin() {
 		return nil
@@ -1111,7 +1110,7 @@ func EnsureRoot(origin primitives.RuntimeOrigin) error {
 	}
 }
 
-// Ensure that the origin represents a signed extrinsic (i.e. transaction).
+// EnsureSigned ensures that the origin represents a signed extrinsic (i.e. transaction).
 // Returns `Ok` with the account that signed the extrinsic or an `Err` otherwise.
 func EnsureSigned(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], error) {
 	if origin.IsSignedOrigin() {

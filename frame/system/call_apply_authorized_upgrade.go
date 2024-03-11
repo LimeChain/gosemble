@@ -85,12 +85,7 @@ func (c callApplyAuthorizedUpgrade) Dispatch(origin primitives.RuntimeOrigin, ar
 		codeBlob = args[0].(sc.Sequence[sc.U8])
 	}
 
-	post, err := c.codeUpgrader.DoApplyAuthorizeUpgrade(codeBlob)
-	if err != nil {
-		return primitives.PostDispatchInfo{}, err
-	}
-
-	return post, nil
+	return c.codeUpgrader.DoApplyAuthorizeUpgrade(codeBlob)
 }
 
 func (_ callApplyAuthorizedUpgrade) Docs() string {

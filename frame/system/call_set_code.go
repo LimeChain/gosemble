@@ -4,7 +4,6 @@ import (
 	"bytes"
 
 	sc "github.com/LimeChain/goscale"
-	"github.com/LimeChain/gosemble/constants"
 	"github.com/LimeChain/gosemble/hooks"
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
@@ -12,6 +11,7 @@ import (
 // Set the new runtime code.
 type callSetCode struct {
 	primitives.Callable
+	constants     consts
 	hookOnSetCode hooks.OnSetCode
 	codeUpgrader  CodeUpgrader
 }
@@ -19,6 +19,7 @@ type callSetCode struct {
 func newCallSetCode(
 	moduleId sc.U8,
 	functionId sc.U8,
+	constants consts,
 	hookOnSetCode hooks.OnSetCode,
 	codeUpgrader CodeUpgrader,
 ) primitives.Call {
@@ -28,6 +29,7 @@ func newCallSetCode(
 			FunctionId: functionId,
 			Arguments:  sc.NewVaryingData(sc.Sequence[sc.U8]{}),
 		},
+		constants:     constants,
 		hookOnSetCode: hookOnSetCode,
 		codeUpgrader:  codeUpgrader,
 	}
@@ -105,7 +107,7 @@ func (c callSetCode) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingDa
 
 	// consume the rest of the block to prevent further transactions
 	return primitives.PostDispatchInfo{
-		ActualWeight: sc.NewOption[primitives.Weight](constants.MaximumBlockWeight),
+		ActualWeight: sc.NewOption[primitives.Weight](c.constants.BlockWeights.MaxBlock),
 		PaysFee:      primitives.PaysNo,
 	}, nil
 }

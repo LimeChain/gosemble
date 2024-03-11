@@ -61,7 +61,7 @@ func Test_TransactionPaymentApi_QueryInfo_Signed_Success(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
-		Weight:     primitives.WeightFromParts(75_933_363, 0),
+		Weight:     primitives.WeightFromParts(68_363_334, 0),
 		Class:      primitives.NewDispatchClassNormal(),
 		PartialFee: sc.NewU128(4_288_948_107),
 	}
@@ -97,7 +97,7 @@ func Test_TransactionPaymentApi_QueryInfo_Unsigned_Success(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
-		Weight:     primitives.WeightFromParts(75_933_363, 0),
+		Weight:     primitives.WeightFromParts(68_363_334, 0),
 		Class:      primitives.NewDispatchClassNormal(),
 		PartialFee: sc.NewU128(0),
 	}
@@ -222,7 +222,7 @@ func Test_TransactionPaymentCallApi_QueryCallInfo_Success(t *testing.T) {
 	assert.Nil(t, err)
 
 	expectedRdi := primitives.RuntimeDispatchInfo{
-		Weight:     primitives.WeightFromParts(75_933_363, 0),
+		Weight:     primitives.WeightFromParts(68_363_334, 0),
 		Class:      primitives.NewDispatchClassNormal(),
 		PartialFee: sc.NewU128(4_288_948_003),
 	}

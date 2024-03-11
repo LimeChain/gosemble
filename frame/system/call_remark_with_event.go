@@ -12,7 +12,7 @@ import (
 // Can be executed by any origin.
 type callRemarkWithEvent struct {
 	primitives.Callable
-	eventDepositor EventDepositor
+	eventDepositor primitives.EventDepositor
 	ioHashing      io.Hashing
 }
 
@@ -20,7 +20,7 @@ func newCallRemarkWithEvent(
 	moduleId sc.U8,
 	functionId sc.U8,
 	ioHashing io.Hashing,
-	eventDepositor EventDepositor,
+	eventDepositor primitives.EventDepositor,
 ) primitives.Call {
 	call := callRemarkWithEvent{
 		Callable: primitives.Callable{

@@ -84,15 +84,11 @@ func (c callAuthorizeUpgrade) Dispatch(origin primitives.RuntimeOrigin, args sc.
 		codeHash = args[0].(primitives.H256)
 	}
 
-	authorizeUpgrade(codeHash, true, c.codeUpgrader)
+	c.codeUpgrader.DoAuthorizeUpgrade(codeHash, true)
 
 	return primitives.PostDispatchInfo{}, nil
 }
 
 func (_ callAuthorizeUpgrade) Docs() string {
 	return "Authorize new runtime code."
-}
-
-func authorizeUpgrade(codeHash primitives.H256, checkVersion sc.Bool, codeUpgrader CodeUpgrader) {
-	codeUpgrader.DoAuthorizeUpgrade(codeHash, checkVersion)
 }
