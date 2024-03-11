@@ -14,7 +14,7 @@ import (
 )
 
 func {{.FunctionName}}(dbWeight primitives.RuntimeDbWeight
-	{{- range $index, $componentName := .UsedComponents -}}
+	{{- range $index, $componentName := .ComponentNames -}}
 		, {{$componentName}} sc.U64
 	{{- end -}}
 ) primitives.Weight {
@@ -24,10 +24,10 @@ func {{.FunctionName}}(dbWeight primitives.RuntimeDbWeight
 		{{- end }}
 		SaturatingAdd(dbWeight.Reads({{.BaseReads}})).
 		{{- range .ComponentReads }}
-			SaturatingAdd(dbWeight.Reads({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+			SaturatingAdd(dbWeight.Reads({{.Slope}}).SaturatingMul({{.ComponentName}})).
 		{{- end }}
 		SaturatingAdd(dbWeight.Writes({{.BaseWrites}})){{if gt (len .ComponentWrites) 0}}.{{end}}
-		{{- range .ComponentWrites }}
-			SaturatingAdd(dbWeight.Writes({{.Slope}}, 0).SaturatingMul({{.ComponentName}})).
+		{{- range $index, $cw := .ComponentWrites }}
+			SaturatingAdd(dbWeight.Writes({{$cw.Slope}}).SaturatingMul({{$cw.ComponentName}})){{if $index}}.{{end}}
 		{{- end }}
 }

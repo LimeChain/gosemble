@@ -33,7 +33,7 @@ func TestMedianSlopesAnalysis(t *testing.T) {
 		componentExtrinsicTimes: []componentSlope{{Slope: 1000000000}, {Slope: 100000000}},
 		componentReads:          []componentSlope{{Slope: 1}},
 		componentWrites:         []componentSlope{{Slope: 2}},
-		usedComponents:          []string{""},
+		componentNames:          []string{"", ""},
 	}
 
 	medianSlopesRes := medianSlopesAnalysis(data)
