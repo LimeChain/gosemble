@@ -19,7 +19,6 @@ import (
 )
 
 var (
-	codeSpecVersion100, _ = os.ReadFile("./testdata/gosemble_node_template_100.wasm")
 	codeSpecVersion101, _ = os.ReadFile("./testdata/gosemble_node_template_101.wasm")
 )
 

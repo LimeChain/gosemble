@@ -7,7 +7,7 @@
 package {{.PackageName}}
 
 import (
-	{{- if gt (len .UsedComponents) 0 -}}
+	{{- if gt (len .ComponentNames) 0 -}}
 		sc "github.com/LimeChain/goscale"
 	{{- end }}
 	primitives "github.com/LimeChain/gosemble/primitives/types"
