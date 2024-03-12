@@ -65,7 +65,7 @@ func (c callRemarkWithEvent) Args() sc.VaryingData {
 }
 
 func (c callRemarkWithEvent) BaseWeight() primitives.Weight {
-	message := c.typedArgs(c.Arguments)
+	message := c.Arguments[0].(sc.Sequence[sc.U8])
 	return callRemarkWithEventWeight(primitives.RuntimeDbWeight{}, sc.U64(len(message)))
 }
 
@@ -87,7 +87,7 @@ func (c callRemarkWithEvent) Dispatch(origin primitives.RuntimeOrigin, args sc.V
 		return primitives.PostDispatchInfo{}, err
 	}
 
-	message := c.typedArgs(c.Arguments)
+	message := args[0].(sc.Sequence[sc.U8])
 
 	hash, err := primitives.NewH256(sc.BytesToFixedSequenceU8(c.ioHashing.Blake256(sc.SequenceU8ToBytes(message)))...)
 	if err != nil {

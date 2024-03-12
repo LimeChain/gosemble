@@ -55,7 +55,7 @@ func (c callRemark) Args() sc.VaryingData {
 }
 
 func (c callRemark) BaseWeight() primitives.Weight {
-	message := c.typedArgs(c.Arguments)
+	message := c.Arguments[0].(sc.Sequence[sc.U8])
 	return callRemarkWeight(primitives.RuntimeDbWeight{}, sc.U64(len(message)))
 }
 
@@ -77,12 +77,4 @@ func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) 
 
 func (_ callRemark) Docs() string {
 	return "Make some on-chain remark."
-}
-
-func (c callRemark) typedArgs(args sc.VaryingData) sc.Sequence[sc.U8] {
-	message := sc.Sequence[sc.U8]{}
-	if args[0] != nil {
-		message = args[0].(sc.Sequence[sc.U8])
-	}
-	return message
 }

@@ -62,7 +62,7 @@ func (c callKillPrefix) Args() sc.VaryingData {
 }
 
 func (c callKillPrefix) BaseWeight() primitives.Weight {
-	_, subkeys := c.typedArgs(c.Arguments)
+	subkeys := c.Arguments[1].(sc.U32)
 	return callKillPrefixWeight(primitives.RuntimeDbWeight{}, sc.U64(subkeys))
 }
 
@@ -86,7 +86,8 @@ func (c callKillPrefix) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyin
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	prefix, subkeys := c.typedArgs(c.Arguments)
+	prefix := args[0].(sc.Sequence[sc.U8])
+	subkeys := args[1].(sc.U32)
 
 	rsv := support.NewRawStorageValueFrom(c.ioStorage, sc.SequenceU8ToBytes(prefix))
 	rsv.ClearPrefix(subkeys)
@@ -96,15 +97,4 @@ func (c callKillPrefix) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyin
 
 func (_ callKillPrefix) Docs() string {
 	return "Kill all storage items with a key that starts with the given prefix."
-}
-
-func (c callKillPrefix) typedArgs(args sc.VaryingData) (sc.Sequence[sc.U8], sc.U32) {
-	prefix := sc.Sequence[sc.U8]{}
-	subkeys := sc.U32(0)
-
-	if args[0] != nil && args[1] != nil {
-		prefix = args[0].(sc.Sequence[sc.U8])
-		subkeys = args[1].(sc.U32)
-	}
-	return prefix, subkeys
 }

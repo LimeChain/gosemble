@@ -25,6 +25,7 @@ const (
 	functionKillStorageIndex
 	functionKillPrefixIndex
 	functionRemarkWithEventIndex
+	functionDoTaskIndex
 	functionAuthorizeUpgradeIndex
 	functionAuthorizeUpgradeWithoutChecksIndex
 	functionApplyAuthorizedUpgradeIndex

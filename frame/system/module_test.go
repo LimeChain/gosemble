@@ -1327,7 +1327,6 @@ func Test_Module_mutateAccount_NilData(t *testing.T) {
 }
 
 func Test_Module_Metadata(t *testing.T) {
-	t.Skip()
 	target := setupModule()
 
 	expectedSystemCallId := mdGenerator.GetLastAvailableIndex() + 1
@@ -1397,7 +1396,7 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.NewMetadataDefinitionVariant(
 						"set_storage",
 						sc.Sequence[types.MetadataTypeDefinitionField]{
-							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceSequenceU8), // TypesSequenceKeyValue
+							primitives.NewMetadataTypeDefinitionField(metadata.TypesSequenceKeyValue),
 						},
 						functionSetStorageIndex,
 						"Set some items of storage.",

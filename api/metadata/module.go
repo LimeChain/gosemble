@@ -796,24 +796,24 @@ func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataType(metadata.TypesSequenceSequenceU8, "[][]byte", primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesSequenceU8))),
 
-		// primitives.NewMetadataType(
-		// 	metadata.TypesKeyValue,
-		// 	"KeyValue",
-		// 	primitives.NewMetadataTypeDefinitionComposite(
-		// 		sc.Sequence[primitives.MetadataTypeDefinitionField]{
-		// 			primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Key", "Vec<U8>"),
-		// 			primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Value", "Vec<U8>"),
-		// 		},
-		// 	),
-		// ),
+		primitives.NewMetadataType(
+			metadata.TypesKeyValue,
+			"KeyValue",
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Key", "Vec<U8>"),
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Value", "Vec<U8>"),
+				},
+			),
+		),
 
-		// primitives.NewMetadataType(
-		// 	metadata.TypesSequenceKeyValue,
-		// 	"Vec<KeyValue>",
-		// 	primitives.NewMetadataTypeDefinitionSequence(
-		// 		sc.ToCompact(metadata.TypesKeyValue),
-		// 	),
-		// ),
+		primitives.NewMetadataType(
+			metadata.TypesSequenceKeyValue,
+			"Vec<KeyValue>",
+			primitives.NewMetadataTypeDefinitionSequence(
+				sc.ToCompact(metadata.TypesKeyValue),
+			),
+		),
 
 		primitives.NewMetadataTypeWithPath(
 			metadata.TypesWeight,

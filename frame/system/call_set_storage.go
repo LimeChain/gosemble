@@ -58,7 +58,7 @@ func (c callSetStorage) Args() sc.VaryingData {
 }
 
 func (c callSetStorage) BaseWeight() primitives.Weight {
-	items := c.typedArgs(c.Arguments)
+	items := c.Arguments[0].(sc.Sequence[KeyValue])
 	return callSetStorageWeight(primitives.RuntimeDbWeight{}, sc.U64(len(items)))
 }
 
@@ -82,7 +82,7 @@ func (c callSetStorage) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyin
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	items := c.typedArgs(c.Arguments)
+	items := args[0].(sc.Sequence[KeyValue])
 
 	for _, item := range items {
 		rsv := support.NewRawStorageValueFrom(c.ioStorage, sc.SequenceU8ToBytes(item.Key))
@@ -94,12 +94,4 @@ func (c callSetStorage) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyin
 
 func (_ callSetStorage) Docs() string {
 	return "Set some items of storage."
-}
-
-func (c callSetStorage) typedArgs(args sc.VaryingData) sc.Sequence[KeyValue] {
-	items := sc.Sequence[KeyValue]{}
-	if args[0] != nil {
-		items = args[0].(sc.Sequence[KeyValue])
-	}
-	return items
 }

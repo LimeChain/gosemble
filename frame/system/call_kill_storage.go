@@ -58,7 +58,7 @@ func (c callKillStorage) Args() sc.VaryingData {
 }
 
 func (c callKillStorage) BaseWeight() primitives.Weight {
-	keys := c.typedArgs(c.Arguments)
+	keys := c.Arguments[0].(sc.Sequence[sc.Sequence[sc.U8]])
 	return callKillStorageWeight(primitives.RuntimeDbWeight{}, sc.U64(len(keys)))
 }
 
@@ -82,7 +82,7 @@ func (c callKillStorage) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyi
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	keys := c.typedArgs(c.Arguments)
+	keys := args[0].(sc.Sequence[sc.Sequence[sc.U8]])
 
 	for _, key := range keys {
 		rsv := support.NewRawStorageValueFrom(c.ioStorage, sc.SequenceU8ToBytes(key))
@@ -94,12 +94,4 @@ func (c callKillStorage) Dispatch(origin primitives.RuntimeOrigin, args sc.Varyi
 
 func (_ callKillStorage) Docs() string {
 	return "Kill some items from storage."
-}
-
-func (c callKillStorage) typedArgs(args sc.VaryingData) sc.Sequence[sc.Sequence[sc.U8]] {
-	keys := sc.Sequence[sc.Sequence[sc.U8]]{}
-	if args[0] != nil {
-		keys = args[0].(sc.Sequence[sc.Sequence[sc.U8]])
-	}
-	return keys
 }

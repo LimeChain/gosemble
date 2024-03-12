@@ -170,4 +170,7 @@ const (
 	TypesOptionSequenceU8
 
 	TypesSequenceSequenceU8
+
+	TypesKeyValue
+	TypesSequenceKeyValue
 )
