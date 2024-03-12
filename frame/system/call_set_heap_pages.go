@@ -87,10 +87,7 @@ func (c callSetHeapPages) Dispatch(origin primitives.RuntimeOrigin, args sc.Vary
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	pages := sc.U64(0)
-	if args[0] != nil {
-		pages = args[0].(sc.U64)
-	}
+	pages := args[0].(sc.U64)
 
 	c.heapPages.Put(pages)
 	c.logDepositor.DepositLog(primitives.NewDigestItemRuntimeEnvironmentUpgrade())

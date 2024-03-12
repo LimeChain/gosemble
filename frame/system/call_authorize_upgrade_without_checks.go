@@ -79,10 +79,7 @@ func (c callAuthorizeUpgradeWithoutChecks) Dispatch(origin primitives.RuntimeOri
 	// 	return err
 	// }
 
-	codeHash := primitives.H256{}
-	if args[0] != nil {
-		codeHash = args[0].(primitives.H256)
-	}
+	codeHash := args[0].(primitives.H256)
 
 	c.codeUpgrader.DoAuthorizeUpgrade(codeHash, false)
 

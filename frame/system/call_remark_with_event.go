@@ -105,9 +105,7 @@ func (_ callRemarkWithEvent) Docs() string {
 }
 
 func (c callRemarkWithEvent) typedArgs(args sc.VaryingData) sc.Sequence[sc.U8] {
-	message := sc.Sequence[sc.U8]{}
-	if args[0] != nil {
-		message = args[0].(sc.Sequence[sc.U8])
-	}
+	message := args[0].(sc.Sequence[sc.U8])
+
 	return message
 }

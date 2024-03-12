@@ -80,10 +80,7 @@ func (_ callApplyAuthorizedUpgrade) PaysFee(baseWeight primitives.Weight) primit
 }
 
 func (c callApplyAuthorizedUpgrade) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingData) (primitives.PostDispatchInfo, error) {
-	codeBlob := sc.Sequence[sc.U8]{}
-	if args[0] != nil {
-		codeBlob = args[0].(sc.Sequence[sc.U8])
-	}
+	codeBlob := args[0].(sc.Sequence[sc.U8])
 
 	return c.codeUpgrader.DoApplyAuthorizeUpgrade(codeBlob)
 }

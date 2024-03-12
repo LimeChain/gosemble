@@ -801,8 +801,8 @@ func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
 			"KeyValue",
 			primitives.NewMetadataTypeDefinitionComposite(
 				sc.Sequence[primitives.MetadataTypeDefinitionField]{
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Key", "Vec<U8>"),
-					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Value", "Vec<U8>"),
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Key", "Vec<u8>"),
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesSequenceU8, "Value", "Vec<u8>"),
 				},
 			),
 		),

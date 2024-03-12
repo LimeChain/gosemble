@@ -162,8 +162,26 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
-	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, error) {
+	switch call := call.(type) {
+	case callApplyAuthorizedUpgrade:
+		code := call.Args()[0].(sc.Sequence[sc.U8])
+
+		hash, err := m.validateAuthorizedUpgrade(code)
+		if err != nil {
+			return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionCall())
+		}
+
+		return primitives.ValidTransaction{
+			Priority:  100,
+			Requires:  sc.Sequence[primitives.TransactionTag]{},
+			Provides:  sc.Sequence[primitives.TransactionTag]{sc.BytesToSequenceU8(sc.FixedSequenceU8ToBytes(hash.FixedSequence))},
+			Longevity: primitives.TransactionLongevity(math.MaxUint64),
+			Propagate: true,
+		}, nil
+	default:
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	}
 }
 
 func (m module) BlockHashCount() types.BlockHashCount {

@@ -90,10 +90,7 @@ func (c callSetCode) Dispatch(origin primitives.RuntimeOrigin, args sc.VaryingDa
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	codeBlob := sc.Sequence[sc.U8]{}
-	if args[0] != nil {
-		codeBlob = args[0].(sc.Sequence[sc.U8])
-	}
+	codeBlob := args[0].(sc.Sequence[sc.U8])
 
 	err := c.codeUpgrader.CanSetCode(codeBlob)
 	if err != nil {

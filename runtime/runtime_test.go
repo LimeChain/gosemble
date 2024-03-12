@@ -76,6 +76,7 @@ var (
 )
 
 var (
+	invalidTransactionCallErr              = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionCall())
 	invalidTransactionStaleErr             = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionStale())
 	invalidTransactionFutureErr            = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionFuture())
 	invalidTransactionBadProofErr          = primitives.NewTransactionValidityError(primitives.NewInvalidTransactionBadProof())
@@ -85,6 +86,7 @@ var (
 )
 
 var (
+	transactionValidityResultCallErr, _                = primitives.NewTransactionValidityResult(invalidTransactionCallErr.(primitives.TransactionValidityError))
 	transactionValidityResultStaleErr, _               = primitives.NewTransactionValidityResult(invalidTransactionStaleErr.(primitives.TransactionValidityError))
 	transactionValidityResultFutureErr, _              = primitives.NewTransactionValidityResult(invalidTransactionFutureErr.(primitives.TransactionValidityError))
 	transactionValidityResultExhaustsResourcesErr, _   = primitives.NewTransactionValidityResult(invalidTransactionExhaustsResourcesErr.(primitives.TransactionValidityError))

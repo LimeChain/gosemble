@@ -79,10 +79,7 @@ func (c callAuthorizeUpgrade) Dispatch(origin primitives.RuntimeOrigin, args sc.
 	// 	return err
 	// }
 
-	codeHash := primitives.H256{}
-	if args[0] != nil {
-		codeHash = args[0].(primitives.H256)
-	}
+	codeHash := args[0].(primitives.H256)
 
 	c.codeUpgrader.DoAuthorizeUpgrade(codeHash, true)
 

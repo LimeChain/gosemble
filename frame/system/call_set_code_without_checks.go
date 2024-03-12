@@ -87,10 +87,7 @@ func (c callSetCodeWithoutChecks) Dispatch(origin primitives.RuntimeOrigin, args
 	// 	return primitives.PostDispatchInfo{}, err
 	// }
 
-	codeBlob := sc.Sequence[sc.U8]{}
-	if args[0] != nil {
-		codeBlob = args[0].(sc.Sequence[sc.U8])
-	}
+	codeBlob := args[0].(sc.Sequence[sc.U8])
 
 	err := c.hookOnSetCode.SetCode(codeBlob)
 	if err != nil {
