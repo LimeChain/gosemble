@@ -1793,6 +1793,14 @@ func Test_Module_Metadata(t *testing.T) {
 						},
 						EventRemarked,
 						"Events.Remarked"),
+					primitives.NewMetadataDefinitionVariant(
+						"UpgradeAuthorized",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesH256, "code_hash", "T::Hash"),
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "check_version", "bool"),
+						},
+						EventUpgradeAuthorized,
+						"Events.UpgradeAuthorized"),
 				})),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
@@ -1891,6 +1899,12 @@ func Test_Module_Metadata(t *testing.T) {
 					primitives.MetadataModuleStorageEntryModifierOptional,
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(expectedTypesPhaseId)),
 					"The execution phase of the block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"AuthorizedUpgrade",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesStorageOptionCodeUpgradeAuthorization)),
+					"Optional code upgrade authorization for the runtime.",
 				),
 			},
 		}),

@@ -823,7 +823,8 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesSystemEvent,
 			"frame_system pallet Event",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[sc.Str]{"frame_system", "pallet", "Event"},
+			primitives.NewMetadataTypeDefinitionVariant(
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
 					primitives.NewMetadataDefinitionVariant(
 						"ExtrinsicSuccess",
@@ -867,6 +868,14 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						},
 						EventRemarked,
 						"Events.Remarked"),
+					primitives.NewMetadataDefinitionVariant(
+						"UpgradeAuthorized",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesH256, "code_hash", "T::Hash"),
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "check_version", "bool"),
+						},
+						EventUpgradeAuthorized,
+						"Events.UpgradeAuthorized"),
 				})),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
@@ -996,13 +1005,12 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(typesPhaseId)),
 					"The execution phase of the block.",
 				),
-
-				// primitives.NewMetadataModuleStorageEntry(
-				// 	"ExecutionPhase",
-				// 	primitives.MetadataModuleStorageEntryModifierOptional,
-				// 	primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(typesPhaseId)),
-				// 	"The execution phase of the block.",
-				// ),
+				primitives.NewMetadataModuleStorageEntry(
+					"AuthorizedUpgrade",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesStorageOptionCodeUpgradeAuthorization)),
+					"Optional code upgrade authorization for the runtime.",
+				),
 			},
 		})
 }

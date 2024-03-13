@@ -173,4 +173,5 @@ const (
 
 	TypesKeyValue
 	TypesSequenceKeyValue
+	TypesStorageOptionCodeUpgradeAuthorization
 )
