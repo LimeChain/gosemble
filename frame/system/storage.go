@@ -49,7 +49,7 @@ type storage struct {
 	ExecutionPhase     support.StorageValue[types.ExtrinsicPhase]
 	HeapPages          support.StorageValue[sc.U64]
 	Code               support.StorageRawValue
-	AuthorizedUpgrade  support.StorageValue[sc.Option[CodeUpgradeAuthorization]]
+	AuthorizedUpgrade  support.StorageValue[CodeUpgradeAuthorization]
 }
 
 func newStorage() *storage {
@@ -73,6 +73,6 @@ func newStorage() *storage {
 		ExecutionPhase:     support.NewHashStorageValue(keySystem, keyExecutionPhase, types.DecodeExtrinsicPhase),
 		HeapPages:          support.NewSimpleStorageValue(keyHeapPages, sc.DecodeU64),
 		Code:               support.NewRawStorageValue(keyCode),
-		AuthorizedUpgrade:  support.NewHashStorageValue(keySystem, keyAuthorizedUpgrade, DecodeCodeUpgradeAuthorizationOption),
+		AuthorizedUpgrade:  support.NewHashStorageValue(keySystem, keyAuthorizedUpgrade, DecodeCodeUpgradeAuthorization),
 	}
 }

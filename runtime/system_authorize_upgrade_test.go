@@ -48,11 +48,11 @@ func Test_AuthorizeUpgrade_DispatchOutcome(t *testing.T) {
 	assert.NoError(t, err)
 
 	upgradeAuthorizationBytes := (*storage).Get(append(keySystemHash, keyAuthorizedUpgradeHash...))
-	upgradeAuthorization, err := sc.DecodeOptionWith(bytes.NewBuffer(upgradeAuthorizationBytes), system.DecodeCodeUpgradeAuthorization)
+	upgradeAuthorization, err := system.DecodeCodeUpgradeAuthorization(bytes.NewBuffer(upgradeAuthorizationBytes))
 	assert.NoError(t, err)
 
-	assert.Equal(t, codeHash.ToBytes(), sc.FixedSequenceU8ToBytes(upgradeAuthorization.Value.CodeHash.FixedSequence))
-	assert.Equal(t, sc.Bool(true), upgradeAuthorization.Value.CheckVersion)
+	assert.Equal(t, codeHash.ToBytes(), sc.FixedSequenceU8ToBytes(upgradeAuthorization.CodeHash.FixedSequence))
+	assert.Equal(t, sc.Bool(true), upgradeAuthorization.CheckVersion)
 
 	// Event are emitted
 	buffer := &bytes.Buffer{}

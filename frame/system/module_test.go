@@ -174,7 +174,7 @@ var (
 	mockStorageExecutionPhase     *mocks.StorageValue[primitives.ExtrinsicPhase]
 	mockStorageHeapPages          *mocks.StorageValue[sc.U64]
 	mockStorageCode               *mocks.RawStorageValue
-	mockStorageAuthorizedUpgrade  *mocks.StorageValue[sc.Option[CodeUpgradeAuthorization]]
+	mockStorageAuthorizedUpgrade  *mocks.StorageValue[CodeUpgradeAuthorization]
 
 	mockIoStorage *mocks.IoStorage
 	mockIoHashing *mocks.IoHashing
@@ -1903,7 +1903,7 @@ func Test_Module_Metadata(t *testing.T) {
 				primitives.NewMetadataModuleStorageEntry(
 					"AuthorizedUpgrade",
 					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesStorageOptionCodeUpgradeAuthorization)),
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesCodeUpgradeAuthorization)),
 					"Optional code upgrade authorization for the runtime.",
 				),
 			},
@@ -2108,7 +2108,7 @@ func Test_DoAuthorizeUpgrade_Success(t *testing.T) {
 		Topics: []primitives.H256{},
 	}
 
-	upgradeAuthorization := sc.NewOption[CodeUpgradeAuthorization](CodeUpgradeAuthorization{codeHash, checkVersion})
+	upgradeAuthorization := CodeUpgradeAuthorization{codeHash, checkVersion}
 
 	mockStorageAuthorizedUpgrade.On("Put", upgradeAuthorization).Return()
 	mockStorageBlockNumber.On("Get").Return(blockNum, nil)
@@ -2139,7 +2139,7 @@ func Test_DoApplyAuthorizeUpgrade_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	checkVersion := sc.Bool(true)
-	upgradeAuthorization := sc.NewOption[CodeUpgradeAuthorization](CodeUpgradeAuthorization{codeHash, checkVersion})
+	upgradeAuthorization := CodeUpgradeAuthorization{codeHash, checkVersion}
 
 	digestItem := primitives.NewDigestItemRuntimeEnvironmentUpgrade()
 
@@ -2238,7 +2238,7 @@ func initMockStorage() {
 	mockStorageExecutionPhase = new(mocks.StorageValue[primitives.ExtrinsicPhase])
 	mockStorageHeapPages = new(mocks.StorageValue[sc.U64])
 	mockStorageCode = new(mocks.RawStorageValue)
-	mockStorageAuthorizedUpgrade = new(mocks.StorageValue[sc.Option[CodeUpgradeAuthorization]])
+	mockStorageAuthorizedUpgrade = new(mocks.StorageValue[CodeUpgradeAuthorization])
 
 	mockIoStorage = new(mocks.IoStorage)
 	mockIoHashing = new(mocks.IoHashing)

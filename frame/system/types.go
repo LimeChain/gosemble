@@ -74,7 +74,3 @@ func DecodeCodeUpgradeAuthorization(buffer *bytes.Buffer) (CodeUpgradeAuthorizat
 	}
 	return CodeUpgradeAuthorization{codeHash, checkVersion}, nil
 }
-
-func DecodeCodeUpgradeAuthorizationOption(buffer *bytes.Buffer) (sc.Option[CodeUpgradeAuthorization], error) {
-	return sc.DecodeOptionWith(buffer, DecodeCodeUpgradeAuthorization)
-}

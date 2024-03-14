@@ -1008,7 +1008,7 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 				primitives.NewMetadataModuleStorageEntry(
 					"AuthorizedUpgrade",
 					primitives.MetadataModuleStorageEntryModifierOptional,
-					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesStorageOptionCodeUpgradeAuthorization)),
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesCodeUpgradeAuthorization)),
 					"Optional code upgrade authorization for the runtime.",
 				),
 			},
@@ -1055,7 +1055,7 @@ func (m module) CanSetCode(codeBlob sc.Sequence[sc.U8]) error {
 // To be called after any origin/privilege checks. Put the code upgrade authorization into
 // storage and emit an event.
 func (m module) DoAuthorizeUpgrade(codeHash primitives.H256, checkVersion sc.Bool) {
-	value := sc.NewOption[CodeUpgradeAuthorization](CodeUpgradeAuthorization{codeHash, checkVersion})
+	value := CodeUpgradeAuthorization{codeHash, checkVersion}
 	m.storage.AuthorizedUpgrade.Put(value)
 	m.DepositEvent(newEventUpgradeAuthorized(m.Index, codeHash, checkVersion))
 }
@@ -1090,7 +1090,7 @@ func (m module) DoApplyAuthorizeUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives
 // existing authorization and that it meets the specification requirements of `can_set_code`.
 func (m module) validateAuthorizedUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives.H256, error) {
 	authorization, err := m.storage.AuthorizedUpgrade.Get()
-	if !authorization.HasValue || err != nil {
+	if err != nil {
 		return primitives.H256{}, NewDispatchErrorNothingAuthorized(m.Index)
 	}
 
@@ -1100,11 +1100,11 @@ func (m module) validateAuthorizedUpgrade(codeBlob sc.Sequence[sc.U8]) (primitiv
 		return primitives.H256{}, err
 	}
 
-	if !reflect.DeepEqual(actualHash, authorization.Value.CodeHash) {
+	if !reflect.DeepEqual(actualHash, authorization.CodeHash) {
 		return primitives.H256{}, NewDispatchErrorUnauthorized(m.Index)
 	}
 
-	if authorization.Value.CheckVersion {
+	if authorization.CheckVersion {
 		err := m.CanSetCode(codeBlob)
 		if err != nil {
 			return primitives.H256{}, err

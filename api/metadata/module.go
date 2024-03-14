@@ -815,6 +815,17 @@ func (m Module) basicTypes() sc.Sequence[primitives.MetadataType] {
 			),
 		),
 
+		primitives.NewMetadataType(
+			metadata.TypesCodeUpgradeAuthorization,
+			"CodeUpgradeAuthorization",
+			primitives.NewMetadataTypeDefinitionComposite(
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesH256, "code_hash", "T::Hash"),
+					primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "check_version", "bool"),
+				},
+			),
+		),
+
 		primitives.NewMetadataTypeWithPath(
 			metadata.TypesWeight,
 			"Weight",
