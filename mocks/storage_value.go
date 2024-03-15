@@ -47,6 +47,12 @@ func (m *StorageValue[T]) Append(value T) {
 	m.Called(value)
 }
 
+// TODO:
+// support appending values with type different from T
+func (m *StorageValue[T]) AppendItem(value sc.Encodable) {
+	m.Called(value)
+}
+
 func (m *StorageValue[T]) Take() (T, error) {
 	args := m.Called()
 

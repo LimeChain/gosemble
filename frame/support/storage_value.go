@@ -9,6 +9,9 @@ type StorageValue[T sc.Encodable] interface {
 	Put(value T)
 	Clear()
 	Append(value T)
+	// TODO:
+	// support appending values with type different from T
+	AppendItem(value sc.Encodable)
 	TakeBytes() ([]byte, error)
 	Take() (T, error)
 	DecodeLen() (sc.Option[sc.U64], error)

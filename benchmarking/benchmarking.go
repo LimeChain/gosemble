@@ -7,7 +7,7 @@ import (
 
 	"github.com/ChainSafe/gossamer/lib/runtime"
 	wazero_runtime "github.com/ChainSafe/gossamer/lib/runtime/wazero"
-	"github.com/ChainSafe/gossamer/lib/trie"
+	"github.com/ChainSafe/gossamer/pkg/trie"
 	sc "github.com/LimeChain/goscale"
 	"github.com/LimeChain/gosemble/primitives/benchmarking"
 	benchmarkingtypes "github.com/LimeChain/gosemble/primitives/benchmarking"

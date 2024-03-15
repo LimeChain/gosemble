@@ -2,6 +2,7 @@ package types
 
 import (
 	"reflect"
+	"sort"
 	"strings"
 
 	sc "github.com/LimeChain/goscale"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	lastAvailableIndex = 133 // the last enum id from constants/metadata.go
+	lastAvailableIndex = 136 // the last enum id from constants/metadata.go
 )
 
 const (
@@ -63,6 +64,9 @@ func BuildMetadataTypesIdsMap() map[string]int {
 		"Header":                     metadata.Header,
 		"SequenceUncheckedExtrinsic": metadata.TypesSequenceUncheckedExtrinsics,
 		"SequenceSequenceU8":         metadata.TypesSequenceSequenceU8,
+		"KeyValue":                   metadata.TypesKeyValue,
+		"SequenceKeyValue":           metadata.TypesSequenceKeyValue,
+		"CodeUpgradeAuthorization":   metadata.TypesCodeUpgradeAuthorization,
 		"RuntimeVersion":             metadata.TypesRuntimeVersion,
 		"Weight":                     metadata.TypesWeight,
 	}
@@ -147,33 +151,35 @@ func (g *MetadataTypeGenerator) BuildCallsMetadata(moduleName string, moduleFunc
 
 	functionVariants := sc.Sequence[MetadataDefinitionVariant]{}
 
-	lenFunctions := len(moduleFunctions)
-	for i := 0; i < lenFunctions; i++ {
-		f := moduleFunctions[sc.U8(i)]
+	// get the implemented function ids in specific order
+	functionIds := []int{}
+	for _, function := range moduleFunctions {
+		functionIds = append(functionIds, int(function.FunctionIndex()))
+	}
+	sort.Ints(functionIds)
 
-		functionValue := reflect.ValueOf(f)
-		functionType := functionValue.Type()
-
-		functionName := functionType.Name()
+	for _, id := range functionIds {
+		function := moduleFunctions[sc.U8(id)]
+		functionValue := reflect.ValueOf(function)
 
 		args := functionValue.FieldByName("Arguments")
 
 		fields := sc.Sequence[MetadataTypeDefinitionField]{}
 
 		if args.IsValid() {
-			argsLen := args.Len()
-			for j := 0; j < argsLen; j++ {
-				currentArg := args.Index(j).Elem()
+			for i := 0; i < args.Len(); i++ {
+				currentArg := args.Index(i).Elem()
 				currentArgId := g.BuildMetadataTypeRecursively(currentArg, nil, nil, nil)
 				fields = append(fields, NewMetadataTypeDefinitionField(currentArgId))
 			}
 		}
 
 		functionVariant := NewMetadataDefinitionVariant(
-			constructFunctionName(functionName),
+			constructFunctionName(functionValue.Type().Name()),
 			fields,
-			sc.U8(i),
-			f.Docs())
+			function.FunctionIndex(),
+			function.Docs(),
+		)
 		functionVariants = append(functionVariants, functionVariant)
 	}
 

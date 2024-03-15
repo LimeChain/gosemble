@@ -12,12 +12,12 @@ import (
 func Test_CoreVersion(t *testing.T) {
 	rt, _ := newTestRuntime(t)
 
-	res, err := rt.Exec("Core_version", []byte{})
+	versionEncBytes, err := rt.Exec("Core_version", []byte{})
 	assert.NoError(t, err)
 
-	buffer := bytes.Buffer{}
-	buffer.Write(res)
-	dec := scale.NewDecoder(&buffer)
+	buffer := bytes.NewBuffer(versionEncBytes)
+
+	dec := scale.NewDecoder(buffer)
 	runtimeVersion := runtimetypes.Version{}
 	err = dec.Decode(&runtimeVersion)
 	assert.NoError(t, err)
@@ -27,5 +27,5 @@ func Test_CoreVersion(t *testing.T) {
 	assert.Equal(t, uint32(100), runtimeVersion.SpecVersion)
 	assert.Equal(t, uint32(1), runtimeVersion.ImplVersion)
 	assert.Equal(t, uint32(1), runtimeVersion.TransactionVersion)
-	assert.Equal(t, uint32(1), runtimeVersion.StateVersion)
+	assert.Equal(t, uint8(1), runtimeVersion.StateVersion)
 }

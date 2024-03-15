@@ -7,7 +7,7 @@ import (
 	primitives "github.com/LimeChain/gosemble/primitives/types"
 )
 
-// callRemark makes an on-chain remark.
+// Makes an on-chain remark.
 // Can be executed by any origin.
 type callRemark struct {
 	primitives.Callable
@@ -54,18 +54,9 @@ func (c callRemark) Args() sc.VaryingData {
 	return c.Callable.Args()
 }
 
-// Make some on-chain remark.
-//
-// ## Complexity
-// - `O(1)`
-// The range of component `b` is `[0, 3932160]`.
 func (c callRemark) BaseWeight() primitives.Weight {
-	b := sc.Sequence[sc.U8]{}
-	if c.Arguments != nil {
-		b = c.Arguments[0].(sc.Sequence[sc.U8])
-	}
-
-	return callRemarkWeight(primitives.RuntimeDbWeight{}, sc.U64(len(b)))
+	message := c.Arguments[0].(sc.Sequence[sc.U8])
+	return callRemarkWeight(primitives.RuntimeDbWeight{}, sc.U64(len(message)))
 }
 
 func (_ callRemark) WeighData(baseWeight primitives.Weight) primitives.Weight {
@@ -81,27 +72,7 @@ func (_ callRemark) PaysFee(baseWeight primitives.Weight) primitives.Pays {
 }
 
 func (_ callRemark) Dispatch(origin primitives.RuntimeOrigin, _ sc.VaryingData) (primitives.PostDispatchInfo, error) {
-	return primitives.PostDispatchInfo{}, remark(origin)
-}
-
-// remark makes some on-chain remark.
-func remark(origin primitives.RuntimeOrigin) error {
-	_, err := EnsureSignedOrRoot(origin)
-	return err
-}
-
-// EnsureSignedOrRoot ensures the origin represents either a signed extrinsic or the root.
-// Returns an empty Option if the origin is `Root`.
-// Returns an Option with the signer if the origin is signed.
-// Returns a `BadOrigin` error if neither of the above.
-func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], error) {
-	if origin.IsRootOrigin() {
-		return sc.NewOption[primitives.AccountId](nil), nil
-	} else if origin.IsSignedOrigin() {
-		return sc.NewOption[primitives.AccountId](origin.VaryingData[1]), nil
-	}
-
-	return sc.Option[primitives.AccountId]{}, primitives.NewDispatchErrorBadOrigin()
+	return primitives.PostDispatchInfo{}, nil
 }
 
 func (_ callRemark) Docs() string {

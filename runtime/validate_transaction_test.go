@@ -437,3 +437,29 @@ func Test_ValidateTransaction_MandatoryValidation_Timestamp(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, transactionValidityResultMandatoryValidationErr.Bytes(), res)
 }
+
+func Test_ValidateTransaction_InvalidTransactionCall(t *testing.T) {
+	rt, _ := newTestRuntime(t)
+	metadata := runtimeMetadata(t, rt)
+
+	txSource := primitives.NewTransactionSourceExternal()
+	blockHash := sc.BytesToFixedSequenceU8(parentHash.ToBytes())
+
+	call, err := ctypes.NewCall(metadata, "System.apply_authorized_upgrade", codeSpecVersion101)
+
+	extrinsic := ctypes.NewExtrinsic(call)
+
+	buffer := &bytes.Buffer{}
+	txSource.Encode(buffer)
+
+	encoder := cscale.NewEncoder(buffer)
+	err = extrinsic.Encode(*encoder)
+	assert.NoError(t, err)
+
+	blockHash.Encode(buffer)
+
+	res, err := rt.Exec("TaggedTransactionQueue_validate_transaction", buffer.Bytes())
+
+	assert.NoError(t, err)
+	assert.Equal(t, transactionValidityResultCallErr.Bytes(), res)
+}

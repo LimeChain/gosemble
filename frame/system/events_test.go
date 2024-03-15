@@ -51,7 +51,7 @@ func Test_System_DecodeEvent_ExtrinsicFailed(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		types.Event{sc.NewVaryingData(sc.U8(moduleId), EventExtrinsicFailed, dispatchError, dispatchInfo)},
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventExtrinsicFailed, dispatchError, dispatchInfo)},
 		result,
 	)
 }
@@ -65,7 +65,7 @@ func Test_System_DecodeEvent_CodeUpdated(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		types.Event{sc.NewVaryingData(sc.U8(moduleId), EventCodeUpdated)},
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventCodeUpdated)},
 		result,
 	)
 }
@@ -80,7 +80,7 @@ func Test_System_DecodeEvent_NewAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		types.Event{sc.NewVaryingData(sc.U8(moduleId), EventNewAccount, targetAccount)},
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventNewAccount, targetAccount)},
 		result,
 	)
 }
@@ -95,7 +95,7 @@ func Test_System_DecodeEvent_KilledAccount(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		types.Event{sc.NewVaryingData(sc.U8(moduleId), EventKilledAccount, targetAccount)},
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventKilledAccount, targetAccount)},
 		result,
 	)
 }
@@ -115,7 +115,25 @@ func Test_System_DecodeEvent_Remarked(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t,
-		types.Event{sc.NewVaryingData(sc.U8(moduleId), EventRemarked, targetAccount, hash)},
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventRemarked, targetAccount, hash)},
+		result,
+	)
+}
+
+func Test_System_DecodeEvent_EventUpgradeAuthorized(t *testing.T) {
+	checkVersion := sc.Bool(true)
+
+	buffer := &bytes.Buffer{}
+	buffer.WriteByte(moduleId)
+	buffer.Write(EventUpgradeAuthorized.Bytes())
+	buffer.Write(codeHash.Bytes())
+	buffer.Write(checkVersion.Bytes())
+
+	result, err := DecodeEvent(moduleId, buffer)
+	assert.Nil(t, err)
+
+	assert.Equal(t,
+		types.Event{VaryingData: sc.NewVaryingData(sc.U8(moduleId), EventUpgradeAuthorized, codeHash, checkVersion)},
 		result,
 	)
 }

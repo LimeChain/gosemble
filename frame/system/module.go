@@ -18,6 +18,17 @@ import (
 
 const (
 	functionRemarkIndex = iota
+	functionSetHeapPagesIndex
+	functionSetCodeIndex
+	functionSetCodeWithoutChecksIndex
+	functionSetStorageIndex
+	functionKillStorageIndex
+	functionKillPrefixIndex
+	functionRemarkWithEventIndex
+	functionDoTaskIndex
+	functionAuthorizeUpgradeIndex
+	functionAuthorizeUpgradeWithoutChecksIndex
+	functionApplyAuthorizedUpgradeIndex
 )
 
 const (
@@ -26,6 +37,11 @@ const (
 
 type Module interface {
 	primitives.Module
+
+	CodeUpgrader
+	LogDepositor
+	primitives.EventDepositor
+
 	Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest)
 	RegisterExtraWeightUnchecked(weight primitives.Weight, class primitives.DispatchClass) error
 	NoteFinishedInitialize()
@@ -36,7 +52,7 @@ type Module interface {
 	ResetEvents()
 	Get(key primitives.AccountId) (primitives.AccountInfo, error)
 	CanDecProviders(who primitives.AccountId) (bool, error)
-	DepositEvent(event primitives.Event)
+
 	TryMutateExists(who primitives.AccountId, f func(who *primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error)
 	Metadata() primitives.MetadataModule
 
@@ -66,11 +82,15 @@ type Module interface {
 
 	StorageAllExtrinsicsLen() (sc.U32, error)
 	StorageAllExtrinsicsLenSet(value sc.U32)
+
+	StorageCodeSet(codeBlob sc.Sequence[sc.U8])
 }
 
 type module struct {
 	primitives.DefaultInherentProvider
 	hooks.DefaultDispatchModule
+	OnSetCode hooks.OnSetCode
+
 	Index       sc.U8
 	Config      *Config
 	storage     *storage
@@ -78,27 +98,52 @@ type module struct {
 	functions   map[sc.U8]primitives.Call
 	trie        io.Trie
 	ioStorage   io.Storage
+	ioMisc      io.Misc
+	ioHashing   io.Hashing
 	logger      log.WarnLogger
 	mdGenerator *primitives.MetadataTypeGenerator
 }
 
 func New(index sc.U8, config *Config, mdGenerator *primitives.MetadataTypeGenerator, logger log.WarnLogger) Module {
 	functions := make(map[sc.U8]primitives.Call)
-	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, config.Version)
+	storage := newStorage()
+	constants := newConstants(config.BlockHashCount, config.BlockWeights, config.BlockLength, config.DbWeight, *config.Version)
+	ioStorage := io.NewStorage()
+	ioHashing := io.NewHashing()
 
-	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
-
-	return module{
+	moduleInstance := module{
 		Index:       index,
 		Config:      config,
-		storage:     newStorage(),
+		storage:     storage,
 		constants:   constants,
 		functions:   functions,
 		trie:        io.NewTrie(),
-		ioStorage:   io.NewStorage(),
+		ioStorage:   ioStorage,
+		ioHashing:   ioHashing,
+		ioMisc:      io.NewMisc(),
 		mdGenerator: mdGenerator,
 		logger:      logger,
 	}
+
+	// TODO: pass it from the constructor
+	defaultOnSetCode := NewDefaultOnSetCode(moduleInstance)
+	moduleInstance.OnSetCode = defaultOnSetCode
+
+	functions[functionRemarkIndex] = newCallRemark(index, functionRemarkIndex)
+	functions[functionSetHeapPagesIndex] = newCallSetHeapPages(index, functionSetHeapPagesIndex, storage.HeapPages, moduleInstance)
+	functions[functionSetCodeIndex] = newCallSetCode(index, functionSetCodeIndex, *constants, defaultOnSetCode, moduleInstance)
+	functions[functionSetCodeWithoutChecksIndex] = newCallSetCodeWithoutChecks(index, functionSetCodeWithoutChecksIndex, *constants, defaultOnSetCode)
+	functions[functionSetStorageIndex] = newCallSetStorage(index, functionSetStorageIndex, ioStorage)
+	functions[functionKillStorageIndex] = newCallKillStorage(index, functionKillStorageIndex, ioStorage)
+	functions[functionKillPrefixIndex] = newCallKillPrefix(index, functionKillPrefixIndex, ioStorage)
+	functions[functionRemarkWithEventIndex] = newCallRemarkWithEvent(index, functionRemarkWithEventIndex, ioHashing, moduleInstance)
+	functions[functionAuthorizeUpgradeIndex] = newCallAuthorizeUpgrade(index, functionAuthorizeUpgradeIndex, moduleInstance)
+	functions[functionAuthorizeUpgradeWithoutChecksIndex] = newCallAuthorizeUpgradeWithoutChecks(index, functionAuthorizeUpgradeWithoutChecksIndex, moduleInstance)
+	functions[functionApplyAuthorizedUpgradeIndex] = newCallApplyAuthorizedUpgrade(index, functionApplyAuthorizedUpgradeIndex, moduleInstance)
+
+	moduleInstance.functions = functions
+
+	return moduleInstance
 }
 
 func (m module) name() sc.Str {
@@ -117,8 +162,26 @@ func (m module) PreDispatch(_ primitives.Call) (sc.Empty, error) {
 	return sc.Empty{}, nil
 }
 
-func (m module) ValidateUnsigned(_ primitives.TransactionSource, _ primitives.Call) (primitives.ValidTransaction, error) {
-	return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+func (m module) ValidateUnsigned(_ primitives.TransactionSource, call primitives.Call) (primitives.ValidTransaction, error) {
+	switch call := call.(type) {
+	case callApplyAuthorizedUpgrade:
+		code := call.Args()[0].(sc.Sequence[sc.U8])
+
+		hash, err := m.validateAuthorizedUpgrade(code)
+		if err != nil {
+			return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewInvalidTransactionCall())
+		}
+
+		return primitives.ValidTransaction{
+			Priority:  100,
+			Requires:  sc.Sequence[primitives.TransactionTag]{},
+			Provides:  sc.Sequence[primitives.TransactionTag]{sc.BytesToSequenceU8(sc.FixedSequenceU8ToBytes(hash.FixedSequence))},
+			Longevity: primitives.TransactionLongevity(math.MaxUint64),
+			Propagate: true,
+		}, nil
+	default:
+		return primitives.ValidTransaction{}, primitives.NewTransactionValidityError(primitives.NewUnknownTransactionNoUnsignedValidator())
+	}
 }
 
 func (m module) BlockHashCount() types.BlockHashCount {
@@ -195,6 +258,10 @@ func (m module) StorageAllExtrinsicsLen() (sc.U32, error) {
 
 func (m module) StorageAllExtrinsicsLenSet(value sc.U32) {
 	m.storage.AllExtrinsicsLen.Put(value)
+}
+
+func (m module) StorageCodeSet(codeBlob sc.Sequence[sc.U8]) {
+	m.storage.Code.Put(codeBlob)
 }
 
 func (m module) Initialize(blockNumber sc.U64, parentHash primitives.Blake2bHash, digest primitives.Digest) {
@@ -391,6 +458,11 @@ func (m module) DepositEvent(event primitives.Event) {
 	m.depositEventIndexed([]primitives.H256{}, event)
 }
 
+// Deposits a log and ensures it matches the block's log data.
+func (m module) DepositLog(item primitives.DigestItem) {
+	m.storage.Digest.AppendItem(item)
+}
+
 func (m module) TryMutateExists(who primitives.AccountId, f func(*primitives.AccountData) (sc.Encodable, error)) (sc.Encodable, error) {
 	account, err := m.Get(who)
 	if err != nil {
@@ -514,9 +586,11 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	if err != nil {
 		return err
 	}
+
 	if blockNumber == 0 {
 		return nil
 	}
+
 	phase, err := m.storage.ExecutionPhase.Get()
 	if err != nil {
 		return err
@@ -532,13 +606,13 @@ func (m module) depositEventIndexed(topics []primitives.H256, event primitives.E
 	if err != nil {
 		return err
 	}
+
 	newEventCount, err := sc.CheckedAddU32(oldEventCount, 1)
 	if err != nil {
 		return err
 	}
 
 	m.storage.EventCount.Put(newEventCount)
-
 	m.storage.Events.Append(eventRecord)
 
 	topicValue := sc.NewVaryingData(blockNumber, oldEventCount)
@@ -558,56 +632,36 @@ func (m module) onKilledAccount(who primitives.AccountId) {
 	m.DepositEvent(newEventKilledAccount(m.Index, who))
 }
 
-func (m module) errorsDefinition() *primitives.MetadataTypeDefinition {
-	def := primitives.NewMetadataTypeDefinitionVariant(
-		sc.Sequence[primitives.MetadataDefinitionVariant]{
-			primitives.NewMetadataDefinitionVariant(
-				"InvalidSpecName",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorInvalidSpecName,
-				"The name of specification does not match between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"SpecVersionNeedsToIncrease",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorSpecVersionNeedsToIncrease,
-				"The specification version is not allowed to decrease between the current runtime and the new runtime."),
-			primitives.NewMetadataDefinitionVariant(
-				"FailedToExtractRuntimeVersion",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorFailedToExtractRuntimeVersion,
-				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonDefaultComposite",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonDefaultComposite,
-				"Suicide called when the account has non-default composite data."),
-			primitives.NewMetadataDefinitionVariant(
-				"NonZeroRefCount",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorNonZeroRefCount,
-				"There is a non-zero reference count preventing the account from being purged."),
-			primitives.NewMetadataDefinitionVariant(
-				"CallFiltered",
-				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
-				ErrorCallFiltered,
-				"The origin filter prevent the call to be dispatched."),
-		})
-	return &def
-}
-
 func (m module) Metadata() primitives.MetadataModule {
-	// Build System Calls Metadata
-	metadataIdSystemCalls := m.mdGenerator.BuildCallsMetadata("System", m.functions, &sc.Sequence[primitives.MetadataTypeParameter]{primitives.NewMetadataEmptyTypeParameter("T")})
-	// Build System Errors Metadata
-	errorsMetadataId := m.mdGenerator.BuildErrorsMetadata("System", m.errorsDefinition())
+	// build calls metadata
+	metadataIdSystemCalls := m.mdGenerator.BuildCallsMetadata(
+		"System",
+		m.functions,
+		&sc.Sequence[primitives.MetadataTypeParameter]{
+			primitives.NewMetadataEmptyTypeParameter("T"),
+		},
+	)
+
+	// build errors metadata
+	errorsMetadataId := m.mdGenerator.BuildErrorsMetadata(
+		"System",
+		m.errorsDefinition(),
+	)
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.ExtrinsicPhase{}), &sc.Sequence[sc.Str]{"frame_system", "Phase"}, new(primitives.ExtrinsicPhase).MetadataDefinition(), nil)
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})), &sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
-		primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
-		primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
-	})
 
-	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.WeightsPerClass{}), &sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil)
+	m.mdGenerator.BuildMetadataTypeRecursively(
+		reflect.ValueOf(execTypes.NewBlock(primitives.Header{}, sc.Sequence[primitives.UncheckedExtrinsic]{})),
+		&sc.Sequence[sc.Str]{"sp_runtime", "generic", "block", "Block"}, nil, &sc.Sequence[primitives.MetadataTypeParameter]{
+			primitives.NewMetadataTypeParameter(metadata.Header, "Header"),
+			primitives.NewMetadataTypeParameter(metadata.UncheckedExtrinsic, "Extrinsic"),
+		},
+	)
+
+	m.mdGenerator.BuildMetadataTypeRecursively(
+		reflect.ValueOf(primitives.WeightsPerClass{}),
+		&sc.Sequence[sc.Str]{"frame_system", "limits", "WeightsPerClass"}, nil, nil,
+	)
 
 	m.mdGenerator.BuildMetadataTypeRecursively(reflect.ValueOf(primitives.PerDispatchClassWeight{}), &sc.Sequence[sc.Str]{"frame_support", "dispatch", "PerDispatchClass"}, nil, nil)
 
@@ -685,15 +739,73 @@ func (m module) Metadata() primitives.MetadataModule {
 	}
 }
 
+func (m module) errorsDefinition() *primitives.MetadataTypeDefinition {
+	def := primitives.NewMetadataTypeDefinitionVariant(
+		sc.Sequence[primitives.MetadataDefinitionVariant]{
+			primitives.NewMetadataDefinitionVariant(
+				"InvalidSpecName",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorInvalidSpecName,
+				"The name of specification does not match between the current runtime and the new runtime.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"SpecVersionNeedsToIncrease",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorSpecVersionNeedsToIncrease,
+				"The specification version is not allowed to decrease between the current runtime and the new runtime.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"FailedToExtractRuntimeVersion",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorFailedToExtractRuntimeVersion,
+				"Failed to extract the runtime version from the new runtime.  Either calling `Core_version` or decoding `RuntimeVersion` failed.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"NonDefaultComposite",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonDefaultComposite,
+				"Suicide called when the account has non-default composite data.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"NonZeroRefCount",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNonZeroRefCount,
+				"There is a non-zero reference count preventing the account from being purged.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"CallFiltered",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorCallFiltered,
+				"The origin filter prevent the call to be dispatched.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"NothingAuthorized",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorNothingAuthorized,
+				"No upgrade authorized.",
+			),
+			primitives.NewMetadataDefinitionVariant(
+				"Unauthorized",
+				sc.Sequence[primitives.MetadataTypeDefinitionField]{},
+				ErrorUnauthorized,
+				"The submitted code is not authorized.",
+			),
+		})
+	return &def
+}
+
 func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 	typesPhaseId, _ := m.mdGenerator.GetId("ExtrinsicPhase")
 
 	return sc.Sequence[primitives.MetadataType]{
-		primitives.NewMetadataType(metadata.TypesSystemEventStorage,
+		primitives.NewMetadataType(
+			metadata.TypesSystemEventStorage,
 			"Vec<Box<EventRecord<T::RuntimeEvent, T::Hash>>>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesEventRecord))),
 
-		primitives.NewMetadataType(metadata.TypesVecBlockNumEventIndex, "Vec<BlockNumber, EventIndex>",
+		primitives.NewMetadataType(
+			metadata.TypesVecBlockNumEventIndex,
+			"Vec<BlockNumber, EventIndex>",
 			primitives.NewMetadataTypeDefinitionSequence(sc.ToCompact(metadata.TypesTupleU32U32))),
 
 		primitives.NewMetadataTypeWithParams(metadata.TypesEventRecord,
@@ -708,9 +820,11 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 				primitives.NewMetadataTypeParameter(metadata.TypesRuntimeEvent, "E"),
 				primitives.NewMetadataTypeParameter(metadata.TypesH256, "T"),
 			}),
+
 		primitives.NewMetadataTypeWithPath(metadata.TypesSystemEvent,
 			"frame_system pallet Event",
-			sc.Sequence[sc.Str]{"frame_system", "pallet", "Event"}, primitives.NewMetadataTypeDefinitionVariant(
+			sc.Sequence[sc.Str]{"frame_system", "pallet", "Event"},
+			primitives.NewMetadataTypeDefinitionVariant(
 				sc.Sequence[primitives.MetadataDefinitionVariant]{
 					primitives.NewMetadataDefinitionVariant(
 						"ExtrinsicSuccess",
@@ -754,6 +868,14 @@ func (m module) metadataTypes() sc.Sequence[primitives.MetadataType] {
 						},
 						EventRemarked,
 						"Events.Remarked"),
+					primitives.NewMetadataDefinitionVariant(
+						"UpgradeAuthorized",
+						sc.Sequence[primitives.MetadataTypeDefinitionField]{
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.TypesH256, "code_hash", "T::Hash"),
+							primitives.NewMetadataTypeDefinitionFieldWithNames(metadata.PrimitiveTypesBool, "check_version", "bool"),
+						},
+						EventUpgradeAuthorized,
+						"Events.UpgradeAuthorized"),
 				})),
 
 		primitives.NewMetadataTypeWithPath(metadata.TypesEra, "Era", sc.Sequence[sc.Str]{"sp_runtime", "generic", "era", "Era"}, primitives.NewMetadataTypeDefinitionVariant(primitives.EraTypeDefinition())),
@@ -765,99 +887,132 @@ func (m module) metadataStorage() sc.Option[primitives.MetadataModuleStorage] {
 	perDispatchClassWeightId, _ := m.mdGenerator.GetId("PerDispatchClassWeight")
 	lastRuntimeUpgradeInfoId, _ := m.mdGenerator.GetId("LastRuntimeUpgradeInfo")
 
-	return sc.NewOption[primitives.MetadataModuleStorage](primitives.MetadataModuleStorage{
-		Prefix: m.name(),
-		Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
-			primitives.NewMetadataModuleStorageEntry(
-				"Account",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionMap(
-					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
-					sc.ToCompact(metadata.TypesAddress32),
-					sc.ToCompact(metadata.TypesAccountInfo)),
-				"The full account information for a particular account ID."),
-			primitives.NewMetadataModuleStorageEntry(
-				"ExtrinsicCount",
-				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.PrimitiveTypesU32)),
-				"Total extrinsics count for the current block."),
-			primitives.NewMetadataModuleStorageEntry(
-				"BlockWeight",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(perDispatchClassWeightId)),
-				"The current weight for the block."),
-			primitives.NewMetadataModuleStorageEntry(
-				"AllExtrinsicsLen",
-				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.PrimitiveTypesU32)),
-				"Total length (in bytes) for all extrinsics put together, for the current block."),
-			primitives.NewMetadataModuleStorageEntry(
-				"BlockHash",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionMap(
-					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
-					sc.ToCompact(metadata.PrimitiveTypesU32),
-					sc.ToCompact(metadata.TypesFixedSequence32U8)),
-				"Map of block numbers to block hashes."),
-			primitives.NewMetadataModuleStorageEntry(
-				"ExtrinsicData",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionMap(
-					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
-					sc.ToCompact(metadata.PrimitiveTypesU32),
-					sc.ToCompact(metadata.TypesSequenceU8)),
-				"Extrinsics data for the current block (maps an extrinsic's index to its data)."),
-			primitives.NewMetadataModuleStorageEntry(
-				"Number",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.PrimitiveTypesU32)),
-				"The current block number being processed. Set by `execute_block`."),
-			primitives.NewMetadataModuleStorageEntry(
-				"ParentHash",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.TypesFixedSequence32U8)),
-				"Hash of the previous block."),
-			primitives.NewMetadataModuleStorageEntry(
-				"Digest",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.TypesDigest)),
-				"Digest of the current block, also part of the block header."),
-			primitives.NewMetadataModuleStorageEntry(
-				"Events",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesSystemEventStorage)),
-				"Events deposited for the current block.   NOTE: The item is unbound and should therefore never be read on chain."),
-			primitives.NewMetadataModuleStorageEntry(
-				"EventTopics",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionMap(
-					sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
-					sc.ToCompact(metadata.TypesH256),
-					sc.ToCompact(metadata.TypesVecBlockNumEventIndex)), "Mapping between a topic (represented by T::Hash) and a vector of indexes  of events in the `<Events<T>>` list."),
-			primitives.NewMetadataModuleStorageEntry(
-				"EventCount",
-				primitives.MetadataModuleStorageEntryModifierDefault,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(
-					sc.ToCompact(metadata.PrimitiveTypesU32)),
-				"The number of events in the `Events<T>` list."),
-			primitives.NewMetadataModuleStorageEntry(
-				"LastRuntimeUpgrade",
-				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(lastRuntimeUpgradeInfoId)),
-				"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened."),
-			primitives.NewMetadataModuleStorageEntry(
-				"ExecutionPhase",
-				primitives.MetadataModuleStorageEntryModifierOptional,
-				primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(typesPhaseId)),
-				"The execution phase of the block."),
-		},
-	})
+	return sc.NewOption[primitives.MetadataModuleStorage](
+		primitives.MetadataModuleStorage{
+			Prefix: m.name(),
+			Items: sc.Sequence[primitives.MetadataModuleStorageEntry]{
+				primitives.NewMetadataModuleStorageEntry(
+					"Account",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+						sc.ToCompact(metadata.TypesAddress32),
+						sc.ToCompact(metadata.TypesAccountInfo),
+					),
+					"The full account information for a particular account ID.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"ExtrinsicCount",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+					),
+					"Total extrinsics count for the current block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"BlockWeight",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(perDispatchClassWeightId),
+					),
+					"The current weight for the block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"AllExtrinsicsLen",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+					),
+					"Total length (in bytes) for all extrinsics put together, for the current block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"BlockHash",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+						sc.ToCompact(metadata.TypesFixedSequence32U8),
+					),
+					"Map of block numbers to block hashes.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"ExtrinsicData",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiXX64},
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+						sc.ToCompact(metadata.TypesSequenceU8),
+					),
+					"Extrinsics data for the current block (maps an extrinsic's index to its data).",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"Number",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+					),
+					"The current block number being processed. Set by `execute_block`.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"ParentHash",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.TypesFixedSequence32U8),
+					),
+					"Hash of the previous block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"Digest",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.TypesDigest),
+					),
+					"Digest of the current block, also part of the block header.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"Events",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesSystemEventStorage)),
+					"Events deposited for the current block.   NOTE: The item is unbound and should therefore never be read on chain.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"EventTopics",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionMap(
+						sc.Sequence[primitives.MetadataModuleStorageHashFunc]{primitives.MetadataModuleStorageHashFuncMultiBlake128Concat},
+						sc.ToCompact(metadata.TypesH256),
+						sc.ToCompact(metadata.TypesVecBlockNumEventIndex),
+					),
+					"Mapping between a topic (represented by T::Hash) and a vector of indexes  of events in the `<Events<T>>` list.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"EventCount",
+					primitives.MetadataModuleStorageEntryModifierDefault,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(
+						sc.ToCompact(metadata.PrimitiveTypesU32),
+					),
+					"The number of events in the `Events<T>` list.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"LastRuntimeUpgrade",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(lastRuntimeUpgradeInfoId)),
+					"Stores the `spec_version` and `spec_name` of when the last runtime upgrade happened.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"ExecutionPhase",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(typesPhaseId)),
+					"The execution phase of the block.",
+				),
+				primitives.NewMetadataModuleStorageEntry(
+					"AuthorizedUpgrade",
+					primitives.MetadataModuleStorageEntryModifierOptional,
+					primitives.NewMetadataModuleStorageEntryDefinitionPlain(sc.ToCompact(metadata.TypesCodeUpgradeAuthorization)),
+					"Optional code upgrade authorization for the runtime.",
+				),
+			},
+		})
 }
 
 func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData) {
@@ -866,4 +1021,128 @@ func mutateAccount(account *primitives.AccountInfo, data *primitives.AccountData
 	} else {
 		account.Data = primitives.AccountData{}
 	}
+}
+
+// CanSetCode determines whether it is possible to update the code.
+//
+// Checks the given code if it is a valid runtime wasm blob by instantianting
+// it and extracting the runtime version of it. It checks that the runtime version
+// of the old and new runtime has the same spec name and that the spec version is increasing.
+func (m module) CanSetCode(codeBlob sc.Sequence[sc.U8]) error {
+	currentVersion := *m.Config.Version
+
+	runtimeVersionBytes := m.ioMisc.RuntimeVersion(sc.SequenceU8ToBytes(codeBlob))
+	buffer := bytes.NewBuffer(runtimeVersionBytes)
+	sc.DecodeBool(buffer)            // option
+	sc.DecodeCompact[sc.U32](buffer) // length
+
+	newVersion, err := primitives.DecodeRuntimeVersion(buffer)
+	if err != nil {
+		return NewDispatchErrorFailedToExtractRuntimeVersion(m.Index)
+	}
+
+	if newVersion.SpecName != currentVersion.SpecName {
+		return NewDispatchErrorInvalidSpecName(m.Index)
+	}
+
+	if newVersion.SpecVersion <= currentVersion.SpecVersion {
+		return NewDispatchErrorSpecVersionNeedsToIncrease(m.Index)
+	}
+
+	return nil
+}
+
+// To be called after any origin/privilege checks. Put the code upgrade authorization into
+// storage and emit an event.
+func (m module) DoAuthorizeUpgrade(codeHash primitives.H256, checkVersion sc.Bool) {
+	value := CodeUpgradeAuthorization{codeHash, checkVersion}
+	m.storage.AuthorizedUpgrade.Put(value)
+	m.DepositEvent(newEventUpgradeAuthorized(m.Index, codeHash, checkVersion))
+}
+
+// DoApplyAuthorizeUpgrade applies an authorized upgrade, performing any validation checks,
+// and removing the authorization. Whether or not the code is set directly depends on the
+// `OnSetCode` configuration of the runtime.
+func (m module) DoApplyAuthorizeUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives.PostDispatchInfo, error) {
+	_, err := m.validateAuthorizedUpgrade(codeBlob)
+	if err != nil {
+		return primitives.PostDispatchInfo{}, err
+	}
+
+	err = m.OnSetCode.SetCode(codeBlob)
+	if err != nil {
+		return primitives.PostDispatchInfo{}, err
+	}
+
+	m.storage.AuthorizedUpgrade.Clear()
+
+	post := primitives.PostDispatchInfo{
+		// consume the rest of the block to prevent further transactions
+		ActualWeight: sc.NewOption[primitives.Weight](m.constants.BlockWeights.MaxBlock),
+		// no fee for valid upgrade
+		PaysFee: primitives.PaysNo,
+	}
+
+	return post, nil
+}
+
+// Check that provided `code` can be upgraded to. Namely, check that its hash matches an
+// existing authorization and that it meets the specification requirements of `can_set_code`.
+func (m module) validateAuthorizedUpgrade(codeBlob sc.Sequence[sc.U8]) (primitives.H256, error) {
+	authorization, err := m.storage.AuthorizedUpgrade.Get()
+	if err != nil {
+		return primitives.H256{}, NewDispatchErrorNothingAuthorized(m.Index)
+	}
+
+	hash := m.ioHashing.Blake256(sc.SequenceU8ToBytes(codeBlob))
+	actualHash, err := primitives.NewH256(sc.BytesToFixedSequenceU8(hash)...)
+	if err != nil {
+		return primitives.H256{}, err
+	}
+
+	if !reflect.DeepEqual(actualHash, authorization.CodeHash) {
+		return primitives.H256{}, NewDispatchErrorUnauthorized(m.Index)
+	}
+
+	if authorization.CheckVersion {
+		err := m.CanSetCode(codeBlob)
+		if err != nil {
+			return primitives.H256{}, err
+		}
+	}
+
+	return actualHash, nil
+}
+
+// EnsureRoot ensures that the origin represents the root.
+func EnsureRoot(origin primitives.RuntimeOrigin) error {
+	if origin.IsRootOrigin() {
+		return nil
+	} else {
+		return primitives.NewDispatchErrorBadOrigin()
+	}
+}
+
+// EnsureSigned ensures that the origin represents a signed extrinsic (i.e. transaction).
+// Returns `Ok` with the account that signed the extrinsic or an `Err` otherwise.
+func EnsureSigned(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], error) {
+	if origin.IsSignedOrigin() {
+		return sc.NewOption[primitives.AccountId](origin.VaryingData[1]), nil
+	}
+
+	return sc.Option[primitives.AccountId]{}, primitives.NewDispatchErrorBadOrigin()
+}
+
+// EnsureSignedOrRoot ensures the origin represents either a signed extrinsic or the root.
+// Returns an empty Option if the origin is `Root`.
+// Returns an Option with the signer if the origin is signed.
+// Returns a `BadOrigin` error if neither of the above.
+func EnsureSignedOrRoot(origin primitives.RawOrigin) (sc.Option[primitives.AccountId], error) {
+	if origin.IsRootOrigin() {
+		return sc.NewOption[primitives.AccountId](nil), nil
+	} else if origin.IsSignedOrigin() {
+		return sc.NewOption[primitives.AccountId](origin.VaryingData[1]), nil
+	}
+
+	return sc.Option[primitives.AccountId]{}, primitives.NewDispatchErrorBadOrigin()
 }
